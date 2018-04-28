@@ -1,6 +1,7 @@
 import os
 from os import path
 from pathlib import Path
+import shutil
 
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
@@ -37,6 +38,8 @@ def run_nicad(*args, **kwargs):
         paramindex +=1
         
     srcdir = Utility.get_normalized_path(srcdir)
+    if not os.path.exists(srcdir):
+        raise ValueError("'srcdir' doesn't exist for NiCad operation.")
     
     if 'outdir' in kwargs.keys():
         outdir = kwargs['outdir']
@@ -51,6 +54,7 @@ def run_nicad(*args, **kwargs):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
+    shutil.copytree(srcdir, outdir)
     cmdargs = [granularity, language, srcdir, outdir]
                        
     for arg in args[2:]:

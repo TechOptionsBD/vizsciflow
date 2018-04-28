@@ -11,15 +11,17 @@
            "runmode": "local",
            "desc": "Automated Detection of Near-Miss Intentional Clones",
            "returns": "string",
-           "example":"NiCad(granularity=, language=, srcdir=, outdir=])",
+           "example":"output = NiCad(granularity='functions', language='java', srcdir='/public/nicad/srcdir', output='/public/nicad/outdir'])",
            "params":[  
             {  
                "name":"granularity",
-               "type":"string"
+               "type":"string",
+               "description": "functions/blocks"
             },
             {
                 "name": "language",
-                "type": "string"
+                "type": "string",
+                "description": "java/c/python"
             },
             {
                 "name": "srcdir",

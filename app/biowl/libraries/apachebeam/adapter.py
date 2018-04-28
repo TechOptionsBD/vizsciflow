@@ -1,6 +1,5 @@
-import sys
 import os
-import uuid
+from os import path
 
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
@@ -16,11 +15,11 @@ def count_words(*args, **kwargs):
     
     paramindex = 0
     if 'input' in kwargs.keys():
-        input = kwargs['input']
+        inputfile = kwargs['input']
     else:
         if len(args) == paramindex:
             raise ValueError("Argument 'input' missing.")
-        input = args[paramindex]
+        inputfile = args[paramindex]
         paramindex +=1
     
     if 'output' in kwargs.keys():
@@ -31,19 +30,16 @@ def count_words(*args, **kwargs):
         output = args[paramindex]
         paramindex +=1
     
-    input = Utility.get_normalized_path(input)
+    inputfile = Utility.get_normalized_path(inputfile)
     output = Utility.get_normalized_path(output)
     
-    args = ['-m', 'apache_beam.examples.wordcount', input, output]
+    args = ['-m', 'apache_beam.examples.wordcount', inputfile, output]
     
     _err, _ = run_apachebeam(args)
     
     fs = PosixFileSystem(Utility.get_rootdir(2))
     stripped_path = fs.strip_root(output)
     if not os.path.exists(output):
-        raise ValueError("CountWords could not generate the file " + stripped_path + " due to error: " + err)
+        raise ValueError("CountWords could not generate the file " + stripped_path + " due to error: " + _err)
     
     return stripped_path
-    
-if __name__ == "__main__":
-    run_hadoop(sys.argv[1], sys.argv[2])

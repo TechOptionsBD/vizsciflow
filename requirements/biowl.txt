@@ -1,0 +1,8 @@
+couchdb
+pyparsing
+hdfs==2.0.15
+biopython 
+bioblend
+pysam
+celery==4.1.1
+redis

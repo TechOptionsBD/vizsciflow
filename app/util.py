@@ -41,32 +41,35 @@ class Utility:
         return path
     
     @staticmethod
-    def fs_by_prefix(path):
+    def create_fs(ds):
+        if ds.type == 'hdfs':
+            return HadoopFileSystem(ds.url, ds.root, ds.user)
+        elif ds.type == 'posix':
+            return PosixFileSystem(ds.url, ds.name)
+        elif ds.type == 'gfs':
+            return GalaxyFileSystem(ds.url, ds.password)
+    
+    @staticmethod
+    def fs_type_by_prefix(path):
         if path:
-            path = os.path.normpath(path)
-            fs = path.split(os.sep)
-            if not fs:
-                return None
+            #path = os.path.normpath(path)
+            datasources = DataSource.query.all()
+            for ds in datasources:
+                if ds.prefix:
+                    if path.startswith(ds.prefix):
+                        return ds.type
+                    
+                if ds.url:
+                    if path.startswith(ds.url):
+                        return ds.type
+                    
+        return 'posix'
             
-            dsid = 0
-            if fs[0] == 'HDFS':
-                dsid = 1
-            elif fs[0] == 'GalaxyFS':
-                dsid = 3
-            else:
-                dsid = 2 # fs[0] == 'LocalFS':
-        else:
-            dsid = 2 # LocalFS is default
-        
-        ds = DataSource.query.get(dsid)
-        root = Utility.get_rootdir(ds.id)
-        
-        if dsid == 1:
-            return HadoopFileSystem(ds.url, 'hdfs')
-        elif dsid == 3:
-            return GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
-        else:
-            return PosixFileSystem(root)
+    @staticmethod
+    def fs_by_prefix(path):
+        fs_type = Utility.fs_type_by_prefix(path)
+        ds = DataSource.query.filter_by(type = fs_type).first()
+        return Utility.create_fs(ds.url)
     
     @staticmethod
     def get_normalized_path(path):

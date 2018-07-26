@@ -6,3 +6,4 @@ bioblend
 pysam
 celery==4.1.1
 redis
+paramiko==2.4.1

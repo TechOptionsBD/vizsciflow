@@ -1,10 +1,32 @@
 import paramiko
+from scp import SCPClient
 
-def ssh_command(myhost, myuser, mypassword, command):
+def get_ssh_client(myhost, myuser, mypassword):
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh_client.connect(hostname=myhost, username=myuser, password=mypassword)
-    stdin, stdout, stderr = ssh_client.exec_command(command)
+    return ssh_client
+
+def ssh_command(myhost, myuser, mypassword, command):
+    ssh_client = get_ssh_client(myhost, myuser, mypassword)
+    _, stdout, _ = ssh_client.exec_command(command)
     exit_status = stdout.channel.recv_exit_status() # Channel.exit_status_ready for non-blocking call
     ssh_client.close()
     return exit_status
+
+def ssh_copy(myhost, myuser, mypassword, localpath, remotepath):
+    ssh_client = get_ssh_client(myhost, myuser, mypassword)
+    sftp = ssh_client.open_sftp()
+    sftp.put(localpath, remotepath)
+    sftp.close()
+    ssh_client.close()
+    
+def scp_get(myhost, myuser, mypassword, src, dest):
+    ssh_client = get_ssh_client(myhost, myuser, mypassword)
+    with SCPClient(ssh_client.get_transport()) as scp:
+        scp.get(src, local_path=dest, recursive=True)
+    
+def scp_put(myhost, myuser, mypassword, src, dest):
+    ssh_client = get_ssh_client(myhost, myuser, mypassword)
+    with SCPClient(ssh_client.get_transport()) as scp:
+        scp.put(src, recursive=True, remote_path=dest)

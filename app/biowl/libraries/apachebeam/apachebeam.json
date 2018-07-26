@@ -2,8 +2,8 @@
     "functions": [
        {
            "org": "SRLAB",
-           "package": "ApacheBeam",
-           "module": "libraries.apachebeam.adapter",
+           "package": "beam",
+           "module": "app.biowl.libraries.apachebeam.adapter",
            "group": "Texts",
            "level": "1",
            "name":"CountWords",
@@ -19,8 +19,31 @@
             } 
             ],
            "desc": "Count number of individual words in a document.",
-           "example": "CountWords(input='/public/doc.txt', output='/public/counts')",
+           "example": "beam.CountWords(input='/public/doc.txt', output='/public/counts')",
            "runmode": "local"
+       },
+       {
+           "org": "SRLAB",
+           "package": "beam",
+           "module": "app.biowl.libraries.apachebeam.adapter",
+           "group": "Quality",
+           "level": 0,
+           "name":"CheckQuality",
+           "internal":"run_beam_quality",
+           "runmode": "local",
+           "desc": "Apache beam script to measure the quality of fastq file(s) using fastqc tool.",
+           "returns": "string",
+           "example":"beam.CheckQuality(data=, [outdir=], [runner='spark'])",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"string"
+            },
+            {
+                "name": "outdir",
+                "type": "string"
+            }            
+            ]
        }
     ]
 }

@@ -11,7 +11,7 @@
            "runmode": "local",
            "desc": "Measure the quality of a fastq file using fastqc tool.",
            "returns": "string",
-           "example":"FastQC(data=, [outdir=])",
+           "example":"fastqc.CheckQuality(data=, [outdir=])",
            "params":[  
             {  
                "name":"data",

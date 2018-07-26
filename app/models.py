@@ -400,18 +400,22 @@ db.event.listen(Comment.body, 'set', Comment.on_changed_body)
 class DataSource(db.Model):
     __tablename__ = 'datasources'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    type = db.Column(db.String(30), nullable=True)
+    name = db.Column(db.String(30))
+    type = db.Column(db.String(30), nullable=False)
     url = db.Column(db.Text, nullable=True)
     root = db.Column(db.Text, nullable=True)
+    public = db.Column(db.Text, nullable=True)
+    user = db.Column(db.String(30), nullable=True)
+    password = db.Column(db.String(50), nullable=True)
+    prefix = db.Column(db.String(30), nullable=True)
     
     @staticmethod
     def insert_datasources():
-        datasrc = DataSource(name='Phenodoop', type='Hadoop', url='hdfs://sr-p2irc-big1.usask.ca:8020', root='/user/phenodoop')
+        datasrc = DataSource(name='Hadoop', type='Hdfs', url='hdfs://sr-p2irc-big1.usask.ca:8020', root='/user', user='hdfs')
         db.session.add(datasrc)
-        datasrc = DataSource(name='Folder', type='FileSystem', url='/var/www/phenoproc/userdata', root='')
+        datasrc = DataSource(name='Folder', type='FileSystem', url='/var/www/biowl/storage', root='')
         db.session.add(datasrc)
-        datasrc = DataSource(name='One Drive', type='Cloud', url='sr-p2irc-big6.usask.ca:8020', root='/')
+        datasrc = DataSource(name='Galaxy', type='GalaxyFS', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a')
         db.session.add(datasrc)
         db.session.commit()
 

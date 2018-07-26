@@ -505,27 +505,22 @@ def load_data_sources_biowl():
     datasource_tree = []
     for ds in datasources:
         datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'folder': True}
-        if ds.id == 1:
+        fs = None
+        if ds.type == 'hdfs':
             # hdfs tree
             try:
-                hdfs = HadoopFileSystem(ds.url, 'hdfs')
-                if current_user.is_authenticated:
-                    datasource['nodes'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
-                datasource['nodes'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
+                fs = HadoopFileSystem(ds.url, ds.root, ds.user, ds.prefix)
             except:
                 pass
 
-        elif ds.id == 2:
+        elif ds.type == 'posix':
             # file system tree
-            posixFS = PosixFileSystem(Utility.get_rootdir(ds.id))
-            if current_user.is_authenticated:
-                datasource['nodes'].append(posixFS.make_json(current_user.username))
-            datasource['nodes'].append(posixFS.make_json(current_app.config['PUBLIC_DIR']))
-#         elif ds.id == 3:
+            fs = PosixFileSystem(ds.url, ds.prefix)
+#         elif ds.type == 'gfs':
 #             # file system tree
 #             if current_user.is_authenticated:
 #                 try:
-#                     galaxyFS = GalaxyFileSystem(ds.url, '7483fa940d53add053903042c39f853a')
+#                     galaxyFS = GalaxyFileSystem(ds.url, ds.password, ds.prefix)
 #                     nodes = galaxyFS.make_json('/')
 #                     if isinstance(nodes, list):
 #                         datasource['nodes'] = nodes
@@ -533,8 +528,19 @@ def load_data_sources_biowl():
 #                         datasource['nodes'].append(nodes)
 #                 except:
 #                     pass
- 
-        datasource_tree.append(datasource)
+        
+        try:
+            if fs:
+                if current_user.is_authenticated:
+                    if not fs.exists(current_user.username):
+                        fs.makedirs(current_user.username)
+                    datasource['nodes'].append(fs.make_json(current_user.username))
+                if ds.public:
+                    datasource['nodes'].append(fs.make_json(ds.public))
+                    
+            datasource_tree.append(datasource)
+        except:
+            pass
         
     return datasource_tree
 

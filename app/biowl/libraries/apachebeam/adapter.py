@@ -97,7 +97,7 @@ def run_beam_quality(*args, **kwargs):
     else:
         ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.CheckQ -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(data, cmd_outdir)
     
-    outpath = ssh_command(cluster, user, password, data, ssh_cmd)
+    outpath = ssh_command(cluster, user, password, ssh_cmd)
     
     if (Utility.fs_type_by_prefix(data) == 'posix'):
         if outdir:

@@ -781,7 +781,47 @@ background-color: White;
 
     textarea.on('resize', function(){
         alert()
-  });
+  });   
+
+    // Last trigger node Id
+       var lastSelectedNodeId = null;
+       // Last time trigger 
+       var lastSelectTime = null;
+       
+       // Custom business method 
+       function customBusiness(data){
+           var pos = editor.selection.getCursor();             
+           editor.session.insert(pos, data.path);
+           editor.focus();
+       }
+
+       function clickNode(event, data) {
+        if (lastSelectedNodeId && lastSelectTime) {
+         var time = new Date().getTime();
+         var t = time - lastSelectTime;
+         if (lastSelectedNodeId == data.nodeId && t < 600) {
+          customBusiness(data);
+         }
+        }
+        lastSelectedNodeId = data.nodeId;
+        lastSelectTime = new Date().getTime();
+       }
+       
+       // Custom double-click event 
+       function customDblClickFun(){
+        // Trigger when node is selected 
+        $('#tree').on('nodeSelected', function(event, data) {
+         clickNode(event, data)
+        });
+        // Node to cancel the selected trigger 
+        $('#tree').on('nodeUnselected', function(event, data) {
+         clickNode(event, data)
+        });
+       }
+       
+       customDblClickFun();
+       
+       
         function TasksViewModel() {
             var self = this;
             self.tasksURI = '/functions';

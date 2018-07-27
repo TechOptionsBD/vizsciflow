@@ -30,6 +30,7 @@ try:
     import app.biowl.libraries.seqtk.adapter
     import app.biowl.libraries.usearch.adapter
     import app.biowl.libraries.vsearch.adapter
+    import app.biowl.libraries.apachebeam.adapter
 except:
     pass
 

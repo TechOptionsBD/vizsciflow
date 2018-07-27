@@ -5,6 +5,7 @@ from os import path
 from .models import DataSource
 import sys
 from app.biowl.fileop import PosixFileSystem, HadoopFileSystem, GalaxyFileSystem
+from flask_login import current_user
 
 class Utility:
     @staticmethod
@@ -20,7 +21,7 @@ class Utility:
         if datasource_id == 1:
             return path.join(datasource.url, datasource.root)
         if datasource_id == 2:
-            return path.join(datasource.root)
+            return datasource.url
         if datasource_id == 3:
             return path.join(datasource.url, '/')
         return ""
@@ -36,7 +37,7 @@ class Utility:
     def get_quota_path(path, username):
         if not path:
             path = 'public'
-        elif not path.startswith('public'):
+        elif username and not path.startswith('public'):
             path = os.path.join(username, path)
         return path
     
@@ -69,11 +70,12 @@ class Utility:
     def fs_by_prefix(path):
         fs_type = Utility.fs_type_by_prefix(path)
         ds = DataSource.query.filter_by(type = fs_type).first()
-        return Utility.create_fs(ds.url)
+        return Utility.create_fs(ds)
     
     @staticmethod
     def get_normalized_path(path):
         fs = Utility.fs_by_prefix(path)
         path = fs.strip_root(path)
-        path = Utility.get_quota_path(path)
+        username = current_user.username if current_user.is_authenticated else ''
+        path = Utility.get_quota_path(path, username)
         return fs.normalize_path(path)

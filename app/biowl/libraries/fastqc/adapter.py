@@ -21,6 +21,7 @@ def run_fastqc(*args, **kwargs):
     
     data = Utility.get_normalized_path(data)
     
+    outdir = ''
     if 'outdir' in kwargs.keys():
         outdir = kwargs['outdir']
     else:

@@ -49,7 +49,7 @@ def run_fastqc(*args, **kwargs):
     
     _,err = func_exec_run(fastqc, *cmdargs)
         
-    fs = PosixFileSystem(Utility.get_rootdir(2))
+    fs = Utility.fs_by_prefix(outpath)
     stripped_path = fs.strip_root(outpath)
     if not os.path.exists(outpath):
         raise ValueError("FastQC could not generate the file " + stripped_path + " due to error " + err)

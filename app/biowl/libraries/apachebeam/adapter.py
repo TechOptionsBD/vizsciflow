@@ -1,11 +1,10 @@
 import os
 from os import path
-from pathlib import Path
 
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
 from ....util import Utility
-from ...ssh import ssh_command, ssh_copy, scp_get, scp_put
+from ...ssh import ssh_command, scp_get, scp_put
 
 cluster = '206.12.102.75'
 user = 'hadoop'
@@ -16,10 +15,6 @@ spark_submit_app = 'spark-submit'
 
 def run_apachebeam(*args, **kwargs):
     return func_exec_run(python_ex, args)     
-
-def run_spark_submit(*args, **kwargs):
-    wget_cmd = 'wget ' + src + ' -P ' + dest
-    return ssh_command('sr-p2irc-big8.usask.ca', 'phenodoop', 'sr-hadoop', wget_cmd)
 
 def count_words(*args, **kwargs):
     
@@ -69,7 +64,7 @@ def run_beam_quality(*args, **kwargs):
     if (Utility.fs_type_by_prefix(data) == 'posix'):
         data = Utility.get_normalized_path(data)
         remotepath = os.path.join('/home/phenodoop/phenoproc/storage/public/', os.path.basename(data))
-        ssh_copy(cluster, user, password, data, remotepath)
+        scp_put(cluster, user, password, data, remotepath)
         data = remotepath
     
     outdir = ''

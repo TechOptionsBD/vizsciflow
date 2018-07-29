@@ -14,6 +14,17 @@ def ssh_command(myhost, myuser, mypassword, command):
     ssh_client.close()
     return exit_status
 
+def ssh_hadoop_command(myhost, myuser, mypassword, command):
+    ssh_client = get_ssh_client(myhost, myuser, mypassword)
+#     pre_command = """
+#     . ~/.profile;
+#     . ~/.bashrc;
+#     """
+    _, stdout, _ = ssh_client.exec_command('export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop;' + command)
+    exit_status = stdout.channel.recv_exit_status() # Channel.exit_status_ready for non-blocking call
+    ssh_client.close()
+    return exit_status
+
 def ssh_copy(myhost, myuser, mypassword, localpath, remotepath):
     ssh_client = get_ssh_client(myhost, myuser, mypassword)
     sftp = ssh_client.open_sftp()

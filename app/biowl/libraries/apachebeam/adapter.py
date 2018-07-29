@@ -4,7 +4,7 @@ from os import path
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
 from ....util import Utility
-from ...ssh import ssh_command, scp_get, scp_put
+from ...ssh import ssh_hadoop_command, scp_get, scp_put
 
 cluster = '206.12.102.75'
 user = 'hadoop'
@@ -88,11 +88,11 @@ def run_beam_quality(*args, **kwargs):
     if outdir and Utility.fs_type_by_prefix(data) != 'posix':
         cmd_outdir = "--outDir={0}".format(outdir)
     if runner == 'spark':
-        ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.CheckQ --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 beamflows-bundled-spark.jar --inputFile={0} {1} --runner=SparkRunner".format(data, cmd_outdir)
+        ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.CheckQ --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 /home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar --inputFile={0} {1} --runner=SparkRunner".format(data, cmd_outdir)
     else:
         ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.CheckQ -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(data, cmd_outdir)
     
-    outpath = ssh_command(cluster, user, password, ssh_cmd)
+    outpath = ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
     if (Utility.fs_type_by_prefix(data) == 'posix'):
         if outdir:

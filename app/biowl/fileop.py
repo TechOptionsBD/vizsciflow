@@ -1,13 +1,11 @@
 from __future__ import print_function
 
-from os import listdir
-from os import makedirs
 import os
-from os.path import isfile, join, isdir, abspath, dirname
+from os.path import isfile, join
 import shutil
 import sys
 import tempfile
-from urllib.parse import urlparse, urlunparse, urlsplit, urljoin
+from urllib.parse import urlunparse, urlsplit, urljoin
 import pathlib
 
 __author__ = "Mainul Hossain"

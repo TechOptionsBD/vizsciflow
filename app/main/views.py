@@ -533,7 +533,7 @@ def load_data_sources_biowl():
             if fs:
                 if current_user.is_authenticated:
                     if not fs.exists(current_user.username):
-                        fs.makedirs(current_user.username)
+                        fs.create_folder(current_user.username)
                     datasource['nodes'].append(fs.make_json(current_user.username))
                 if ds.public:
                     datasource['nodes'].append(fs.make_json(ds.public))

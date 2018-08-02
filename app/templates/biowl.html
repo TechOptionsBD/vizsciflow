@@ -7,16 +7,12 @@
 {% block head %}
 {{ super() }}
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css"> -->
-<!-- <link href="bootstrap-treeview-1.2.0/src/css/bootstrap-treeview.css"> -->
-<link href="{{ url_for('static', filename='js/bootstrap-treeview-1.2.0/src/css/bootstrap-treeview.css') }}" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css">
 
 <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script>
 <script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script> -->
-<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-treeview-1.2.0/src/js/bootstrap-treeview.js') }}"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
 <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
 <!-- <script src="http://ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script> -->
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ace.js') }}"></script>
@@ -532,7 +528,7 @@ background-color: White;
         });
         
     });
-    
+
     var AjaxCalls = function(username, password) {
     	var self = this;
     	self.username = username;

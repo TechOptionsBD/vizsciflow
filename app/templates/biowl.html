@@ -7,12 +7,16 @@
 {% block head %}
 {{ super() }}
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css">
+<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css"> -->
+<!-- <link href="bootstrap-treeview-1.2.0/src/css/bootstrap-treeview.css"> -->
+<link href="{{ url_for('static', filename='js/bootstrap-treeview-1.2.0/src/css/bootstrap-treeview.css') }}" rel="stylesheet">
 
 <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script>
 <script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script> -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-treeview-1.2.0/src/js/bootstrap-treeview.js') }}"></script>
+
 <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
 <!-- <script src="http://ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script> -->
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ace.js') }}"></script>
@@ -528,7 +532,7 @@ background-color: White;
         });
         
     });
-
+    
     var AjaxCalls = function(username, password) {
     	var self = this;
     	self.username = username;
@@ -687,11 +691,38 @@ background-color: White;
       self.load();
     }
    
+   // Last trigger node Id
+       var lastSelectedNodeId = null;
+       // Last time trigger 
+       var lastSelectTime = null;
+       
+       // Custom business method 
+       function customBusiness(data){
+           var pos = editor.selection.getCursor();             
+           editor.session.insert(pos, data.path);
+           editor.focus();
+       }
+
+       function clickNode(event, data) {
+        if (lastSelectedNodeId && lastSelectTime) {
+         var time = new Date().getTime();
+         var t = time - lastSelectTime;
+         if (lastSelectedNodeId == data.nodeId && t < 600) {
+          customBusiness(data);
+         }
+        }
+        lastSelectedNodeId = data.nodeId;
+        lastSelectTime = new Date().getTime();
+       }
     
     ko.bindingHandlers.treeview = {
             init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-                $(element).treeview({data: ko.toJS(valueAccessor())}).on('nodeSelected', function(event, data) {
-                });
+                $(element).treeview({data: ko.toJS(valueAccessor())})
+                .on('nodeSelected', function(event, data) {
+                	clickNode(event, data);
+                }).on('nodeUnselected', function(event, data) {
+                	clickNode(event, data);
+        		});
             },
             update: function(element, valueAccessor, allBindings) {
             }
@@ -703,7 +734,7 @@ background-color: White;
     
     ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
     ko.applyBindings(dataSourceViewModel, $("#rename-filefolder-dialog")[0]);
-    
+
     $('#rename-filefolder-dialog').on('shown.bs.modal', function () {
     	var node = dataSourceViewModel.selectedNode();
     	if (node === undefined)
@@ -781,46 +812,7 @@ background-color: White;
 
     textarea.on('resize', function(){
         alert()
-  });   
-
-    // Last trigger node Id
-       var lastSelectedNodeId = null;
-       // Last time trigger 
-       var lastSelectTime = null;
-       
-       // Custom business method 
-       function customBusiness(data){
-           var pos = editor.selection.getCursor();             
-           editor.session.insert(pos, data.path);
-           editor.focus();
-       }
-
-       function clickNode(event, data) {
-        if (lastSelectedNodeId && lastSelectTime) {
-         var time = new Date().getTime();
-         var t = time - lastSelectTime;
-         if (lastSelectedNodeId == data.nodeId && t < 600) {
-          customBusiness(data);
-         }
-        }
-        lastSelectedNodeId = data.nodeId;
-        lastSelectTime = new Date().getTime();
-       }
-       
-       // Custom double-click event 
-       function customDblClickFun(){
-        // Trigger when node is selected 
-        $('#tree').on('nodeSelected', function(event, data) {
-         clickNode(event, data)
-        });
-        // Node to cancel the selected trigger 
-        $('#tree').on('nodeUnselected', function(event, data) {
-         clickNode(event, data)
-        });
-       }
-       
-       customDblClickFun();
-       
+  }); 
        
         function TasksViewModel() {
             var self = this;

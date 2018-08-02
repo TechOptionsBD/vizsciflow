@@ -1258,6 +1258,17 @@ background-color: White;
             	});
             }
             
+            self.statusIcon = function(status){
+            	if (status == "STARTED")
+            		return "{{ url_for('static', filename='spinner.gif') }}";
+            	else if (status == "PENDING")
+            		return "{{ url_for('static', filename='spinner.gif') }}";
+            	else if (status == "RECEIVED")
+            		return "{{ url_for('static', filename='spinner.gif') }}";
+            	else
+            		return "{{ url_for('static', filename='completed.gif') }}";
+            }
+            
             self.load = function() {
                 ajaxcalls.simple(self.runnablesURI, 'GET').done(function(data) {
                 	if (data == undefined)
@@ -1269,7 +1280,7 @@ background-color: White;
                         	id: ko.observable(s.id),
                             name: ko.observable(s.name),
                             status: ko.observable(s.status),
-                            statusImg: ko.observable(s.status == "STARTED" || s.status == "PENDING" || s.status == "RECEIVED" ? "{{ url_for('static', filename='spinner.gif') }}" : "{{ url_for('static', filename='completed.gif') }}"),
+                            statusImg: ko.observable(self.statusIcon(s.status)),
                             out: ko.observable(s.out),
                             err: ko.observable(s.err),
                             duration:ko.observable(s.duration),

@@ -1,10 +1,10 @@
-import os
 from os import path
+import os
 from pathlib import Path
 
-from ...exechelper import func_exec_run
-from ...fileop import PosixFileSystem
 from ....util import Utility
+from ...exechelper import func_exec_run
+
 
 fastqc = path.join(path.abspath(path.dirname(__file__)), path.join('lib', 'fastqc'))
 

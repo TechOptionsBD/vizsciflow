@@ -16,7 +16,6 @@ from collections import namedtuple
 import os
 import time
 
-from ...fileop import IOHelper, PosixFileSystem
 from ....util import Utility
 from ...ssh import ssh_command
 
@@ -1748,5 +1747,5 @@ def download(*args):
     path = Utility.get_normalized_path(args[4] if len(args) > 4 else None)
     fullpath = os.path.join(path, name)
     gi.datasets.download_dataset(args[3], file_path = fullpath, use_default_filename=False, wait_for_completion=True)
-    fs = PosixFileSystem(Utility.get_rootdir(2))       
+    fs = Utility.fs_by_prefix(fullpath)       
     return fs.strip_root(fullpath)

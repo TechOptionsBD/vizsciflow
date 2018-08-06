@@ -82,7 +82,7 @@ def run_bwa(*args, **kwargs):
     
     fs = Utility.fs_by_prefix(output)
     stripped_path = fs.strip_root(output)
-    if not fs.exists(output):
+    if not os.path.exists(output):
         raise ValueError("bwa could not generate the file " + stripped_path + " due to error " + err)
     
     return stripped_path

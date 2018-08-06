@@ -81,8 +81,9 @@ def run_bwa(*args, **kwargs):
     
     _,err = func_exec_run(bwa, *cmdargs)
     
-    fs = PosixFileSystem(Utility.get_rootdir(2))
-    if not os.path.exists(output):
-        raise ValueError("bwa could not generate the file " + fs.strip_root(output) + " due to error " + err)
+    fs = Utility.fs_by_prefix(output)
+    stripped_path = fs.strip_root(output)
+    if not fs.exists(output):
+        raise ValueError("bwa could not generate the file " + stripped_path + " due to error " + err)
     
-    return fs.strip_root(output)
+    return stripped_path

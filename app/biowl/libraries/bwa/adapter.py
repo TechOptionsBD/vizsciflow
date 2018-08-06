@@ -3,7 +3,6 @@ from os import path
 from pathlib import Path
 
 from ...exechelper import func_exec_run
-from ...fileop import PosixFileSystem
 from ....util import Utility
 
 bwa = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'bwa'))

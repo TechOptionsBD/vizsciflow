@@ -1,7 +1,6 @@
 import os
 import pysam
-from os import path
-from ...fileop import PosixFileSystem
+from pathlib import Path
 from ....util import Utility
 
 def run_sam_to_bam(*args, **kwargs):
@@ -37,8 +36,9 @@ def run_sam_to_bam(*args, **kwargs):
     for s in infile:
         outfile.write(s)
     
-    fs = PosixFileSystem(Utility.get_rootdir(2))
+    fs = Utility.fs_by_prefix(output)
+    stripped_path = fs.strip_root(output)
     if not os.path.exists(output):
-        raise ValueError("pysam could not generate the file " + fs.strip_root(output))
+        raise ValueError("pysam could not generate the file " + stripped_path)
     
-    return fs.strip_root(output)
+    return stripped_path

@@ -48,7 +48,8 @@ def run_flash(*args, **kwargs):
     
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-
+    
+    max_overlap = 50
     if 'max_overlap' in kwargs.keys():
         max_overlap = kwargs['max_overlap']
     else:

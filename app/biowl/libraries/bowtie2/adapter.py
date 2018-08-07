@@ -3,7 +3,6 @@ from os import path
 from pathlib import Path
 
 from ...exechelper import func_exec_run
-from ...fileop import PosixFileSystem
 from ....util import Utility
 
 bowtie2 = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'bowtie2'))
@@ -84,7 +83,7 @@ def run_bwa(*args, **kwargs):
     
     _,err = func_exec_run(bowtie2, *cmdargs)
     
-    fs = PosixFileSystem(Utility.get_rootdir(2))
+    fs = Utility.fs_by_prefix(output)
     if not os.path.exists(output):
         raise ValueError("bowtie2 could not generate the file " + fs.strip_root(output) + " due to error " + err)
     

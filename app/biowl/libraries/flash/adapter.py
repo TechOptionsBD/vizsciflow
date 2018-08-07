@@ -1,11 +1,16 @@
 import os
 from os import path
 from ...exechelper import func_exec_run
-from ...fileop import IOHelper, PosixFileSystem
+from ...fileop import PosixFileSystem
 from ....util import Utility
 
 flash = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'flash'))
 
+# FLASH (Fast Length Adjustment of SHort reads) is a very fast and accurate software tool 
+# to merge paired-end reads from next-generation sequencing experiments. FLASH is designed 
+# to merge pairs of reads when the original DNA fragments are shorter than twice the 
+# length of reads. The resulting longer reads can significantly improve genome assemblies. 
+# They can also improve transcriptome assembly when FLASH is used to merge RNA-seq data.
 def run_flash(*args, **kwargs):
     paramindex = 0
     if 'data1' in kwargs.keys():
@@ -28,6 +33,7 @@ def run_flash(*args, **kwargs):
     
     data2 = Utility.get_normalized_path(data2)
     
+    outdir = ''
     if 'outdir' in kwargs.keys():
         outdir = kwargs['outdir']
     else:
@@ -58,7 +64,9 @@ def run_flash(*args, **kwargs):
     cmdargs.append(data1)
     cmdargs.append(data2)
 
-    return func_exec_run(flash, *cmdargs)
+    func_exec_run(flash, *cmdargs)
+    fs = Utility.fs_by_prefix(outdir)
+    return fs.strip_root(outdir)
 
 def run_flash_recursive(*args):
     fs = PosixFileSystem(Utility.get_rootdir(2))

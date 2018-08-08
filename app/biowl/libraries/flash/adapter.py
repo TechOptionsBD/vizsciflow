@@ -17,7 +17,7 @@ def run_flash(*args, **kwargs):
         data1 = kwargs['data1']
     else:
         if len(args) == paramindex:
-            raise ValueError("Argument missing error in FastQC.")
+            raise ValueError("Argument missing error in Flash.")
         data1 = args[paramindex]
         paramindex +=1
     
@@ -27,7 +27,7 @@ def run_flash(*args, **kwargs):
         data2 = kwargs['data2']
     else:
         if len(args) == paramindex:
-            raise ValueError("Argument missing error in FastQC.")
+            raise ValueError("Argument missing error in Flash.")
         data2 = args[paramindex]
         paramindex +=1
     

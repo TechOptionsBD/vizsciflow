@@ -9,17 +9,19 @@
            "name":"MergePear",
            "internal":"run_pear",
            "runmode": "local",
-           "desc": "Pair-end read merger. It evaluates all possible paired-end read overlaps. In addition, it implements a statistical test for minimizing false-positive results.",
+           "desc": "Pair-end read merger for fastq files. It evaluates all possible paired-end read overlaps. In addition, it implements a statistical test for minimizing false-positive results.",
            "returns": "string",
-           "example":"MergePear(forward_fastq, reverse_fastq, output)",
+           "example":"MergePear(data1=, data2=, output=)",
            "params":[  
             {  
-               "name":"forward_fastq",
-               "type":"string"
+               "name":"data1",
+               "type":"string",
+               "desc":"forward fastq file"
             },
             {  
-               "name":"reverse_fastq",
-               "type":"string"
+               "name":"data2",
+               "type":"string",
+               "desc":"reverse fastq file"
             },
             {
                 "name": "output",

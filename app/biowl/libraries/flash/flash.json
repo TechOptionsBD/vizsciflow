@@ -11,7 +11,7 @@
            "runmode": "local",
            "desc": "Merge mates from fragments that are shorter than twice the read length.",
            "returns": "string",
-           "example":"Merge(data1, data2, [outdir=], [max_overlap=50])",
+           "example":"Merge(data1=, data2=, [outdir=], [max_overlap=50])",
            "params":[  
             {  
                "name":"data1",

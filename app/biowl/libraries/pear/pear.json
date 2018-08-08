@@ -24,8 +24,9 @@
                "desc":"reverse fastq file"
             },
             {
-                "name": "output",
-                "type": "string"
+               "name": "output",
+               "type": "string",
+               "desc":"output directory with filename prefix"
             }            
             ]
        }

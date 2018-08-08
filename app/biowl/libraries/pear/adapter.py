@@ -39,7 +39,9 @@ def run_pear(*args, **kwargs):
             raise ValueError("Invalid call format for PEAR.")
         output = args[paramindex]
         paramindex +=1
-        
+     
+    output = Utility.get_normalized_path(output)
+       
     cmdargs = []
     cmdargs.append("-o {0}".format(output))
     
@@ -50,10 +52,18 @@ def run_pear(*args, **kwargs):
     cmdargs.append(reverse_fastq)
     
     _,err = func_exec_run(pear, *cmdargs)
+
+    outdir = os.path.dirname(output)
+    prefix = os.path.basename(output) + "."
+    files = os.listdir(outdir)
     
-    fs = Utility.fs_by_prefix(output)
-    stripped_path = fs.strip_root(output)
-    if not os.path.exists(output):
-        raise ValueError("Pear could not generate the file " + stripped_path + " due to error " + err)
+    fs = Utility.fs_by_prefix(outdir) 
+    pear_files = []
+    for f in files:
+        if f.startswith(prefix):
+            pear_files.append(fs.strip_root(f))
     
-    return stripped_path
+    if not pear_files:
+        raise ValueError("Pear operation failed due to error: " + err)
+    
+    return pear_files

@@ -65,8 +65,11 @@ def run_flash(*args, **kwargs):
     cmdargs.append(data1)
     cmdargs.append(data2)
 
-    func_exec_run(flash, *cmdargs)
-    fs = Utility.fs_by_prefix(outdir)
+    _, err = func_exec_run(flash, *cmdargs)
+    
+    fs = Utility.fs_by_prefix(outdir)    
+    if not os.path.exists(outdir) or not os.path.isdir(outdir) or not os.listdir(outdir):
+        raise ValueError("Flash operation failed due to error: " + err)
     return fs.strip_root(outdir)
 
 def run_flash_recursive(*args):

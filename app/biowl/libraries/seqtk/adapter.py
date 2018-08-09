@@ -9,7 +9,7 @@ def run_seqtk(*args, **kwargs):
     
     fs = Utility.fs_by_prefix(args[0])
     data = fs.normalize_path(args[0])
-    output = fs.normalize_path(args[1])
+    output = fs.normalize_path(args[2])
     
     cmdargs = [args[1]]
     for arg in args[3:]:
@@ -131,10 +131,6 @@ def seqtk_trim(*args, **kwargs):
             end = args[paramindex]
             paramindex += 1
     
-    fs = Utility.fs_by_prefix(data)
-    data = fs.normalize_path(data)
-    output = fs.normalize_path(output)
-            
     cmdargs = [data, 'trimfq', output]
     if begin:
         cmdargs.append('-b ' + str(begin))

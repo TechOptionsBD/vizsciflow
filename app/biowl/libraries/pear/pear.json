@@ -10,7 +10,7 @@
            "internal":"run_pear",
            "runmode": "local",
            "desc": "Pair-end read merger for fastq files. It evaluates all possible paired-end read overlaps. In addition, it implements a statistical test for minimizing false-positive results.",
-           "returns": "string",
+           "returns": "string[]",
            "example":"MergePear(data1=, data2=, output=)",
            "params":[  
             {  
@@ -27,7 +27,7 @@
                "name": "output",
                "type": "string",
                "desc":"output directory with filename prefix"
-            }            
+            }
             ]
        }
    ]

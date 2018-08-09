@@ -60,7 +60,7 @@
            "runmode": "local",
            "desc": "Extracts a random sample. Apply the seed if it's given. 'https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"Extract(data=, output=, sample=10)",
+           "example":"Extract(data=, output=, [seed=10], [sample=10000])",
            "params":[  
             {  
                "name":"data",

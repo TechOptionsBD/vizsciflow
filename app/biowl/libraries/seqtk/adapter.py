@@ -1,30 +1,31 @@
-import os
 from os import path
+from pathlib import Path
 from ...exechelper import func_exec_stdout
-from ...fileop import PosixFileSystem
 from ....util import Utility
 
 seqtk = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'seqtk'))
 
 def run_seqtk(*args, **kwargs):
-    input = Utility.get_normalized_path(args[0])
-    output = Utility.get_normalized_path(args[2])
+    
+    fs = Utility.fs_by_prefix(args[0])
+    data = fs.normalize_path(args[0])
+    output = fs.normalize_path(args[1])
     
     cmdargs = [args[1]]
     for arg in args[3:]:
         cmdargs.append(arg)
             
-    cmdargs.append(input)
+    cmdargs.append(data)
 
     outdata,_ = func_exec_stdout(seqtk, *cmdargs)
     with open(output, 'wb') as f:
         f.write(outdata)
         
-    fs = PosixFileSystem(Utility.get_rootdir(2))
     return fs.strip_root(output)
 
 def seqtk_fastq_to_fasta(*args, **kwargs):
     paramindex = 0
+    data = ''
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
@@ -32,7 +33,8 @@ def seqtk_fastq_to_fasta(*args, **kwargs):
             raise ValueError("Argument not given.")
         data = args[paramindex]
         paramindex += 1
-                
+    
+    output = ''            
     if 'output' in kwargs.keys():
         output = kwargs['output']
     else:
@@ -40,13 +42,14 @@ def seqtk_fastq_to_fasta(*args, **kwargs):
             output = args[paramindex]
             paramindex += 1
 
-    cmdargs = [input, 'seq -a', output]
+    cmdargs = [data, 'seq -a', output]
     for arg in args[paramindex + 1:]:
         cmdargs.append(arg)
     return run_seqtk(*cmdargs)
 
 def seqtk_extract_sample(*args, **kwargs):
     paramindex = 0
+    data = ''
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
@@ -54,7 +57,8 @@ def seqtk_extract_sample(*args, **kwargs):
             raise ValueError("Argument not given.")
         data = args[paramindex]
         paramindex += 1
-                
+    
+    output = ''            
     if 'output' in kwargs.keys():
         output = kwargs['output']
     else:
@@ -62,27 +66,36 @@ def seqtk_extract_sample(*args, **kwargs):
             output = args[paramindex]
             paramindex += 1
     
+    if not output:
+        filename = Path(path.basename(data))
+        output = path.join(path.dirname(data), filename.with_suffix('') + '_output.' + filename.suffix())
+        
+    seed = 100
+    if 'seed' in kwargs.keys():
+        seed = kwargs['seed']
+    else:
+        if len(args) > paramindex:
+            seed = args[paramindex]
+            paramindex += 1
+            
+    sample = 10000
     if 'sample' in kwargs.keys():
         sample = kwargs['sample']
     else:
         if len(args) > paramindex:
             sample = args[paramindex]
             paramindex += 1
-        else:
-            sample = 10
-            
-    cmdargs = ['sample -s{0}'.format(sample)]
     
-    data = Utility.get_normalized_path(data)
-    output = Utility.get_normalized_path(output)
+    fs = Utility.fs_by_prefix(data)
+    data = fs.normalize_path(data)
+    output = fs.normalize_path(output)
     
-    cmdargs.append(data)
+    cmdargs = ['sample -s{0}'.format(seed), data, str(sample)]
     
     outdata,_ = func_exec_stdout(seqtk, *cmdargs)
     with open(output, 'wb') as f:
         f.write(outdata)
         
-    fs = PosixFileSystem(Utility.get_rootdir(2))
     return fs.strip_root(output)
 
 def seqtk_trim(*args, **kwargs):
@@ -117,6 +130,10 @@ def seqtk_trim(*args, **kwargs):
         if len(args) > paramindex:
             end = args[paramindex]
             paramindex += 1
+    
+    fs = Utility.fs_by_prefix(data)
+    data = fs.normalize_path(data)
+    output = fs.normalize_path(output)
             
     cmdargs = [data, 'trimfq', output]
     if begin:

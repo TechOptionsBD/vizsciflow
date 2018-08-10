@@ -823,7 +823,7 @@ class Samples():
                             samples.append(d)
                 else:
                     if not ds.get("access"):
-                        ds["access"] = 0
+                        ds["access"] = 2 if user else 0
                     if ds.get("access") == access:
                         if access != 2 or not user or user == current_user.username:
                             samples.append(ds)

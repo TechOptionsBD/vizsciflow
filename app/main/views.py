@@ -574,7 +574,7 @@ class InterpreterHelper():
         
         funclist.sort(key=lambda x: (x.group, x.name))
         for f in funclist:
-            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": f.example if f.example else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else ""}) 
+            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": f.example if f.example else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"}) 
     
         self.codeGenerator.context.load_library(librariesdir)
         
@@ -667,8 +667,13 @@ import pip
 def install(package):
     pip.main(['install', package])
         
-def get_functions(level):
-    funcs =[func for func in interpreter.funcs if int(func['level']) <= level]
+def get_functions(level, access):
+    funcs = []
+    for func in interpreter.funcs:
+        if int(func['level']) <= level and func['access'] == str(access) and (access < 2 or (func['user'] and func['user'] == current_user.username)):
+            funcs.append(func)
+            
+    #funcs =[func for func in interpreter.funcs if int(func['level']) <= level and func['access'] == str(access) and (access < 2 or (func['user'] and func['user'] == current_user.username))]
     return json.dumps({'functions':  funcs})
     
 @main.route('/functions', methods=['GET', 'POST'])
@@ -685,32 +690,33 @@ def functions():
         elif request.form.get('mapper'):
             result = {"out": [], "err": []}
             try:
-                if request.form.get('pip'):
-                    pippkgs = request.form.get('pip')
+                if request.form.get('pippkgs'):
+                    pippkgs = request.form.get('pippkgs')
                     pippkgs = pippkgs.split(",")
                     for pkg in pippkgs:
                         try:
                             install(pkg)
                         except Exception as e:
-                            result['err'].append(e)
-                    
+                            result['err'].append(str(e))
+                                    
                 # Get the name of the uploaded file
-                file = request.files['library']
+                file = request.files['library'] if len(request.files) > 0 else None
                 # Check if the file is one of the allowed types/extensions
                 if file:
+                    package = request.form.get('package')
                     this_path = os.path.dirname(os.path.abspath(__file__))
                     #os.chdir(this_path) #set dir of this file to current directory
                     app_path = os.path.dirname(this_path)
                     librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/libraries'))
-
+    
                     user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
                     if not os.path.isdir(user_package_dir):
                         os.makedirs(user_package_dir)
-                    package = request.form.get('package')
+                    
                     path = Samples.unique_filename(user_package_dir, package if package else 'mylib', '')
                     if not os.path.isdir(path):
                         os.makedirs(path)
-                
+
                     # Make the filename safe, remove unsupported chars
                     filename = secure_filename(file.filename)
                     temppath = os.path.join(tempfile.gettempdir(), filename)
@@ -732,7 +738,8 @@ def functions():
                     org = request.form.get('org')
                     pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
                     pkgpath = pkgpath.replace(os.sep, '.')
-
+                    
+                    access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2 
                     with open(base, 'r') as json_data:
                         data = json.load(json_data)
                         libraries = data["functions"]
@@ -745,7 +752,7 @@ def functions():
                                     f['internal'] = f['name']
                             if not f['internal'] and not f['name']:
                                 continue
-                                    
+                            f['access'] = access
                             f['module'] = pkgpath
                             if package:
                                 f['package'] = package
@@ -759,7 +766,7 @@ def functions():
                     
                     result['out'].append("Library successfully added.")
             except Exception as e:
-                result['err'].append(e)
+                result['err'].append(str(e))
             return json.dumps(result)
         elif request.form.get('provenance'):
             fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
@@ -767,39 +774,68 @@ def functions():
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
     else:
         level = int(request.args.get('level')) if request.args.get('level') else 0
-        return get_functions(level)
+        access = int(request.args.get('access')) if request.args.get('access') else 0
+        return get_functions(level, access)
     
 class Samples():
     @staticmethod
-    def load_samples_recursive(library_def_file):
+    def load_samples_recursive_for_user(samples_dir, access):
+        all_samples = []
+        for f in os.listdir(samples_dir):
+            fsitem = os.path.join(samples_dir, f)
+            if os.path.isdir(fsitem) and f == 'users':
+                for fuser in os.listdir(fsitem):
+                    userPath = os.path.join(fsitem, fuser)
+                    samples = Samples.load_samples_recursive(userPath, fuser, access)
+                    if samples:
+                        all_samples.extend(samples if isinstance(samples, list) else [samples])
+            else:
+                samples = Samples.load_samples_recursive(fsitem, None, access)
+                if samples:
+                    all_samples.extend(samples if isinstance(samples, list) else [samples])
+            #all_samples = {**all_samples, **samples}
+        return all_samples
+    
+    @staticmethod
+    def load_samples_recursive(library_def_file, user, access):
         if os.path.isfile(library_def_file):
-            return Samples.load_samples(library_def_file)
+            return Samples.load_samples(library_def_file, user, access)
         
         all_samples = []
         for f in os.listdir(library_def_file):
-            samples = Samples.load_samples_recursive(os.path.join(library_def_file, f))
+            samples = Samples.load_samples_recursive(os.path.join(library_def_file, f), user, access)
             all_samples.extend(samples if isinstance(samples, list) else [samples])
             #all_samples = {**all_samples, **samples}
         return all_samples
        
     @staticmethod
-    def load_samples(sample_def_file):
+    def load_samples(sample_def_file, user, access):
         samples = []
         if not os.path.isfile(sample_def_file) or not sample_def_file.endswith(".json"):
             return samples
         try:
             with open(sample_def_file, 'r') as json_data:
-                d = json.load(json_data)
-                samples = d["samples"] if d.get("samples") else d 
+                ds = json.load(json_data)
+                if ds.get("samples"):
+                    for d in ds:
+                        sample_access = d.get("access") if d.get("access") else 0
+                        if sample_access == access:
+                            samples.append(d)
+                else:
+                    if not ds.get("access"):
+                        ds["access"] = 0
+                    if ds.get("access") == access:
+                        if access != 2 or not user or user == current_user.username:
+                            samples.append(ds)
         finally:
             return samples
         
     @staticmethod
-    def get_samples_as_list():
+    def get_samples_as_list(access):
         samples = []
         samplesdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/samples')
-        for s in Samples.load_samples_recursive(samplesdir):
-            samples.append({"name": s["name"], "desc": s["desc"], "sample": '\n'.join(s["sample"])})
+        for s in Samples.load_samples_recursive_for_user(samplesdir, access):
+            samples.append({"name": s["name"], "desc": s["desc"], "access": s["access"], "sample": '\n'.join(s["sample"])})
         return samples
     
     @staticmethod
@@ -822,22 +858,27 @@ class Samples():
                 return uni_fn
             
     @staticmethod
-    def add_sample(sample, name, desc):
+    def add_sample(sample, name, desc, shared):
         this_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(this_path) #set dir of this file to current directory
         samplesdir = os.path.normpath(os.path.join(this_path, '../biowl/samples'))
 
         try:
             if sample and name:
-                new_path = os.path.normpath(os.path.join(samplesdir, 'users', current_user.username))
+                new_path = os.path.join(samplesdir, 'users', current_user.username)
+                new_path = os.path.normpath(new_path)    
                 if not os.path.isdir(new_path):
                     os.makedirs(new_path)
-                path = Samples.unique_filename(new_path, 'sample', 'json')
                 
+                path = Samples.unique_filename(new_path, name, 'json')
+                
+                access = 1 if shared and shared.lower() == 'true' else 2
+                        
                 with open(path, 'w') as fp:
                     fp.write("{\n")
-                    fp.write('{0}"name":"{1}",\n'.format(" " * 4, name));
-                    fp.write('{0}"desc":"{1}",\n'.format(" " * 4, desc));
+                    fp.write('{0}"name":"{1}",\n'.format(" " * 4, name))
+                    fp.write('{0}"desc":"{1}",\n'.format(" " * 4, desc))
+                    fp.write('{0}"access":"{1}",\n'.format(" " * 4, access))
                     fp.write('{0}"sample":[\n'.format(" " * 4))
                     sample = sample.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'")
                     lines = sample.split("\n")
@@ -847,15 +888,17 @@ class Samples():
                     fp.write("{0}]\n}}".format(" " * 4))
 #                json.dump(samples, fp, indent=4, separators=(',', ': '))
         finally:
-            return { 'out': '', 'err': ''}, 201
+            return json.dumps({ 'out': '', 'err': ''})
     
     
 @main.route('/samples', methods=['GET', 'POST'])
 @login_required
 def samples():
     if request.form.get('sample'):
-        return Samples.add_sample(request.form.get('sample'), request.form.get('name'), request.form.get('desc'))
-    return json.dumps({'samples': Samples.get_samples_as_list()})
+        return Samples.add_sample(request.form.get('sample'), request.form.get('name'), request.form.get('desc'), request.form.get('access'))
+    
+    access = int(request.args.get('access')) if request.args.get('access') else 0
+    return json.dumps({'samples': Samples.get_samples_as_list(access)})
 
 def get_user_status(user_id):
     return jsonify(runnables =[i.to_json() for i in Runnable.query.filter(Runnable.user_id == user_id)])

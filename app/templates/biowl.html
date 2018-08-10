@@ -154,9 +154,14 @@ background-color: White;
            <div class="col-sm-3" id="functions" style="padding:2px;">
             <div  class="panel panel-primary" >
                 <div class="panel-heading">
-                   <div class="row" data-bind="with: tasksViewModel">
+                   <!-- <div class="row" data-bind="with: tasksViewModel">
                       <div class="col-sm-5"><input type="radio" name="level" value="0" data-bind="checked: level, click:click"/>Beginner</div>
-                      <div class="col-sm-5"><input type="radio" name="level" value="1" data-bind="checked: level, click:click" />Advanced</div>
+                      <div class="col-sm-5"><input type="radio" name="level" value="1" data-bind="checked: level, click:click"/>Advanced</div>
+                   </div> -->
+                   <div class="row" data-bind="with: tasksViewModel">
+                      <div class="col-sm-4"><input type="radio" name="faccess" value="0" data-bind="checked: access, click:accessclick"/>Public</div>
+                      <div class="col-sm-4"><input type="radio" name="faccess" value="1" data-bind="checked: access, click:accessclick"/>Shared</div>
+                      <div class="col-sm-4"><input type="radio" name="faccess" value="2" data-bind="checked: access, click:accessclick"/>Private</div>
                    </div>
                    <div class="row">
                        <div class="col-sm-6"><h5 class="">Functions</h5></div>
@@ -177,9 +182,15 @@ background-color: White;
 <!-- 	            <div data-bind="stopBinding: true"> -->
                 <div  id="samples" class="panel panel-primary" style="padding:2px" data-bind="with: samplesViewModel">
                  <div class="panel-heading">
-                    <div class="row">
+                 	<div class="row">
                         <div class="col-sm-6"><h5 class="">Workflows</h5></div>
                     </div>
+                 	<div class="row">                 	
+                      <div class="col-sm-4"><input type="radio" name="access" value="0" data-bind="checked: access, click:click"/>Public</div>
+                      <div class="col-sm-4"><input type="radio" name="access" value="1" data-bind="checked: access, click:click" />Shared</div>
+                      <div class="col-sm-4"><input type="radio" name="access" value="2" data-bind="checked: access, click:click" />Private</div>
+                    </div>
+                    
                   <div class="btn-group">
                        <div class="btn-group-sm">
                            <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
@@ -197,12 +208,11 @@ background-color: White;
                  </div>
                 </div>
 <!--                 </div> -->
-                
             </div>
         </div>
    </div>
 
-    <div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 480px; height: 600px; background: #fff">
+    <div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 480px; height: 620px; background: #fff">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h3 id="addDialogLabel">Add Library</h3>
@@ -210,35 +220,31 @@ background-color: White;
         <div class="modal-body">
             <form class="form-horizontal">
                 <div class="control-group">
-                    <label class="control-label" for="package">Package</label>
                     <div class="controls">
+	                    <label class="control-label" for="package">Package</label>
                         <input data-bind="value: name" type="text" id="package" placeholder="Package" style="width: 150px;">
                     </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="organization">Organization</label>
-                    <div class="controls">
-                        <input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 300px;">
+                    <div class="controls">                    
+                    	<label class="control-label" for="organization">Organization</label>
+                        <input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 200px;">
                     </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="module">Module</label>
-                    <div class="controls">
+                	<div class="controls">
+    	                <label class="control-label" for="module">Module</label>
                         <input type="file" id="module">
+	                </div>
+	                <label class="control-label" for="mapper">Module to JSON mapper:</label>
+	                <div class="controls">
+                        <textarea rows="16" style="width: 460px;" id="mapper"></textarea>
                     </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="mapper">Module to JSON mapper:</label>
                     <div class="controls">
-                        <textarea rows="12" style="width: 460px;" id="mapper"></textarea>
+	                    <label class="control-label" for="pippkgs">pip Install</label>
+	                    <input data-bind="value: pippkgs" type="text" id="pippkgs" placeholder="" style="width: 200px;">
                     </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="pippkgs">pip Install</label>
-                    <div class="controls">
-                        <input type="text" id="pippkgs" style="width: 300px;">
-                    </div>
-                </div>
+	                <div class="controls">
+	                   	<label class="control-label" for="access">Shared</label>
+	                   	<input type="checkbox" id="access" data-bind="checked: access" />
+	                </div>
+            	</div>
             </form>
         </div>
         <div class="modal-footer">
@@ -254,13 +260,18 @@ background-color: White;
         <div class="modal-body">
             <form class="form-horizontal">
                 <div class="control-group">
-                    <label class="control-label" for="sampleName">Name</label>
                     <div class="controls">
+                    	<label class="control-label" for="sampleName">Name</label>                    
                         <input data-bind="value: name" type="text" id="sampleName" placeholder="Name" style="width: 300px;">
                     </div>
-                    <label class="control-label" for="sampleDesc">Description</label>
                     <div class="controls">
-                        <input data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description" style="width: 400px;">
+	                    <label class="control-label" for="sampleDesc">Description</label>                    
+                        <input data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description" style="width: 300px;">
+                    </div>
+                    
+                    <div class="controls">
+                    	<label class="control-label" for="access">Shared</label>
+                    	<input type="checkbox" id="access" data-bind="checked: access" />
                     </div>
                     <label class="control-label" for="sample">Sample:</label>
                     <div class="controls">
@@ -818,9 +829,15 @@ background-color: White;
             self.tasks = ko.observableArray();
             self.samplesURI = '/samples';
             self.samples = ko.observableArray();
-            self.level = "0";
-            
+            self.level = 1;
+            self.access = 0
+;            
            	self.click = function(model){
+           		self.login();
+           	    return true;
+            }
+            
+            self.accessclick = function(model){
            		self.login();
            	    return true;
             }
@@ -945,7 +962,7 @@ background-color: White;
                 $('#login').modal('show');
             }
             self.login = function() {
-              ajaxcalls.simple(self.tasksURI, 'GET', {'level': self.level}).done(function(data) {
+              ajaxcalls.simple(self.tasksURI, 'GET', {'level': self.level, 'access': self.access}).done(function(data) {
             	  self.tasks([]);
             	  $.each(data.functions, function(i, f) {
             		  self.tasks.push({
@@ -977,7 +994,8 @@ background-color: White;
            self.samplesURI = '/samples';
            self.items = ko.observableArray();
            self.sampleViewModel = sampleViewModel;
-
+           self.access = 0;
+           
            self.remove = function() {
         	   
         	   var item = self.firstSelectedItem();
@@ -1036,15 +1054,21 @@ background-color: White;
                editor.focus();
            }
            
+           self.click = function(model){
+          		self.load();
+          	    return true;
+           }
+           
            self.load = function() {
-               ajaxcalls.simple(self.samplesURI, 'GET').done(function(data) {
+               ajaxcalls.simple(self.samplesURI, 'GET', {'access': self.access}).done(function(data) {
             	   self.items([]);
             	   $.each(data.samples, function(i, s){
             		   self.items.push({
                            name: ko.observable(s.name),
                            sample: ko.observable(s.sample),
                            desc: ko.observable(s.desc),
-                           selected: ko.observable(false)
+                           selected: ko.observable(false),
+                           access: ko.observable(s.access)
                        });
             	   });
             	   
@@ -1061,6 +1085,7 @@ background-color: White;
             
             self.name = ko.observable();
             self.desc = ko.observable();
+            self.access = ko.observable();
  
             // configure ace.js for code editor
             var mapperArea = $("#sample");
@@ -1104,6 +1129,9 @@ background-color: White;
                 
                 if (self.desc() !== undefined)
                 	formdata.append('desc', self.desc());
+                
+                if (self.access() !== undefined)
+                	formdata.append('access', self.access());
 
                 ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
                 	mainViewModel.samplesViewModel.load();
@@ -1119,6 +1147,8 @@ background-color: White;
             
             self.name = ko.observable();
             self.org = ko.observable();
+            self.access = ko.observable();
+            self.pippkgs = ko.observable();
  
             // configure ace.js for code editor
             var mapperArea = $("#mapper");
@@ -1161,8 +1191,11 @@ background-color: White;
             	if (self.name() !== undefined)
             		formdata.append('package', self.name());
             	if (self.org() !== undefined)
-            		   formdata.append('org', self.org());
-            	formdata.append('pip', $('#pippkgs'));
+            		formdata.append('org', self.org());
+            	if (self.access() !== undefined)
+            		formdata.append('access', self.access());
+            	if (self.access() !== undefined)
+            		formdata.append('pippkgs', self.pippkgs());
 
                 ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                                    	

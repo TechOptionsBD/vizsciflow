@@ -47,7 +47,7 @@ def load_module(modulename):
     return import_module(modulename)
 
 class Function():
-    def __init__(self, name, internal, package = None, module = None, params = [], example = None, desc = None, runmode = None, level = 0, group = None):
+    def __init__(self, name, internal, package = None, module = None, params = [], example = None, desc = None, runmode = None, level = 0, group = None, user = None, access = 0):
         self.name = name
         self.internal = internal
         self.package = package
@@ -58,6 +58,8 @@ class Function():
         self.runmode = runmode
         self.level = level
         self.group = group
+        self.user = user
+        self.access = access
         
 class Library():
     def __init__(self, funcs = {}):
@@ -79,26 +81,40 @@ class Library():
     @staticmethod
     def load(library_def_file):
         library = Library()
-        library.funcs = Library.load_funcs_recursive(library_def_file)
-        return library
-    
-    @staticmethod
-    def load_funcs_recursive(library_def_file):
-        if os.path.isfile(library_def_file):
-            return Library.load_funcs(library_def_file)
         
         all_funcs = {}
         for f in os.listdir(library_def_file):
-            funcs = Library.load_funcs_recursive(os.path.join(library_def_file, f))
-            for k,v in funcs.items():
-                if k in all_funcs:
-                    all_funcs[k].extend(v)
-                else:
-                    all_funcs[k] = v if isinstance(v, list) else [v]
+            fsitem = os.path.join(library_def_file, f)
+            if os.path.isdir(fsitem) and f == 'users':
+                for fuser in os.listdir(fsitem):
+                    Library.merge_funcs(all_funcs, Library.load_funcs_recursive(os.path.join(fsitem, fuser), fuser))
+            else:
+                Library.merge_funcs(all_funcs, Library.load_funcs_recursive(fsitem, None))
+
+        library.funcs = all_funcs
+        return library
+    
+    
+    @staticmethod
+    def merge_funcs(all_funcs, funcs):
+        for k,v in funcs.items():
+            if k in all_funcs:
+                all_funcs[k].extend(v)
+            else:
+                all_funcs[k] = v if isinstance(v, list) else [v]
+        
+    @staticmethod
+    def load_funcs_recursive(library_def_file, user):
+        if os.path.isfile(library_def_file):
+            return Library.load_funcs(library_def_file, user)
+        
+        all_funcs = {}
+        for f in os.listdir(library_def_file):
+            Library.merge_funcs(all_funcs, Library.load_funcs_recursive(os.path.join(library_def_file, f), user))
         return all_funcs
        
     @staticmethod
-    def load_funcs(library_def_file):
+    def load_funcs(library_def_file, user):
         funcs = {}
         try:
             if not os.path.isfile(library_def_file) or not library_def_file.endswith(".json"):
@@ -118,11 +134,12 @@ class Library():
                     runmode = f["runmode"] if f.get("runmode") else ""
                     level = int(f["level"]) if f.get("level") else 0
                     group = f["group"] if f.get("group") else ""
+                    access = int(f["access"]) if f.get("access") else 0
                     params = []
                     if f.get("params"):
                         for param in f["params"]:
                             params.append(param)
-                    func = Function(name, internal, package, module, params, example, desc, runmode, level, group)
+                    func = Function(name, internal, package, module, params, example, desc, runmode, level, group, user, access)
                     if name.lower() in funcs:
                         funcs[name.lower()].extend([func])
                     else:

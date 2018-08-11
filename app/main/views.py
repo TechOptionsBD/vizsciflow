@@ -842,7 +842,7 @@ class Samples():
     def make_fn(path, prefix, ext, suffix):
         path = os.path.join(path, '{0}'.format(prefix))
         if suffix:
-            path = '{0}({1})'.format(path, suffix)
+            path = '{0}_{1}'.format(path, suffix)
         if ext:
             path = '{0}.{1}'.format(path, ext)
         return path
@@ -878,7 +878,7 @@ class Samples():
                     fp.write("{\n")
                     fp.write('{0}"name":"{1}",\n'.format(" " * 4, name))
                     fp.write('{0}"desc":"{1}",\n'.format(" " * 4, desc))
-                    fp.write('{0}"access":"{1}",\n'.format(" " * 4, access))
+                    fp.write('{0}"access":{1},\n'.format(" " * 4, access))
                     fp.write('{0}"sample":[\n'.format(" " * 4))
                     sample = sample.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'")
                     lines = sample.split("\n")

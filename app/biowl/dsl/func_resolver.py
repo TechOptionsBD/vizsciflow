@@ -47,7 +47,7 @@ def load_module(modulename):
     return import_module(modulename)
 
 class Function():
-    def __init__(self, name, internal, package = None, module = None, params = [], example = None, desc = None, runmode = None, level = 0, group = None, user = None, access = 0):
+    def __init__(self, name, internal, package = None, module = None, params = [], example = None, desc = None, runmode = None, level = 0, group = None, user = None, access = 0, example2 = None):
         self.name = name
         self.internal = internal
         self.package = package
@@ -60,6 +60,7 @@ class Function():
         self.group = group
         self.user = user
         self.access = access
+        self.example2 = example2
         
 class Library():
     def __init__(self, funcs = {}):
@@ -130,6 +131,7 @@ class Library():
                     module = f["module"] if f.get("module") else None
                     package = f["package"] if f.get("package") else ""
                     example = f["example"] if f.get("example") else ""
+                    example2 = f["example2"] if f.get("example2") else ""
                     desc = f["desc"] if f.get("desc") else ""
                     runmode = f["runmode"] if f.get("runmode") else ""
                     level = int(f["level"]) if f.get("level") else 0
@@ -139,7 +141,7 @@ class Library():
                     if f.get("params"):
                         for param in f["params"]:
                             params.append(param)
-                    func = Function(name, internal, package, module, params, example, desc, runmode, level, group, user, access)
+                    func = Function(name, internal, package, module, params, example, desc, runmode, level, group, user, access, example2)
                     if name.lower() in funcs:
                         funcs[name.lower()].extend([func])
                     else:

@@ -154,10 +154,10 @@ background-color: White;
            <div class="col-sm-3" id="functions" style="padding:2px;">
             <div  class="panel panel-primary" >
                 <div class="panel-heading">
-                   <!-- <div class="row" data-bind="with: tasksViewModel">
-                      <div class="col-sm-5"><input type="radio" name="level" value="0" data-bind="checked: level, click:click"/>Beginner</div>
-                      <div class="col-sm-5"><input type="radio" name="level" value="1" data-bind="checked: level, click:click"/>Advanced</div>
-                   </div> -->
+                   <div class="row" data-bind="with: tasksViewModel">
+                      <div class="col-sm-5"><input type="radio" name="level" value="0" data-bind="checked: level"/>Beginner</div>
+                      <div class="col-sm-5"><input type="radio" name="level" value="1" data-bind="checked: level"/>Advanced</div>
+                   </div>
                    <div class="row" data-bind="with: tasksViewModel">
                       <div class="col-sm-4"><input type="radio" name="faccess" value="0" data-bind="checked: access, click:accessclick"/>Public</div>
                       <div class="col-sm-4"><input type="radio" name="faccess" value="1" data-bind="checked: access, click:accessclick"/>Shared</div>
@@ -829,8 +829,8 @@ background-color: White;
             self.tasks = ko.observableArray();
             self.samplesURI = '/samples';
             self.samples = ko.observableArray();
-            self.level = 1;
-            self.access = 0
+            self.level = 0;
+            self.access = 0;
 ;            
            	self.click = function(model){
            		self.login();
@@ -855,6 +855,7 @@ background-color: White;
                 self.tasks()[i].name(newTask.name);
                 self.tasks()[i].internal(newTask.internal);
                 self.tasks()[i].example(newTask.example);
+                self.tasks()[i].example2(newTask.example2);
                 self.tasks()[i].desc(newTask.desc);
                 self.tasks()[i].desc(newTask.runmode);
                 self.tasks()[i].desc(newTask.group);
@@ -962,7 +963,7 @@ background-color: White;
                 $('#login').modal('show');
             }
             self.login = function() {
-              ajaxcalls.simple(self.tasksURI, 'GET', {'level': self.level, 'access': self.access}).done(function(data) {
+              ajaxcalls.simple(self.tasksURI, 'GET', {'level': 1, 'access': self.access}).done(function(data) {
             	  self.tasks([]);
             	  $.each(data.functions, function(i, f) {
             		  self.tasks.push({
@@ -970,6 +971,7 @@ background-color: White;
                           name: ko.observable(f.name),
                           internal: ko.observable(f.internal),
                           example: ko.observable(f.example),
+                          example2: ko.observable(f.example2),
                           desc: ko.observable(f.desc),
                           runmode: ko.observable(f.runmode),
                           group: ko.observable(f.group)
@@ -984,7 +986,7 @@ background-color: White;
             
             self.copyToEditor = function(item) {
                var pos = editor.selection.getCursor();             
-               editor.session.insert(pos, item.example());
+               editor.session.insert(pos, self.level == 0 ? item.example() : item.example2());
                editor.focus();
            }
         }
@@ -1223,6 +1225,7 @@ background-color: White;
             self.name = ko.observable();
             self.internal = ko.observable();
             self.example = ko.observable();
+            self.example2 = ko.observable();
  
             self.setTask = function(task) {
                 self.task = task;
@@ -1230,6 +1233,7 @@ background-color: White;
                 self.name(task.name());
                 self.internal(task.internal());
                 self.example(task.example());
+                self.example2(task.example2());
                 $('edit').modal('show');
             }
  
@@ -1239,7 +1243,8 @@ background-color: White;
                 	package_name: self.package_name(),
                 	name: self.name(),
                     internal: self.internal(),
-                    example: self.example()
+                    example: self.example(),
+                    example2: self.example2()
                 });
             }
         }

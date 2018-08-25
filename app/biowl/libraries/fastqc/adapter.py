@@ -19,7 +19,8 @@ def run_fastqc(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    data = Utility.get_normalized_path(data)
+    fs = Utility.fs_by_prefix(data)
+    data = fs.normalize_path(data)
     
     outdir = ''
     if 'outdir' in kwargs.keys():
@@ -29,11 +30,10 @@ def run_fastqc(*args, **kwargs):
             outdir = args[paramindex]
             paramindex +=1
     
-    if outdir:
-        outdir = Utility.get_normalized_path(outdir)
-    else:
+    if not outdir:
         outdir = path.dirname(data)
-    
+
+    outdir = fs.normalize_path(outdir)    
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
@@ -49,7 +49,7 @@ def run_fastqc(*args, **kwargs):
     
     _,err = func_exec_run(fastqc, *cmdargs)
         
-    fs = Utility.fs_by_prefix(outpath)
+    
     stripped_path = fs.strip_root(outpath)
     if not os.path.exists(outpath):
         raise ValueError("FastQC could not generate the file " + stripped_path + " due to error " + err)

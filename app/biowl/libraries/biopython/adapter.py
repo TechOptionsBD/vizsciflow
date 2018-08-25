@@ -3,9 +3,9 @@ from urllib.error import HTTPError  # for Python 3
 from Bio import Cluster
 
 from ....util import Utility
-from ...fileop import IOHelper, PosixFileSystem
+from ...fileop import IOHelper
 
-Entrez.email = "mainulhossain@gmail.com"
+Entrez.email = "phenoproc@gmail.com"
 
 def search_entrez(*args):
     #search_string = "Myb AND txid3702[ORGN] AND 0:6000[SLEN]"
@@ -39,7 +39,7 @@ def search_and_download(*args):
     
     batch_size = 3
     path = Utility.get_quota_path('public')
-    fs = PosixFileSystem(Utility.get_rootdir(2))
+    fs = Utility.fs_by_prefix(path)
     filename = IOHelper.unique_fs_name(fs, fs.normalize_path(path), args[0], return_type)
     
     with open(filename, "w") as out_handle:

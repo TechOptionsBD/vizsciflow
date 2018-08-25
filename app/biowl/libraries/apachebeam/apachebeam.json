@@ -44,6 +44,40 @@
                 "type": "string"
             }            
             ]
+       },
+       {
+           "org": "SRLAB",
+           "package": "beam",
+           "module": "app.biowl.libraries.apachebeam.adapter",
+           "group": "Alignment",
+           "level": 0,
+           "name":"Align",
+           "internal":"run_beam_alignment",
+           "desc": "Map with bwa/bowtie2 on Spark Cluster.",
+           "returns":"String",
+           "example":"aligned_data = Align(ref=, data1=, [data2=], [output=])",
+           "params":[  
+            {  
+               "name":"ref",
+               "type":"String",
+               "desc":"Reference file for alignment."
+            },
+            {
+                "name":"data1",
+                "type":"String",
+                "desc":"If data2 is absent, data1 is single-read, otherwise data1 and data2 make pair-reads."
+            },
+            {
+                "name":"data2",
+                "type":"String",
+                "desc":"If data2 is absent, data1 is single-read, otherwise data1 and data2 make pair-reads."
+            },
+            {
+                "name":"output",
+                "type":"String",
+                "desc":"The output filename. On success, it will be returned as a result."
+            }             
+            ]
        }
     ]
 }

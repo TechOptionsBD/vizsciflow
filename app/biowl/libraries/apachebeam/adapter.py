@@ -49,6 +49,15 @@ def count_words(*args, **kwargs):
     
     return stripped_path
 
+def copy_posix_file_to_cluster(data):
+    # copy the data to cluster if it is a local file. HDFS file will be accessed by cluster directly
+    if (Utility.fs_type_by_prefix(data) == 'posix'):
+        data = Utility.get_normalized_path(data)
+        remotepath = os.path.join('/home/phenodoop/phenoproc/storage/public/', os.path.basename(data))
+        scp_put(cluster, user, password, data, remotepath)
+        data = remotepath
+    return data
+        
 def run_beam_quality(*args, **kwargs):
     
     paramindex = 0
@@ -60,12 +69,7 @@ def run_beam_quality(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
  
-    # copy the data to cluster if it is a local file. HDFS file will be accessed by cluster directly
-    if (Utility.fs_type_by_prefix(data) == 'posix'):
-        data = Utility.get_normalized_path(data)
-        remotepath = os.path.join('/home/phenodoop/phenoproc/storage/public/', os.path.basename(data))
-        scp_put(cluster, user, password, data, remotepath)
-        data = remotepath
+    data = copy_posix_file_to_cluster(data);
     
     outdir = ''
     if 'outdir' in kwargs.keys():
@@ -99,6 +103,88 @@ def run_beam_quality(*args, **kwargs):
             outdir = Utility.get_normalized_path(outdir)
         else:
             outdir = path.dirname(data)
+
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+
+        scp_get(cluster, user, password, outpath, outdir)
+    
+        fs = Utility.fs_by_prefix(outpath)
+        stripped_path = fs.strip_root(outpath)
+        if not os.path.exists(outpath):
+            raise ValueError("FastQC could not generate the file " + stripped_path)
+    
+    return outpath
+
+
+def run_beam_alignment(*args, **kwargs):
+    
+    paramindex = 0
+    ref = ''
+    if 'ref' in kwargs.keys():
+        ref = kwargs['ref']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument error")
+        ref = args[paramindex]
+        paramindex +=1
+    
+    ref = copy_posix_file_to_cluster(ref)
+    
+    data1 = ''
+    if 'data1' in kwargs.keys():
+        data1 = kwargs['data1']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument error")
+        data1 = args[paramindex]
+        paramindex +=1
+    
+    data1 = copy_posix_file_to_cluster(data1)
+    
+    data2 = ''
+    if 'data2' in kwargs.keys():
+        data2 = kwargs['data2']
+    else:
+        if len(args) > paramindex:
+            data2 = args[paramindex]
+            paramindex +=1
+    
+    if data2:
+        data2 = copy_posix_file_to_cluster(data2)
+    
+    output = ''    
+    if 'output' in kwargs.keys():
+        output = kwargs['output']
+    else:
+        if len(args) > paramindex:
+            output = args[paramindex]
+            paramindex +=1
+
+    runner = 'spark'
+    if 'runner' in kwargs.keys():
+        runner = kwargs['runner']
+    else:
+        if len(args) > paramindex:
+            runner = args[paramindex]
+            paramindex +=1
+
+    ssh_cmd = ''
+    if output and Utility.fs_type_by_prefix(data1) != 'posix':
+        output = "--output={0}".format(output)
+        
+    if runner == 'spark':
+        ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Alignment --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 /home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar --inputFile={0} {1} --runner=SparkRunner".format(ref, data1, data2, output)
+    else:
+        ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.Alignment -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(ref, data1, data2, output)
+    
+    outpath = ssh_hadoop_command(cluster, user, password, ssh_cmd)
+    
+    if Utility.fs_type_by_prefix(data1) == 'posix':
+        if output:
+            outdir = path.dirname(Utility.get_normalized_path(output))
+        else:
+            outdir = path.dirname(data1)
 
         if not os.path.exists(outdir):
             os.makedirs(outdir)

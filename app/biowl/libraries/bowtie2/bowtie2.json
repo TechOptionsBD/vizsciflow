@@ -10,7 +10,8 @@
            "internal":"run_bwa",
            "desc": "Align sequencing reads to long reference sequences.",
            "returns": "string",
-           "example":"aligned_data = Align(ref=, data1=, [data2=], [output=])"
+           "example":"aligned_data = Align(ref, data1)",
+           "example2":"aligned_data = Align(ref=, data1=, [data2=], [output=])"
        }
    ]
 }

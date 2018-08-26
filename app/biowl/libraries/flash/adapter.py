@@ -1,10 +1,9 @@
 import os
 from os import path
 from ...exechelper import func_exec_run
-from ...fileop import PosixFileSystem
 from ....util import Utility
 
-flash = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'flash'))
+flash = path.join(path.dirname(path.abspath(__file__)), path.join('bin', 'flash'))
 
 # FLASH (Fast Length Adjustment of SHort reads) is a very fast and accurate software tool 
 # to merge paired-end reads from next-generation sequencing experiments. FLASH is designed 
@@ -21,7 +20,8 @@ def run_flash(*args, **kwargs):
         data1 = args[paramindex]
         paramindex +=1
     
-    data1 = Utility.get_normalized_path(data1)
+    fs = Utility.fs_by_prefix(data1)
+    data1 = fs.normalize_path(data1)
     
     if 'data2' in kwargs.keys():
         data2 = kwargs['data2']
@@ -31,7 +31,7 @@ def run_flash(*args, **kwargs):
         data2 = args[paramindex]
         paramindex +=1
     
-    data2 = Utility.get_normalized_path(data2)
+    data2 = fs.normalize_path(data2)
     
     outdir = ''
     if 'outdir' in kwargs.keys():
@@ -42,12 +42,12 @@ def run_flash(*args, **kwargs):
             paramindex +=1
             
     if outdir:
-        outdir = Utility.get_normalized_path(outdir)
+        outdir = fs.normalize_path(outdir)
     else:
-        outdir = path.dirname(data1)
+        outdir = fs.make_unique_dir(path.dirname(data1))
     
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    if not fs.exists(outdir):
+        fs.makedirs(outdir)
     
     max_overlap = 50
     if 'max_overlap' in kwargs.keys():
@@ -67,29 +67,58 @@ def run_flash(*args, **kwargs):
 
     _, err = func_exec_run(flash, *cmdargs)
     
-    fs = Utility.fs_by_prefix(outdir)    
-    if not os.path.exists(outdir) or not os.path.isdir(outdir) or not os.listdir(outdir):
+    extended_frags = path.join(outdir, 'out.extendedFrags.fastq')    
+    if not fs.exists(extended_frags):
         raise ValueError("Flash operation failed due to error: " + err)
-    return fs.strip_root(outdir)
+    return fs.strip_root(extended_frags)
 
-def run_flash_recursive(*args):
-    fs = PosixFileSystem(Utility.get_rootdir(2))
-    input_path = fs.normalize_path(Utility.get_quota_path(args[0]))
+def run_flash_recursive(*args, **kwargs):
     
-    if len(args) > 1:
-        output_path = fs.normalize_path(Utility.get_quota_path(args[1]))
-        log_path = path.join(output_path, "log")
-    if len(args) > 2:
-        max_overlap = args[2]
+    paramindex = 0
+    indir = ''
+    if 'indir' in kwargs.keys():
+        indir = kwargs['indir']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument missing error in Flash.")
+        indir = args[paramindex]
+        paramindex +=1
     
-    if not os.path.exists(output_path): 
-        os.makedirs(output_path) 
+    fs = Utility.fs_by_prefix(indir)
+    indir = fs.normalize_path(indir)    
     
-    if not os.path.exists(log_path): 
-        os.makedirs(log_path) 
+    outdir = ''
+    if 'outdir' in kwargs.keys():
+        indir = kwargs['outdir']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument missing error in Flash.")
+        indir = args[paramindex]
+        paramindex +=1
+        
+    max_overlap = 50
+    if 'max_overlap' in kwargs.keys():
+        max_overlap = kwargs['max_overlap']
+    else:
+        if len(args) > paramindex:
+            max_overlap = args[paramindex]
+            paramindex +=1
+    
+    if outdir:
+        outdir = fs.normalize_path(outdir)
+    else:
+        outdir = fs.make_unique_dir(path.dirname(indir))
+    
+    log_path = path.join(outdir, "log")
+    
+    if not fs.exists(outdir):
+        fs.makedirs(outdir) 
+    
+    if not fs.exists(log_path): 
+        fs.makedirs(log_path) 
 
     #create list of filenames 
-    filenames = next(os.walk(input_path))[2] 
+    filenames = next(os.walk(indir))[2] 
     filenames.sort() 
     
     #divide forward and reverse read files into sepeate lists 
@@ -111,10 +140,10 @@ def run_flash_recursive(*args):
         if R1[i][:-12] == R2[i][:-12]:
             args = []
             args.append(" -M " + str(max_overlap))
-            args.append(" -d " + output_path)
+            args.append(" -d " + outdir)
             args.append(" -o " + R1[i][:-12])
-            args.append(input_path + R1[i])
-            args.append(input_path + R2[i])
+            args.append(indir + R1[i])
+            args.append(indir + R2[i])
             output,_ = func_exec_run(flash, *args)
             
             output_file = path.join(log_path, R1[i][:-12] + ".flash.log")

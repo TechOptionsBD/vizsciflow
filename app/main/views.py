@@ -533,7 +533,7 @@ def load_data_sources_biowl():
             if fs:
                 if current_user.is_authenticated:
                     if not fs.exists(current_user.username):
-                        fs.create_folder(current_user.username)
+                        fs.mkdirs(current_user.username)
                     datasource['nodes'].append(fs.make_json(os.sep + current_user.username))
                 if ds.public:
                     datasource['nodes'].append(fs.make_json(ds.public))
@@ -613,7 +613,7 @@ def datasources():
         fileSystem = Utility.fs_by_prefix(path)
         parent = path if fileSystem.isdir(path) else os.path.dirname(path)
         unique_filename = IOHelper.unique_fs_name(fileSystem, parent, 'newfolder', '')
-        return json.dumps({'path' : fileSystem.create_folder(unique_filename) })
+        return json.dumps({'path' : fileSystem.mkdirs(unique_filename) })
     elif request.args.get('delete'):
         path = request.args['delete']
         fileSystem = Utility.fs_by_prefix(path)

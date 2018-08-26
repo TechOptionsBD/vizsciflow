@@ -7,6 +7,7 @@ import sys
 import tempfile
 from urllib.parse import urlunparse, urlsplit, urljoin
 import pathlib
+import uuid
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
@@ -37,9 +38,10 @@ class PosixFileSystem():
         path = os.path.normpath(path)
         if self.prefix:
             path = self.strip_prefix(path)
+        if path.startswith(self.localdir):
+            return path
         while path and path[0] == os.sep:
-            path = path[1:]
-             
+            path = path[1:]    
         return os.path.join(self.localdir, path)
     
     def makedirs(self, path):
@@ -47,8 +49,7 @@ class PosixFileSystem():
                 
     def make_prefix(self, path):
         if not self.prefix:
-            return path
-        
+            return path     
         if path.startswith(self.prefix):
             return path
         if path.startswith(self.localdir):
@@ -64,7 +65,7 @@ class PosixFileSystem():
         path = self.strip_prefix(path)
         return path[len(self.localdir):] if path.startswith(self.localdir) else path
             
-    def create_folder(self, path):
+    def mkdirs(self, path):
         path = self.normalize_path(path)
         if not os.path.exists(path):
             os.makedirs(path) 
@@ -93,6 +94,10 @@ class PosixFileSystem():
         path = self.normalize_path(path)
         return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
     
+    def listdir(self, path):
+        path = self.normalize_path(path)
+        return os.listdir(path)
+            
     def read(self, path):
         path = self.normalize_path(path)
         with open(path) as reader:
@@ -104,13 +109,18 @@ class PosixFileSystem():
             return writer.write(content)
         
     def unique_filename(self, path, prefix, ext):
-        make_fn = lambda i: os.path.join(self.normalize_path(path), '{0}({1}).{2}'.format(prefix, i, ext))
+        make_fn = lambda i: os.path.join(self.normalize_path(path), '{0}_{1}.{2}'.format(prefix, i, ext))
 
         for i in range(1, sys.maxsize):
             uni_fn = make_fn(i)
-            if not os.path.exists(uni_fn):
+            if not self.exists(uni_fn):
                 return uni_fn
     
+    def make_unique_dir(self, path):
+        unique_dir = os.path.join(self.normalize_path(path), str(uuid.uuid4()))
+        os.makedirs(unique_dir)
+        return unique_dir
+            
     def exists(self, path):
         return os.path.exists(self.normalize_path(path))
         
@@ -126,7 +136,7 @@ class PosixFileSystem():
         data_json['folder'] = os.path.isdir(normalized_path)
         
         if os.path.isdir(normalized_path):
-           data_json['nodes'] = [self.make_json(os.path.join(path, fn)) for fn in os.listdir(normalized_path)]
+            data_json['nodes'] = [self.make_json(os.path.join(path, fn)) for fn in os.listdir(normalized_path)]
         return data_json
 
     def save_upload(self, file, path):
@@ -160,6 +170,8 @@ class HadoopFileSystem():
         path = os.path.normpath(path)
         if self.prefix:
             path = self.strip_prefix(path)
+        if path.startswith(self.localdir):
+            return path
         while path and path[0] == os.sep:
             path = path[1:]
         return os.path.join(self.localdir, path)
@@ -175,7 +187,7 @@ class HadoopFileSystem():
                 raise 'Invalid hdfs path. It must start with the root directory'
         return path[len(self.localdir):] if path.startswith(self.localdir) else path
         
-    def create_folder(self, path):
+    def mkdirs(self, path):
         try:
             path = self.normalize_path(path)
             self.client.makedirs(path)
@@ -216,6 +228,24 @@ class HadoopFileSystem():
             if status['type'] == "DIRECTORY":
                 folders.append(f)
         return folders
+    
+    def listdir(self, path):
+        path = self.normalize_path(path)
+        for f in self.client.list(path):
+            yield f
+    
+    def unique_filename(self, path, prefix, ext):
+        make_fn = lambda i: os.path.join(self.normalize_path(path), '{0}_{1}.{2}'.format(prefix, i, ext))
+
+        for i in range(1, sys.maxsize):
+            uni_fn = make_fn(i)
+            if not self.exists(uni_fn):
+                return uni_fn
+    
+    def make_unique_dir(self, path):
+        unique_dir = os.path.join(self.normalize_path(path), uuid.uuid4())
+        self.makedirs(unique_dir)
+        return unique_dir
     
     def exists(self, path):
         path = self.normalize_path(path)
@@ -309,10 +339,10 @@ class GalaxyFileSystem():
         path = self.normalize_path(path)
         return os.path.join(self.prefix, path)
         
-    def create_folder(self, path):
+    def mkdirs(self, path):
         try:
             path = self.normalize_path(path)
-            parts = pathlib.Path(normalized_path).parts
+            parts = pathlib.Path(path).parts
             if len(parts) > 3:
                 raise ValueError("Galaxy path may have maximum 3 parts.")
             if parts[0] == self.lddaprefix:
@@ -330,7 +360,7 @@ class GalaxyFileSystem():
     def remove(self, path):
         try:
             path = self.normalize_path(path)
-            parts = pathlib.Path(normalized_path).parts
+            parts = pathlib.Path(path).parts
             if len(parts) == 3:
                 raise ValueError("Galaxy path may have maximum 3 parts.")
             if parts[0] == self.lddaprefix:
@@ -485,14 +515,9 @@ class IOHelper():
         filesystem.remove(path)
         
     @staticmethod
-    def create_folder(path):
+    def mkdirs(path):
         filesystem = IOHelper.getFileSystem(path)
-        return filesystem.create_folder(path)
-    
-    @staticmethod
-    def remove(path):
-        filesystem = IOHelper.getFileSystem(path)
-        filesystem.remove(path)
+        return filesystem.mkdirs(path)
     
     @staticmethod
     def rename(oldpath, newpath):

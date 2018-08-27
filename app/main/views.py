@@ -574,7 +574,11 @@ class InterpreterHelper():
         
         funclist.sort(key=lambda x: (x.group, x.name))
         for f in funclist:
-            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": f.example if f.example else "", "example2": f.example2 if f.example2 else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"}) 
+            example = f.example if f.example else ""
+            example2 = f.example2 if f.example2 else ""
+            example = example if example else example2
+            example2 = example2 if example2 else example
+            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": f.example2 if f.example2 else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"}) 
     
         self.codeGenerator.context.load_library(librariesdir)
         

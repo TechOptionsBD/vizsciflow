@@ -6,12 +6,13 @@
            "module": "app.biowl.libraries.pear.adapter",
            "group": "Texts",
            "level": "1",
-           "name":"MergePear",
+           "name":"Merge",
            "internal":"run_pear",
            "runmode": "local",
            "desc": "Pair-end read merger for fastq files. It evaluates all possible paired-end read overlaps. In addition, it implements a statistical test for minimizing false-positive results.",
            "returns": "string[]",
-           "example":"MergePear(data1=, data2=, output=)",
+           "example":"merged_frags = pear.Merge(data1, data2)",
+           "example2":"merged_frags = pear.Merge(data1=, data2=, output=)",
            "params":[  
             {  
                "name":"data1",

@@ -10,7 +10,7 @@
            "runmode": "local",
            "desc": "Processing sequences in the FASTA or FASTQ format. https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"Seqtk(data, command, output)",
+           "example":"result = seqtk.Seqtk(data, command, output)",
            "params":[  
             {  
                "name":"data",
@@ -37,7 +37,8 @@
            "runmode": "local",
            "desc": "Convert FASTQ to FASTA format. https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"FastqToFasta(data=, output=)",
+           "example":"fasta_file = seqtk.FastqToFasta(data)",
+           "example2":"fasta_file = seqtk.FastqToFasta(data=, output=)",
            "params":[  
             {  
                "name":"data",
@@ -60,7 +61,8 @@
            "runmode": "local",
            "desc": "Extracts a random sample. Apply the seed if it's given. 'https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"Extract(data=, output=, [seed=10], [sample=10000])",
+           "example":"sample_file = seqtk.Extract(data)",
+           "example2":"sample_file = seqtk.Extract(data=, output=, [seed=10], [sample=10000])",
            "params":[  
             {  
                "name":"data",
@@ -91,7 +93,8 @@
            "runmode": "local",
            "desc": "Trim reads with the modified Mott trimming algorithm. https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"Trim(data, output, [begin=], [end=], [quality=])",
+           "example":"trim_file = seqtk.Trim(data)",
+           "example2":"trim_file = seqtk.Trim(data, output, [begin=], [end=], [quality=])",
            "params":[  
             {  
                "name":"data",

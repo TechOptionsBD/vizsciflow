@@ -14,6 +14,7 @@ def build_bwa_index(ref):
 def run_bwa(*args, **kwargs):
     
     paramindex = 0
+    ref = ''
     if 'ref' in kwargs.keys():
         ref = kwargs['ref']
     else:
@@ -22,13 +23,15 @@ def run_bwa(*args, **kwargs):
         ref = args[paramindex]
         paramindex +=1
         
-    ref = Utility.get_normalized_path(ref)
+    fs = Utility.fs_by_prefix(ref)
+    ref = fs.normalize_path(ref)
     
     indexpath = Path(ref).stem + ".bwt"
     indexpath = os.path.join(os.path.dirname(ref), os.path.basename(indexpath))
-    if not os.path.exists(indexpath):
+    if not fs.exists(indexpath):
         build_bwa_index(ref)
     
+    data1 = ''
     if 'data1' in kwargs.keys():
         data1 = kwargs['data1']
     else:
@@ -37,8 +40,9 @@ def run_bwa(*args, **kwargs):
         data1 = args[paramindex]
         paramindex +=1
     
-    data1 = Utility.get_normalized_path(data1)
+    data1 = fs.normalize_path(data1)
     
+    data2 = ''
     if 'data2' in kwargs.keys():
         data2 = kwargs['data2']
     else:
@@ -47,8 +51,9 @@ def run_bwa(*args, **kwargs):
             paramindex +=1
     
     if data2:
-        data2 = Utility.get_normalized_path(data2)
-        
+        data2 = fs.normalize_path(data2)
+    
+    output = ''    
     if 'output' in kwargs.keys():
         output = kwargs['output']
     else:
@@ -56,19 +61,19 @@ def run_bwa(*args, **kwargs):
             output = args[paramindex]
             paramindex +=1
     
-    if output:
-        output = Utility.get_normalized_path(output)
-    else:
+    if not output:
         output = Path(data1).stem + ".sam"
-        output = os.path.join(os.path.dirname(data1), os.path.basename(output))
-        output = Utility.get_normalized_path(output)
+        outdir = fs.make_unique_dir(path.dirname(data1))
+        output = os.path.join(outdir, os.path.basename(output))
+        
+    output = fs.normalize_path(output)
     
-    if not os.path.exists(path.dirname(output)):
-        os.makedirs(path.dirname(output))
+    if not fs.exists(path.dirname(output)):
+        fs.makedirs(path.dirname(output))
         
     if os.path.exists(output):
         os.remove(output)
-            
+
     cmdargs = ['mem', ref, data1]
     if data2:
         cmdargs.append(data2)
@@ -80,9 +85,8 @@ def run_bwa(*args, **kwargs):
     
     _,err = func_exec_run(bwa, *cmdargs)
     
-    fs = Utility.fs_by_prefix(output)
     stripped_path = fs.strip_root(output)
-    if not os.path.exists(output):
+    if not fs.exists(output):
         raise ValueError("bwa could not generate the file " + stripped_path + " due to error " + err)
     
     return stripped_path

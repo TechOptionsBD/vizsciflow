@@ -11,8 +11,8 @@
            "runmode": "local",
            "desc": "Merge mates from fragments that are shorter than twice the read length.",
            "returns": "string",
-           "example":"extended_frags = Merge(data1, data2)",
-           "example2":"extended_frags = Merge(data1=, data2=, [outdir=], [max_overlap=50])",
+           "example":"extended_frags = flash.Merge(data1, data2)",
+           "example2":"extended_frags = flash.Merge(data1=, data2=, [outdir=], [max_overlap=50])",
            "params":[  
             {  
                "name":"data1",

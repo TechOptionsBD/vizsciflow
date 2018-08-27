@@ -30,12 +30,10 @@ def run_fastqc(*args, **kwargs):
             outdir = args[paramindex]
             paramindex +=1
     
-    if not outdir:
-        outdir = path.dirname(data)
-
-    outdir = fs.normalize_path(outdir)    
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    if outdir:
+        outdir = fs.normalize_path(outdir)
+    else:
+        outdir = fs.make_unique_dir(path.dirname(data))
     
     cmdargs = [data, "--outdir=" + outdir]
                        
@@ -44,14 +42,14 @@ def run_fastqc(*args, **kwargs):
     
     outpath = Path(data).stem + "_fastqc.html"
     outpath = os.path.join(outdir, os.path.basename(outpath))
-    if os.path.exists(outpath):
-        os.remove(outpath)
+    if fs.exists(outpath):
+        fs.remove(outpath)
     
     _,err = func_exec_run(fastqc, *cmdargs)
         
     
     stripped_path = fs.strip_root(outpath)
-    if not os.path.exists(outpath):
+    if not fs.exists(outpath):
         raise ValueError("FastQC could not generate the file " + stripped_path + " due to error " + err)
     
     return stripped_path

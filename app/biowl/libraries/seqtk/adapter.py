@@ -25,22 +25,39 @@ def run_seqtk(*args, **kwargs):
 
 def seqtk_fastq_to_fasta(*args, **kwargs):
     paramindex = 0
-    data = ''
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
         if len(args) == paramindex:
-            raise ValueError("Argument not given.")
+            raise ValueError("Argument missing error in pysam.")
         data = args[paramindex]
-        paramindex += 1
+        paramindex +=1
     
-    output = ''            
+    fs = Utility.fs_by_prefix(data)
+    data = fs.normalize_path(data)
+    
+    output = ''
     if 'output' in kwargs.keys():
         output = kwargs['output']
     else:
         if len(args) > paramindex:
             output = args[paramindex]
-            paramindex += 1
+            paramindex +=1
+    
+    outdir = ''
+    if not output:
+        output = Path(data).stem + ".fasta"
+        outdir = fs.make_unique_dir(path.dirname(data))
+        output = path.join(outdir, path.basename(output))
+        
+    output = fs.normalize_path(output)
+    outdir = path.dirname(output)
+    
+    if not fs.exists(outdir):
+        fs.makedirs(outdir)
+        
+    if fs.exists(output):
+        fs.remove(output)
 
     cmdargs = [data, 'seq -a', output]
     for arg in args[paramindex + 1:]:
@@ -49,27 +66,40 @@ def seqtk_fastq_to_fasta(*args, **kwargs):
 
 def seqtk_extract_sample(*args, **kwargs):
     paramindex = 0
-    data = ''
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
         if len(args) == paramindex:
-            raise ValueError("Argument not given.")
+            raise ValueError("Argument missing error in pysam.")
         data = args[paramindex]
-        paramindex += 1
+        paramindex +=1
     
-    output = ''            
+    fs = Utility.fs_by_prefix(data)
+    data = fs.normalize_path(data)
+    
+    output = ''
     if 'output' in kwargs.keys():
         output = kwargs['output']
     else:
         if len(args) > paramindex:
             output = args[paramindex]
-            paramindex += 1
+            paramindex +=1
     
+    outdir = ''
     if not output:
-        filename = Path(path.basename(data))
-        output = path.join(path.dirname(data), filename.with_suffix('') + '_output.' + filename.suffix())
+        p = Path(path.basename(data))
+        outdir = fs.make_unique_dir(path.dirname(data))
+        output = path.join(outdir, str(p.with_suffix('')) + '_output' + p.suffix)
         
+    output = fs.normalize_path(output)
+    outdir = path.dirname(output)
+    
+    if not fs.exists(outdir):
+        fs.makedirs(outdir)
+        
+    if fs.exists(output):
+        fs.remove(output)
+            
     seed = 100
     if 'seed' in kwargs.keys():
         seed = kwargs['seed']
@@ -86,10 +116,6 @@ def seqtk_extract_sample(*args, **kwargs):
             sample = args[paramindex]
             paramindex += 1
     
-    fs = Utility.fs_by_prefix(data)
-    data = fs.normalize_path(data)
-    output = fs.normalize_path(output)
-    
     cmdargs = ['sample -s{0}'.format(seed), data, str(sample)]
     
     outdata,_ = func_exec_stdout(seqtk, *cmdargs)
@@ -104,16 +130,35 @@ def seqtk_trim(*args, **kwargs):
         data = kwargs['data']
     else:
         if len(args) == paramindex:
-            raise ValueError("Argument not given.")
+            raise ValueError("Argument missing error in pysam.")
         data = args[paramindex]
-        paramindex += 1
-                
+        paramindex +=1
+    
+    fs = Utility.fs_by_prefix(data)
+    data = fs.normalize_path(data)
+    
+    output = ''
     if 'output' in kwargs.keys():
         output = kwargs['output']
     else:
         if len(args) > paramindex:
             output = args[paramindex]
-            paramindex += 1
+            paramindex +=1
+    
+    outdir = ''
+    if not output:
+        p = Path(path.basename(data))
+        outdir = fs.make_unique_dir(path.dirname(data))
+        output = path.join(outdir, str(p.with_suffix('')) + '_output' + p.suffix)
+        
+    output = fs.normalize_path(output)
+    outdir = path.dirname(output)
+    
+    if not fs.exists(outdir):
+        fs.makedirs(outdir)
+        
+    if fs.exists(output):
+        fs.remove(output)
     
     begin = None
     if 'begin' in kwargs.keys():

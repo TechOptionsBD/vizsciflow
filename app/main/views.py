@@ -74,8 +74,8 @@ def load_data_sources():
             try:
                 hdfs = HadoopFileSystem()
                 if current_user.is_authenticated:
-                    datasource['children'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
-                datasource['children'].append(hdfs.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
+                    datasource['children'].append(hdfs.make_json_r(ds.id, Utility.get_rootdir(ds.id), current_user.username))
+                datasource['children'].append(hdfs.make_json_r(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
             except:
                 pass
 
@@ -83,8 +83,8 @@ def load_data_sources():
             # file system tree
             posixFS = PosixFileSystem()
             if current_user.is_authenticated:
-                datasource['children'].append(posixFS.make_json(ds.id, Utility.get_rootdir(ds.id), current_user.username))
-            datasource['children'].append(posixFS.make_json(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
+                datasource['children'].append(posixFS.make_json_r(ds.id, Utility.get_rootdir(ds.id), current_user.username))
+            datasource['children'].append(posixFS.make_json_r(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
  
         datasource_tree['children'].append(datasource)
         
@@ -441,7 +441,7 @@ def rename():
         
         newpath = os.path.join(os.path.dirname(oldpath), request.form['newname'])
         filesystem.rename(oldpath, newpath)
-        return json.dumps(filesystem.make_json(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newpath, Utility.get_rootdir(datasource_id))))
+        return json.dumps(filesystem.make_json_r(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newpath, Utility.get_rootdir(datasource_id))))
     return json.dumps(dict())
        
 @main.route('/addfolder', methods=['POST'])
@@ -452,7 +452,7 @@ def addfolder():
     if filesystem is not None:
         path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
         newfolder = filesystem.addfolder(path)
-        return json.dumps(filesystem.make_json(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newfolder, Utility.get_rootdir(datasource_id))))
+        return json.dumps(filesystem.make_json_r(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newfolder, Utility.get_rootdir(datasource_id))))
     return json.dumps(dict())
     
     # Route that will process the file upload
@@ -504,39 +504,20 @@ def load_data_sources_biowl():
     datasources = DataSource.query.all()
     datasource_tree = []
     for ds in datasources:
-        datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'folder': True}
-        fs = None
-        if ds.type == 'hdfs':
-            # hdfs tree
-            try:
-                fs = HadoopFileSystem(ds.url, ds.root, ds.user, ds.prefix)
-            except:
-                pass
-
-        elif ds.type == 'posix':
-            # file system tree
-            fs = PosixFileSystem(ds.url, ds.prefix)
-#         elif ds.type == 'gfs':
-#             # file system tree
-#             if current_user.is_authenticated:
-#                 try:
-#                     galaxyFS = GalaxyFileSystem(ds.url, ds.password, ds.prefix)
-#                     nodes = galaxyFS.make_json('/')
-#                     if isinstance(nodes, list):
-#                         datasource['nodes'] = nodes
-#                     else:
-#                         datasource['nodes'].append(nodes)
-#                 except:
-#                     pass
-        
+        datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'loaded': True}
         try:
-            if fs:
-                if current_user.is_authenticated:
+            fs = Utility.fs_by_prefix(ds.url)
+            if current_user.is_authenticated:
+                if ds.type == 'gfs':
+                    datasource['nodes'] = fs.make_json('/')
+#                     datasource['nodes'].append(fs.make_json('/' + fs.lddaprefix))
+#                     datasource['nodes'].append(fs.make_json('/' + fs.hdaprefix))
+                else:
                     if not fs.exists(current_user.username):
                         fs.mkdirs(current_user.username)
                     datasource['nodes'].append(fs.make_json(os.sep + current_user.username))
-                if ds.public:
-                    datasource['nodes'].append(fs.make_json(ds.public))
+            if ds.public and fs.exists(ds.public):
+                datasource['nodes'].append(fs.make_json(ds.public))
                     
             datasource_tree.append(datasource)
         except:
@@ -574,11 +555,9 @@ class InterpreterHelper():
         
         funclist.sort(key=lambda x: (x.group, x.name))
         for f in funclist:
-            example = f.example if f.example else ""
-            example2 = f.example2 if f.example2 else ""
-            example = example if example else example2
-            example2 = example2 if example2 else example
-            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": f.example2 if f.example2 else "", "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"}) 
+            example = f.example if f.example else f.example2 if f.example2 else ""
+            example2 = f.example2 if f.example2 else example
+            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": example2, "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"}) 
     
         self.codeGenerator.context.load_library(librariesdir)
         
@@ -627,7 +606,10 @@ def datasources():
         oldpath = fileSystem.strip_root(request.args['oldpath'])
         newpath = os.path.join(os.path.dirname(oldpath), request.args['rename'])
         return json.dumps({'path' : fileSystem.rename(oldpath, newpath)})
-        
+    elif request.args.get('load'):
+        fs = Utility.fs_by_prefix(request.args['load'])
+        return json.dumps(fs.make_json(request.args['load']))
+            
     return json.dumps({'datasources': load_data_sources_biowl() })
 
 def run_biowl(user_id, script, args, immediate = True, pygen = False):

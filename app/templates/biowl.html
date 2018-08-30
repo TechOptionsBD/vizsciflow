@@ -592,7 +592,7 @@ background-color: White;
       var self = this;
       self.dataSourcesURI = '/datasources';
       self.dataSources = ko.observableArray();
-      
+      self.expandedNodes = [];
       
       self.refresh = function(path) {
           ajaxcalls.simple(self.samplesURI, 'POST', {'path': path}).done(function(data) {
@@ -630,6 +630,52 @@ background-color: White;
           }).fail(function(jqXHR) {
               if (jqXHR.status == 403)
                   setTimeout(self.beginLogin, 500);
+          });
+      }
+      
+      self.getItemByPath = function(source, path) {
+    	  if (source.path === path)
+    		  return source;
+    	  
+    	  if (source.nodes !== undefined || source.nodes != null) {
+	    	  for(var i =0; i < source.nodes.length; ++i){
+	    		  
+	    		  var subNode = self.getItemByPath(source.nodes[i], path);
+	    		  if (subNode)
+	    			  return subNode;
+	    	  }
+    	  }
+    		
+    	  return null;	
+      }
+      
+      self.loadItem = function(node) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.path }).done(function(data) {
+              
+              var dataSources = self.dataSources();
+              
+              for(var i=0; i < dataSources.length; ++i){
+            	  
+            	  var item = self.getItemByPath(dataSources[i], data.path);
+            	  if (item != null) {
+                  	item.text = data.text;
+                  	item.nodes = data.nodes;
+                    item.loaded = data.loaded;
+                    
+                    ko.applyBindings(self, $("#dataSourcesPanel")[0]);
+                    
+                    for (node in self.expandedNodes)
+                        $('#treeview').treeview('expandNode', [ self.expandedNodes[node] ]); //, { levels: 0, silent: true }
+                    //$('#treeview').treeview('expandNode', 0, { silent: true } );
+                    
+                  	break;
+            	  }
+              }
+              
+              
+          }).fail(function(jqXHR) {
+              //if (jqXHR.status == 403)
+              //    setTimeout(self.beginLogin, 500);
           });
       }
       
@@ -729,6 +775,17 @@ background-color: White;
                 	clickNode(event, data);
                 }).on('nodeUnselected', function(event, data) {
                 	clickNode(event, data);
+        		}).on('nodeExpanded', function(event, data) {
+        			
+        			dataSourceViewModel.expandedNodes.push(data.nodeId);
+        			if (data.loaded === undefined || !data.loaded) {
+        				dataSourceViewModel.loadItem(data)
+        			}
+        		}).on('nodeCollapsed', function(event, data) {
+        			
+        			var index = dataSourceViewModel.expandedNodes.indexOf(data.nodeId);
+        		    if (index > -1) 
+        		    	dataSourceViewModel.expandedNodes.splice(index, 1);
         		});
             },
             update: function(element, valueAccessor, allBindings) {

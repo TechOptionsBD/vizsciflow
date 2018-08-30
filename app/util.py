@@ -46,31 +46,32 @@ class Utility:
         if ds.type == 'hdfs':
             return HadoopFileSystem(ds.url, ds.root, ds.user)
         elif ds.type == 'posix':
-            return PosixFileSystem(ds.url, ds.name)
+            return PosixFileSystem(ds.url)
         elif ds.type == 'gfs':
-            return GalaxyFileSystem(ds.url, ds.password)
+            return GalaxyFileSystem(ds.url, ds.user)
     
     @staticmethod
-    def fs_type_by_prefix(path):
+    def ds_by_prefix(path):
         if path:
             #path = os.path.normpath(path)
             datasources = DataSource.query.all()
             for ds in datasources:
                 if ds.prefix:
                     if path.startswith(ds.prefix):
-                        return ds.type
+                        return ds
                     
                 if ds.url:
                     if path.startswith(ds.url):
-                        return ds.type
-                    
-        return 'posix'
+                        return ds
+    
+    @staticmethod
+    def fs_type_by_prefix(path):
+        ds = Utility.ds_by_prefix(path)
+        return ds.type if ds else 'posix'
             
     @staticmethod
     def fs_by_prefix(path):
-        fs_type = Utility.fs_type_by_prefix(path)
-        ds = DataSource.query.filter_by(type = fs_type).first()
-        return Utility.create_fs(ds)
+        return Utility.create_fs(Utility.ds_by_prefix(path))
     
     @staticmethod
     def get_normalized_path(path):

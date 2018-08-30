@@ -20,14 +20,12 @@ except:
 
 try:
     from bioblend.galaxy import GalaxyInstance
-    from bioblend.galaxy.histories import HistoryClient
-    from bioblend.galaxy.libraries import LibraryClient
 except:
     pass
 
 class PosixFileSystem():
     
-    def __init__(self, root, prefix):
+    def __init__(self, root, prefix = None):
         
         self.localdir = root
         if not os.path.exists(self.localdir):
@@ -130,13 +128,27 @@ class PosixFileSystem():
     def isfile(self, path):
         return os.path.isfile(self.normalize_path(path))
     
+    def make_json_item(self, path):
+        data_json =  { 'path': self.make_prefix(path), 'text': os.path.basename(path) }
+        if self.isdir(path):
+            data_json['nodes'] = []
+        return data_json
+        
     def make_json(self, path):
+        data_json = self.make_json_item(path)
+        
+        if self.isdir(path):
+            data_json['nodes'] = [self.make_json_item(os.path.join(path, fn)) for fn in os.listdir(self.normalize_path(path))]
+            data_json['loaded'] = True
+        return data_json
+    
+    def make_json_r(self, path):
         normalized_path = self.normalize_path(path)
         data_json = { 'path': self.make_prefix(path), 'text': os.path.basename(path) }
         data_json['folder'] = os.path.isdir(normalized_path)
         
         if os.path.isdir(normalized_path):
-            data_json['nodes'] = [self.make_json(os.path.join(path, fn)) for fn in os.listdir(normalized_path)]
+            data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in os.listdir(normalized_path)]
         return data_json
 
     def save_upload(self, file, path):
@@ -162,7 +174,7 @@ class HadoopFileSystem():
             raise ValueError("Invalid name node address")
         
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
-        self.client = InsecureClient(self.url, user=user)
+        self.client = InsecureClient(self.url, user=user, timeout=100)
         self.localdir = root
         self.prefix = prefix
     
@@ -271,7 +283,21 @@ class HadoopFileSystem():
         path = self.normalize_path(path)
         self.client.write(path, content)
     
+    def make_json_item(self, path):
+        data_json = { 'path': urljoin(self.url, self.normalize_path(path)), 'text': os.path.basename(path) }
+        if self.isdir(path):
+            data_json['nodes'] = []
+        return data_json
+        
     def make_json(self, path):
+        data_json = self.make_json_item(path)
+        
+        if self.isdir(path):
+            data_json['nodes'] = [self.make_json_item(os.path.join(path, fn)) for fn in self.client.list(self.normalize_path(path))]
+            data_json['loaded'] = True
+        return data_json
+    
+    def make_json_r(self, path):
         normalized_path = self.normalize_path(path)
         data_json = { 'path': urljoin(self.url, normalized_path), 'text': os.path.basename(path) }
         status = self.client.status(normalized_path, False)
@@ -279,7 +305,7 @@ class HadoopFileSystem():
         if status is not None:
             data_json['folder'] = status['type'] == "DIRECTORY"
             if status['type'] == "DIRECTORY":
-                data_json['nodes'] = [self.make_json(os.path.join(path, fn)) for fn in self.client.list(normalized_path)]
+                data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in self.client.list(normalized_path)]
         #print(json.dumps(data_json))
         return data_json
      
@@ -305,6 +331,13 @@ class HadoopFileSystem():
             return None
 
 class GalaxyFileSystem():
+    urlKey = 0
+    hlddTitleKey = 1
+    hlddKey = 2
+    folderKey = 3
+    hdaKey = 3
+    lddaKey = 4
+    
     def __init__(self, url, user):
         u = urlsplit(url)
         if u.scheme != 'http' and u.scheme != 'https':
@@ -317,22 +350,28 @@ class GalaxyFileSystem():
         self.hdaprefix = 'Histories'
         self.client = GalaxyInstance(self.url, user)
     
+    def strip_prefix(self, path):
+        return path[len(self.prefix):] if self.prefix and path.startswith(self.prefix) else path
+    
     def normalize_path(self, path):
-        path = os.path.normpath(path)
-        if path.startswith(self.prefix):
-            path = path[len(self.prefix):]
+        if self.prefix:
+            path = self.strip_prefix(path)
+        if self.localdir and path.startswith(self.localdir):
+            return path
+ 
         while path and path[0] == os.sep:
             path = path[1:]
         return os.path.join(self.localdir, path)
-    
+
     def strip_root(self, path):
         if path.startswith(self.url):
             path = path[len(self.url):]
             if not path.startswith(self.localdir):
-                raise 'Invalid hdfs path. It must start with the root directory'
+                raise ValueError("Invalid hdfs path. It must start with the root directory")
       
         if not path.startswith(self.localdir):
             return path
+        
         return path[len(self.localdir):]
     
     def make_fullpath(self, path):
@@ -342,14 +381,11 @@ class GalaxyFileSystem():
     def mkdirs(self, path):
         try:
             path = self.normalize_path(path)
-            parts = pathlib.Path(path).parts
-            if len(parts) > 3:
-                raise ValueError("Galaxy path may have maximum 3 parts.")
-            if parts[0] == self.lddaprefix:
-                id = self.client.libraries.create_library(parts[-1])
-            else:
-                id = self.client.histories.create_history(parts[-1])
-            parts[-1] = id
+            parts = self.path_parts(path)
+            if len(parts) > 4:
+                raise ValueError("Galaxy path may have maximum 4 parts.")
+            
+            parts[-1] = self.client.libraries.create_library(parts[-1]) if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]) else self.client.histories.create_history(parts[-1])
             
             path = os.sep.join(parts)
             return self.make_fullpath(path)
@@ -360,13 +396,13 @@ class GalaxyFileSystem():
     def remove(self, path):
         try:
             path = self.normalize_path(path)
-            parts = pathlib.Path(path).parts
-            if len(parts) == 3:
-                raise ValueError("Galaxy path may have maximum 3 parts.")
-            if parts[0] == self.lddaprefix:
-                id = self.client.libraries.delete_library(library_id = parts[-1])
+            parts = self.path_parts(path)
+            if len(parts) > 4:
+                raise ValueError("Galaxy path may have maximum 4 parts.")
+            if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]):
+                self.client.libraries.delete_library(library_id = parts[-1])
             else:
-                id = self.client.histories.delete_history(history_id = parts[-1])
+                self.client.histories.delete_history(history_id = parts[-1])
         except Exception as e:
             print(e)
            
@@ -389,15 +425,12 @@ class GalaxyFileSystem():
     
     def get_folders(self, path):
         try:
-            path = self.normalize_path(path)
-            parts = pathlib.Path(normalized_path).parts
-            if len(parts) > 3:
-                raise ValueError("Galaxy path may have maximum 3 parts.")
-            if parts[0] == self.lddaprefix:
-                id = self.client.libraries.create_library(parts[-1])
-            else:
-                id = self.client.histories.create_history(parts[-1])
-            parts[-1] = id
+            normalized_path = self.normalize_path(path)
+            parts = self.path_parts(normalized_path)
+            if len(parts) > 4:
+                raise ValueError("Galaxy path may have maximum 4 parts.")
+
+            parts[-1] = self.client.libraries.create_library(parts[-1]) if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]) else self.client.histories.create_history(parts[-1])
             
             path = os.sep.join(parts)
             return self.make_fullpath(path)
@@ -406,11 +439,15 @@ class GalaxyFileSystem():
         return path       
     
     def exists(self, path):
-        return self.isdir(path) or self.ispath(path)
-        
+        return self.isdir(path) or self.isfile(path)
+     
+    def islibrary(self, name):
+        return name == self.lddaprefix
+       
     def isdir(self, path):
-        path = self.normalize_path(path)
-        return path == self.lddaprefix or path == self.hdaprefix
+        normalized_path = self.normalize_path(path)
+        parts = self.path_parts(normalized_path)
+        return len(parts) <= GalaxyFileSystem.lddaKey if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]) else len(parts) <= GalaxyFileSystem.hdaKey
     
     def isfile(self, path):
         return not self.isdir(path) and self.name_from_id(path)
@@ -424,47 +461,126 @@ class GalaxyFileSystem():
         path = self.normalize_path(path)
         self.client.write(path, content)
     
+    def id_from_path(self, path):
+        normalized_path = self.normalize_path(path)
+        parts = self.path_parts(normalized_path)
+        if len(parts) <= GalaxyFileSystem.urlKey + 1:
+            return ""
+        elif len(parts) == GalaxyFileSystem.hlddTitleKey + 1:#Histories/Libraries
+            return parts[GalaxyFileSystem.hlddTitleKey] 
+        elif len(parts) == GalaxyFileSystem.hlddKey + 1: #library-name/history-name
+            info = self.client.libraries.get_libraries(library_id = parts[GalaxyFileSystem.hlddKey])[0] if parts[GalaxyFileSystem.hlddTitleKey] == self.lddaprefix else self.client.histories.get_histories(history_id = parts[GalaxyFileSystem.hlddKey])[0]
+            return info['id']
+        elif len(parts) == GalaxyFileSystem.folderKey + 1: #Folder(library)/Dataset(history)
+            if parts[GalaxyFileSystem.hlddTitleKey] == self.lddaprefix:
+                folder = self.client.folders.show_folder(parts[3], False)
+                return folder['id']
+            else:
+                info = self.client.datasets.show_dataset(dataset_id = parts[GalaxyFileSystem.hdaKey], hda_ldda = 'hda')
+                return info['id']
+        elif len(parts) == GalaxyFileSystem.lddaKey + 1:
+            info = self.client.datasets.show_dataset(dataset_id = parts[GalaxyFileSystem.lddaKey], hda_ldda = 'ldda')
+            return info['id']
+    
+    def path_parts(self, path):
+        parts = []
+        if path.startswith(self.prefix):
+            parts.append(self.prefix)
+            if len(path) > len(self.prefix):
+                path = path[len(self.prefix) + 1:]
+        elif path.startswith(self.url):
+            parts.append(self.url)
+            if len(path) > len(self.url):
+                path = path[len(self.url) + 1:]
+            
+        parts.extend(pathlib.Path(path).parts)
+        return parts
+              
     def name_from_id(self, path):
         normalized_path = self.normalize_path(path)
-        parts = pathlib.Path(normalized_path).parts
-        if len(parts) == 0:
+        parts = self.path_parts(normalized_path)
+        if len(parts) <= GalaxyFileSystem.urlKey + 1:
             return ""
-        elif len(parts) == 1:
-             return self.lddaprefix if parts[0] == self.lddaprefix else self.hdaprefix
-        elif len(parts) == 2:
-            info = self.client.libraries.get_libraries(library_id = parts[1])[0] if parts[0] == self.lddaprefix else self.client.histories.get_histories(history_id = parts[1])[0]
-        else:
-            hda_or_ldda = 'ldda' if parts[0] == self.lddaprefix else 'hda'
-            info = self.client.datasets.show_dataset(dataset_id = os.path.basename(normalized_path), hda_ldda = hda_or_ldda)
-                
-        if info:
+        elif len(parts) == GalaxyFileSystem.hlddTitleKey + 1:#Histories/Libraries
+            return parts[GalaxyFileSystem.hlddTitleKey] 
+        elif len(parts) == GalaxyFileSystem.hlddKey + 1: #library-name/history-name
+            info = self.client.libraries.get_libraries(library_id = parts[GalaxyFileSystem.hlddKey])[0] if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]) else self.client.histories.get_histories(history_id = parts[GalaxyFileSystem.hlddKey])[0]
             return info['name']
+        elif len(parts) == GalaxyFileSystem.folderKey + 1: #Folder(library)/Dataset(history)
+            if parts[GalaxyFileSystem.hlddTitleKey] == self.lddaprefix:
+                folder = self.client.folders.show_folder(parts[GalaxyFileSystem.folderKey], False)
+                return folder['name']
+            else:
+                info = self.client.datasets.show_dataset(dataset_id = parts[GalaxyFileSystem.hdaKey], hda_ldda = 'hda')
+                return info['name']
+        elif len(parts) == GalaxyFileSystem.lddaKey + 1:
+            info = self.client.datasets.show_dataset(dataset_id = parts[GalaxyFileSystem.lddaKey], hda_ldda = 'ldda')
+            return info['name']
+    
+    def make_json_item(self, path):
+        data_json = { 'path': self.normalize_path(path), 'text': self.name_from_id(path) }
+        if self.isdir(path):
+            data_json['nodes'] = []
+        return data_json
         
     def make_json(self, path):
         normalized_path = self.normalize_path(path)
-        if not normalized_path:
-            return [self.make_json(self.lddaprefix), self.make_json(self.hdaprefix)]
+        if not normalized_path or normalized_path == self.url:
+            return [self.make_json_item(urljoin(self.url, self.lddaprefix)), self.make_json_item(urljoin(self.url, self.hdaprefix))]
         else:
-            data_json = { 'path': os.path.join(self.url, normalized_path), 'text': self.name_from_id(path) }
-            parts = pathlib.Path(normalized_path).parts
-            if parts[0] == self.lddaprefix:
+            data_json = self.make_json_item(path)
+            parts = self.path_parts(normalized_path)
+            if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]):
+                if len(parts) == GalaxyFileSystem.hlddTitleKey + 1:
+                    libraries = self.client.libraries.get_libraries()
+                    data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in libraries]
+                elif len(parts) == GalaxyFileSystem.hlddKey + 1:
+                    folders = self.client.libraries.get_folders(library_id = parts[GalaxyFileSystem.hlddKey])
+                    data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in folders]
+                elif len(parts) == GalaxyFileSystem.folderKey + 1:
+                    folder = self.client.folders.show_folder(parts[GalaxyFileSystem.folderKey], True)
+                    data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in folder['folder_contents']]
+            else:
+                if len(parts) == GalaxyFileSystem.hlddTitleKey + 1:
+                    histories = self.client.histories.get_histories()
+                    data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in histories]
+                elif len(parts) == GalaxyFileSystem.hlddKey + 1:
+                    datasets = self.client.histories.show_matching_datasets(parts[GalaxyFileSystem.hlddKey])
+                    data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in datasets]
+            
+            data_json['loaded'] = True
+            return data_json
+        
+        
+    def make_json_r(self, path):
+        normalized_path = self.normalize_path(path)
+        if not normalized_path:
+            return [self.make_json_r(self.lddaprefix), self.make_json_r(self.hdaprefix)]
+        else:
+            data_json = { 'path': urljoin(self.url, normalized_path), 'text': self.name_from_id(path) }
+            parts = self.path_parts(normalized_path)
+            if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]):
                 if len(parts) == 1:
                     data_json['folder'] = True
                     libraries = self.client.libraries.get_libraries()
-                    data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in libraries]
+                    data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in libraries]
                 elif len(parts) == 2:
                     data_json['folder'] = True
-                    #library = self.client.libraries.get_libraries(library_id = parts[1])
-                    #data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in libraries]
-            elif parts[0] == self.hdaprefix:
+                    folders = self.client.libraries.get_folders(library_id = parts[1])
+                    data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in folders]
+                elif len(parts) == 3:
+                    data_json['folder'] = True
+                    folder = self.client.folders.show_folder(parts[2], True)
+                    data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in folder['folder_contents']]
+            else :
                 if len(parts) == 1:
                     data_json['folder'] = True
                     histories = self.client.histories.get_histories()
-                    data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in histories]
+                    data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in histories]
                 elif len(parts) == 2:
                     data_json['folder'] =  True
                     datasets = self.client.histories.show_matching_datasets(parts[1])
-                    data_json['nodes'] = [self.make_json(os.path.join(path, fn['id'])) for fn in datasets]
+                    data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in datasets]
             return data_json
      
     def save_upload(self, file, fullpath):
@@ -475,18 +591,26 @@ class GalaxyFileSystem():
             file.save(localpath)
             if isfile(fullpath):
                 fullpath = os.path.dirname(fullpath)
-            self.client.upload(self.normalize_path(fullpath), localpath, True)
+        
+            ldd = ''
+            if ldd:
+                self.client.libraries.upload_file_from_local_path(ldd, localpath)
+            else:
+                hdd = ''
+                self.client.tools.upload_file(localpath, hdd)
         except:
             pass
         
-    def download(self, path):
+    def download(self, path, destdir):
         path = self.normalize_path(path)
-        status = self.client.status(path, False)
-        if status is not None and status['type'] == "FILE":
-            localpath = os.path.join(tempfile.gettempdir(), os.path.basename(path))
-            return self.client.download(path, localpath, True)
-        else:
-            return None
+        
+        lhid = ''
+        dataset = self.client.datasets.show_dataset(dataset_id = lhid, hda_ldda = 'hda')
+        name = dataset['name']        
+        
+        fullpath = os.path.join(destdir, name)
+        self.client.datasets.download_dataset(lhid, file_path = fullpath, use_default_filename=False, wait_for_completion=True)
+        return fullpath
         
 class IOHelper():
     @staticmethod

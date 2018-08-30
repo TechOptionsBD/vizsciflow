@@ -17,7 +17,7 @@ def run_pear(*args, **kwargs):
         data1 = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix(data1)
+    fs = Utility.fs_by_prefix_or_default(data1)
     data1 = fs.normalize_path(data1)
     
     if 'data2' in kwargs.keys():

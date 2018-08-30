@@ -39,7 +39,7 @@ def search_and_download(*args):
     
     batch_size = 3
     path = Utility.get_quota_path('public')
-    fs = Utility.fs_by_prefix(path)
+    fs = Utility.fs_by_prefix_or_default(path)
     filename = IOHelper.unique_fs_name(fs, fs.normalize_path(path), args[0], return_type)
     
     with open(filename, "w") as out_handle:

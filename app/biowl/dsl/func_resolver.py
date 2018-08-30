@@ -197,27 +197,27 @@ class Library():
             elif function.lower() == "read":
                 if not arguments:
                     raise ValueError("Read must have one argument.")
-                fs = Utility.fs_by_prefix(arguments[0])
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
                 return fs.read(arguments[0])
             elif function.lower() == "write":
                 if len(arguments) < 2:
                     raise ValueError("Write must have two arguments.")
-                fs = Utility.fs_by_prefix(arguments[0])
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
                 return fs.write(arguments[0], arguments[1])
             elif function.lower() == "getfiles":
-                fs = Utility.fs_by_prefix(arguments[0])
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
                 return fs.get_files(arguments[0])
             elif function.lower() == "getfolders":
-                fs = Utility.fs_by_prefix(arguments[0])
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
                 return fs.get_folders(arguments[0])
             elif function.lower() == "createfolder":
-                fs = Utility.fs_by_prefix(arguments[0])
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
                 return fs.mkdirs(arguments[0])
             elif function.lower() == "remove":
-                fs = Utility.fs_by_prefix(arguments[0])
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
                 return fs.remove(arguments[0])
             elif function.lower() == "makedirs":
-                fs = Utility.fs_by_prefix(arguments[0])
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
                 return fs.makedirs(arguments[0])
             elif function.lower() == "getcwd":
                 return getcwd()
@@ -236,11 +236,11 @@ class Library():
         module_obj = load_module(func[0].module)
         function = getattr(module_obj, func[0].internal)
         if func[0].runmode == 'dist':
-            arguments = context.get_activedci() + arguments
+            kwargs['dci'] = context.get_activedci()
         
         # special handling for galaxy if history_id is not given, use history id from symbol table
         if (func[0].module == 'app.biowl.libraries.galaxy.adapter'):
-            arguments = context + arguments
+            kwargs['context'] = context
 #             if not 'history_id' in kwargs and context.var_exists('history_id'):
 # #                     create_history_function = getattr(module_obj, "create_history") # history not running, create one
 # #                     history_id = create_history_function(context.get_activedci())

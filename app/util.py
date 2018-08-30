@@ -65,17 +65,32 @@ class Utility:
                         return ds
     
     @staticmethod
-    def fs_type_by_prefix(path):
+    def fs_type_by_prefix_or_default(path):
         ds = Utility.ds_by_prefix(path)
         return ds.type if ds else 'posix'
+    
+    @staticmethod
+    def fs_type_by_prefix(path):
+        ds = Utility.ds_by_prefix(path)
+        if ds:
+            return ds.type
             
     @staticmethod
     def fs_by_prefix(path):
-        return Utility.create_fs(Utility.ds_by_prefix(path))
+        ds = Utility.ds_by_prefix(path)
+        if ds:
+            return Utility.create_fs(ds)
+    
+    @staticmethod
+    def fs_by_prefix_or_default(path):
+        ds = Utility.ds_by_prefix(path)
+        if not ds:
+            ds = DataSource.query.filter_by(type = 'posix').first()
+        return Utility.create_fs(ds)
     
     @staticmethod
     def get_normalized_path(path):
-        fs = Utility.fs_by_prefix(path)
+        fs = Utility.fs_by_prefix_default(path)
         path = fs.strip_root(path)
         username = current_user.username if current_user.is_authenticated else ''
         path = Utility.get_quota_path(path, username)

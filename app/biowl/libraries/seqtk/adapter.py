@@ -7,7 +7,7 @@ seqtk = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'seqtk'
 
 def run_seqtk(*args, **kwargs):
     
-    fs = Utility.fs_by_prefix(args[0])
+    fs = Utility.fs_by_prefix_or_default(args[0])
     data = fs.normalize_path(args[0])
     output = fs.normalize_path(args[2])
     
@@ -33,7 +33,7 @@ def seqtk_fastq_to_fasta(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix(data)
+    fs = Utility.fs_by_prefix_or_default(data)
     data = fs.normalize_path(data)
     
     output = ''
@@ -74,7 +74,7 @@ def seqtk_extract_sample(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix(data)
+    fs = Utility.fs_by_prefix_or_default(data)
     data = fs.normalize_path(data)
     
     output = ''
@@ -134,7 +134,7 @@ def seqtk_trim(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix(data)
+    fs = Utility.fs_by_prefix_or_default(data)
     data = fs.normalize_path(data)
     
     output = ''

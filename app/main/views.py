@@ -507,19 +507,20 @@ def load_data_sources_biowl():
         datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'loaded': True}
         try:
             fs = Utility.fs_by_prefix(ds.url)
-            if current_user.is_authenticated:
-                if ds.type == 'gfs':
-                    datasource['nodes'] = fs.make_json('/')
-#                     datasource['nodes'].append(fs.make_json('/' + fs.lddaprefix))
-#                     datasource['nodes'].append(fs.make_json('/' + fs.hdaprefix))
-                else:
-                    if not fs.exists(current_user.username):
-                        fs.mkdirs(current_user.username)
-                    datasource['nodes'].append(fs.make_json(os.sep + current_user.username))
-            if ds.public and fs.exists(ds.public):
-                datasource['nodes'].append(fs.make_json(ds.public))
-                    
-            datasource_tree.append(datasource)
+            if fs:
+                if current_user.is_authenticated:
+                    if ds.type == 'gfs':
+                        datasource['nodes'] = fs.make_json('/')
+    #                     datasource['nodes'].append(fs.make_json('/' + fs.lddaprefix))
+    #                     datasource['nodes'].append(fs.make_json('/' + fs.hdaprefix))
+                    else:
+                        if not fs.exists(current_user.username):
+                            fs.mkdirs(current_user.username)
+                        datasource['nodes'].append(fs.make_json(os.sep + current_user.username))
+                if ds.public and fs.exists(ds.public):
+                    datasource['nodes'].append(fs.make_json(ds.public))
+                        
+                datasource_tree.append(datasource)
         except:
             pass
         
@@ -527,13 +528,13 @@ def load_data_sources_biowl():
 
 def download_biowl(path):
     # construct data source tree
-    fs = Utility.fs_by_prefix(path)
+    fs = Utility.fs_by_prefix_or_default(path)
     fullpath = fs.download(path)
     mime = mimetypes.guess_type(fullpath)[0]
     return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
 def upload_biowl(file, fullpath):
-    fs = Utility.fs_by_prefix(fullpath)
+    fs = Utility.fs_by_prefix_or_default(fullpath)
     return fs.save_upload(file, fullpath)
                 
 class InterpreterHelper():
@@ -593,21 +594,21 @@ def datasources():
         upload_biowl(request.files['upload'], request.form['path'])
     elif request.args.get('addfolder'):
         path = request.args['addfolder']
-        fileSystem = Utility.fs_by_prefix(path)
+        fileSystem = Utility.fs_by_prefix_or_default(path)
         parent = path if fileSystem.isdir(path) else os.path.dirname(path)
         unique_filename = IOHelper.unique_fs_name(fileSystem, parent, 'newfolder', '')
         return json.dumps({'path' : fileSystem.mkdirs(unique_filename) })
     elif request.args.get('delete'):
         path = request.args['delete']
-        fileSystem = Utility.fs_by_prefix(path)
+        fileSystem = Utility.fs_by_prefix_or_default(path)
         return json.dumps({'path' : fileSystem.remove(fileSystem.strip_root(path))})
     elif request.args.get('rename'):
-        fileSystem = Utility.fs_by_prefix(request.args['oldpath'])
+        fileSystem = Utility.fs_by_prefix_or_default(request.args['oldpath'])
         oldpath = fileSystem.strip_root(request.args['oldpath'])
         newpath = os.path.join(os.path.dirname(oldpath), request.args['rename'])
         return json.dumps({'path' : fileSystem.rename(oldpath, newpath)})
     elif request.args.get('load'):
-        fs = Utility.fs_by_prefix(request.args['load'])
+        fs = Utility.fs_by_prefix_or_default(request.args['load'])
         return json.dumps(fs.make_json(request.args['load']))
             
     return json.dumps({'datasources': load_data_sources_biowl() })

@@ -465,7 +465,8 @@
            "internal":"run_fastqc",
            "desc": "Provide a simple way to do some quality control checks on raw sequence data coming from high throughput sequencing pipelines.",
            "returns": "string",
-           "example":"checked_data = CheckQuality(data=, [history_id=history_id])",
+           "example":"data = galaxy.CheckQuality(data)",
+           "example2":"checked_data = galaxy.CheckQuality(data=, [history_id=history_id])",
            "runmode": "dist"
        },
        {

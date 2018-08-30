@@ -109,7 +109,7 @@ def run_beam_quality(*args, **kwargs):
 
         scp_get(cluster, user, password, outpath, outdir)
     
-        fs = Utility.fs_by_prefix(outpath)
+        fs = Utility.fs_by_prefix_or_default(outpath)
         stripped_path = fs.strip_root(outpath)
         if not os.path.exists(outpath):
             raise ValueError("FastQC could not generate the file " + stripped_path)
@@ -191,7 +191,7 @@ def run_beam_alignment(*args, **kwargs):
 
         scp_get(cluster, user, password, outpath, outdir)
     
-        fs = Utility.fs_by_prefix(outpath)
+        fs = Utility.fs_by_prefix_or_default(outpath)
         stripped_path = fs.strip_root(outpath)
         if not os.path.exists(outpath):
             raise ValueError("FastQC could not generate the file " + stripped_path)

@@ -18,6 +18,7 @@ import time
 
 from ....util import Utility
 from ...ssh import ssh_command
+from app.biowl.fileop import GalaxyFileSystem
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')
 #  r = toolClient.run_tool('a799d38679e985db', 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4', params)
@@ -40,16 +41,16 @@ def get_galaxy_instance(server, key):
     galaxies[(server, key)] = gi
     return gi
 
+def create_galaxy_instance(*args):
+    server = get_galaxy_server(*args)
+    key = get_galaxy_key(*args)
+    return get_galaxy_instance(server, key)
+
 def _json_object_hook(d):
     return namedtuple('X', d.keys())(*d.values())
 
 def json2obj(data):
     return json.loads(data, object_hook=_json_object_hook)
-
-def create_galaxy_instance(*args):
-    server = get_galaxy_server(*args)
-    key = get_galaxy_key(*args)
-    return get_galaxy_instance(server, key)
 
 #workflow  
 def get_workflows_json(*args):
@@ -268,7 +269,7 @@ def fs_upload(local_file, *args, **kwargs):
     gi = create_galaxy_instance(*args)
 
     if 'library_id' in kwargs.keys() and kwargs['library_id'] is not None:
-        return gi.libraries.upload_file_from_local_path(library_id, local_file)
+        return gi.libraries.upload_file_from_local_path(kwargs['library_id'], local_file)
     else:
         if 'history_id' in kwargs.keys() and kwargs['history_id'] is not None:
             history_id = kwargs['history_id']
@@ -368,9 +369,6 @@ def local_upload(*args, **kwargs):
     else:
         job = fs_upload(Utility.get_normalized_path(args[3]), *args, **kwargs)
         return job['outputs'][0]['id']
-    
-    job_info = wait_for_job_completion(gi, job['jobs'][0]['id'])
-    return job_info['outputs']['output0']['id']
 
 def upload(*args, **kwargs):    
     return local_upload(*args, **kwargs)
@@ -391,7 +389,7 @@ def local_run_named_tool(history_id, tool_name, inputs, *args):
     return local_run_tool(history_id, tool_ids[0], inputs)
             
 def run_tool(*args):
-    return local_run_tool(args[3], args[4], args[5], *arg[:3])
+    return local_run_tool(args[3], args[4], args[5], *args[:3])
 
 #galaxy.datatypes.tabular:Vcf
 #galaxy.datatypes.binary:TwoBit
@@ -461,7 +459,7 @@ def get_dataset(hdastr, lddastr, dataname, history_id, *args, **kwargs):
         dataargs.append(data)
         return find_or_upload_dataset(history_id, *dataargs)
     else:
-        return None, None   
+        return None, None
 
 def get_or_create_history(*args, **kwargs):
     if 'history_id' in kwargs.keys():
@@ -1413,7 +1411,7 @@ def run_sickle(*args, **kwargs):
 
 #{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70","tool_version":"0.70",
 #"inputs":{"input_file":{"values":[{"src":"hda","name":"FASTQ Groomer on data 1","tags":[],"keep":false,"hid":26,"id":"d343a822bd747ee4"}],"batch":false},"contaminants":null,"limits":null}}
-def run_fastqc(*args, **kwargs):    
+def run_fastqc_old(*args, **kwargs):    
     history_id = get_or_create_history(*args, **kwargs)
     datakwargs = dict(kwargs)
     if 'history_id' in datakwargs.keys():
@@ -1453,6 +1451,7 @@ def run_filter(*args, **kwargs):
     if check_arg('hda1') and check_arg('ldda1') and check_arg('data1'):
         dataparam += 1
     
+    condition = ''
     if 'condition' in kwargs.keys():
         condition = kwargs['condition']
     else:
@@ -1462,7 +1461,7 @@ def run_filter(*args, **kwargs):
             raise ValueError("No filtering condition is given.")
             
     inputs = {
-        "cond":cond,
+        "cond":condition,
         "input":{
             "values":[{
                 "src":src, 
@@ -1747,5 +1746,188 @@ def download(*args):
     path = Utility.get_normalized_path(args[4] if len(args) > 4 else None)
     fullpath = os.path.join(path, name)
     gi.datasets.download_dataset(args[3], file_path = fullpath, use_default_filename=False, wait_for_completion=True)
-    fs = Utility.fs_by_prefix(fullpath)       
+    fs = Utility.fs_by_prefix_or_default(fullpath)       
     return fs.strip_root(fullpath)
+
+
+
+
+
+def get_galaxy_server_context(dci):
+    return dci[0] if len(dci) > 0 and dci[0] else srlab_galaxy
+
+def get_galaxy_key_context(dci):
+    return dci[1] if len(dci) > 1 and dci[1] else srlab_key
+
+def get_galaxy_instance_context(server, key):
+    if (server, key) in galaxies:
+        return galaxies[(server, key)]
+    
+    gi = GalaxyInstance(server, key)
+    galaxies[(server, key)] = gi
+    return gi
+
+def create_galaxy_instance_context(dci):
+    return get_galaxy_instance_context(get_galaxy_server_context(dci), get_galaxy_key_context(dci))
+
+def create_history_context(*args):
+    gi = create_galaxy_instance_context(*args)
+    historyName = str(uuid.uuid4())
+    h = gi.histories.create_history(historyName)
+    return h["id"]
+
+def get_or_create_history_context(**kwargs):
+    history_id = ''
+    
+    if 'history_id' in kwargs.keys():
+        history_id = kwargs['history_id']
+    else:
+        context = kwargs['context'] if 'context' in kwargs.keys() else None
+        if context and context.var_exists('history_id'):
+            history_id = context.get_var('history_id')
+        else:
+            history_id = create_history_context(kwargs['dci'] if 'dci' in kwargs.keys() else None)
+            if context:
+                context.add_var('history_id', history_id)
+    
+    return history_id
+
+def fs_upload_context(local_file, **kwargs):
+    gi = create_galaxy_instance_context(kwargs['dci'] if 'dci' in kwargs.keys() else None)
+
+    if 'library_id' in kwargs.keys() and kwargs['library_id'] is not None:
+        return gi.libraries.upload_file_from_local_path(kwargs['library_id'], local_file)
+    else:
+        if 'history_id' in kwargs.keys() and kwargs['history_id'] is not None:
+            history_id = kwargs['history_id']
+        else:
+            history_id = get_or_create_history_context(**kwargs)
+            
+        return gi.tools.upload_file(local_file, history_id)
+
+def classic_ftp_upload_context(u, **kwargs):
+    destfile = temp_file_from_urlpath(u)
+    ftp_download(u, destfile)
+    classic_ftp_upload_context(destfile, **kwargs)
+        
+def ftp_upload_context(u, **kwargs):
+    src = urlunparse(list(u))
+    #destDir = '/home/phenodoop/galaxy_import/' + str(uuid.uuid4())
+    destDir = '/hadoop/galaxy/galaxy_import/' + str(uuid.uuid4())
+    status = ssh_download(src, destDir)
+    if status != 0:
+        raise ValueError("ssh download failed.")
+#     srcFTP = FTP(u.netloc)
+#     srcFTP.login()
+#     srcFTP.cwd(os.path.dirname(u.path))
+#     srcFTP.voidcmd('TYPE I')
+#     
+#     destDir = str(uuid.uuid4())
+    try:
+#         destFTP = FTP("sr-p2irc-big8.usask.ca", 'phenodoop', 'sr-hadoop')
+#         #destFTP.login()
+#         
+#         destFTP.cwd("galaxy_import")
+#         destFTP.mkd(destDir)
+#         destFTP.cwd(destDir)
+#         destFTP.voidcmd('TYPE I')
+#         
+#         from_Sock = srcFTP.transfercmd("RETR " + os.path.basename(u.path))
+#         to_Sock = destFTP.transfercmd("STOR " + os.path.basename(u.path))
+#         
+#         state = 0
+#         while 1:
+#             block = from_Sock.recv(1024)
+#             if len(block) == 0:
+#                 break
+#             state += len(block)
+#             while len(block) > 0:
+#                 sentlen = to_Sock.send(block)
+#                 block = block[sentlen:]     
+#         
+#         from_Sock.close()
+#         to_Sock.close()
+#         srcFTP.quit()
+#         destFTP.quit()
+        gi = create_galaxy_instance(kwargs['dci'] if 'dci' in kwargs.keys() else None)
+        if 'library_id' in kwargs.keys() and kwargs['library_id'] is not None:
+            return gi.libraries.upload_file_from_server(kwargs['library_id'], destDir)
+        else:
+            # get/create a history first
+            if 'history_id' in kwargs.keys() and kwargs['history_id'] is not None:
+                history_id = kwargs['history_id']
+            else:
+                history_id = get_or_create_history_context(**kwargs)
+            # get the import_dir library 
+            libs = gi.libraries.get_libraries(name='import_dir')
+            lib = libs[0] if libs else gi.libraries.create_library(name='import_dir')
+            d = gi.libraries.upload_file_from_server(lib['id'], destDir)
+            if d:
+                dataset = gi.histories.upload_dataset_from_library(history_id, d[0]['id'])
+                return dataset['id']
+    except:
+        return classic_ftp_upload_context(u, **kwargs)
+              
+def local_upload_context(data, **kwargs):
+    u = urlparse(data)
+        
+    job = None
+    if u.scheme:
+        if u.scheme.lower() == 'http' or u.scheme.lower() == 'https':
+            tempfile = temp_file_from_urlpath(u)
+            http_to_local_file(data, tempfile)
+            job = fs_upload_context(tempfile, **kwargs)
+            return job['outputs'][0]['id']
+        elif u.scheme.lower() == 'ftp':
+            return ftp_upload_context(u, **kwargs) if get_galaxy_server(kwargs['dci'] if 'dci' in kwargs.keys() else None) == srlab_galaxy else classic_ftp_upload_context(u, **kwargs)
+        else:
+            raise ValueError('No http(s) or ftp addresses given.')
+    else:
+        fs = Utility.fs_by_prefix_or_default(data)
+        job = fs_upload_context(fs.normalize_path(data), **kwargs)
+        return job['outputs'][0]['id']
+    
+def get_dataset_context(data, **kwargs):
+    
+    if Utility.fs_type_by_prefix(data) == "posix":
+        return 'hda', local_upload_context(data, **kwargs)
+    elif Utility.fs_type_by_prefix(data) == "gfs":
+        fs = Utility.fs_by_prefix_or_default(data)
+        hda_ldda = 'ldda' if fs.islibrarydata(data) else 'hda'
+        return hda_ldda, os.path.basename(data)
+    else:
+        return None, None
+
+def local_run_tool_context(tool_id, inputs, **kwargs):
+    gi = create_galaxy_instance_context(kwargs['dci'] if 'dci' in kwargs.keys() else None)
+    toolClient = ToolClient(gi)
+    d = toolClient.run_tool(history_id=kwargs['history_id'], tool_id=tool_id, tool_inputs=inputs)
+    job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
+    return job_info#['outputs']['output_file']['id']
+    
+#{"tool_id":"toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.70","tool_version":"0.70",
+#"inputs":{"input_file":{"values":[{"src":"hda","name":"FASTQ Groomer on data 1","tags":[],"keep":false,"hid":26,"id":"d343a822bd747ee4"}],"batch":false},"contaminants":null,"limits":null}}
+def run_fastqc(*args, **kwargs):    
+    history_id = get_or_create_history_context(**kwargs)
+    if not 'history_id' in kwargs.keys():
+        kwargs['history_id'] = history_id
+
+    src, data_id = get_dataset_context(args[0], **kwargs)
+    if data_id is None:
+        raise ValueError("No dataset given. Give a dataset path")
+
+    inputs = {
+        "contaminants":'null',
+        "limits":'null',
+        "input_file":{
+            "values":[{
+                "src":src, 
+                "id":data_id
+                }]
+            }
+        }
+    
+    tool_id = 'toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.72' #tool_name_to_id('FastQC')
+    output = local_run_tool_context(tool_id, inputs, **kwargs)
+    return GalaxyFileSystem.get_history_path(srlab_galaxy, history_id, output['outputs']['html_file']['id'])
+    #return output['outputs']['output_file']['id']

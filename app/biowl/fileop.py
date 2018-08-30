@@ -443,6 +443,11 @@ class GalaxyFileSystem():
      
     def islibrary(self, name):
         return name == self.lddaprefix
+    
+    def islibrarydata(self, path):
+        normalized_path = self.normalize_path(path)
+        parts = self.path_parts(normalized_path)
+        return self.islibrary(parts[GalaxyFileSystem.hlddTitleKey])
        
     def isdir(self, path):
         normalized_path = self.normalize_path(path)
@@ -550,8 +555,11 @@ class GalaxyFileSystem():
             
             data_json['loaded'] = True
             return data_json
-        
-        
+    
+    @staticmethod    
+    def get_history_path(url, history_id, data_id):
+        return urljoin(url, os.path.join('Histories', history_id, data_id))
+            
     def make_json_r(self, path):
         normalized_path = self.normalize_path(path)
         if not normalized_path:

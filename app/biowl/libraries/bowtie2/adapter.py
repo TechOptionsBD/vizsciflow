@@ -24,7 +24,7 @@ def run_bowtie2(*args, **kwargs):
         ref = args[paramindex]
         paramindex +=1
         
-    fs = Utility.fs_by_prefix(ref)
+    fs = Utility.fs_by_prefix_or_default(ref)
     ref = fs.normalize_path(ref)
     
     indexpath = Path(ref).stem + ".bwt"

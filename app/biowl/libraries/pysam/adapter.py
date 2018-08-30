@@ -15,7 +15,7 @@ def run_sam_to_bam(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix(data)
+    fs = Utility.fs_by_prefix_or_default(data)
     data = fs.normalize_path(data)
     
     output = ''

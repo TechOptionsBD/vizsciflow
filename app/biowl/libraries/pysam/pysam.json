@@ -10,8 +10,8 @@
            "internal":"run_sam_to_bam",
            "desc": "Converts SAM data format to BAM binary data format.",
            "returns": "string",
-           "example":"bam_data = pysam.SamToBam(data)",
-           "example2":"bam_data = pysam.SamToBam(data=, [output=])"
+           "example":"data = pysam.SamToBam(data)",
+           "example2":"data = pysam.SamToBam(data=, [output=])"
        }
    ]
 }

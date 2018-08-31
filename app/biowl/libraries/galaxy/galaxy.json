@@ -1,44 +1,6 @@
 {
     "functions": [
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"GetWorkflows",
-           "internal":"get_workflow_ids",
-           "desc": "Gets the ids of all workflows.",
-           "returns": "string[]",
-           "example":"GetWorkflows()",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"GetWorkflowInfo",
-           "internal":"get_workflow_info",
-           "desc": "Gets the properties of a workflow.",
-           "returns": "json",
-           "example":"GetWorkflowInfo(workflow_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"RunWorkflow",
-           "internal":"run_workflow",
-           "desc": "Runs a workflow by id.",
-           "returns": "string[]",
-           "example":"RunWorkflow(workflow_id)",
-           "runmode": "dist"
-       },
+       
        {
            "org": "srlab",
            "package": "galaxy",
@@ -49,7 +11,7 @@
            "internal":"get_library_ids",
            "desc": "Gets the ids of all libraries.",
            "returns": "string[]",
-           "example":"GetLibraries()",
+           "example":"library_ids = galaxy.GetLibraries()",
            "runmode": "dist"
        },
        {
@@ -61,8 +23,8 @@
            "name":"GetLibraryInfo",
            "internal":"get_library_info",
            "desc": "Gets the properties of a library.",
-           "returns": "string[]",
-           "example":"GetLibraryInfo(library_id)",
+           "returns": "{}",
+           "example":"library_info = galaxy.GetLibraryInfo(library_id)",
            "runmode": "dist"
        },
        {
@@ -75,7 +37,7 @@
            "internal":"get_history_ids",
            "desc": "Gets the ids of all histories.",
            "returns": "string[]",
-           "example":"GetHistories()",
+           "example":"history_ids = galaxy.GetHistories()",
            "runmode": "dist"
        },
        {
@@ -88,72 +50,7 @@
            "internal":"get_history_info",
            "desc": "Gets the properties of a history.",
            "returns": "json",
-           "example":"GetHistoryInfo(history_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Analysis",
-           "name":"GetTools",
-           "internal":"get_tool_ids",
-           "desc": "Get ids of the available tools. Multiple ids will be returned for multiple tools of same name.",
-           "returns": "string[]",
-           "example":"GetTools()",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Analysis",
-           "name":"GetToolInfo",
-           "internal":"get_tool_info",
-           "desc": "Gets the properties of a tool.",
-           "returns": "json",
-           "example":"GetToolInfo(workflow_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Analysis",
-           "name":"GetToolNames",
-           "internal":"get_tool_names",
-           "desc": "Get names of the available tools.",
-           "returns": "string[]",
-           "example":"GetToolNames()",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Analysis",
-           "name":"ToolIDToName",
-           "internal":"tool_id_to_name",
-           "desc": "Gets the name of a tool from id.",
-           "returns": "string",
-           "example":"ToolIDToName(tool_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Analysis",
-           "name":"ToolNameToID",
-           "internal":"tool_name_to_id",
-           "desc": "Gets the ids of a tool from name. It may return multiple ids if multiple tools with same name are installed. Use GetToolInfo to select the right one.",
-           "returns": "string[]",
-           "example":"ToolNameToID(tool_name)",
+           "example":"history_info = galaxy.GetHistoryInfo(history_id)",
            "runmode": "dist"
        },
        {
@@ -166,72 +63,21 @@
            "internal":"create_history",
            "desc": "Create a new history.",
            "returns": "string",
-           "example":"CreateHistory('New History')",
+           "example":"history_id = galaxy.CreateHistory('New History')",
            "runmode": "dist"
        },
        {
            "org": "srlab",
            "package": "galaxy",
            "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"HistoryIDToName",
-           "internal":"history_id_to_name",
-           "desc": "Gets the name of a history from id.",
-           "returns": "string",
-           "example":"HistoryIDToName(history_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"HistoryNameToIDs",
-           "internal":"history_name_to_ids",
-           "desc": "Gets the ids of history name.",
-           "returns": "string[]",
-           "example":"history_ids = HistoryNameToIDs(history_name)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"GetHistoryDatasets",
-           "internal":"get_history_datasets",
-           "desc": "Gets the ids of datasets in a history.",
-           "returns": "string[]",
-           "example":"GetHistoryDatasets([history_id], [dataset_name])",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"GetToolParams",
-           "internal":"get_tool_params",
-           "desc": "Get tool parameters.",
-           "returns": "json",
-           "example":"GetToolParams(['input'])",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
+           "level": "0",
            "group": "Workflow",
            "name":"Upload",
-           "internal":"upload",
+           "internal":"local_upload",
            "desc": "Uploads a file to a history or a library. If no history or library is given, the most recent history is taken.",
            "returns": "string",
-           "example":"dataset_id = Upload(ftp_or_http_or_path_to_file, [history_id/library_id])",
+           "example":"data = galaxy.Upload(data) # data = ftp_or_http_or_path_to_file",
+           "example2":"data = galaxy.Upload(ftp_or_http_or_path_to_file, [history_id/library_id])",
            "runmode": "dist"
        },
        {
@@ -241,62 +87,11 @@
            "level": "1",
            "group": "Workflow",
            "name":"Download",
-           "internal":"download",
+           "internal":"run_download",
            "desc": "Download a dataset to file.",
            "returns": "string",
-           "example":"filepath = Download(data_id)",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"RunTool",
-           "internal":"run_tool",
-           "desc": "Runs a tool on history.",
-           "returns": "string",
-           "example":"result = RunTool(history_id, tool_id, {params})",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"GetLastHistory",
-           "internal":"get_most_recent_history",
-           "desc": "Gets the id of the history which is last used.",
-           "returns": "string",
-           "example":"history_id = GetLastHistory()",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"DatasetIDToName",
-           "internal":"dataset_id_to_name",
-           "desc": "Gets the name of a dataset from id.",
-           "returns": "string",
-           "example":"dataset_name = DatasetIDToName(dataset_id, [hda_or_ldda])",
-           "runmode": "dist"
-       },
-       {
-           "org": "srlab",
-           "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
-           "level": "1",
-           "group": "Workflow",
-           "name":"DatasetNameToIDs",
-           "internal":"dataset_name_to_ids",
-           "desc": "Gets the ids of a dataset from name. ",
-           "returns": "string[]",
-           "example":"dataset_ids = DatasetNameToIDs(dataset_name, [history_id])",
+           "example":"data = galaxy.Download(data)",
+           "example2":"data = galaxy.Download(data, [outdir=])",
            "runmode": "dist"
        },
        {
@@ -307,9 +102,10 @@
            "level": 0,
            "name":"Groom",
            "internal":"run_fastq_groomer",
-           "desc": "Runs the fastq groomer tool. If history_id not given, a new history is created.",
+           "desc": "Runs the fastq groomer tool. If history_id not given and not found in the context, a new history is created.",
            "returns": "string",
-           "example":"groomed_data = Groom([data], [hda = history_data_id], [ldda = library_data_id], [history_id = history_id])",
+           "example":"data = galaxy.Groom(data)",
+           "example2":"data = galaxy.Groom(data=, [history_id = history_id])",
            "runmode": "dist"
        },
        {
@@ -322,7 +118,8 @@
            "internal":"run_bwa",
            "desc": "Map with BWA. mapping low-divergent sequences against a large reference genome, such as the human genome and is designed for Illumina sequence reads up to 100bp.",
            "returns": "string",
-           "example":"aligned_data = Align(ref, data1, [data2], [history_id=history_id], [datatype='fastq/bam'])",
+           "example":"data = galaxy.Align(ref, data) #single-read",
+           "example2":"data = galaxy.Align(ref=, data=, [data2=], [history_id=history_id], [datatype='fastq/bam']) #pair-read",
            "runmode": "dist"
        },
        {
@@ -335,7 +132,8 @@
            "internal":"run_cut",
            "desc": "Selects (cuts out) specified columns from the dataset. The output of this tool is always in tabular format (e.g., if your original delimiters are commas, they will be replaced with tabs).",
            "returns": "string",
-           "example":"cut_data = Cut(data, [columns='c1,c2'], [delimeter='Tab/Whitespace/Comma/Dot/Dash/_/|'], [history_id=history_id])",
+           "example":"data = galaxy.Cut(data, columns='c1')",
+           "example2":"data = galaxy.Cut(data, [columns='c1,c2'], [delimeter='Tab/Whitespace/Comma/Dot/Dash/_/|'], [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -348,7 +146,8 @@
            "internal":"run_trim",
            "desc": "Trims specified number of characters from a dataset or its field (if dataset is tab-delimited).",
            "returns": "string",
-           "example":"trimmed_data = Trim(data, [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id])",
+           "example":"data = galaxy.Trim(data)",
+           "example2":"data = galaxy.Trim(data, [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -361,7 +160,8 @@
            "internal":"run_join",
            "desc": "Joins lines of two datasets on a common field. Columns are referenced with a number. If your data is not TAB delimited, use Text Manipulation->Convert",
            "returns": "string",
-           "example":"joined_data = Join(data1=, data2=, [field1=1], [field2=1], [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id])",
+           "example":"data = galaxy.Join(data1, data2, field1=1, field2=1)",
+           "example2":"data = galaxy.Join(data1=, data2=, [field1=1], [field2=1], [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -374,7 +174,8 @@
            "internal":"run_group",
            "desc": "Allows to group the input dataset by a particular column and perform aggregate functions: Mean, Median, Mode, Sum, Max, Min, Count, Concatenate, and Randomly pick on any column(s). If your data is not TAB delimited, use Text Manipulation->Convert",
            "returns": "string",
-           "example":"grouped_data = Group(data=, [groupcol=1], [op1='optype|opcol|opround', ...], [ignorecase=True/False], ignorelines=['>@+<*-=|?$.:&%^#'], [history_id=history_id]) # op1='mean|1|no' optype=mean|median|mode|max|min|sum|length|unique|cat|cat_uniq|randomly|std",
+           "example":"data = galaxy.Group(data, groupcol=1, op1='optype|opcol|opround')",
+           "example2":"data = galaxy.Group(data=, [groupcol=1], [op1='optype|opcol|opround', ...], [ignorecase=True/False], ignorelines=['>@+<*-=|?$.:&%^#'], [history_id=history_id]) # op1='mean|1|no' optype=mean|median|mode|max|min|sum|length|unique|cat|cat_uniq|randomly|std",
            "runmode": "dist"
        },
        {
@@ -387,7 +188,8 @@
            "internal":"run_sort",
            "desc": "Sorts the dataset on any number of columns in either ascending or descending order. Sort type - Numerical, general numeric, alphabetical. If the data is not TAB delimited, use Text Manipulation->Convert",
            "returns": "string",
-           "example":"sorted_data = Sort(data=, col='col|style|order', [col1='col|style|order',...]field1=, field2=, [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id]) # style=num|gennum|alpha, order=DESC|ASC",
+           "example":"data = galaxy.Sort(data)",
+           "example2":"data = galaxy.Sort(data=, col='col|style|order', [col1='col|style|order',...], field1=, field2=, [col=0], [start=1], [end=0], [ignore='>@+<*-=|?$.:&%^#'], [history_id=history_id]) # style=num|gennum|alpha, order=DESC|ASC",
            "runmode": "dist"
        },
        {
@@ -400,7 +202,8 @@
            "internal":"run_selectfirst",
            "desc": "Outputs specified number of lines from the beginning of a dataset.",
            "returns": "string",
-           "example":"selected_data = SelectFirst(data=, [lines=10], [history_id=history_id])",
+           "example":"data = galaxy.SelectFirst(data, lines=10)",
+           "example2":"data = galaxy.SelectFirst(data=, [lines=10], [history_id=history_id])",           
            "runmode": "dist"
        },
        {
@@ -413,7 +216,8 @@
            "internal":"run_compare",
            "desc": "Outputs specified number of lines from the beginning of a dataset.",
            "returns": "string",
-           "example":"compared_data = Compare(data1=, data2=, [field1=1], [field2=1], [mode='N'],[history_id=history_id])#mode='N|V'",
+           "example":"data = galaxy.Compare(data1, data2, field1=1, field2=1)",
+           "example2":"data = galaxy.Compare(data1=, data2=, [field1=1], [field2=1], [mode='N'],[history_id=history_id])#mode='N|V'",           
            "runmode": "dist"
        },
        {
@@ -425,8 +229,9 @@
            "name":"Unique",
            "internal":"run_fastuniq",
            "desc": "Removes duplicates in paired short DNA sequence reads in FASTQ format. It identifies duplicates by comparing sequences between read pairs and does not require complete genome sequences as prerequisites. It is also capable of simultaneously handling reads with different lengths and results in highly efficient running time.",
-           "returns": "[string, string]",
-           "example":"unique_data = Unique(data1=, data2=, [format=q/f])",
+           "returns": "string, string",
+           "example":"data, data2 = galaxy.Unique(data, data2)",           
+           "example2":"data, data2 = galaxy.Unique(data=, data2=, [format=q/f]) #q=fastq, f=fasta",
            "runmode": "dist"
        },
        {
@@ -439,7 +244,8 @@
            "internal":"run_clip_adapter",
            "desc": "Clips adapter sequences. Renumbers sequence headers. Filters sequences on their size. Filters sequences containing unknown nucleotides (optional).",
            "returns": "string",
-           "example":"clipped_data = Clip(hda=, min=0, max=15)",
+           "example":"data = galaxy.Clip(data, min=0, max=15)",
+           "example2":"data = galaxy.Clip(data=, min=0, max=15)",
            "runmode": "dist"
        },
        {
@@ -447,12 +253,13 @@
            "package": "galaxy",
            "module": "app.biowl.libraries.galaxy.adapter",
            "group": "Text",
-           "level": 0,
+           "level": 1,
            "name":"TrimAdaptive",
            "internal":"run_sickle",
            "desc": "Uses sliding windows along with quality and length thresholds to determine when quality is sufficiently low to trim the 3'-end of reads and also determines when the quality is sufficiently high enough to trim the 5'-end of reads. It will also discard reads based upon the length threshold.",
            "returns": "[string]",
-           "example":"trimmed_data = TrimAdaptive(data1=, [data2=], [mode=se/pe/pe-combo], [quality=], [length=], [history_id=history_id])",
+           "example":"datasets = galaxy.TrimAdaptive(data1, mode=se, quality=20, length=20)",
+           "example2":"datasets = galaxy.TrimAdaptive(data1=, [data2=], [mode=se/pe/pe-combo], [quality=20], [length=20], [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -466,7 +273,7 @@
            "desc": "Provide a simple way to do some quality control checks on raw sequence data coming from high throughput sequencing pipelines.",
            "returns": "string",
            "example":"data = galaxy.CheckQuality(data)",
-           "example2":"checked_data = galaxy.CheckQuality(data=, [history_id=history_id])",
+           "example2":"data = galaxy.CheckQuality(data=, [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -479,7 +286,8 @@
            "internal":"run_filter",
            "desc": "Allows to restrict the dataset using simple conditional statements. Columns are referenced with c and a number (e.g. c1). Data must be tabular.",
            "returns": "string",
-           "example":"filtered_data = Filter(data1=, condition=, [history_id=history_id])",
+           "example":"data = galaxy.Filter(data, condition='c1==5')",
+           "example2":"data = galaxy.Filter(data=, condition=, [history_id=history_id])",           
            "runmode": "dist"
        },
        {
@@ -492,7 +300,8 @@
            "internal":"run_convert_to_tab",
            "desc": "Converts all delimiters of a specified type into TABs. Consecutive delimiters can be condensed in a single TAB.",
            "returns": "string",
-           "example":"tabular_data = ToTabular(data1=, [delimeter='Tab , . - _ | : ;'], [history_id=history_id]) # delimeters can be one of T(tab), ' '(whitespace), . (dot), comma(,), dash(-), underscore(_), pipe(|), colon(:), semicolon(;)",
+           "example":"data = galaxy.ToTabular(data)",
+           "example2":"data = galaxy.ToTabular(data1=, [delimeter='Tab , . - _ | : ;'], [history_id=history_id]) # delimeters can be one of T(tab), ' '(whitespace), . (dot), comma(,), dash(-), underscore(_), pipe(|), colon(:), semicolon(;)",
            "runmode": "dist"
        },
        {
@@ -505,7 +314,8 @@
            "internal":"run_fastq_to_sam",
            "desc": "Converts Fastq data format to SAM data format.",
            "returns": "string",
-           "example":"sam_data = FastqToSam(data=, [history_id=history_id])",
+           "example":"data = galaxy.FastqToSam(data)",
+           "example2":"data = galaxy.FastqToSam(data=, [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -518,7 +328,8 @@
            "internal":"run_bam_to_sam",
            "desc": "Converts BAM data format to SAM data format.",
            "returns": "string",
-           "example":"sam_data = BamToSam(data=, [history_id=history_id])",
+           "example":"data = galaxy.BamToSam(data)",
+           "example2":"data = galaxy.BamToSam(data=, [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -531,7 +342,22 @@
            "internal":"run_sam_to_bam",
            "desc": "Converts SAM data format to BAM binary data format.",
            "returns": "string",
-           "example":"bam_data = SamToBam(ref=,data=, [history_id=history_id])",
+           "example":"data = galaxy.SamToBam(ref, data)",
+           "example2":"data = galaxy.SamToBam(ref=, data=, [history_id=history_id])",
+           "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"FastqToFasta",
+           "internal":"run_fastq_to_fasta",
+           "desc": "Convert FASTQ to FASTA format.",
+           "returns": "string",
+           "example":"data = galaxy.FastqToFasta(data)",
+           "example2":"data = galaxy.FastqToFasta(data=, [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -544,7 +370,8 @@
            "internal":"run_sam_to_interval",
            "desc": "Converts SAM data format to Interval data format.",
            "returns": "string",
-           "example":"interval_data = SamToInterval(data=, [history_id=history_id])",
+           "example":"data = galaxy.SamToInterval(data)",
+           "example2":"data = galaxy.SamToInterval(data=, [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -557,7 +384,8 @@
            "internal":"run_join_interval",
            "desc": "Joins two interval datasets.",
            "returns": "string",
-           "example":"ijoin_data = iJoin(data1=, data2=, [min=1], [history_id=history_id])",
+           "example":"data = galaxy.iJoin(data, data2, min=1)",
+           "example2":"data = galaxy.iJoin(data=, data2=, [min=1], [history_id=history_id])",
            "runmode": "dist"
        },
        {
@@ -570,7 +398,7 @@
            "internal":"get_installed_sniffers",
            "desc": "Get the list of all installed sniffers.",
            "returns": "string[]",
-           "example":"sniffers = GetSniffers()",
+           "example":"sniffers = galaxy.GetSniffers()",
            "runmode": "dist"
        },
        {
@@ -583,7 +411,7 @@
            "internal":"get_installed_datatypes",
            "desc": "Get the list of all installed datatypes.",
            "returns": "string[]",
-           "example":"datatypes = GetDatatypes()",
+           "example":"datatypes = galaxy.GetDatatypes()",
            "runmode": "dist"
        },
        {
@@ -596,8 +424,39 @@
            "internal":"get_datatype",
            "desc": "Get the datatype name of a dataset.",
            "returns": "string",
-           "example":"datatype = GetDatatype(data_id) #hda or ldda",
+           "example":"datatype = galaxy.GetDatatype(data) #hda or ldda",
            "runmode": "dist"
+       },
+       {
+           "org": "srlab",
+           "package": "galaxy",
+           "module": "app.biowl.libraries.galaxy.adapter",
+           "group": "Analysis",
+           "level": "0",
+           "name":"Merge",
+           "internal":"run_merge_pear",
+           "runmode": "dist",
+           "desc": "Pair-end read merger for fastq files. It evaluates all possible paired-end read overlaps. In addition, it implements a statistical test for minimizing false-positive results.",
+           "returns": "string",
+           "example":"data = galaxy.Merge(data, data2)",
+           "example2":"data = galaxy.Merge(data=, data2=)",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"string",
+               "desc":"forward fastq file"
+            },
+            {  
+               "name":"data2",
+               "type":"string",
+               "desc":"reverse fastq file"
+            },
+            {
+               "name": "output",
+               "type": "string",
+               "desc":"output directory with filename prefix"
+            }
+            ]
        }
    ]
 }

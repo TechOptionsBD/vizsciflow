@@ -592,32 +592,32 @@ class GalaxyFileSystem():
             return data_json
      
     def save_upload(self, file, fullpath):
+        
         localpath = os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
         if os.path.isfile(localpath):
             os.remove(localpath)
+            
         try:
             file.save(localpath)
-            if isfile(fullpath):
+            if self.isfile(fullpath):
                 fullpath = os.path.dirname(fullpath)
         
-            ldd = ''
-            if ldd:
-                self.client.libraries.upload_file_from_local_path(ldd, localpath)
+            parts = pathlib.Path(fullpath).parts
+            if self.islibrary(parts[1]):
+                self.client.libraries.upload_file_from_local_path(parts[2], localpath, folder_id=parts[3])
             else:
-                hdd = ''
-                self.client.tools.upload_file(localpath, hdd)
+                self.client.tools.upload_file(localpath, parts[2])
         except:
             pass
         
     def download(self, path, destdir):
         path = self.normalize_path(path)
-        
-        lhid = ''
-        dataset = self.client.datasets.show_dataset(dataset_id = lhid, hda_ldda = 'hda')
+
+        dataset = self.client.datasets.show_dataset(dataset_id = os.path.basename(path), hda_ldda = 'ldda' if self.islibrarydata(path) else 'hda')
         name = dataset['name']        
         
         fullpath = os.path.join(destdir, name)
-        self.client.datasets.download_dataset(lhid, file_path = fullpath, use_default_filename=False, wait_for_completion=True)
+        self.client.datasets.download_dataset(os.path.basename(path), file_path = fullpath, use_default_filename=False, wait_for_completion=True)
         return fullpath
         
 class IOHelper():

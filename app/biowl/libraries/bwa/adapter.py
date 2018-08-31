@@ -32,8 +32,8 @@ def run_bwa(*args, **kwargs):
         build_bwa_index(ref)
     
     data1 = ''
-    if 'data1' in kwargs.keys():
-        data1 = kwargs['data1']
+    if 'data' in kwargs.keys():
+        data1 = kwargs['data']
     else:
         if len(args) == paramindex:
             raise ValueError("Argument error")

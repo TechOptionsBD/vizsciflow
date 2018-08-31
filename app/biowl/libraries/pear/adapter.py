@@ -9,10 +9,10 @@ pear = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'pear'))
 def run_pear(*args, **kwargs):
     
     paramindex = 0
-    if 'data1' in kwargs.keys():
-        data1 = kwargs['data1']
+    if 'data' in kwargs.keys():
+        data1 = kwargs['data']
     else:
-        if len(args) == paramindex:
+        if len(args) <= paramindex:
             raise ValueError("Argument missing error in PEAR.")
         data1 = args[paramindex]
         paramindex +=1

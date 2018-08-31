@@ -28,7 +28,7 @@ def seqtk_fastq_to_fasta(*args, **kwargs):
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
-        if len(args) == paramindex:
+        if len(args) <= paramindex:
             raise ValueError("Argument missing error in pysam.")
         data = args[paramindex]
         paramindex +=1
@@ -69,7 +69,7 @@ def seqtk_extract_sample(*args, **kwargs):
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
-        if len(args) == paramindex:
+        if len(args) <= paramindex:
             raise ValueError("Argument missing error in pysam.")
         data = args[paramindex]
         paramindex +=1
@@ -129,7 +129,7 @@ def seqtk_trim(*args, **kwargs):
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
-        if len(args) == paramindex:
+        if len(args) <= paramindex:
             raise ValueError("Argument missing error in pysam.")
         data = args[paramindex]
         paramindex +=1

@@ -12,10 +12,10 @@ flash = path.join(path.dirname(path.abspath(__file__)), path.join('bin', 'flash'
 # They can also improve transcriptome assembly when FLASH is used to merge RNA-seq data.
 def run_flash(*args, **kwargs):
     paramindex = 0
-    if 'data1' in kwargs.keys():
-        data1 = kwargs['data1']
+    if 'data' in kwargs.keys():
+        data1 = kwargs['data']
     else:
-        if len(args) == paramindex:
+        if len(args) <= paramindex:
             raise ValueError("Argument missing error in Flash.")
         data1 = args[paramindex]
         paramindex +=1
@@ -79,7 +79,7 @@ def run_flash_recursive(*args, **kwargs):
     if 'indir' in kwargs.keys():
         indir = kwargs['indir']
     else:
-        if len(args) == paramindex:
+        if len(args) <= paramindex:
             raise ValueError("Argument missing error in Flash.")
         indir = args[paramindex]
         paramindex +=1

@@ -10,8 +10,8 @@
            "internal":"run_bowtie2",
            "desc": "Align sequencing reads to long reference sequences.",
            "returns": "string",
-           "example":"aligned_data = bowtie2.Align(ref, data1) #single-read",
-           "example2":"aligned_data = bowtie2.Align(ref=, data1=, [data2=], [output=]) #pair-read"
+           "example":"data = bowtie2.Align(ref, data) #single-read",
+           "example2":"data = bowtie2.Align(ref=, data=, [data2=], [output=]) #pair-read"
        }
    ]
 }

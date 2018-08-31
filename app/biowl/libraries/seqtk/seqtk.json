@@ -37,8 +37,8 @@
            "runmode": "local",
            "desc": "Convert FASTQ to FASTA format. https://github.com/lh3/seqtk",
            "returns": "string",
-           "example":"fasta_file = seqtk.FastqToFasta(data)",
-           "example2":"fasta_file = seqtk.FastqToFasta(data=, output=)",
+           "example":"data = seqtk.FastqToFasta(data)",
+           "example2":"data = seqtk.FastqToFasta(data=, output=)",
            "params":[  
             {  
                "name":"data",

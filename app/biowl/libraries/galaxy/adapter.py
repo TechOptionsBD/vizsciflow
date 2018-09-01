@@ -25,57 +25,28 @@ srlab_key='7483fa940d53add053903042c39f853a'
 
 galaxies = {}
 
-def get_galaxy_server(*args):
-    return args[0] if len(args) > 0 and args[0] is not None else srlab_galaxy
-
-def get_galaxy_key(*args):
-    return args[1] if len(args) > 1 and args[1] is not None else srlab_key
-
-def get_galaxy_instance(server, key):
-    if (server, key) in galaxies:
-        return galaxies[(server, key)]
-    
-    gi = GalaxyInstance(server, key)
-    galaxies[(server, key)] = gi
-    return gi
-
-def create_galaxy_instance(*args):
-    server = get_galaxy_server(*args)
-    key = get_galaxy_key(*args)
-    return get_galaxy_instance(server, key)
-
-def _json_object_hook(d):
-    return namedtuple('X', d.keys())(*d.values())
-
-def json2obj(data):
-    return json.loads(data, object_hook=_json_object_hook)
-
-#workflow  
-def get_workflows_json(*args):
-    gi = create_galaxy_instance(*args)
-    return gi.workflows.get_workflows()
-    
-def get_workflow_ids(*args):
-    wf = get_workflows_json(*args)
+#workflow      
+def get_workflow_ids(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    wf = gi.workflows.get_workflows()
     wf_ids = []
     for j in wf:
         #yield j.name
         wf_ids.append(j['id'])
     return wf_ids
 
-def get_workflow_info(*args):
-    gi = create_galaxy_instance(*args)
-    workflow_info = gi.workflows.show_workflow(args[3])
+def get_workflow_info(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    workflow_info = gi.workflows.show_workflow(args[0])
     return workflow_info
 
 def run_workflow(*args, **kwargs):
-    gi = create_galaxy_instance(*args)
+    history_id = get_or_create_history_context(**kwargs)
+    gi = create_galaxy_instance_context(**kwargs)
     
-    if len(args) <= 3:
+    if len(args) < 1:
         raise ValueError("Parameter for workflow id is missing.")
-    workflow_id = args[3]
-    
-    history_name = args[4] if len(args) > 4 else 'New Workflow Execution History'
+    workflow_id = args[0]
     
     datamap = dict()
     for k,v in kwargs.items():
@@ -86,104 +57,72 @@ def run_workflow(*args, **kwargs):
                 continue 
         datamap[k] = v
     
-    return gi.workflows.run_workflow(workflow_id, datamap, history_name)
+    return gi.workflows.run_workflow(workflow_id, dataset_map=datamap, history_id=history_id)
 
-#history
-def get_histories_json(*args):
-    gi = create_galaxy_instance(*args)
-    return gi.histories.get_histories()
-    
-def get_history_ids(*args):
-    histories = get_histories_json(*args)
+#history    
+def get_history_ids(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    histories = gi.histories.get_histories()
     history_ids = []
     for h in histories:
         #yield j.name
         history_ids.append(h['id'])
     return history_ids
 
-def get_history_info(*args):
-    gi = create_galaxy_instance(*args)
-    histories = gi.histories.get_histories(history_id = args[3])
+def get_history_info(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    histories = gi.histories.get_histories(history_id = args[0])
     return histories[0] if histories else None
   
-def get_most_recent_history(*args):
-    gi = create_galaxy_instance(*args)
+def get_most_recent_history(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
     hi = gi.histories.get_most_recently_used_history()
     return hi['id']
         
-def create_history_old(*args):
-    gi = create_galaxy_instance(*args)
-    historyName = args[3] if len(args) > 3 else str(uuid.uuid4())
-    h = gi.histories.create_history(historyName)
-    return h["id"]
-
-def history_id_to_name(*args):
-    info = get_history_info(*args)
+def history_id_to_name(*args, **kwargs):
+    info = get_history_info(*args, **kwargs)
     if info:
         return info['name']
 
-def history_name_to_ids(*args):
-    gi = create_galaxy_instance(*args)
-    histories = gi.histories.get_histories(name = args[3])
+def history_name_to_ids(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    histories = gi.histories.get_histories(name = args[0])
     history_ids = []
     for history in histories:
         history_ids.append(history['id'])
     return history_ids
 
 #tool        
-def get_tools_json(*args):
-    gi = create_galaxy_instance(*args)
-    return gi.tools.get_tools()
-
-def get_tool_ids(*args):
-    tools = get_tools_json(*args)
+def get_tool_ids(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    tools = gi.tools.get_tools()
     tool_ids = []
     for t in tools:
         #yield j.name
         tool_ids.append(t['id'])
     return tool_ids
    
-def get_tool_info(*args):
-    gi = create_galaxy_instance(*args)
-    tools = gi.tools.get_tools(tool_id = args[3])
+def get_tool_info(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    tools = gi.tools.get_tools(tool_id = args[0])
     if tools:
         return tools[0]
 
-def tool_id_to_name(*args):
-    tool = get_tool_info(*args)
+def tool_id_to_name(*args, **kwargs):
+    tool = get_tool_info(*args, **kwargs)
     if tool:
         return tool['name']
-
-def tool_name_to_ids(*args):
-    gi = create_galaxy_instance(*args)
-    tools = gi.tools.get_tools(name = args[3])
-    tool_ids = []
-    for t in tools:
-        tool_ids.append(t['id'])
-    return tool_ids
-
-def tool_name_to_id(*args):
-    tool_ids = tool_name_to_ids(*args)
-    return tool_ids[0] if tool_ids else None
-
-def get_tool_names(*args):
-    tools = get_tools_json(*args)
-    tool_names = []
-    for t in tools:
-        #yield j.name
-        tool_names.append(t['name'])
-    return tool_names
-                          
-def get_tool_params(*args):
-    gi = create_galaxy_instance(*args)
-    ts = gi.tools.show_tool(tool_id = args[3], io_details=True)
-    return ts[args[4]]  if len(args) > 4 else ts
+                             
+def get_tool_params(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    ts = gi.tools.show_tool(tool_id = args[0], io_details=True)
+    return ts[args[1]] if len(args) > 1 else ts
  
 # dataset                                       
-def get_history_datasets(*args):
-    gi = create_galaxy_instance(*args)
-    historyid = args[3] if len(args) > 3 else get_most_recent_history(gi)
-    name = args[4] if len(args) > 4 else None
+def get_history_datasets(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    historyid = args[0] if len(args) > 0 else get_most_recent_history(gi)
+    name = args[1] if len(args) > 1 else None
 
     datasets = gi.histories.show_matching_datasets(historyid, name)
     ids = []
@@ -191,34 +130,26 @@ def get_history_datasets(*args):
         ids.append(dataset['id'])
     return ids
                           
-def dataset_id_to_name(*args):
-    gi = create_galaxy_instance(*args)
-    t = args[4] if len(args) > 4 else 'hda'
-    info = gi.datasets.show_dataset(dataset_id = args[3], hda_ldda = t)
+def dataset_id_to_name(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    t = args[1] if len(args) > 1 else 'hda'
+    info = gi.datasets.show_dataset(dataset_id = args[0], hda_ldda = t)
     if info:
         return info['name']
 
-def dataset_name_to_ids(*args):
-    gi = create_galaxy_instance(*args)
+def dataset_name_to_ids(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
     h = HistoryClient(gi)
-    historyid = args[4] if len(args) > 4 else get_most_recent_history(*args)
-    ds_infos = h.show_matching_datasets(historyid, args[3])
+    historyid = args[1] if len(args) > 1 else get_most_recent_history(gi)
+    ds_infos = h.show_matching_datasets(historyid, args[0])
     ids = []
     for info in ds_infos:
         ids.append(info['id'])
     return ids
-
-# def upload(*args):
-#     gi = create_galaxy_instance(*args)
-#     library = get_library(*args)
-#     if library is not None:
-#         return gi.libraries.upload_file_from_local_path(library['id'], args[4])
-#     else:
-#         r = gi.tools.upload_file(args[4], args[3])
     
-def upload_to_library_from_url(*args):
-    gi = create_galaxy_instance(*args)
-    d = gi.libraries.upload_file_from_url(args[4], args[3])
+def upload_to_library_from_url(*args, **kwargs):
+    gi = create_galaxy_instance_context(**kwargs)
+    d = gi.libraries.upload_file_from_url(args[1], args[0])
     return d["id"]
 
 def http_to_local_file(remote_name, destfile):
@@ -243,19 +174,6 @@ def ftp_download(u, destfile):
     ftp.cwd(os.path.dirname(u.path))
     ftp.retrbinary("RETR " + os.path.basename(u.path), open(destfile, 'wb').write)
 
-def fs_upload(local_file, *args, **kwargs):
-    gi = create_galaxy_instance(*args)
-
-    if 'library_id' in kwargs.keys() and kwargs['library_id'] is not None:
-        return gi.libraries.upload_file_from_local_path(kwargs['library_id'], local_file)
-    else:
-        if 'history_id' in kwargs.keys() and kwargs['history_id'] is not None:
-            history_id = kwargs['history_id']
-        else:
-            history_id = create_history(*args[:3])
-            
-        return gi.tools.upload_file(local_file, history_id)
-
 def temp_file_from_urlpath(u):
     filename = os.path.basename(u.path)   
     destfile = os.path.join(tempfile.gettempdir(), filename)
@@ -266,18 +184,6 @@ def temp_file_from_urlpath(u):
 def ssh_download(src, dest):
     wget_cmd = 'wget ' + src + ' -P ' + dest
     return ssh_command('sr-p2irc-big8.usask.ca', 'phenodoop', 'sr-hadoop', wget_cmd)
-    
-def classic_ftp_upload(u, *args, **kwargs):
-    destfile = temp_file_from_urlpath(u)
-    ftp_download(u, destfile)
-    fs_upload(destfile, *args, **kwargs)       
-              
-def local_run_tool(history_id, tool_id, inputs, *args):
-    gi = create_galaxy_instance(*args)
-    toolClient = ToolClient(gi)
-    d = toolClient.run_tool(history_id=history_id, tool_id=tool_id, tool_inputs=inputs)
-    job_info = wait_for_job_completion(gi, d['jobs'][0]['id'])
-    return job_info#['outputs']['output_file']['id']
 
 def get_installed_datatypes(*args, **kwargs):
     gi = create_galaxy_instance_context(**kwargs)
@@ -360,7 +266,7 @@ def fs_upload_context(local_file, **kwargs):
 def classic_ftp_upload_context(u, **kwargs):
     destfile = temp_file_from_urlpath(u)
     ftp_download(u, destfile)
-    classic_ftp_upload_context(destfile, **kwargs)
+    fs_upload_context(destfile, **kwargs)
         
 def ftp_upload_context(u, **kwargs):
     src = urlunparse(list(u))
@@ -401,7 +307,7 @@ def ftp_upload_context(u, **kwargs):
 #         to_Sock.close()
 #         srcFTP.quit()
 #         destFTP.quit()
-        gi = create_galaxy_instance(kwargs['dci'] if 'dci' in kwargs.keys() else None)
+        gi = create_galaxy_instance_context(**kwargs)
         if 'library_id' in kwargs.keys() and kwargs['library_id'] is not None:
             return gi.libraries.upload_file_from_server(kwargs['library_id'], destDir)
         else:
@@ -433,9 +339,7 @@ def local_upload(*args, **kwargs):
         if len(args) <= paramindex:
             raise ValueError("No input dataset given.")
         data = args[paramindex]
-        
-    if not data:
-        raise ValueError("No input dataset given.")
+ 
     data_id = local_upload_context(data, **kwargs)
     return GalaxyFileSystem.get_history_path(srlab_galaxy, history_id, data_id)
         
@@ -453,7 +357,7 @@ def local_upload_context(data, **kwargs):
                 job = fs_upload_context(tempfile, **kwargs)
                 return job['outputs'][0]['id']
             elif u.scheme.lower() == 'ftp':
-                return ftp_upload_context(u, **kwargs) if get_galaxy_server(kwargs['dci'] if 'dci' in kwargs.keys() else None) == srlab_galaxy else classic_ftp_upload_context(u, **kwargs)
+                return ftp_upload_context(u, **kwargs) if get_galaxy_server_context(kwargs['dci'] if 'dci' in kwargs.keys() else None) == srlab_galaxy else classic_ftp_upload_context(u, **kwargs)
             else:
                 raise ValueError('No http(s) or ftp addresses given.')
 
@@ -483,8 +387,17 @@ def run_fastqc(*args, **kwargs):
     history_id = get_or_create_history_context(**kwargs)
     if not 'history_id' in kwargs.keys():
         kwargs['history_id'] = history_id
-
-    src, data_id = get_dataset_context(args[0], **kwargs)
+    
+    paramindex = 0
+    data = ''
+    if 'data' in kwargs.keys():
+        data = kwargs['data']
+    else:
+        if len(args) <= paramindex:
+            raise ValueError("No input dataset given.")
+        data = args[paramindex]
+        
+    src, data_id = get_dataset_context(data, **kwargs)
     if data_id is None:
         raise ValueError("No dataset given. Give a dataset path")
 
@@ -556,9 +469,10 @@ def run_bwa(*args, **kwargs):
     if 'ref' in kwargs.keys():
         ref = kwargs['ref']
     else:
-        if len(args) > paramindex:
-            ref = args[paramindex]
-            paramindex +=1
+        if len(args) <= paramindex:
+            raise ValueError("No dataset given for reference data. Give a dataset path.")
+        ref = args[paramindex]
+        paramindex +=1
             
     refsrc, refdata_id = get_dataset_context(ref, **kwargs)
     if not refdata_id:
@@ -568,9 +482,10 @@ def run_bwa(*args, **kwargs):
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
-        if len(args) > paramindex:
-            data = args[paramindex]
-            paramindex +=1
+        if len(args) <= paramindex:
+            raise ValueError("No dataset given for read1 data. Give a dataset path.")
+        data = args[paramindex]
+        paramindex +=1
     datasrc, data_id = get_dataset_context(data, **kwargs)
     if not data_id:
         raise ValueError("No dataset given for read1 data. Give a dataset path.")
@@ -765,9 +680,10 @@ def run_sam_to_bam(*args, **kwargs):
     if 'ref' in kwargs.keys():
         ref = kwargs['ref']
     else:
-        if len(args) > paramindex:
-            ref = args[paramindex]
-            paramindex +=1
+        if len(args) <= paramindex:
+            raise ValueError("No dataset given for reference data. Give a dataset path.")
+        ref = args[paramindex]
+        paramindex +=1
             
     refsrc, refdata_id = get_dataset_context(ref, **kwargs)
     if not refdata_id:
@@ -777,9 +693,10 @@ def run_sam_to_bam(*args, **kwargs):
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
-        if len(args) > paramindex:
-            data = args[paramindex]
-            paramindex +=1
+        if len(args) <= paramindex:
+            raise ValueError("No dataset given for read1 data. Give a dataset path.")
+        data = args[paramindex]
+        paramindex +=1
     datasrc, data_id = get_dataset_context(data, **kwargs)
     if not data_id:
         raise ValueError("No dataset given for read1 data. Give a dataset path.")
@@ -1071,7 +988,7 @@ def get_datatype(*args, **kwargs):
     if not data_id:
         raise ValueError("No input dataset given.")
     
-    gi = create_galaxy_instance_context(**kwargs['dci'])
+    gi = create_galaxy_instance_context(**kwargs)
     info = gi.datasets.show_dataset(dataset_id = data_id, hda_ldda = datasrc)
     return info['data_type']
 
@@ -1199,7 +1116,7 @@ def run_join_interval(*args, **kwargs):
     if 'min' in kwargs.keys():
         minimum = kwargs['min']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             minimum = args[paramindex]
             
     inputs = {
@@ -1255,7 +1172,7 @@ def run_group(*args, **kwargs):
     if 'groupcol' in kwargs.keys():
         groupcol = kwargs['groupcol']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             groupcol = args[paramindex]
             paramindex += 1
     
@@ -1400,7 +1317,7 @@ def run_selectfirst(*args, **kwargs):
     if 'lines' in kwargs.keys():
         lines = kwargs['lines']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             lines = args[paramindex]
 
     inputs = {
@@ -1461,7 +1378,7 @@ def run_compare(*args, **kwargs):
     if 'field1' in kwargs.keys():
         field1 = kwargs['field1']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             field1 = args[paramindex]
             paramindex += 1
     
@@ -1469,7 +1386,7 @@ def run_compare(*args, **kwargs):
     if 'field2' in kwargs.keys():
         field2 = kwargs['field2']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             field2 = args[paramindex]
             paramindex += 1
     
@@ -1477,7 +1394,7 @@ def run_compare(*args, **kwargs):
     if 'mode' in kwargs.keys():
         mode = kwargs['mode']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             mode = args[paramindex]
             paramindex += 1
                     
@@ -1522,7 +1439,7 @@ def run_download(*args, **kwargs):
     if 'outdir' in kwargs.keys():
         outdir = kwargs['outdir']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             outdir = args[paramindex]
     
     fs_type = Utility.fs_type_by_prefix(data)            
@@ -1623,7 +1540,7 @@ def run_cut(*args, **kwargs):
     if 'columns' in kwargs.keys():
         columns = kwargs['columns']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             columns = args[paramindex]
             paramindex +=1
     
@@ -1631,7 +1548,7 @@ def run_cut(*args, **kwargs):
     if 'delimiter' in kwargs.keys():
         delimiter = kwargs['delimiter']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             delimiter = args[paramindex]
             paramindex +=1
 
@@ -1692,7 +1609,7 @@ def run_join(*args, **kwargs):
     if 'field1' in kwargs.keys():
         field1 = kwargs['field1']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             field1 = args[paramindex]
             paramindex += 1
     
@@ -1700,7 +1617,7 @@ def run_join(*args, **kwargs):
     if 'field2' in kwargs.keys():
         field2 = kwargs['field2']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             field2 = args[paramindex]
             paramindex += 1
     
@@ -1770,7 +1687,7 @@ def run_fastuniq(*args, **kwargs):
     if 'format' in kwargs.keys():
         data_format = kwargs['format']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             data_format = args[paramindex]
             paramindex += 1
             
@@ -1952,7 +1869,7 @@ def run_sickle(*args, **kwargs):
     if 'mode' in kwargs.keys():
         mode = kwargs['mode']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             mode = args[paramindex]
             paramindex +=1
         else:
@@ -1962,7 +1879,7 @@ def run_sickle(*args, **kwargs):
     if 'quality' in kwargs.keys():
         quality = kwargs['quality']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             quality = args[paramindex]
             paramindex +=1
     
@@ -1970,7 +1887,7 @@ def run_sickle(*args, **kwargs):
     if 'length' in kwargs.keys():
         length = kwargs['length']
     else:
-        if len(args) <= paramindex:
+        if len(args) > paramindex:
             length = args[paramindex]
             paramindex +=1
            

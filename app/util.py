@@ -90,7 +90,7 @@ class Utility:
     
     @staticmethod
     def get_normalized_path(path):
-        fs = Utility.fs_by_prefix_default(path)
+        fs = Utility.fs_by_prefix_or_default(path)
         path = fs.strip_root(path)
         username = current_user.username if current_user.is_authenticated else ''
         path = Utility.get_quota_path(path, username)

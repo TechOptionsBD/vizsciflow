@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 import os
 
-from flask_restful import Api, Resource, reqparse, fields, marshal
-from flask_restful.utils import cors
-from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, request
+from flask_httpauth import HTTPBasicAuth
+from flask_login import login_user, logout_user, current_user
+from flask_migrate import Migrate, MigrateCommand
+from flask_restful import Api
+from flask_restful.utils import cors
+from flask_script import Manager, Shell
+
+from app import create_app, db
+from app.models import User, Follow, Role, Permission, Post, Comment
+
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -19,15 +26,11 @@ if os.path.exists('.env'):
         if len(var) == 2:
             os.environ[var[0]] = var[1]
 
-from app import create_app, db
-from app.models import User, Follow, Role, Permission, Post, Comment
-from flask_script import Manager, Shell
-from flask_migrate import Migrate, MigrateCommand
-from flask_login import login_required, login_user, logout_user, current_user
-from app.models import User
-from app.main.views import load_data_sources_biowl, run_biowl, get_user_status, get_task_status, get_functions
-
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+
+#from app.main.views import load_data_sources_biowl, run_biowl, get_user_status, get_task_status, get_functions
+
+
 manager = Manager(app)
 migrate = Migrate(app, db)
 

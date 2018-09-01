@@ -221,6 +221,13 @@ class Library():
                 return fs.makedirs(arguments[0])
             elif function.lower() == "getcwd":
                 return getcwd()
+            elif function.lower() == "isfile":
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                return fs.isfile(arguments[0])
+            elif function.lower() == "dirname":
+                return os.path.dirname(arguments[0])
+            elif function.lower() == "basename":
+                return os.path.basename(arguments[0])
             elif function.lower() == "len":
                 return len(arguments[0])
             elif function.lower() == "exec":

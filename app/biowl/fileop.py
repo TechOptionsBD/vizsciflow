@@ -455,7 +455,7 @@ class GalaxyFileSystem():
         return len(parts) <= GalaxyFileSystem.lddaKey if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]) else len(parts) <= GalaxyFileSystem.hdaKey
     
     def isfile(self, path):
-        return not self.isdir(path) and self.name_from_id(path)
+        return not self.isdir(path) and self.name_from_id(path) != ""
         
     def read(self, path):
         path = self.normalize_path(path)

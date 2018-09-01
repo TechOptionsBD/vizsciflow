@@ -23,18 +23,6 @@
            "module": "os",
            "level": "1",
            "group": "System",
-           "name":"getcwd",
-           "internal":"getcwd",
-           "desc": "Gets the current working directory.",
-            "returns": "string",
-            "example": "getcwd()"
-       },
-       {
-           "org": "Python",
-           "package": "Python",
-           "module": "os",
-           "level": "1",
-           "group": "System",
            "name":"len",
            "internal":"len",
            "desc": "Gets lenght of a list or string.",
@@ -59,7 +47,7 @@
            "group": "System",
            "name":"Read",
            "internal":"read",
-           "desc": "Reads a file.",
+           "desc": "Reads a file as bytes.",
            "params":[  
             {  
                "name":"filename",
@@ -76,7 +64,7 @@
            "group": "System",
            "name":"Write",
            "internal":"write",
-           "desc": "Writes data to a file.",
+           "desc": "Writes text data to a file.",
            "params":[  
             {  
                "name":"filename",
@@ -157,20 +145,51 @@
        },
        {
            "org": "SRLAB",
-           "package": "System",
-           "level": "1",
+           "package": "I/O",
+           "level": "0",
            "group": "System",
-           "name":"exec",
-           "internal":"exec",
-           "desc": "Runs certain programs. The allowable programs are implementation dependant.",
+           "name":"isfile",
+           "internal":"isfile",
+           "desc": "Returns true if a specified path is a file; false if it's a directory.",
            "params":[  
             {  
-               "name":"program",
+               "name":"path",
                "type":"string"
             }            
-            ],
-            "returns": "string",
-           "example": "exec('cat', 'texts/test.txt')"
+            ],           
+           "example": "isfile('/test.txt')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "level": "0",
+           "group": "System",
+           "name":"basename",
+           "internal":"basename",
+           "desc": "Truncates the path and returns only the filename.",
+           "params":[  
+            {  
+               "name":"path",
+               "type":"string"
+            }            
+            ],           
+           "example": "basename('/public/test.txt')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "level": "0",
+           "group": "System",
+           "name":"dirname",
+           "internal":"dirname",
+           "desc": "Truncates the file name and returns only the directory name.",
+           "params":[  
+            {  
+               "name":"path",
+               "type":"string"
+            }            
+            ],           
+           "example": "basename('/public/test.txt')"
        }
 	]
 }

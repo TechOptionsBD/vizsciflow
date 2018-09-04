@@ -8,7 +8,7 @@ from .provenance import BioProv
 
 logging.basicConfig(level=logging.DEBUG)
 
-class Interpreter:
+class Interpreter(object):
     '''
     The interpreter for PhenoWL DSL
     '''

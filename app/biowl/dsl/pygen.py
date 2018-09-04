@@ -1,7 +1,7 @@
 from .func_resolver import Library
 from .context import Context
 
-class CodeGenerator:
+class CodeGenerator(object):
     '''
     The code generator for PhenoWL DSL
     '''

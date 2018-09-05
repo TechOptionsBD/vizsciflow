@@ -728,8 +728,8 @@ def functions():
                     
                     org = request.form.get('org')
                     pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
-                    pkgpath = os.path.join(pkgpath, os.path.splitext(filename)[0])
-                    pkgpath = pkgpath.replace(os.sep, '.')
+                    pkgpath = os.path.join(pkgpath, filename)
+                    pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
                     
                     access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2 
                     with open(base, 'r') as json_data:

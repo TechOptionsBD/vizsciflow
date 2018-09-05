@@ -1,13 +1,14 @@
 from __future__ import print_function
 
 import os
-from os.path import isfile, join
+from os.path import join
+import pathlib
 import shutil
 import sys
 import tempfile
 from urllib.parse import urlunparse, urlsplit, urljoin
-import pathlib
 import uuid
+
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
@@ -44,7 +45,10 @@ class PosixFileSystem():
     
     def makedirs(self, path):
         os.makedirs(self.normalize_path(path))
-                
+    
+    def unique_fs_name(self, path, prefix, ext):
+        return IOHelper.unique_filename(self, path, prefix, ext)
+                    
     def make_prefix(self, path):
         if not self.prefix:
             return path     
@@ -115,7 +119,7 @@ class PosixFileSystem():
                 return uni_fn
     
     def make_unique_dir(self, path):
-        unique_dir = os.path.join(self.normalize_path(path), str(uuid.uuid4()))
+        unique_dir = self.join(path, str(uuid.uuid4()))
         os.makedirs(unique_dir)
         return unique_dir
             
@@ -127,6 +131,10 @@ class PosixFileSystem():
     
     def isfile(self, path):
         return os.path.isfile(self.normalize_path(path))
+    
+    def join(self, path1, path2):
+        path1 = self.normalize_path(path1)
+        return os.path.join(path1, path2)
     
     def make_json_item(self, path):
         data_json =  { 'path': self.make_prefix(path), 'text': os.path.basename(path) }
@@ -158,7 +166,7 @@ class PosixFileSystem():
         elif not os.path.exists(path):
             os.makedirs(path)
         file.save(os.path.join(path, file.filename))
-        self.make_prefix(os.path.join(path, file.filename))
+        return self.make_prefix(os.path.join(path, file.filename))
     
     def download(self, path):
         path = self.normalize_path(path)
@@ -179,11 +187,17 @@ class HadoopFileSystem():
         self.prefix = prefix
     
     def normalize_path(self, path):
-        path = os.path.normpath(path)
         if self.prefix:
             path = self.strip_prefix(path)
-        if path.startswith(self.localdir):
+            
+        if self.url and path.startswith(self.url):
+            path = path[len(self.url):]
+            if not path.startswith(os.sep):
+                path = os.sep + path
+        
+        if self.localdir and path.startswith(self.localdir):
             return path
+ 
         while path and path[0] == os.sep:
             path = path[1:]
         return os.path.join(self.localdir, path)
@@ -206,6 +220,9 @@ class HadoopFileSystem():
         except:
             return None
         return path
+    
+    def unique_fs_name(self, path, prefix, ext):
+        return IOHelper.unique_filename(self, path, prefix, ext)
     
     def remove(self, path):
         try: 
@@ -255,7 +272,7 @@ class HadoopFileSystem():
                 return uni_fn
     
     def make_unique_dir(self, path):
-        unique_dir = os.path.join(self.normalize_path(path), uuid.uuid4())
+        unique_dir = self.join(path, str(uuid.uuid4()))
         self.makedirs(unique_dir)
         return unique_dir
     
@@ -273,7 +290,11 @@ class HadoopFileSystem():
         path = self.normalize_path(path)
         status = self.client.status(path, False)
         return status['type'] == "FILE"
-        
+    
+    def join(self, path1, path2):
+        path1 = self.normalize_path(path1)
+        return os.path.join(path1, path2)
+    
     def read(self, path):
         path = self.normalize_path(path)
         with self.client.read(path) as reader:
@@ -309,15 +330,19 @@ class HadoopFileSystem():
         #print(json.dumps(data_json))
         return data_json
      
-    def save_upload(self, file, fullpath):
-        localpath = os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
-        if os.path.isfile(localpath):
-            os.remove(localpath)
+    def save_upload(self, file, path):       
+        localpath = os.path.join(tempfile.gettempdir(), os.path.basename(file.filename))
+            
+        if os.path.exists(localpath):
+            fs = PosixFileSystem('/')
+            unique_dir = fs.make_unique_dir(os.path.dirname(localpath))
+            localpath = os.path.join(unique_dir, os.path.basename(file.filename))
+            
         try:
             file.save(localpath)
-            if isfile(fullpath):
-                fullpath = os.path.dirname(fullpath)
-            self.client.upload(self.normalize_path(fullpath), localpath, True)
+            if self.isfile(path):
+                path = os.path.dirname(path)
+            self.client.upload(self.normalize_path(path), localpath, True)
         except:
             pass
         
@@ -356,6 +381,13 @@ class GalaxyFileSystem():
     def normalize_path(self, path):
         if self.prefix:
             path = self.strip_prefix(path)
+            
+        if self.url and path.startswith(self.url):
+            suffix = path[len(self.url):]
+            while suffix and suffix[0] == os.sep:
+                suffix = suffix[1:]
+            return os.path.join(self.url, suffix)
+        
         if self.localdir and path.startswith(self.localdir):
             return path
  
@@ -382,16 +414,25 @@ class GalaxyFileSystem():
         try:
             path = self.normalize_path(path)
             parts = self.path_parts(path)
-            if len(parts) > 4:
-                raise ValueError("Galaxy path may have maximum 4 parts.")
             
-            parts[-1] = self.client.libraries.create_library(parts[-1]) if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]) else self.client.histories.create_history(parts[-1])
+            if len(parts) > 4 or len(parts) < 3:
+                return "" #raise ValueError("Galaxy path may have maximum 4 parts.")
+            hd_ldd = ''
+            if len(parts) == 3:
+                hd_ldd = self.client.libraries.create_library(parts[-1]) if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]) else self.client.histories.create_history(parts[-1])
+            elif len(parts) == 4:
+                if not self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]):
+                    return ""
+                hd_ldd = self.client.libraries.create_folder(parts[GalaxyFileSystem.lddaKey], parts[-1])
+                
+            parts[-1] = hd_ldd['id']
             
-            path = os.sep.join(parts)
-            return self.make_fullpath(path)
+            return os.sep.join(parts['id'])
         except:
             return None
-        return path
+    
+    def unique_fs_name(self, path, prefix, ext):
+        return os.path.join(path, prefix + "_" + str(uuid.uuid4()) + ext)
     
     def remove(self, path):
         try:
@@ -456,6 +497,15 @@ class GalaxyFileSystem():
     
     def isfile(self, path):
         return not self.isdir(path) and self.name_from_id(path) != ""
+    
+    def join(self, path1, path2):
+        path1 = self.normalize_path(path1)
+        return os.path.join(path1, path2)
+    
+    def make_unique_dir(self, path):
+        unique_dir = self.join(path, str(uuid.uuid4()))
+        self.makedirs(unique_dir)
+        return unique_dir
         
     def read(self, path):
         path = self.normalize_path(path)
@@ -591,34 +641,53 @@ class GalaxyFileSystem():
                     data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in datasets]
             return data_json
      
-    def save_upload(self, file, fullpath):
+    def save_upload(self, file, path):
+        if self.isfile(path):
+            path = os.path.dirname(path)
+        elif not self.isdir(path):
+            return ""
+        parts = self.path_parts(path)
+        if not parts or len(parts) < 3:
+            return ""
         
-        localpath = os.path.join(tempfile.gettempdir(), os.path.basename(fullpath))
-        if os.path.isfile(localpath):
-            os.remove(localpath)
+        localpath = os.path.join(tempfile.gettempdir(), os.path.basename(file.filename))
+            
+        if os.path.exists(localpath):
+            fs = PosixFileSystem('/')
+            unique_dir = fs.make_unique_dir(os.path.dirname(localpath))
+            localpath = os.path.join(unique_dir, os.path.basename(file.filename))
             
         try:
             file.save(localpath)
-            if self.isfile(fullpath):
-                fullpath = os.path.dirname(fullpath)
-        
-            parts = pathlib.Path(fullpath).parts
+            
+            dataset = ''        
             if self.islibrary(parts[1]):
-                self.client.libraries.upload_file_from_local_path(parts[2], localpath, folder_id=parts[3])
+                dataset = self.client.libraries.upload_file_from_local_path(parts[2], localpath, folder_id=parts[3] if len(parts) > 3 else None)
             else:
-                self.client.tools.upload_file(localpath, parts[2])
+                dataset = self.client.tools.upload_file(localpath, parts[2])
+            
+            if dataset:
+                return os.path.join(path, dataset['id']);
         except:
             pass
-        
-    def download(self, path, destdir):
+                
+    def download(self, path):
         path = self.normalize_path(path)
-
-        dataset = self.client.datasets.show_dataset(dataset_id = os.path.basename(path), hda_ldda = 'ldda' if self.islibrarydata(path) else 'hda')
-        name = dataset['name']        
+        if self.isdir(path):
+            return None
         
-        fullpath = os.path.join(destdir, name)
-        self.client.datasets.download_dataset(os.path.basename(path), file_path = fullpath, use_default_filename=False, wait_for_completion=True)
-        return fullpath
+        dataset = self.client.datasets.show_dataset(dataset_id = os.path.basename(path), hda_ldda = 'ldda' if self.islibrarydata(path) else 'hda')
+        name = dataset['name']    
+        
+        localpath = os.path.join(tempfile.gettempdir(), name)
+            
+        if os.path.exists(localpath):
+            fs = PosixFileSystem('/')
+            unique_dir = fs.make_unique_dir(os.path.dirname(localpath))
+            localpath = os.path.join(unique_dir, name)
+        
+        self.client.datasets.download_dataset(os.path.basename(path), file_path = localpath, use_default_filename=False)
+        return localpath
         
 class IOHelper():
     @staticmethod

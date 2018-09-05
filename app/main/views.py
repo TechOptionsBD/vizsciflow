@@ -596,7 +596,7 @@ def datasources():
         path = request.args['addfolder']
         fileSystem = Utility.fs_by_prefix_or_default(path)
         parent = path if fileSystem.isdir(path) else os.path.dirname(path)
-        unique_filename = IOHelper.unique_fs_name(fileSystem, parent, 'newfolder', '')
+        unique_filename = fileSystem.unique_fs_name(parent, 'newfolder', '')
         return json.dumps({'path' : fileSystem.mkdirs(unique_filename) })
     elif request.args.get('delete'):
         path = request.args['delete']
@@ -700,13 +700,17 @@ def functions():
                     if not os.path.isdir(user_package_dir):
                         os.makedirs(user_package_dir)
                     
-                    path = Samples.unique_filename(user_package_dir, package if package else 'mylib', '')
+                    pkg_or_default = package if package else 'mylib'
+                    path = Samples.unique_filename(user_package_dir, pkg_or_default, '')
                     if not os.path.isdir(path):
                         os.makedirs(path)
 
                     # Make the filename safe, remove unsupported chars
                     filename = secure_filename(file.filename)
                     temppath = os.path.join(tempfile.gettempdir(), filename)
+                    if os.path.exists(temppath):
+                        import uuid
+                        temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()), filename)
                     file.save(temppath)
                     
                     if zipfile.is_zipfile(temppath):
@@ -717,13 +721,14 @@ def functions():
                             tar_ref.extractall(path)
                     else:
                         shutil.move(temppath, path)
-                    
-                    base = Samples.unique_filename(path, package if package else 'mylib', '.json')
+                                        
+                    base = Samples.unique_filename(path, pkg_or_default, 'json')
                     with open(base, 'w') as mapper:
                         mapper.write(request.form.get('mapper'))
                     
                     org = request.form.get('org')
                     pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
+                    pkgpath = os.path.join(pkgpath, os.path.splitext(filename)[0])
                     pkgpath = pkgpath.replace(os.sep, '.')
                     
                     access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2 

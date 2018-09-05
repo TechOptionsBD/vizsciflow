@@ -4,28 +4,6 @@
            "org": "SRLAB",
            "package": "beam",
            "module": "app.biowl.libraries.apachebeam.adapter",
-           "group": "Texts",
-           "level": "1",
-           "name":"CountWords",
-           "internal":"count_words",
-           "params":[  
-            {  
-               "name":"input",
-               "type":"string"
-            },
-            {  
-               "name":"output",
-               "type":"string"
-            } 
-            ],
-           "desc": "Count number of individual words in a document.",
-           "example": "beam.CountWords(input='/public/doc.txt', output='/public/counts')",
-           "runmode": "local"
-       },
-       {
-           "org": "SRLAB",
-           "package": "beam",
-           "module": "app.biowl.libraries.apachebeam.adapter",
            "group": "Quality",
            "level": 0,
            "name":"CheckQuality",
@@ -33,7 +11,8 @@
            "runmode": "local",
            "desc": "Apache beam script to measure the quality of fastq file(s) using fastqc tool.",
            "returns": "string",
-           "example":"beam.CheckQuality(data=, [outdir=], [runner='spark'])",
+           "example":"data = beam.CheckQuality(data)",
+           "example2":"data = beam.CheckQuality(data=, [outdir=], [runner='spark']) #runner='direct|spark'",
            "params":[  
             {  
                "name":"data",
@@ -52,10 +31,11 @@
            "group": "Alignment",
            "level": 0,
            "name":"Align",
-           "internal":"run_beam_alignment",
+           "internal":"run_beam_align",
            "desc": "Map with bwa/bowtie2 on Spark Cluster.",
            "returns":"String",
-           "example":"aligned_data = Align(ref=, data1=, [data2=], [output=])",
+           "example":"data = beam.Align(ref, data) #single-read",
+           "example2":"data = beam.Align(ref=, data=, [data2=], [output=]) #pair-read",
            "params":[  
             {  
                "name":"ref",
@@ -63,9 +43,9 @@
                "desc":"Reference file for alignment."
             },
             {
-                "name":"data1",
+                "name":"data",
                 "type":"String",
-                "desc":"If data2 is absent, data1 is single-read, otherwise data1 and data2 make pair-reads."
+                "desc":"If data2 is absent, data is single-read, otherwise data and data2 make pair-reads."
             },
             {
                 "name":"data2",
@@ -77,6 +57,50 @@
                 "type":"String",
                 "desc":"The output filename. On success, it will be returned as a result."
             }             
+            ]
+       },
+       {
+           "org": "srlab",
+           "package": "beam",
+           "module": "app.biowl.libraries.apachebeam.adapter",
+           "group": "Convert",
+           "level": 0,
+           "name":"SamToBam",
+           "internal":"run_beam_sam_to_bam",
+           "desc": "Converts SAM data format to BAM binary data format.",
+           "returns": "string",
+           "example":"data = beam.SamToBam(data)",
+           "example2":"data = beam.SamToBam(data=, [output=])"
+       },
+       {
+           "org": "srlab",
+           "package": "beam",
+           "module": "app.biowl.libraries.apachebeam.adapter",
+           "group": "Analysis",
+           "level": "0",
+           "name":"Merge",
+           "internal":"run_beam_pear",
+           "runmode": "local",
+           "desc": "Pair-end read merger for fastq files. It evaluates all possible paired-end read overlaps. In addition, it implements a statistical test for minimizing false-positive results.",
+           "returns": "string",
+           "example":"data = beam.Merge(data, data2)",
+           "example2":"data = beam.Merge(data=, data2=, [output=])",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"string",
+               "desc":"forward fastq file"
+            },
+            {  
+               "name":"data2",
+               "type":"string",
+               "desc":"reverse fastq file"
+            },
+            {
+               "name": "output",
+               "type": "string",
+               "desc":"output directory with filename prefix"
+            }
             ]
        }
     ]

@@ -1,5 +1,7 @@
 import os
 from os import path
+from pathlib import Path
+import uuid
 
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
@@ -12,45 +14,71 @@ password = 'spark#2018'
 
 python_ex = path.join(path.abspath(path.dirname(__file__)), path.join('lib', 'venv', 'bin', 'python'))
 spark_submit_app = 'spark-submit'
+jar = "/home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar"
 
 def run_apachebeam(*args, **kwargs):
     return func_exec_run(python_ex, args)     
 
-def count_words(*args, **kwargs):
-    
-    paramindex = 0
-    if 'input' in kwargs.keys():
-        inputfile = kwargs['input']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'input' missing.")
-        inputfile = args[paramindex]
-        paramindex +=1
-    
-    if 'output' in kwargs.keys():
-        output = kwargs['output']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'output' missing.")
-        output = args[paramindex]
-        paramindex +=1
-    
-    inputfile = Utility.get_normalized_path(inputfile)
-    output = Utility.get_normalized_path(output)
-    
-    args = ['-m', 'apache_beam.examples.wordcount', inputfile, output]
-    
-    _err, _ = run_apachebeam(args)
-    
-    fs = PosixFileSystem(Utility.get_rootdir(2))
-    stripped_path = fs.strip_root(output)
-    if not os.path.exists(output):
-        raise ValueError("CountWords could not generate the file " + stripped_path + " due to error: " + _err)
-    
-    return stripped_path
+# {
+#            "org": "SRLAB",
+#            "package": "beam",
+#            "module": "app.biowl.libraries.apachebeam.adapter",
+#            "group": "Texts",
+#            "level": "1",
+#            "name":"CountWords",
+#            "internal":"count_words",
+#            "params":[  
+#             {  
+#                "name":"input",
+#                "type":"string"
+#             },
+#             {  
+#                "name":"output",
+#                "type":"string"
+#             } 
+#             ],
+#            "desc": "Count number of individual words in a document.",
+#            "example": "beam.CountWords(input='/public/doc.txt', output='/public/counts')",
+#            "runmode": "local"
+#        },
+# def count_words(*args, **kwargs):
+#     
+#     paramindex = 0
+#     if 'input' in kwargs.keys():
+#         inputfile = kwargs['input']
+#     else:
+#         if len(args) == paramindex:
+#             raise ValueError("Argument 'input' missing.")
+#         inputfile = args[paramindex]
+#         paramindex +=1
+#     
+#     if 'output' in kwargs.keys():
+#         output = kwargs['output']
+#     else:
+#         if len(args) == paramindex:
+#             raise ValueError("Argument 'output' missing.")
+#         output = args[paramindex]
+#         paramindex +=1
+#     
+#     inputfile = Utility.get_normalized_path(inputfile)
+#     output = Utility.get_normalized_path(output)
+#     
+#     args = ['-m', 'apache_beam.examples.wordcount', inputfile, output]
+#     
+#     _err, _ = run_apachebeam(args)
+#     
+#     fs = PosixFileSystem(Utility.get_rootdir(2))
+#     stripped_path = fs.strip_root(output)
+#     if not os.path.exists(output):
+#         raise ValueError("CountWords could not generate the file " + stripped_path + " due to error: " + _err)
+#     
+#     return stripped_path
 
 def copy_posix_file_to_cluster(data):
     # copy the data to cluster if it is a local file. HDFS file will be accessed by cluster directly
+    if (Utility.fs_type_by_prefix(data) != 'hdfs'):
+        raise ValueError("Apache beam works only on hdfs files.")
+        
     if (Utility.fs_type_by_prefix(data) == 'posix'):
         data = Utility.get_normalized_path(data)
         remotepath = os.path.join('/home/phenodoop/phenoproc/storage/public/', os.path.basename(data))
@@ -58,6 +86,303 @@ def copy_posix_file_to_cluster(data):
         data = remotepath
     return data
         
+# def run_beam_quality(*args, **kwargs):
+#     
+#     paramindex = 0
+#     if 'data' in kwargs.keys():
+#         data = kwargs['data']
+#     else:
+#         if len(args) == paramindex:
+#             raise ValueError("Argument missing error in FastQC.")
+#         data = args[paramindex]
+#         paramindex +=1
+#     
+#     fs = Utility.fs_by_prefix(data)
+#     data = fs.normalize_path(data)
+#     
+#     outdir = ''
+#     if 'outdir' in kwargs.keys():
+#         outdir = kwargs['outdir']
+#     else:
+#         if len(args) > paramindex:
+#             outdir = args[paramindex]
+#             paramindex +=1
+#     
+#     if not outdir:
+#         fs = Utility.fs_by_prefix(data)
+#         outdir = fs.make_unique_dir(path.dirname(data))
+#     else:
+#         outdir = fs.normalize_path(outdir)
+#         
+#     if not fs.exists(outdir):
+#         fs.mkdirs(outdir)
+#             
+#     runner = 'spark'
+#     if 'runner' in kwargs.keys():
+#         runner = kwargs['runner']
+#     else:
+#         if len(args) > paramindex:
+#             runner = args[paramindex]
+#             paramindex +=1
+# 
+#     data = copy_posix_file_to_cluster(data);
+#     
+#     outpath = Path(data).stem + "_fastqc.html"
+#     outpath = os.path.join(outdir, os.path.basename(outpath))
+#     if fs.exists(outpath):
+#         fs.remove(outpath)
+#        
+#     ssh_cmd = ''    
+#     if runner == 'spark':
+#         ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.CheckQ --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 {0} --inputFile={1} --outDir={2} --runner=SparkRunner".format(jar, data, outdir)
+#     else:
+#         #ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.CheckQ -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(data, cmd_outdir)
+#         ssh_cmd = "java -cp /home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar edu.usask.srlab.biowl.beam.CheckQ --inputFile={0} {1}".format(data, outdir)
+#     
+#     ssh_hadoop_command(cluster, user, password, ssh_cmd)
+#     
+# #     if (Utility.fs_type_by_prefix(data) == 'posix'):
+# #         if outdir:
+# #             outdir = Utility.get_normalized_path(outdir)
+# #         else:
+# #             outdir = path.dirname(data)
+# # 
+# #         if not os.path.exists(outdir):
+# #             os.makedirs(outdir)
+# # 
+# #         scp_get(cluster, user, password, outpath, outdir)
+# #     
+# #         fs = Utility.fs_by_prefix_or_default(outpath)
+#         
+#     stripped_path = fs.strip_root(outpath)
+#     if not os.path.exists(outpath):
+#         raise ValueError("Apache beam could not generate the file: " + stripped_path)
+#     
+#     return stripped_path
+# 
+# 
+# def run_beam_align(*args, **kwargs):
+#     
+#     paramindex = 0
+#     ref = ''
+#     if 'ref' in kwargs.keys():
+#         ref = kwargs['ref']
+#     else:
+#         if len(args) == paramindex:
+#             raise ValueError("Argument error")
+#         ref = args[paramindex]
+#         paramindex +=1
+#     
+#     ref = copy_posix_file_to_cluster(ref)
+#     
+#     data1 = ''
+#     if 'data1' in kwargs.keys():
+#         data1 = kwargs['data1']
+#     else:
+#         if len(args) == paramindex:
+#             raise ValueError("Argument error")
+#         data1 = args[paramindex]
+#         paramindex +=1
+#     
+#     data1 = copy_posix_file_to_cluster(data1)
+#     
+#     data2 = ''
+#     if 'data2' in kwargs.keys():
+#         data2 = kwargs['data2']
+#     else:
+#         if len(args) > paramindex:
+#             data2 = args[paramindex]
+#             paramindex +=1
+#     
+#     if data2:
+#         data2 = copy_posix_file_to_cluster(data2)
+#     
+#     output = ''    
+#     if 'output' in kwargs.keys():
+#         output = kwargs['output']
+#     else:
+#         if len(args) > paramindex:
+#             output = args[paramindex]
+#             paramindex +=1
+# 
+#     if not output:
+#         output = Path(data1).stem + ".sam"
+#         fs = Utility.fs_by_prefix(data1)
+#         outdir = fs.make_unique_dir(path.dirname(data1))
+#         output = os.path.join(outdir, os.path.basename(output))
+#         
+#     runner = 'spark'
+#     if 'runner' in kwargs.keys():
+#         runner = kwargs['runner']
+#     else:
+#         if len(args) > paramindex:
+#             runner = args[paramindex]
+#             paramindex +=1
+# 
+#     ssh_cmd = ''        
+#     if runner == 'spark':
+#         if data2:
+#             ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Alignment --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --referenceFile={1} --input1File={2} --input2File={3} --output={4} --runner=SparkRunner".format(jar, ref, data1, data2, output)
+#         else:
+#             ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Alignment --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --referenceFile={1} --input1File={2} --output={3}  --runner=SparkRunner".format(jar, ref, data1, output)
+#     else:
+#         ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.Alignment -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(ref, data1, data2, output)
+#     
+#     ssh_hadoop_command(cluster, user, password, ssh_cmd)
+#     
+# #     if Utility.fs_type_by_prefix(data1) == 'posix':
+# #         if output:
+# #             outdir = path.dirname(Utility.get_normalized_path(output))
+# #         else:
+# #             outdir = path.dirname(data1)
+# # 
+# #         if not os.path.exists(outdir):
+# #             os.makedirs(outdir)
+# # 
+# #         scp_get(cluster, user, password, outpath, outdir)
+# #     
+# #         fs = Utility.fs_by_prefix_or_default(outpath)
+# #         stripped_path = fs.strip_root(outpath)
+# #         if not os.path.exists(outpath):
+# #             raise ValueError("FastQC could not generate the file " + stripped_path)
+#     
+#     stripped_path = fs.strip_root(output)
+#     if not fs.exists(output):
+#         raise ValueError("Apache beam could not generate the .sam file: " + stripped_path)
+#     
+#     return stripped_path
+# 
+#     return output
+# 
+# def run_beam_sam_to_bam(*args, **kwargs):
+#     
+#     paramindex = 0
+#     if 'data' in kwargs.keys():
+#         data = kwargs['data']
+#     else:
+#         if len(args) == paramindex:
+#             raise ValueError("Argument missing error in sam2bam.")
+#         data = args[paramindex]
+#         paramindex +=1
+#     
+#     fs = Utility.fs_by_prefix_or_default(data)
+#     data = fs.normalize_path(data)
+#     
+#     output = ''
+#     if 'output' in kwargs.keys():
+#         output = kwargs['output']
+#     else:
+#         if len(args) > paramindex:
+#             output = args[paramindex]
+#     
+#     if not output:
+#         output = Path(data).stem + ".bam"
+#         outdir = fs.make_unique_dir(path.dirname(data))
+#         output = os.path.join(outdir, path.basename(output))
+#         
+#     output = fs.normalize_path(output)
+#     
+#     if not fs.exists(path.dirname(output)):
+#         fs.makedirs(path.dirname(output))
+#         
+#     if fs.exists(output):
+#         fs.remove(output)
+#     
+#     runner = 'spark'
+#     if 'runner' in kwargs.keys():
+#         runner = kwargs['runner']
+#     else:
+#         if len(args) > paramindex:
+#             runner = args[paramindex]
+#             paramindex +=1
+#                        
+#     if runner == 'spark':
+#         ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Convert --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --input={1} --output={2} --convertType=sam2bam --runner=SparkRunner".format(jar, data, output)
+#     
+#     ssh_hadoop_command(cluster, user, password, ssh_cmd)
+#     
+#     stripped_path = fs.strip_root(output)
+#     if not fs.exists(output):
+#         raise ValueError("Apache beam could not generate the .bam  " + stripped_path)
+#     
+#     return stripped_path
+# 
+# def run_beam_pear(*args, **kwargs):
+#     
+#     paramindex = 0
+#     if 'data' in kwargs.keys():
+#         data1 = kwargs['data']
+#     else:
+#         if len(args) <= paramindex:
+#             raise ValueError("Argument missing error in apache beam merge.")
+#         data1 = args[paramindex]
+#         paramindex +=1
+#     
+#     fs = Utility.fs_by_prefix_or_default(data1)
+#     data1 = fs.normalize_path(data1)
+#     
+#     if 'data2' in kwargs.keys():
+#         data2 = kwargs['data2']
+#     else:
+#         if len(args) == paramindex:
+#             raise ValueError("Argument missing error in apache beam merge.")
+#         data2 = args[paramindex]
+#         paramindex +=1
+#     
+#     data2 = fs.normalize_path(data2)
+#     
+#     output = ''    
+#     if 'output' in kwargs.keys():
+#         output = kwargs['output']
+#     else:
+#         if len(args) > paramindex:
+#             output = args[paramindex]
+#             paramindex +=1
+#     
+#     data1_path = Path(os.path.basename(data1))
+#     if not output:
+#         outdir = fs.make_unique_dir(path.dirname(data1))
+#         output = os.path.join(outdir, data1_path.stem)
+#         
+#     output = fs.normalize_path(output)
+#     
+#     outdir = path.dirname(output)
+#     if not fs.exists(outdir):
+#         fs.makedirs(outdir)
+#     
+#     assembled_output = output + ".assembled" + data1_path.suffix    
+#     if os.path.exists(assembled_output):
+#         os.remove(assembled_output)
+#     
+#     runner = 'spark'
+#     if 'runner' in kwargs.keys():
+#         runner = kwargs['runner']
+#     else:
+#         if len(args) > paramindex:
+#             runner = args[paramindex]
+#             paramindex +=1
+#             
+#     if runner == 'spark':
+#         ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Merge --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --input1File={1} --input2File={2} --output={3} --runner=SparkRunner".format(jar, data1, data2, output)
+#     
+#     ssh_hadoop_command(cluster, user, password, ssh_cmd)
+#     
+#     stripped_path = fs.strip_root(assembled_output)
+#     if not fs.exists(output):
+#         raise ValueError("Apache beam could not generate the merged file." + stripped_path)
+#     
+#     return stripped_path
+
+
+
+
+
+
+
+
+
+
+
 def run_beam_quality(*args, **kwargs):
     
     paramindex = 0
@@ -68,8 +393,9 @@ def run_beam_quality(*args, **kwargs):
             raise ValueError("Argument missing error in FastQC.")
         data = args[paramindex]
         paramindex +=1
- 
-    data = copy_posix_file_to_cluster(data);
+    
+    fs = Utility.fs_by_prefix(data)
+    data = fs.normalize_path(data)
     
     outdir = ''
     if 'outdir' in kwargs.keys():
@@ -78,7 +404,16 @@ def run_beam_quality(*args, **kwargs):
         if len(args) > paramindex:
             outdir = args[paramindex]
             paramindex +=1
+    
+    if not outdir:
+        fs = Utility.fs_by_prefix(data)
+        outdir = fs.join(path.dirname(data), str(uuid.uuid4()))
+    else:
+        outdir = fs.normalize_path(outdir)
         
+#     if not fs.exists(outdir):
+#         fs.mkdirs(outdir)
+            
     runner = 'spark'
     if 'runner' in kwargs.keys():
         runner = kwargs['runner']
@@ -87,37 +422,30 @@ def run_beam_quality(*args, **kwargs):
             runner = args[paramindex]
             paramindex +=1
 
-    ssh_cmd = ''
-    cmd_outdir = ''
-    if outdir and Utility.fs_type_by_prefix(data) != 'posix':
-        cmd_outdir = "--outDir={0}".format(outdir)
+    data = copy_posix_file_to_cluster(data);
+    
+    outpath = Path(data).stem + "_fastqc.html"
+    outpath = fs.join(outdir, os.path.basename(outpath))
+#     if fs.exists(outpath):
+#         fs.remove(outpath)
+       
+    ssh_cmd = ''    
     if runner == 'spark':
-        ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.CheckQ --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 /home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar --inputFile={0} {1} --runner=SparkRunner".format(data, cmd_outdir)
+        ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.CheckQ --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 {0} --inputFile={1} --outDir={2} --runner=SparkRunner".format(jar, data, outdir)
     else:
-        ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.CheckQ -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(data, cmd_outdir)
+        #ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.CheckQ -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(data, cmd_outdir)
+        ssh_cmd = "java -cp /home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar edu.usask.srlab.biowl.beam.CheckQ --inputFile={0} {1}".format(data, outdir)
     
-    outpath = ssh_hadoop_command(cluster, user, password, ssh_cmd)
+    ssh_hadoop_command(cluster, user, password, ssh_cmd)
+           
+    stripped_path = fs.strip_root(outpath)
+#     if not os.path.exists(outpath):
+#         raise ValueError("Apache beam could not generate the file: " + stripped_path)
     
-    if (Utility.fs_type_by_prefix(data) == 'posix'):
-        if outdir:
-            outdir = Utility.get_normalized_path(outdir)
-        else:
-            outdir = path.dirname(data)
-
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
-
-        scp_get(cluster, user, password, outpath, outdir)
-    
-        fs = Utility.fs_by_prefix_or_default(outpath)
-        stripped_path = fs.strip_root(outpath)
-        if not os.path.exists(outpath):
-            raise ValueError("FastQC could not generate the file " + stripped_path)
-    
-    return outpath
+    return stripped_path
 
 
-def run_beam_alignment(*args, **kwargs):
+def run_beam_align(*args, **kwargs):
     
     paramindex = 0
     ref = ''
@@ -161,6 +489,12 @@ def run_beam_alignment(*args, **kwargs):
             output = args[paramindex]
             paramindex +=1
 
+    if not output:
+        output = Path(data1).stem + ".sam"
+        fs = Utility.fs_by_prefix(data1)
+        outdir = fs.join(path.dirname(data1), str(uuid.uuid4()))
+        output = os.path.join(outdir, os.path.basename(output))
+        
     runner = 'spark'
     if 'runner' in kwargs.keys():
         runner = kwargs['runner']
@@ -169,31 +503,138 @@ def run_beam_alignment(*args, **kwargs):
             runner = args[paramindex]
             paramindex +=1
 
-    ssh_cmd = ''
-    if output and Utility.fs_type_by_prefix(data1) != 'posix':
-        output = "--output={0}".format(output)
-        
+    ssh_cmd = ''        
     if runner == 'spark':
-        ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Alignment --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 /home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar --inputFile={0} {1} --runner=SparkRunner".format(ref, data1, data2, output)
+        if data2:
+            ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Alignment --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --referenceFile={1} --input1File={2} --input2File={3} --output={4} --runner=SparkRunner".format(jar, ref, data1, data2, output)
+        else:
+            ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Alignment --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --referenceFile={1} --input1File={2} --output={3}  --runner=SparkRunner".format(jar, ref, data1, output)
     else:
         ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.Alignment -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(ref, data1, data2, output)
     
-    outpath = ssh_hadoop_command(cluster, user, password, ssh_cmd)
+    ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
-    if Utility.fs_type_by_prefix(data1) == 'posix':
-        if output:
-            outdir = path.dirname(Utility.get_normalized_path(output))
-        else:
-            outdir = path.dirname(data1)
+    stripped_path = fs.strip_root(output)
+#     if not fs.exists(output):
+#         raise ValueError("Apache beam could not generate the .sam file: " + stripped_path)
+    
+    return stripped_path
 
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
+def run_beam_sam_to_bam(*args, **kwargs):
+    
+    paramindex = 0
+    if 'data' in kwargs.keys():
+        data = kwargs['data']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument missing error in sam2bam.")
+        data = args[paramindex]
+        paramindex +=1
+    
+    fs = Utility.fs_by_prefix_or_default(data)
+    data = fs.normalize_path(data)
+    
+    output = ''
+    if 'output' in kwargs.keys():
+        output = kwargs['output']
+    else:
+        if len(args) > paramindex:
+            output = args[paramindex]
+    
+    if not output:
+        output = Path(data).stem + ".bam"
+        outdir = fs.join(path.dirname(data), str(uuid.uuid4()))
+        output = fs.join(outdir, path.basename(output))
+        
+    output = fs.normalize_path(output)
+    
+    if not fs.exists(path.dirname(output)):
+        fs.makedirs(path.dirname(output))
+        
+    if fs.exists(output):
+        fs.remove(output)
+    
+    runner = 'spark'
+    if 'runner' in kwargs.keys():
+        runner = kwargs['runner']
+    else:
+        if len(args) > paramindex:
+            runner = args[paramindex]
+            paramindex +=1
+                       
+    if runner == 'spark':
+        ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Convert --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --input={1} --output={2} --convertType=sam2bam --runner=SparkRunner".format(jar, data, output)
+    
+    ssh_hadoop_command(cluster, user, password, ssh_cmd)
+    
+    stripped_path = fs.strip_root(output)
+#     if not fs.exists(output):
+#         raise ValueError("Apache beam could not generate the .bam  " + stripped_path)
+    
+    return stripped_path
 
-        scp_get(cluster, user, password, outpath, outdir)
+def run_beam_pear(*args, **kwargs):
     
-        fs = Utility.fs_by_prefix_or_default(outpath)
-        stripped_path = fs.strip_root(outpath)
-        if not os.path.exists(outpath):
-            raise ValueError("FastQC could not generate the file " + stripped_path)
+    paramindex = 0
+    if 'data' in kwargs.keys():
+        data1 = kwargs['data']
+    else:
+        if len(args) <= paramindex:
+            raise ValueError("Argument missing error in apache beam merge.")
+        data1 = args[paramindex]
+        paramindex +=1
     
-    return outpath
+    fs = Utility.fs_by_prefix_or_default(data1)
+    data1 = fs.normalize_path(data1)
+    
+    if 'data2' in kwargs.keys():
+        data2 = kwargs['data2']
+    else:
+        if len(args) == paramindex:
+            raise ValueError("Argument missing error in apache beam merge.")
+        data2 = args[paramindex]
+        paramindex +=1
+    
+    data2 = fs.normalize_path(data2)
+    
+    output = ''    
+    if 'output' in kwargs.keys():
+        output = kwargs['output']
+    else:
+        if len(args) > paramindex:
+            output = args[paramindex]
+            paramindex +=1
+    
+    data1_path = Path(os.path.basename(data1))
+    if not output:
+        outdir = fs.join(path.dirname(data1), str(uuid.uuid4()))
+        output = os.path.join(outdir, data1_path.stem)
+        
+    output = fs.normalize_path(output)
+    
+    outdir = path.dirname(output)
+#     if not fs.exists(outdir):
+#         fs.makedirs(outdir)
+    
+    assembled_output = output + ".assembled" + data1_path.suffix    
+#     if os.path.exists(assembled_output):
+#         os.remove(assembled_output)
+    
+    runner = 'spark'
+    if 'runner' in kwargs.keys():
+        runner = kwargs['runner']
+    else:
+        if len(args) > paramindex:
+            runner = args[paramindex]
+            paramindex +=1
+            
+    if runner == 'spark':
+        ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Merge --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --input1File={1} --input2File={2} --output={3} --runner=SparkRunner".format(jar, data1, data2, output)
+    
+    ssh_hadoop_command(cluster, user, password, ssh_cmd)
+    
+    stripped_path = fs.strip_root(assembled_output)
+#     if not fs.exists(output):
+#         raise ValueError("Apache beam could not generate the merged file." + stripped_path)
+    
+    return stripped_path

@@ -47,7 +47,7 @@ class PosixFileSystem():
         os.makedirs(self.normalize_path(path))
     
     def unique_fs_name(self, path, prefix, ext):
-        return IOHelper.unique_filename(self, path, prefix, ext)
+        return IOHelper.unique_fs_name(self, path, prefix, ext)
                     
     def make_prefix(self, path):
         if not self.prefix:
@@ -222,7 +222,7 @@ class HadoopFileSystem():
         return path
     
     def unique_fs_name(self, path, prefix, ext):
-        return IOHelper.unique_filename(self, path, prefix, ext)
+        return IOHelper.unique_fs_name(self, path, prefix, ext)
     
     def remove(self, path):
         try: 

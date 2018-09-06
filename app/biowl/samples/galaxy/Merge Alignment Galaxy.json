@@ -1,5 +1,5 @@
 {
-    "name":"Merge Alignment Galaxy",
+    "name":"Galaxy: Merge-Align-Convert",
     "desc":"Alignment and merge operation done in galaxy. Data uploaded to galaxy from local machine for each operation",
     "access":0,
     "sample":[

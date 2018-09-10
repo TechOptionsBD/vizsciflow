@@ -108,9 +108,9 @@ background-color: White;
         <div class="col" id="main">
            <div class="col-md-6" style="padding:2px" data-bind="with: tasksViewModel">
                <div class="panel panel-primary" style="margin:2px">
-                   <div class="panel-heading">
+                   <div class="panel-heading text-center">
                     <h3 class="panel-title">Bioinformatics Workflow Language</h3>
-                    <span class="bg-info text-info">Write script to create a pipeline. Drag functions/samples from the right.</span><br>
+                    <span class="bg-info text-info">Write DSL for workflow. Double click functions/samples/data sources to paste on editor.</span><br>
                     <ul class="list-inline panel-actions">
                         <li><a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a></li>
                     </ul>
@@ -547,6 +547,7 @@ background-color: White;
                 }
                 $(this).closest('.panel').toggleClass('panel-fullscreen');
                 $('#aceeditor').css("width", "100%");
+                $('#aceeditor').resize();
             });
         });
         
@@ -838,7 +839,11 @@ background-color: White;
     editor.renderer.setShowGutter(false);
     editor.getSession().setValue(textarea.val());
     editor.getSession().setMode("ace/mode/python");
-    editor.setOptions({highlightSelectedWord: true, enableBasicAutocompletion: true});
+    editor.setOptions({
+    	highlightSelectedWord: true, 
+    	enableBasicAutocompletion: true,
+    	autoScrollEditorIntoView: true
+    });
     editor.renderer.setOptions({showGutter: true, displayIndentGuides: true});
     //editor.setKeyboardHandler("ace/keyboard/vim");
     //editor.setTheme("ace/theme/idle_fingers");

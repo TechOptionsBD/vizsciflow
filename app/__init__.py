@@ -57,3 +57,5 @@ def create_app(config_name):
     flask_sijax.Sijax(app)
 
     return app
+
+app = create_app(os.getenv('FLASK_CONFIG') or 'default')

@@ -174,6 +174,7 @@ class Context:
         :param parent:
         '''
         self.library = Library()
+        self.runnable = None
         self.reload()
     
     def reload(self):
@@ -243,7 +244,23 @@ class Context:
         
     def load_library(self, library_def_dir_or_file):
         self.library = Library.load(library_def_dir_or_file)
-                   
+     
+    @property
+    def library(self):
+        return self.__library
+    
+    @library.setter
+    def library(self, lib):
+        self.__library = lib
+        
+    @property
+    def runnable(self):
+        return self.__runnable
+    
+    @runnable.setter
+    def runnable(self, runnable):
+        self.__runnable = runnable
+                      
     def iequal(self, str1, str2):
         '''
         Compares two strings for case insensitive equality.

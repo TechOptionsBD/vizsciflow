@@ -411,11 +411,13 @@ class DataSource(db.Model):
     
     @staticmethod
     def insert_datasources():
-        datasrc = DataSource(name='Hadoop', type='Hdfs', url='hdfs://sr-p2irc-big1.usask.ca:8020', root='/user', user='hdfs')
+        datasrc = DataSource(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
         db.session.add(datasrc)
-        datasrc = DataSource(name='Folder', type='FileSystem', url='/var/www/biowl/storage', root='')
+        datasrc = DataSource(name='LocalFS', type='posix', url='/home/phenodoop/phenoproc/storage/', root='/', public='/public')
         db.session.add(datasrc)
-        datasrc = DataSource(name='Galaxy', type='GalaxyFS', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a')
+        datasrc = DataSource(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
+        db.session.add(datasrc)
+        datasrc = DataSource(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
         db.session.add(datasrc)
         db.session.commit()
 
@@ -481,7 +483,7 @@ class Workflow(db.Model):
     name = db.Column(db.String(100))
     desc = db.Column(db.Text, nullable=True)
     public = db.Column(db.Boolean, default=False)
-    workitems = db.relationship('WorkItem', cascade="all,delete-orphan", backref='workflows', lazy='dynamic')
+    runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflows', lazy='dynamic')
     children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
    
     def to_json(self):
@@ -591,38 +593,6 @@ class TaskStatus(db.Model):
 #     Faulted = 0x04
 #     Cancelled = 0x05
 
-
-class Task(db.Model):
-    __tablename__ = 'tasks'
-    id = db.Column(db.Integer, primary_key=True)
-    workitem_id = db.Column(db.Integer, db.ForeignKey('workitems.id'))
-    created_on = db.Column(db.DateTime, default=datetime.utcnow)
-    tasklogs = db.relationship('TaskLog', cascade="all,delete-orphan", backref='tasks', lazy='dynamic')
-
-    @staticmethod
-    def create_task(workitem_id):
-        task = Task()
-        task.workitem_id = workitem_id
-        task.tasklogs.append(TaskLog(status=TaskStatus.query.get(2))) # 2 = Created
-        db.session.add(task)
-        db.session.commit()
-        return task.id
-    
-    def add_log(self, status):
-        self.tasklogs.append(TaskLog(status=status))
-        db.session.commit()
-        
-class TaskLog(db.Model):
-    __tablename__ = 'tasklogs'
-    id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
-    status_id = db.Column(db.Integer, db.ForeignKey('taskstatus.id'))
-    status = db.relationship('TaskStatus', backref='tasklogs')
-    time = db.Column(db.DateTime, default=datetime.utcnow)
-    def updateTime(self):
-        self.time = datetime.utcnow()
-        db.session.add(self)
-
 class Status:
     PENDING = 'PENDING'
     RECEIVED = 'RECEIVED'
@@ -631,10 +601,81 @@ class Status:
     FAILURE = 'FAILURE'
     REVOKED = 'REVOKED'
     RETRY = 'RETRY'
+
+class LogType:
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+    
+class Task(db.Model):
+    __tablename__ = 'tasks'
+    id = db.Column(db.Integer, primary_key=True)
+    runnable_id = db.Column(db.Integer, db.ForeignKey('runnables.id'))
+    started_on = db.Column(db.DateTime, default=datetime.utcnow)
+    ended_on = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.Text)    
+    datatype = db.Column(db.Integer)
+    data = db.Column(db.Text)
+    comment = db.Column(db.Text)
+    
+    tasklogs = db.relationship('TaskLog', cascade="all,delete-orphan", backref='task', lazy='dynamic')
+
+    @staticmethod
+    def create_task(runnable_id):
+        task = Task()
+        task.runnable_id = runnable_id
+        task.status = Status.RECEIVED
+        task.tasklogs.append(TaskLog(log=Status.RECEIVED, type=LogType.INFO)) # 2 = Created
+        db.session.add(task)
+        db.session.commit()
+        return task
+    
+    def update(self):
+        db.session.commit()
+    
+    def start(self):
+        self.status = Status.STARTED
+        self.started_on = datetime.utcnow()
+        self.add_log(Status.STARTED, LogType.INFO)
+        db.session.commit()
+    
+    def succeeded(self, result):
+        self.status = Status.SUCCESS
+        self.add_log(Status.SUCCESS, LogType.INFO)
+        self.ended_on = datetime.utcnow()
+        self.data = result
+        self.datatype = DataType.File      
+        db.session.commit()
+    
+    def failed(self, log = "Task Failed."):
+        self.status = Status.FAILED
+        self.add_log(log, LogType.ERROR)
+        self.add_log(Status.FAILED, LogType.INFO)        
+        self.ended_on = datetime.utcnow()
+        db.session.commit()
+                    
+    def add_log(self, log, logtype =  LogType.ERROR):
+        tasklog = TaskLog(type=logtype, log = log)
+        self.tasklogs.append(tasklog)
+        db.session.commit()
+        return tasklog
+       
+class TaskLog(db.Model):
+    __tablename__ = 'tasklogs'
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
+    time = db.Column(db.DateTime, default=datetime.utcnow)
+    type = db.Column(db.Text, default=LogType.ERROR)
+    log = db.Column(db.Text)
+    
+    def updateTime(self):
+        self.time = datetime.utcnow()
+        db.session.add(self)
     
 class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)
+    workflow_id  = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     celery_id = db.Column(db.String(64))
     name = db.Column(db.String(64))
@@ -645,6 +686,8 @@ class Runnable(db.Model):
     duration = db.Column(db.Integer, default = 0)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    tasks = db.relationship('Task', backref='runnable', lazy=True) #cascade="all,delete-orphan", 
     
     def updateTime(self):
         self.modified_on = datetime.utcnow()
@@ -660,6 +703,7 @@ class Runnable(db.Model):
         db.session.commit()
     
     def to_json(self):
+        
         return {
             'id': self.id,
             'name': self.name,
@@ -667,14 +711,31 @@ class Runnable(db.Model):
             'status': self.status,
             'out': self.out,
             'err': self.err,
-            'duration': self.duration
+            'duration': self.duration,
+            'created_on': str(self.created_on),
+            'modified_on': str(self.modified_on)
         }    
     
+    def to_json_log(self):
+        log = []
+
+        for task in self.tasks:
+            log.append({ 'data': task.data, 'status': task.status })
+
+        return {
+            'id': self.id,
+            'script': self.script,
+            'status': self.status,
+            'out': self.out,
+            'err': self.err,
+            'duration': self.duration,
+            'log': log
+        }
+        
     def to_json_info(self):
         return {
             'id': self.id,
             'name': self.name,
-            'script': self.script,
             'status': self.status
         }
         
@@ -685,4 +746,4 @@ class Runnable(db.Model):
         runnable.status = Status.PENDING
         db.session.add(runnable)
         db.session.commit()
-        return runnable.id
+        return runnable

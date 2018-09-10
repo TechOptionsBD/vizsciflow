@@ -21,7 +21,7 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     MAIL_USERNAME = 'phenoproc@gmail.com' #os.environ.get('MAIL_USERNAME') or 'phenoproc@gmail.com'
-    MAIL_PASSWORD = '!phenoproc-2016!' #os.environ.get('MAIL_PASSWORD') or '!phenoproc@gmail.com!'
+    MAIL_PASSWORD = '!Mifta_2011!' #os.environ.get('MAIL_PASSWORD') or '!phenoproc@gmail.com!'
     broker_url = 'redis://localhost:6379/0'
     result_backend = 'redis://localhost:6379/0'
     imports = ['app.jobs']

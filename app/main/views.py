@@ -1,46 +1,33 @@
 from __future__ import print_function
 
-from flask import Flask, render_template, redirect, url_for, abort, flash, request,\
-    current_app, make_response, g, jsonify
+import json
+import mimetypes
+from os import path
+import os
+import pathlib
+import shutil
+import sys
+import tarfile
+import tempfile
+import zipfile
+
+from flask import Flask, render_template, redirect, url_for, abort, flash, request, \
+    current_app, make_response, g
 from flask import send_from_directory
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
-from sqlalchemy import text
-import os
-import sys
-import flask_sijax
-import json
-from werkzeug import secure_filename
-import mimetypes
-from os import path
-import zipfile
-import tarfile
-import shutil
-import tempfile
-import pathlib
+import pip
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from . import main
-from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from .. import db
-from ..models import Permission, Role, User, Post, Comment, Workflow, WorkItem, DataSource, Data, DataType, OperationSource, Operation
 from ..decorators import admin_required, permission_required
-
-from .ajax import WorkflowHandler
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource
 from ..util import Utility
-#from ..io import PosixFileSystem, HadoopFileSystem, getFileSystem
-from ..biowl.fileop import PosixFileSystem, HadoopFileSystem, GalaxyFileSystem, IOHelper
-from ..biowl.dsl.parser import PhenoWLParser
-from ..biowl.dsl.interpreter import Interpreter
-from ..biowl.dsl.pygen import CodeGenerator
- 
-from ..biowl.timer import Timer
-from ..models import Runnable, Status
-from ..biowl.tasks import runnable_manager
-
-from ..jobs import long_task, run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
+from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 
 app = Flask(__name__)
-basedir = os.path.abspath(os.path.dirname(__file__))
+basedir = os.path.dirname(os.path.abspath(__file__))
 
 @main.after_app_request
 def after_request(response):
@@ -62,112 +49,6 @@ def server_shutdown():
         abort(500)
     shutdown()
     return 'Shutting down...'
-
-def load_data_sources():
-        # construct data source tree
-    datasources = DataSource.query.all()
-    datasource_tree = { 'type': DataType.Custom, 'children': [] }
-    for ds in datasources:
-        datasource = { 'datasource': ds.id, 'type': DataType.Root, 'base':'', 'path': ds.url, 'name': ds.name, 'children': []}
-        if ds.id == 1:
-            # hdfs tree
-            try:
-                hdfs = HadoopFileSystem()
-                if current_user.is_authenticated:
-                    datasource['children'].append(hdfs.make_json_r(ds.id, Utility.get_rootdir(ds.id), current_user.username))
-                datasource['children'].append(hdfs.make_json_r(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
-            except:
-                pass
-
-        elif ds.id == 2:
-            # file system tree
-            posixFS = PosixFileSystem()
-            if current_user.is_authenticated:
-                datasource['children'].append(posixFS.make_json_r(ds.id, Utility.get_rootdir(ds.id), current_user.username))
-            datasource['children'].append(posixFS.make_json_r(ds.id, Utility.get_rootdir(ds.id), current_app.config['PUBLIC_DIR']))
- 
-        datasource_tree['children'].append(datasource)
-        
-    return datasource_tree
-
-@main.route('/reloaddatasources', methods=['POST'])
-def load_data_sources_json():
-    return json.dumps(load_data_sources())
-
-# @main.route('/', defaults={'id': ''}, methods = ['GET', 'POST'])
-# @main.route('/workflow/<int:id>/', methods = ['GET', 'POST'])
-# def index(id=None):
-#               
-#     id = Utility.ValueOrNone(id)
-#     if id <= 0:
-#         id = request.args.get('workflow')
-#                                                                
-#     if g.sijax.is_sijax_request:
-#         # Sijax request detected - let Sijax handle it
-#         g.sijax.register_object(WorkflowHandler)
-#         return g.sijax.process_request()
-# 
-#     form = PostForm()
-#     if current_user.can(Permission.WRITE_ARTICLES) and form.validate_on_submit():
-#         post = Post(body=form.body.data, author=current_user._get_current_object())
-#         db.session.add(post)
-#         return redirect(url_for('.index'))
-#     page = request.args.get('page', 1, type=int)
-#     show_followed = False
-#     if current_user.is_authenticated:
-#         show_followed = bool(request.cookies.get('show_followed', ''))
-#     if show_followed:
-#         query = current_user.followed_posts
-#     else:
-#         query = Post.query
-#     pagination = query.order_by(Post.timestamp.desc()).paginate(
-#         page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
-#         error_out=False)
-#     posts = pagination.items
-#     
-#     datasource_tree = load_data_sources()
-#     
-#     # construct operation source tree
-#     operationsources = OperationSource.query.all()
-#     operation_tree = { 'name' : ('operations', ''), 'children' : [] }
-#     for ops in operationsources:
-#         operation_tree['children'].append({ 'name' : (ops.name, ops.id), 'children' : [] })
-#         for op in ops.operations:
-#             operation_tree['children'][-1]['children'].append({ 'name' : (op.name, op.id), 'children' : [] })
-#     
-#     # workflows tree
-#     workflows = []
-#     if current_user.is_authenticated:
-#         #workflows = Workflow.query.filter_by(user_id=current_user.id)
-#         #sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows JOIN users ON workflows.user_id = users.id LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id JOIN taskstatus ON tasklogs.status_id=taskstatus.id GROUP BY workflows.id HAVING users.id=' + str(current_user.id)
-#         sql = 'SELECT workflows.*, MAX(time), taskstatus.name AS status FROM workflows LEFT JOIN workitems ON workflows.id = workitems.workflow_id LEFT JOIN tasks ON workitems.id = tasks.workitem_id LEFT JOIN tasklogs ON tasks.id=tasklogs.task_id LEFT JOIN taskstatus ON tasklogs.status_id=taskstatus.id WHERE workflows.user_id={0} GROUP BY workflows.id'.format(current_user.id)
-#         workflows = db.engine.execute(sql)
-#     
-#     workitems = []
-# #    Workflow.query.join(WorkItem).join(Operation).filter_by(id=1).c
-# #    sql = text('SELECT workitems.*, operations.name AS opname FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id WHERE workflows.id=' + str(id))
-#     
-#     workflow_name = ''
-#     if id is not None and Workflow.query.get(id) is not None:
-#         workflow_name = Workflow.query.get(id).name
-# #        sql = text('SELECT workitems.*, operations.name AS opname, datasources.id AS datasource_id, datasources.name AS datasource_name, data.url AS path FROM workflows INNER JOIN workitems ON workflows.id=workitems.workflow_id INNER join operations ON workitems.operation_id=operations.id INNER JOIN data ON workitems.id = data.id INNER JOIN datasources ON data.datasource_id=datasources.id WHERE workflows.id=' + str(id))
-# #        sql = text('SELECT s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w INNER JOIN data d1 ON d1.id=w.input_id INNER JOIN data d2 ON d2.id=w.output_id) s INNER JOIN datasources dx ON dx.id=s.input_datasource INNER JOIN datasources dx2 ON dx2.id=s.output_datasource INNER JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
-# #        sql = text('SELECT s.id AS id, s.name AS name, s.input AS input, s.output AS output, dx.url AS input_root, dx2.url AS output_root, dx.type AS input_type, dx2.type AS output_type, operations.name AS opname FROM (SELECT w.*, d1.datasource_id AS input_datasource, d1.url AS input, d2.datasource_id AS output_datasource, d2.url AS output FROM workitems w LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id) s LEFT JOIN datasources dx ON dx.id=s.input_datasource LEFT JOIN datasources dx2 ON dx2.id=s.output_datasource LEFT JOIN operations ON s.operation_id = operations.id INNER JOIN workflows ON s.workflow_id=workflows.id WHERE workflows.id=' + str(id))
-#         sql = text('SELECT w.id AS id, w.name AS name, w.desc as desc, ops.name AS opsname, operations.name AS opname, d1.url AS input, d2.url AS output, dx1.id AS input_datasourceid, dx1.type AS input_datasource, dx1.url AS input_root, dx2.id AS output_datasourceid, dx2.type AS output_datasource, dx2.url AS output_root FROM workitems w LEFT JOIN operations ON w.operation_id=operations.id LEFT JOIN operationsources ops ON ops.id=operations.operationsource_id LEFT JOIN data d1 ON d1.id=w.input_id LEFT JOIN data d2 ON d2.id=w.output_id LEFT JOIN datasources dx1 ON dx1.id=d1.datasource_id LEFT JOIN datasources dx2 ON dx2.id=d2.datasource_id WHERE w.workflow_id=' + str(id))
-#         workitems = db.engine.execute(sql)        
-# #         result = db.engine.execute(sql)
-# #         for row in result:
-# #             workitems.append(row);
-#         
-# #     if id is not None:
-# #         workflow = Workflow.query.filter_by(id=id)
-# #         if workflow is not None and workflow.count() > 0:
-# #             workitems = workflow.first().workitems
-#     
-#     
-#     return render_template('index.html', form=form, posts=posts, datasources=datasource_tree, operations=operation_tree, workflow=workflow_name, workflows=workflows, workitems=workitems,
-#                            show_followed=show_followed, pagination=pagination)
-
 
 @main.route('/user/<username>')
 def user(username):
@@ -393,7 +274,6 @@ def about():
 def contact():
     return render_template('contact.html')
 
-from sqlalchemy.ext.declarative import DeclarativeMeta
 class AlchemyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj.__class__, DeclarativeMeta):
@@ -420,84 +300,6 @@ def translate():
         sql = 'SELECT workitems.id, MAX(time), taskstatus.name as status FROM workitems LEFT JOIN tasks ON workitems.id=tasks.workitem_id LEFT JOIN tasklogs ON tasklogs.task_id=tasks.id LEFT JOIN taskstatus ON tasklogs.status_id = taskstatus.id WHERE workitems.workflow_id=' + str(workflow_id) + ' GROUP BY workitems.id'
         result = db.engine.execute(sql)
         return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
-
-@main.route('/delete', methods=['POST'])
-@login_required
-def delete():
-    datasource_id = Utility.ValueOrNone(request.form['datasource'])
-    filesystem = getFileSystem(datasource_id)
-    if filesystem is not None:
-        path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
-        filesystem.delete(path)
-    return json.dumps(dict())
-
-@main.route('/rename', methods=['POST'])
-@login_required
-def rename():
-    datasource_id = Utility.ValueOrNone(request.form['datasource'])
-    filesystem = getFileSystem(datasource_id)
-    if filesystem is not None:
-        oldpath = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
-        
-        newpath = os.path.join(os.path.dirname(oldpath), request.form['newname'])
-        filesystem.rename(oldpath, newpath)
-        return json.dumps(filesystem.make_json_r(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newpath, Utility.get_rootdir(datasource_id))))
-    return json.dumps(dict())
-       
-@main.route('/addfolder', methods=['POST'])
-@login_required
-def addfolder():
-    datasource_id = Utility.ValueOrNone(request.form['datasource'])
-    filesystem = getFileSystem(datasource_id)
-    if filesystem is not None:
-        path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'])
-        newfolder = filesystem.addfolder(path)
-        return json.dumps(filesystem.make_json_r(datasource_id, Utility.get_rootdir(datasource_id), os.path.relpath(newfolder, Utility.get_rootdir(datasource_id))))
-    return json.dumps(dict())
-    
-    # Route that will process the file upload
-@main.route('/upload', methods=['POST'])
-def upload():
-    # Get the name of the uploaded file
-    file = request.files['file']
-    
-    # Check if the file is one of the allowed types/extensions
-    if file:
-        datasource_id = Utility.ValueOrNone(request.form['datasource'])
-        filesystem = getFileSystem(datasource_id)
-        if filesystem is not None:
-            # Make the filename safe, remove unsupported chars
-            filename = secure_filename(file.filename)
-            # Move the file form the temporal folder to
-            # the upload folder we setup
-            path = os.path.join(Utility.get_rootdir(datasource_id), request.form['path'], filename)         
-            filesystem.saveUpload(file, path)
-            
-    return json.dumps({})
-
-@main.route('/download', methods=['POST'])
-@login_required
-def download():
-    datasource_id = Utility.ValueOrNone(request.form['datasource'])
-    filesystem = getFileSystem(datasource_id)
-    if filesystem is not None:
-        path = filesystem.download(os.path.join(Utility.get_rootdir(datasource_id), request.form['path']))
-        if path is not None:
-#             filename, ext = os.path.splitext(path)
-#             if ext in mimetypes.types_map:
-#                 mime = mimetypes.types_map[ext]
-#             
-#             if mime is None:
-#                 try:
-#                     mimetypes = mimetypes.read_mime_types(path)
-#                     if mimetypes:
-#                         mime = list(mimetypes.values())[0]
-#                 except:
-#                     pass
-#             if mime is not None:
-                    
-            return send_from_directory(directory=os.path.dirname(path), filename=os.path.basename(path))
-    return json.dumps(dict())
 
 def load_data_sources_biowl():
         # construct data source tree
@@ -537,47 +339,7 @@ def upload_biowl(file, fullpath):
     fs = Utility.fs_by_prefix_or_default(fullpath)
     return fs.save_upload(file, fullpath)
                 
-class InterpreterHelper():
 
-    def __init__(self):
-        self.funcs = []
-        self.interpreter = Interpreter()
-        self.codeGenerator = CodeGenerator()
-        self.reload()
-    
-    def reload(self):
-        self.funcs.clear()
-        librariesdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/libraries')
-        librariesdir = os.path.normpath(librariesdir)
-        self.interpreter.context.load_library(librariesdir)
-        funclist = []
-        for f in self.interpreter.context.library.funcs.values():
-            funclist.extend(f)
-        
-        funclist.sort(key=lambda x: (x.group, x.name))
-        for f in funclist:
-            example = f.example if f.example else f.example2 if f.example2 else ""
-            example2 = f.example2 if f.example2 else example
-            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": example2, "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"}) 
-    
-        self.codeGenerator.context.load_library(librariesdir)
-        
-    def run(self, machine, script):
-        parserdir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/'))
-        os.chdir(parserdir) #set dir of this file to current directory
-        duration = 0
-        try:
-            machine.context.reload()
-            parser = PhenoWLParser(PythonGrammar())   
-            with Timer() as t:
-                prog = parser.parse(script)
-                machine.run(prog)
-            duration = t.secs
-        except:
-            machine.context.err.append("Error in parse and interpretation")
-        return { 'out': machine.context.out, 'err': machine.context.err, 'duration': "{:.4f}s".format(duration) }
-
-interpreter = InterpreterHelper()
     
 @main.route('/biowl', methods=['GET', 'POST'])
 @main.route('/', methods = ['GET', 'POST'])
@@ -613,162 +375,9 @@ def datasources():
             
     return json.dumps({'datasources': load_data_sources_biowl() })
 
-def run_biowl(user_id, script, args, immediate = True, pygen = False):
-    machine = interpreter.codeGenerator if pygen else interpreter.interpreter
-                
-    runnable_id = Runnable.create_runnable(user_id)
-    runnable = Runnable.query.get(runnable_id)
-    runnable.script = script
-    runnable.name = script[:min(40, len(script))]
-    if len(script) > len(runnable.name):
-        runnable.name += "..."
-    db.session.commit()
-    
-    if immediate:
-        try:
-            runnable.status = Status.STARTED
-            db.session.commit()
-            
-            result = run_script(machine, script, args)
-            runnable = Runnable.query.get(runnable_id)
-            if result:
-                runnable.status = Status.FAILURE if result['err'] else Status.SUCCESS
-                runnable.out = "\n".join(result['out'])
-                runnable.err = "\n".join(result['err'])
-            else:
-                runnable.status = Status.FAILURE
-                
-            runnable.update()
-        except:
-            result = {}
-            
-        return json.dumps(result)
-    else:
-        task = run_script.delay(machine, script, args)
-        runnable.celery_id = task.id
-        runnable.update()
-        return json.dumps({})
-
-import pip
-
 def install(package):
     pip.main(['install', package])
         
-def get_functions(level, access):
-    funcs = []
-    for func in interpreter.funcs:
-        if int(func['level']) <= level and func['access'] == str(access) and (access < 2 or (func['user'] and func['user'] == current_user.username)):
-            funcs.append(func)
-            
-    #funcs =[func for func in interpreter.funcs if int(func['level']) <= level and func['access'] == str(access) and (access < 2 or (func['user'] and func['user'] == current_user.username))]
-    return json.dumps({'functions':  funcs})
-    
-@main.route('/functions', methods=['GET', 'POST'])
-@login_required
-def functions():
-    if request.method == "POST":
-        if request.form.get('script') or request.form.get('code'):
-            script = request.form.get('script') if request.form.get('script') else request.form.get('code')
-            args = request.form.get('args') if request.form.get('args') else ''
-            immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
-            pygen = True if request.form.get('code') else False
-            return run_biowl(current_user.id, script, args, immediate, pygen)
-        
-        elif request.form.get('mapper'):
-            result = {"out": [], "err": []}
-            try:
-                if request.form.get('pippkgs'):
-                    pippkgs = request.form.get('pippkgs')
-                    pippkgs = pippkgs.split(",")
-                    for pkg in pippkgs:
-                        try:
-                            install(pkg)
-                        except Exception as e:
-                            result['err'].append(str(e))
-                                    
-                # Get the name of the uploaded file
-                file = request.files['library'] if len(request.files) > 0 else None
-                # Check if the file is one of the allowed types/extensions
-                if file:
-                    package = request.form.get('package')
-                    this_path = os.path.dirname(os.path.abspath(__file__))
-                    #os.chdir(this_path) #set dir of this file to current directory
-                    app_path = os.path.dirname(this_path)
-                    librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/libraries'))
-    
-                    user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
-                    if not os.path.isdir(user_package_dir):
-                        os.makedirs(user_package_dir)
-                    
-                    pkg_or_default = package if package else 'mylib'
-                    path = Samples.unique_filename(user_package_dir, pkg_or_default, '')
-                    if not os.path.isdir(path):
-                        os.makedirs(path)
-
-                    # Make the filename safe, remove unsupported chars
-                    filename = secure_filename(file.filename)
-                    temppath = os.path.join(tempfile.gettempdir(), filename)
-                    if os.path.exists(temppath):
-                        import uuid
-                        temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()), filename)
-                    file.save(temppath)
-                    
-                    if zipfile.is_zipfile(temppath):
-                        with zipfile.ZipFile(temppath,"r") as zip_ref:
-                            zip_ref.extractall(path)
-                    elif tarfile.is_tarfile(temppath):
-                        with tarfile.open(temppath,"r") as tar_ref:
-                            tar_ref.extractall(path)
-                    else:
-                        shutil.move(temppath, path)
-                                        
-                    base = Samples.unique_filename(path, pkg_or_default, 'json')
-                    with open(base, 'w') as mapper:
-                        mapper.write(request.form.get('mapper'))
-                    
-                    org = request.form.get('org')
-                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
-                    pkgpath = os.path.join(pkgpath, filename)
-                    pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
-                    
-                    access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2 
-                    with open(base, 'r') as json_data:
-                        data = json.load(json_data)
-                        libraries = data["functions"]
-                        for f in libraries:
-                            if 'internal' in f and f['internal']:
-                                if 'name' not in f:
-                                    f['name'] = f['internal']
-                            elif 'name' in f and f['name']:
-                                if 'internal' not in f:
-                                    f['internal'] = f['name']
-                            if not f['internal'] and not f['name']:
-                                continue
-                            f['access'] = access
-                            f['module'] = pkgpath
-                            if package:
-                                f['package'] = package
-                            if org:
-                                f['org'] = org
-                                
-                    os.remove(base)
-                    with open(base, 'w') as f:
-                        json.dump(data, f, indent=4)
-                    interpreter.reload()
-                    
-                    result['out'].append("Library successfully added.")
-            except Exception as e:
-                result['err'].append(str(e))
-            return json.dumps(result)
-        elif request.form.get('provenance'):
-            fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
-            mime = mimetypes.guess_type(fullpath)[0]
-            return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
-    else:
-        level = int(request.args.get('level')) if request.args.get('level') else 0
-        access = int(request.args.get('access')) if request.args.get('access') else 0
-        return get_functions(level, access)
-    
 class Samples():
     @staticmethod
     def load_samples_recursive_for_user(samples_dir, access):
@@ -892,33 +501,3 @@ def samples():
     access = int(request.args.get('access')) if request.args.get('access') else 0
     return json.dumps({'samples': Samples.get_samples_as_list(access)})
 
-def get_user_status(user_id):
-    return jsonify(runnables =[i.to_json() for i in Runnable.query.filter(Runnable.user_id == user_id)])
-
-def get_task_status(task_id):
-    runnable = Runnable.query.get(task_id)
-    return jsonify(runnable = runnable.to_json())
-    
-@main.route('/runnables', methods=['GET', 'POST'])
-@login_required
-def runnables():
-    if request.args.get('id'):
-        return get_task_status(int(request.args.get('task_id')))
-    elif request.args.get('stop'):
-        ids = request.args.get('stop')
-        ids = ids.split(",")
-        new_status = []
-        for id in ids:
-            runnable = Runnable.query.get(int(id))
-            stop_script(runnable.celery_id)
-            sync_task_status_with_db(runnable)
-            new_status.append(runnable)
-        return jsonify(runnables =[i.to_json() for i in new_status])
-    
-    sync_task_status_with_db_for_user(current_user.id)
-#     runnables_db = Runnable.query.filter(Runnable.user_id == current_user.id)
-#     rs = []
-#     for r in runnables_db:
-#       rs.append(r.to_json())
-#     return jsonify(runnables = rs)
-    return get_user_status(current_user.id)

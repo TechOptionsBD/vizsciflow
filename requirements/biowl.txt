@@ -4,6 +4,9 @@ hdfs==2.0.15
 biopython 
 bioblend
 pysam
-celery==4.1.1
+celery==3.1.25
 redis
 paramiko==2.4.1
+jsonpickle
+Flask-SSLify
+coverage

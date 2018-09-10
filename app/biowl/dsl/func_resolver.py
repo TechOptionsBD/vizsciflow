@@ -5,6 +5,8 @@ import os
 
 from ...util import Utility
 from ..exechelper import func_exec_run
+from flask_login import current_user
+from ...models import Task, Status
 
 # import_module can't load the following modules in the NGINX server
 # while running in 'immediate' mode. The early imports here are needed.
@@ -255,7 +257,22 @@ class Library():
 #                 fullargspec = inspect.getfullargspec(function)
 #                 if fullargspec.varkw:
 #                     kwargs['history_id'] = context.get_var('history_id')
-        return function(*arguments, **kwargs)
+        
+        task = None
+        if context.runnable:
+            task = Task.create_task(context.runnable)
+            task.start()
+        try:
+            result = function(*arguments, **kwargs)
+            try:
+                if task:
+                    task.succeeded(result)
+            finally:
+                return result
+        except Exception as e:
+            if task:
+                task.failed(str(e))
+            raise
 
     def code_func(self, context, package, function, arguments):
         '''

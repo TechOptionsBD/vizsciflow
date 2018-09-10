@@ -134,22 +134,34 @@ background-color: White;
 		            <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" id="refresh"></span>
 		        </div>
 	        </div>
-	        <div class="panel panel-success" style="padding:2px; margin:2px">
-		         <div class="panel-heading" style="padding-top:0;padding-bottom:0">
-		          <label>Output:</label>
-		         </div>
-		         <div class="panel-body" style="padding:0">
-		          <textarea rows="5" style="min-width: 100%" id="output"></textarea><br>
-		        </div>
-	        </div>
-	       <div class="panel panel-danger" style="padding:2px; margin:2px">
-               <div class="panel-heading" style="padding-top:0;padding-bottom:0">
-                 <label>Error:</label>
-                </div>
-                <div class="panel-body" style="padding:0">
-	        <textarea rows="3" style="min-width: 100%" id="error"></textarea>
-	        </div>
-	        </div>
+	        <div id="exTab2" class="panel">	
+				<ul class="nav nav-tabs">
+					<li class="active"><a href="#1" data-toggle="tab">Output</a></li>
+					<li><a href="#2" data-toggle="tab">Error</a></li>
+					<li><a href="#3" data-toggle="tab">Log</a></li>
+				</ul>
+
+				<div class="tab-content ">
+			  		<div class="tab-pane active" id="1">
+          				<textarea rows="10" style="min-width: 100%" id="output"></textarea><br>
+					</div>
+					<div class="tab-pane" id="2">
+          				<textarea rows="10" style="min-width: 100%" id="error"></textarea><br>
+					</div>
+	        		<div class="tab-pane" id="3">
+	          			<table class="table table-striped" id="log">
+						  <thead>
+						    <tr>
+						      <th scope="col" align="center">Data</th>
+						      <th scope="col" align="center">Status</th>
+						    </tr>
+						  </thead>
+						  <tbody>
+						  </tbody>
+						</table>
+					</div>
+				</div>
+  			</div>
            </div>
            <div class="col-sm-3" id="functions" style="padding:2px;">
             <div  class="panel panel-primary" >
@@ -706,7 +718,7 @@ background-color: White;
     	  node = self.selectedNode();
           if (node === undefined)
               return;
-          $.redirect(self.dataSourcesURI, { 'download': node.path });
+          $.redirect(self.dataSourcesURI, { 'download': node.path }, "POST", "_blank");
       }
       
       self.addFolder = function() {
@@ -863,9 +875,6 @@ background-color: White;
             	  else
             		  example = v.name() + "()";
               }
-            	  
-            	  
-          
           editor.session.insert(pos, example);
           editor.focus();
           return true;
@@ -874,8 +883,30 @@ background-color: White;
 
     textarea.on('resize', function(){
         alert()
-  }); 
-       
+  });
+    
+    jsonArray2Table = function(table, jsonArr) {
+    	$.each(jsonArr, function (index, value) {
+            /* $.each(value, function (key, val) {
+                TableRow += "<td>" + val + "</td>";
+            }) */;
+            
+            var cell = $('<td></td>');
+            var link =  $('<a />', {
+                'href': 'javascript:void(0)',
+                'text': value['data']
+            }).on('click', function() {
+            	$.redirect('/datasources', { 'download': value['data'] }, "POST", "_blank");
+            });
+            cell.append(link)
+            var row = $('<tr></tr>');
+            row.append(cell);
+            
+            cell = "<td>" + value['status'] + "</td>";
+            row.append(cell);
+            table.append(row);
+        });
+    }   
         function TasksViewModel() {
             var self = this;
             self.tasksURI = '/functions';
@@ -901,6 +932,7 @@ background-color: White;
                 editor.session.setValue("");
                 $("#output").val("");
                 $("#error").val("");
+                $("#log tbody").empty();
                 $("#duration").text("");
             }
 
@@ -936,25 +968,27 @@ background-color: White;
                 	if (data === undefined)
                 		return;
                 	data = JSON.parse(data)
-                	if ($('#immediate').prop('checked'))
-                	{
-	                	var text = '';
-	                	if (data.out !== undefined) {
-		                    $.each(data.out, function(i, t) {
-		                    	text += t + '\n';
-		                    });
-	                	}
-	                	$("#output").val(text);
+//                 	if ($('#immediate').prop('checked'))
+//                 	{
+// 	                	var text = '';
+// 	                	if (data.out !== undefined) {
+// 		                    $.each(data.out, function(i, t) {
+// 		                    	text += t + '\n';
+// 		                    });
+// 	                	}
+// 	                	$("#output").val(text);
 	                    
-	                	text = '';
-	                	if (data.out !== undefined) {
-		                    $.each(data.err, function(i, t) {
-		                        text += t + '\n';
-		                    });
-	                	}
-                	}                    
+// 	                	text = '';
+// 	                	if (data.err !== undefined) {
+// 		                    $.each(data.err, function(i, t) {
+// 		                        text += t + '\n';
+// 		                    });
+// 	                	}
+//                 	}                    
                     $("#output").val(data['out']);
                     $("#error").val(data['err']);
+                    $("#log tbody").empty();
+                    jsonArray2Table($("#log"), data['log']);
                     $("#duration").text(data['duration']);
                     runnablesViewModel.load();                    
                 }).fail(function(jqXHR, textStatus) {
@@ -963,7 +997,7 @@ background-color: White;
                 });
             }
             self.provenance = function() {
-            	$.redirect(self.tasksURI, { 'provenance': true });
+            	$.redirect(self.tasksURI, { 'provenance': true }, "POST", "_blank");
            	}
             
             self.generatePythonCode = function(task) {
@@ -978,15 +1012,11 @@ background-color: White;
                         return;
                     
                     data = JSON.parse(data)
-
+                    
                     $("#output").val(data.out);
-                    
-                    text = '';
-                    $.each(data.err, function(i, t) {
-                        text += t + '\n';
-                    });
-                    
-                    $("#error").val(text);
+                    $("#error").val(data.err);
+                    $("#log tbody").empty();
+                    jsonArray2Table($("#log"), data['log']);
                     $("#duration").text(data.duration);
                 });
             }
@@ -1256,18 +1286,9 @@ background-color: White;
 
                 ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                                    	
-                    text = '';
-                    $.each(data.out, function(i, t) {
-                        text += t + '\n';
-                    });
-                    $("#output").val(text);
-                    
-                    text = '';
-                    $.each(data.err, function(i, t) {
-                        text += t + '\n';
-                    });
-                    
-                    $("#error").val(text);
+                    $("#output").val(data.out);
+                    $("#error").val(data.err);
+                    $("#log tbody").empty();
                 });
             }
             
@@ -1324,9 +1345,17 @@ background-color: White;
         
             self.copyToEditor = function(item) {
             	
-            	$("#output").val(item.out());
-            	$("#error").val(item.err());
-            	$("#duration").html(item.duration().toString() + 's');
+				ajaxcalls.simple(self.runnablesURI, 'GET', { 'id':  item.id()}).done(function(data) {
+            		
+					if (data === undefined)
+						return;
+					
+					$("#output").val(data['out']);
+	            	$("#error").val(data['err']);
+	            	$("#log tbody").empty();
+	            	jsonArray2Table($("#log"), data['log']);
+	            	$("#duration").html(data['duration'] + 's');
+            	});
             }
             
             self.selectedIds = function() {
@@ -1374,9 +1403,6 @@ background-color: White;
                             name: ko.observable(s.name),
                             status: ko.observable(s.status),
                             statusImg: ko.observable(self.statusIcon(s.status)),
-                            out: ko.observable(s.out),
-                            err: ko.observable(s.err),
-                            duration:ko.observable(s.duration),
                             selected: ko.observable(false)
                         });
                     });

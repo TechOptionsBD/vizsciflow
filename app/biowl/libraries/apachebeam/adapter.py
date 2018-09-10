@@ -12,12 +12,9 @@ cluster = '206.12.102.75'
 user = 'hadoop'
 password = 'spark#2018'
 
-python_ex = path.join(path.abspath(path.dirname(__file__)), path.join('lib', 'venv', 'bin', 'python'))
 spark_submit_app = 'spark-submit'
 jar = "/home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar"
 
-def run_apachebeam(*args, **kwargs):
-    return func_exec_run(python_ex, args)     
 
 # {
 #            "org": "SRLAB",
@@ -394,8 +391,8 @@ def run_beam_quality(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix(data)
-    data = fs.normalize_path(data)
+#     fs = Utility.fs_by_prefix(data)
+#     data = fs.normalize_path(data)
     
     outdir = ''
     if 'outdir' in kwargs.keys():
@@ -406,10 +403,10 @@ def run_beam_quality(*args, **kwargs):
             paramindex +=1
     
     if not outdir:
-        fs = Utility.fs_by_prefix(data)
-        outdir = fs.join(path.dirname(data), str(uuid.uuid4()))
-    else:
-        outdir = fs.normalize_path(outdir)
+        #fs = Utility.fs_by_prefix(data)
+        outdir = os.path.join(path.dirname(data), str(uuid.uuid4()))
+#     else:
+#         outdir = fs.normalize_path(outdir)
         
 #     if not fs.exists(outdir):
 #         fs.mkdirs(outdir)
@@ -422,10 +419,10 @@ def run_beam_quality(*args, **kwargs):
             runner = args[paramindex]
             paramindex +=1
 
-    data = copy_posix_file_to_cluster(data);
+    #data = copy_posix_file_to_cluster(data);
     
     outpath = Path(data).stem + "_fastqc.html"
-    outpath = fs.join(outdir, os.path.basename(outpath))
+    outpath = os.path.join(outdir, os.path.basename(outpath))
 #     if fs.exists(outpath):
 #         fs.remove(outpath)
        
@@ -438,7 +435,7 @@ def run_beam_quality(*args, **kwargs):
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
            
-    stripped_path = fs.strip_root(outpath)
+    stripped_path = outpath#fs.strip_root(outpath)
 #     if not os.path.exists(outpath):
 #         raise ValueError("Apache beam could not generate the file: " + stripped_path)
     
@@ -457,7 +454,7 @@ def run_beam_align(*args, **kwargs):
         ref = args[paramindex]
         paramindex +=1
     
-    ref = copy_posix_file_to_cluster(ref)
+    #ref = copy_posix_file_to_cluster(ref)
     
     data1 = ''
     if 'data1' in kwargs.keys():
@@ -468,7 +465,7 @@ def run_beam_align(*args, **kwargs):
         data1 = args[paramindex]
         paramindex +=1
     
-    data1 = copy_posix_file_to_cluster(data1)
+    #data1 = copy_posix_file_to_cluster(data1)
     
     data2 = ''
     if 'data2' in kwargs.keys():
@@ -478,8 +475,6 @@ def run_beam_align(*args, **kwargs):
             data2 = args[paramindex]
             paramindex +=1
     
-    if data2:
-        data2 = copy_posix_file_to_cluster(data2)
     
     output = ''    
     if 'output' in kwargs.keys():
@@ -491,8 +486,8 @@ def run_beam_align(*args, **kwargs):
 
     if not output:
         output = Path(data1).stem + ".sam"
-        fs = Utility.fs_by_prefix(data1)
-        outdir = fs.join(path.dirname(data1), str(uuid.uuid4()))
+        #fs = Utility.fs_by_prefix(data1)
+        outdir = os.path.join(path.dirname(data1), str(uuid.uuid4()))
         output = os.path.join(outdir, os.path.basename(output))
         
     runner = 'spark'
@@ -514,7 +509,7 @@ def run_beam_align(*args, **kwargs):
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
-    stripped_path = fs.strip_root(output)
+    stripped_path = output
 #     if not fs.exists(output):
 #         raise ValueError("Apache beam could not generate the .sam file: " + stripped_path)
     
@@ -531,8 +526,8 @@ def run_beam_sam_to_bam(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix_or_default(data)
-    data = fs.normalize_path(data)
+#     fs = Utility.fs_by_prefix_or_default(data)
+#     data = fs.normalize_path(data)
     
     output = ''
     if 'output' in kwargs.keys():
@@ -540,19 +535,20 @@ def run_beam_sam_to_bam(*args, **kwargs):
     else:
         if len(args) > paramindex:
             output = args[paramindex]
+            paramindex += 1
     
     if not output:
         output = Path(data).stem + ".bam"
-        outdir = fs.join(path.dirname(data), str(uuid.uuid4()))
-        output = fs.join(outdir, path.basename(output))
+        outdir = os.path.join(path.dirname(data), str(uuid.uuid4()))
+        output = os.path.join(outdir, path.basename(output))
         
-    output = fs.normalize_path(output)
+#    output = fs.normalize_path(output)
     
-    if not fs.exists(path.dirname(output)):
-        fs.makedirs(path.dirname(output))
-        
-    if fs.exists(output):
-        fs.remove(output)
+#     if not fs.exists(path.dirname(output)):
+#         fs.makedirs(path.dirname(output))
+#         
+#     if fs.exists(output):
+#         fs.remove(output)
     
     runner = 'spark'
     if 'runner' in kwargs.keys():
@@ -561,13 +557,14 @@ def run_beam_sam_to_bam(*args, **kwargs):
         if len(args) > paramindex:
             runner = args[paramindex]
             paramindex +=1
-                       
+    
+    ssh_cmd = ''                   
     if runner == 'spark':
         ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Convert --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --input={1} --output={2} --convertType=sam2bam --runner=SparkRunner".format(jar, data, output)
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
-    stripped_path = fs.strip_root(output)
+    stripped_path = output #fs.strip_root(output)
 #     if not fs.exists(output):
 #         raise ValueError("Apache beam could not generate the .bam  " + stripped_path)
     
@@ -584,8 +581,8 @@ def run_beam_pear(*args, **kwargs):
         data1 = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix_or_default(data1)
-    data1 = fs.normalize_path(data1)
+#     fs = Utility.fs_by_prefix_or_default(data1)
+#     data1 = fs.normalize_path(data1)
     
     if 'data2' in kwargs.keys():
         data2 = kwargs['data2']
@@ -595,7 +592,7 @@ def run_beam_pear(*args, **kwargs):
         data2 = args[paramindex]
         paramindex +=1
     
-    data2 = fs.normalize_path(data2)
+#     data2 = fs.normalize_path(data2)
     
     output = ''    
     if 'output' in kwargs.keys():
@@ -607,10 +604,10 @@ def run_beam_pear(*args, **kwargs):
     
     data1_path = Path(os.path.basename(data1))
     if not output:
-        outdir = fs.join(path.dirname(data1), str(uuid.uuid4()))
+        outdir = os.path.join(path.dirname(data1), str(uuid.uuid4()))
         output = os.path.join(outdir, data1_path.stem)
         
-    output = fs.normalize_path(output)
+#    output = fs.normalize_path(output)
     
     outdir = path.dirname(output)
 #     if not fs.exists(outdir):
@@ -633,7 +630,7 @@ def run_beam_pear(*args, **kwargs):
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
-    stripped_path = fs.strip_root(assembled_output)
+    stripped_path = assembled_output #fs.strip_root(assembled_output)
 #     if not fs.exists(output):
 #         raise ValueError("Apache beam could not generate the merged file." + stripped_path)
     

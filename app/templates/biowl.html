@@ -110,7 +110,7 @@ background-color: White;
                <div class="panel panel-primary" style="margin:2px">
                    <div class="panel-heading text-center">
                     <h3 class="panel-title">Bioinformatics Workflow Language</h3>
-                    <span class="bg-info text-info">Write DSL for workflow. Double click functions/samples/data sources to paste on editor.</span><br>
+                    <span class="bg-info text-info">Write DSL for workflow. Double click functions/samples/data to insert into editor.</span><br>
                     <ul class="list-inline panel-actions">
                         <li><a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a></li>
                     </ul>
@@ -136,9 +136,9 @@ background-color: White;
 	        </div>
 	        <div id="exTab2" class="panel">	
 				<ul class="nav nav-tabs">
-					<li class="active"><a href="#1" data-toggle="tab">Output</a></li>
+					<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
 					<li><a href="#2" data-toggle="tab">Error</a></li>
-					<li><a href="#3" data-toggle="tab">Log</a></li>
+					<li><a href="#3" data-toggle="tab">Output</a></li>
 				</ul>
 
 				<div class="tab-content ">
@@ -841,17 +841,18 @@ background-color: White;
     editor.getSession().setMode("ace/mode/python");
     editor.setOptions({
     	highlightSelectedWord: true, 
-    	enableBasicAutocompletion: true,
-    	autoScrollEditorIntoView: true
+    	enableLiveAutocompletion: true,
+    	autoScrollEditorIntoView: true,
+    	fontSize: "11pt"
     });
-    editor.renderer.setOptions({showGutter: true, displayIndentGuides: true});
+    editor.renderer.setOptions({
+    	showGutter: true, 
+    	displayIndentGuides: true
+    });
     //editor.setKeyboardHandler("ace/keyboard/vim");
     //editor.setTheme("ace/theme/idle_fingers");
     //editor.setTheme("ace/theme/twilight");
     editor.setTheme("ace/theme/iplastic");
-//     editor.setOptions({       
-//         fontSize: "12pt"
-//       });
     editor.setShowPrintMargin(false);
     
     $("#aceeditor").droppable({

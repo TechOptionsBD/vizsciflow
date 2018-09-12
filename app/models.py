@@ -681,6 +681,7 @@ class Runnable(db.Model):
     name = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
     script = db.Column(db.Text)
+    arguments = db.Column(db.Text)
     out = db.Column(db.Text)
     err = db.Column(db.Text)
     duration = db.Column(db.Integer, default = 0)
@@ -701,6 +702,9 @@ class Runnable(db.Model):
     def update(self):
         self.modified_on = datetime.utcnow()
         db.session.commit()
+    
+    def completed(self):
+        return self.status == 'SUCCESS' or self.status == 'FAILURE' or self.status == 'REVOKED'
     
     def to_json(self):
         

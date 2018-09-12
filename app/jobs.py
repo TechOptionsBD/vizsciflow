@@ -139,6 +139,7 @@ def run_script(self, user_id, library, script, args):
     runnable.name = script[:min(40, len(script))]
     if len(script) > len(runnable.name):
         runnable.name += "..."
+    runnable.arguments = args
     runnable.update()
 
     machine = Interpreter()
@@ -198,4 +199,5 @@ def sync_task_status_with_db(task):
 def sync_task_status_with_db_for_user(user_id):
     tasks = Runnable.query.filter(Runnable.user_id == user_id)
     for task in tasks:
-        sync_task_status_with_db(task)
+        if not task.completed():
+            sync_task_status_with_db(task)

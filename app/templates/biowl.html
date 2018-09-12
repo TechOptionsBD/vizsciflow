@@ -50,6 +50,10 @@ background-color: White;
     overflow: auto;
 }
 
+ .marginRow{
+     margin:4px !important; 
+   }
+   
 </style>
 
 {% endblock %}
@@ -84,13 +88,9 @@ background-color: White;
               </div>
               <div class="btn-group">
                    <div class="btn-group-sm">
-<!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Stop Execution" data-bind="click: stop"><i class="glyphicon glyphicon-stop"></i></button> -->
+                   	   <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Restart Execution" data-bind="click: restart"><i class="glyphicon glyphicon-repeat"></i></button>
+                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Stop Execution" data-bind="click: stop"><i class="glyphicon glyphicon-stop"></i></button>
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
-<!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Download" data-bind="click: download"><i class="glyphicon glyphicon-download"></i></button> -->
-<!--                        <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Upload" data-bind="click: beginFileUpload"><i class="glyphicon glyphicon-upload"></i></button> -->
-<!--                        <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-bind="click: beginRename" ><i class="glyphicon glyphicon-edit"></i></button> -->
-<!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button> -->
-<!--                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: addFolder" ><i class="glyphicon glyphicon-plus"></i></button> -->
                    </div>
                </div>
            </div>
@@ -110,7 +110,7 @@ background-color: White;
                <div class="panel panel-primary" style="margin:2px">
                    <div class="panel-heading text-center">
                     <h3 class="panel-title">Bioinformatics Workflow Language</h3>
-                    <span class="bg-info text-info">Write DSL for workflow. Double click functions/samples/data to insert into editor.</span><br>
+                    <span class="text-light" style="margin: 4px">Write DSL for workflow. Double click services/samples/data to insert into editor.</span><br>
                     <ul class="list-inline panel-actions">
                         <li><a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a></li>
                     </ul>
@@ -125,7 +125,7 @@ background-color: White;
 		        <div class="panel-body" style="padding:0">
 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
-			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddLibrary">Add Library</button>
+<!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddLibrary">Add Library</button> -->
 <!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddSample">Save</button> -->
 <!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: generatePythonCode">Python Code</button> -->
                     <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
@@ -134,7 +134,7 @@ background-color: White;
 		            <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" id="refresh"></span>
 		        </div>
 	        </div>
-	        <div id="exTab2" class="panel">	
+	        <div id="exTab2" class="panel panel-primary">	
 				<ul class="nav nav-tabs">
 					<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
 					<li><a href="#2" data-toggle="tab">Error</a></li>
@@ -142,13 +142,13 @@ background-color: White;
 				</ul>
 
 				<div class="tab-content ">
-			  		<div class="tab-pane active" id="1">
+			  		<div class="tab-pane fade in active" id="1">
           				<textarea rows="10" style="min-width: 100%" id="output"></textarea><br>
 					</div>
-					<div class="tab-pane" id="2">
+					<div class="tab-pane fade" id="2">
           				<textarea rows="10" style="min-width: 100%" id="error"></textarea><br>
 					</div>
-	        		<div class="tab-pane" id="3">
+	        		<div class="tab-pane fade" id="3">
 	          			<table class="table table-striped" id="log">
 						  <thead>
 						    <tr>
@@ -166,18 +166,39 @@ background-color: White;
            <div class="col-sm-3" id="functions" style="padding:2px;">
             <div  class="panel panel-primary" >
                 <div class="panel-heading">
-                   <div class="row" data-bind="with: tasksViewModel">
-                      <div class="col-sm-5"><input type="radio" name="level" value="0" data-bind="checked: level"/>Beginner</div>
-                      <div class="col-sm-5"><input type="radio" name="level" value="1" data-bind="checked: level"/>Advanced</div>
+                	<div class="row">
+                       <div class="col-sm-6"><h5 class="">Services</h5></div>
                    </div>
                    <div class="row" data-bind="with: tasksViewModel">
-                      <div class="col-sm-4"><input type="radio" name="faccess" value="0" data-bind="checked: access, click:accessclick"/>Public</div>
-                      <div class="col-sm-4"><input type="radio" name="faccess" value="1" data-bind="checked: access, click:accessclick"/>Shared</div>
-                      <div class="col-sm-4"><input type="radio" name="faccess" value="2" data-bind="checked: access, click:accessclick"/>Private</div>
-                   </div>
-                   <div class="row">
-                       <div class="col-sm-6"><h5 class="">Functions</h5></div>
-                       <div class="col-sm-6"><h5 class="">Group(Package)</h5></div>
+                   
+					<div class="col-sm-6" style="padding:2px;">
+                   	  <div class="dropdown">
+					  <button style="float: left" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
+					    <span data-bind="text: selectedServiceAccessType() ? selectedServiceAccessType().Name : 'Access Type'"></span>
+					    <span class="caret"></span>
+					  </button>
+					  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu2" data-bind="foreach: serviceaccesstypes" > 
+					    <li role="presentation" ><a role="menuitem" tabindex="-1" href="#" data-bind="text: Name, click: $parent.selectServiceAccessType"></a></li>
+					  </ul>
+					 </div>
+					 </div>
+					 <div class="col-sm-6" style="padding:2px;">
+                   <div class="dropdown">
+					  <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+					    <span data-bind="text: selectedCategory() ? selectedCategory().Name : 'Level'"></span>
+					    <span class="caret"></span>
+					  </button>
+					  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" data-bind="foreach: categories" > 
+					    <li role="presentation" ><a role="menuitem" tabindex="-1" href="#" data-bind="text: Name, click: $parent.selectCategory"></a></li>
+					  </ul>
+					</div> 
+					</div>
+					</div> 
+                   <div class="btn-group" data-bind="with: tasksViewModel">
+                       <div class="btn-group-sm">
+                           <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
+                           <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAddLibrary"><i class="glyphicon glyphicon-plus"></i></button>
+                       </div>
                    </div>
                 </div>
                 <div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding:3px" data-bind="with: tasksViewModel">
@@ -841,7 +862,7 @@ background-color: White;
     editor.getSession().setMode("ace/mode/python");
     editor.setOptions({
     	highlightSelectedWord: true, 
-    	enableLiveAutocompletion: true,
+    	enableBasicAutocompletion: true,
     	autoScrollEditorIntoView: true,
     	fontSize: "11pt"
     });
@@ -921,15 +942,48 @@ background-color: White;
             self.tasks = ko.observableArray();
             self.samplesURI = '/samples';
             self.samples = ko.observableArray();
-            self.level = 0;
-            self.access = 0;
-;            
-           	self.click = function(model){
-           		self.login();
-           	    return true;
-            }
+            self.serviceaccesstypes = ko.observableArray([
+            	{
+            		Id: 0,
+            		Name: "Public"
+            	}, 
+            	{
+          	  		Id: 1,
+          	  		Name: "Shared"
+          	  	}, 
+            	{
+          	  		Id: 2,
+          	  		Name: "Private"
+          	  	}]);
             
-            self.accessclick = function(model){
+            self.selectedServiceAccessType = ko.observable({
+        	  	Id: 0,
+      	  		Name: "Public"
+      		});
+            
+            self.categories = ko.observableArray([{
+            	  Id: 0,
+            	  Name: "Basic"
+            	}, {
+            	  Id: 1,
+            	  Name: "Advanced"
+            	}]);
+            
+            self.selectedCategory = ko.observable({
+          	  Id: 0,
+        	  Name: "Basic"
+        	});
+
+            self.selectCategory = function(category) {
+                self.selectedCategory(category);
+              }
+            
+            self.selectServiceAccessType = function(serviceAccessType) {
+                self.selectedServiceAccessType(serviceAccessType);
+                self.load();
+              }
+            
+           	self.click = function(model){
            		self.login();
            	    return true;
             }
@@ -963,9 +1017,14 @@ background-color: White;
             }
             
             self.runBioWL = function(task) {
+              var script = $.trim(editor.getSession().getValue());
+              if (!script)
+            	  return;
+              
               $('#refresh').show();
               var formdata = new FormData();
-              formdata.append('script', editor.getSession().getValue());
+              
+              formdata.append('script', script);
               formdata.append('args', $('#args').val());
               formdata.append('immediate', $('#immediate').prop('checked'));
               ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
@@ -1054,7 +1113,10 @@ background-color: White;
                 $('#login').modal('show');
             }
             self.login = function() {
-              ajaxcalls.simple(self.tasksURI, 'GET', {'level': 1, 'access': self.access}).done(function(data) {
+            	self.load();
+            }
+            self.load = function() {
+              ajaxcalls.simple(self.tasksURI, 'GET', {'level': 1, 'access': self.selectedServiceAccessType().Id}).done(function(data) {
             	  self.tasks([]);
             	  $.each(data.functions, function(i, f) {
             		  self.tasks.push({
@@ -1077,7 +1139,7 @@ background-color: White;
             
             self.copyToEditor = function(item) {
                var pos = editor.selection.getCursor();             
-               editor.session.insert(pos, self.level == 0 ? item.example() : item.example2());
+               editor.session.insert(pos, self.selectedCategory().Id == 0 ? item.example() : item.example2());
                editor.focus();
            }
         }
@@ -1382,6 +1444,17 @@ background-color: White;
                 	return;
                 
             	ajaxcalls.simple(self.runnablesURI, 'GET', { 'stop':  ids.join()}).done(function(data) {
+            		
+            	});
+            }
+            
+			self.restart = function(){
+            	
+                ids = self.selectedIds();
+                if (ids.length == 0)
+                	return;
+                
+            	ajaxcalls.simple(self.runnablesURI, 'GET', { 'restart':  ids.join()}).done(function(data) {
             		
             	});
             }

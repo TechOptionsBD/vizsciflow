@@ -5,7 +5,7 @@ from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_
 from ..models import Runnable
 from . import main
 from flask_login import login_required, current_user
-from flask import request, jsonify
+from flask import request, jsonify, current_app
 
 from ..biowl.dsl.func_resolver import Library
 
@@ -159,26 +159,42 @@ def get_task_status(task_id):
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
 def runnables():
-    if request.args.get('id'):
-        return get_task_status(int(request.args.get('id')))
-    elif request.args.get('stop'):
-        ids = request.args.get('stop')
-        ids = ids.split(",")
-        new_status = []
-        for runnable_id in ids:
-            runnable = Runnable.query.get(int(runnable_id))
-            stop_script(runnable.celery_id)
-            sync_task_status_with_db(runnable)
-            new_status.append(runnable)
-        return jsonify(runnables =[i.to_json() for i in new_status])
-    
-    sync_task_status_with_db_for_user(current_user.id)
-#     runnables_db = Runnable.query.filter(Runnable.user_id == current_user.id)
-#     rs = []
-#     for r in runnables_db:
-#       rs.append(r.to_json())
-#     return jsonify(runnables = rs)
-    return get_user_status(current_user.id)
+    try:
+        if request.args.get('id'):
+            return get_task_status(int(request.args.get('id')))
+        elif request.args.get('stop'):
+            ids = request.args.get('stop')
+            ids = ids.split(",")
+            new_status = []
+            for runnable_id in ids:
+                runnable = Runnable.query.get(int(runnable_id))
+                if runnable:
+                    stop_script(runnable.celery_id)
+                    new_status.append(runnable)
+                    sync_task_status_with_db(runnable)
+            return jsonify(runnables =[i.to_json_log() for i in new_status])
+        elif request.args.get('restart'):
+            ids = request.args.get('restart')
+            ids = ids.split(",")
+            new_status = []
+            for runnable_id in ids:
+                runnable = Runnable.query.get(int(runnable_id))
+                if runnable:
+                    if not runnable.completed():
+                        stop_script(runnable.celery_id)
+                        sync_task_status_with_db(runnable)
+                    run_biowl(current_user.id, runnable.script, runnable.arguments, False, False)    
+            return jsonify(runnables =[i.to_json_log() for i in new_status])
+        
+        sync_task_status_with_db_for_user(current_user.id)
+    #     runnables_db = Runnable.query.filter(Runnable.user_id == current_user.id)
+    #     rs = []
+    #     for r in runnables_db:
+    #       rs.append(r.to_json())
+    #     return jsonify(runnables = rs)
+        return get_user_status(current_user.id)
+    except Exception as e:
+        current_app.logger.error("Unhandled Exception at executables: {0}".format(e))
 
 def get_functions(level, access):
     funcs = []

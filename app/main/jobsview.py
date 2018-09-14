@@ -150,7 +150,7 @@ def functions():
         return get_functions(level, access)
 
 def get_user_status(user_id):
-    return jsonify(runnables =[i.to_json_info() for i in Runnable.query.filter(Runnable.user_id == user_id)])
+    return jsonify(runnables =[i.to_json_info() for i in Runnable.query.filter(Runnable.user_id == user_id).order_by(Runnable.id)])
 
 def get_task_status(task_id):
     runnable = Runnable.query.get(task_id)

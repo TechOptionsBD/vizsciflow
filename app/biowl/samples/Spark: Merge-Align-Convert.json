@@ -11,13 +11,8 @@
         "fq_html = beam.CheckQuality(data2, 'hdfs://hadoop-master:54310/user/hadoop/biowl/beam/output')",
         "print(fq_html)",
         "",
-        "data = beam.Merge(data1, data2)",
-        "",
         "ref = 'hdfs://hadoop-master:54310/user/hadoop/biowl/genome/Chr1.cdna'",
         "data = beam.Align(ref, data1, data2)",
-        "print(data)",
-        "",
-        "data = beam.SamToBam(data)",
         "print(data)"
     ]
 }

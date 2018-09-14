@@ -178,7 +178,7 @@ def stop_script(task_id):
 #     abortable_task = AbortableAsyncResult(task_id)
 #     abortable_task.abort()
     from celery import current_app
-    current_app.control.revoke(task_id, terminate=True)
+    celery.control.revoke(task_id, terminate=True)
 
 def sync_task_status_with_db(task):
     if task.celery_id is not None and task.status != 'FAILURE' and task.status != 'SUCCESS' and task.status != 'REVOKED':
@@ -186,7 +186,7 @@ def sync_task_status_with_db(task):
         task.status = celeryTask.state
         
         if celeryTask.state != 'PENDING':
-            if celeryTask.state != 'FAILURE':
+            if celeryTask.state != 'FAILURE' and celeryTask.state != 'REVOKED':
                 task.out = "\n".join(celeryTask.info.get('out'))
                 task.err = "\n".join(celeryTask.info.get('err'))
                 task.duration = int(celeryTask.info.get('duration'))

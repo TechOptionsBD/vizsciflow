@@ -195,6 +195,7 @@ def runnables():
         return get_user_status(current_user.id)
     except Exception as e:
         current_app.logger.error("Unhandled Exception at executables: {0}".format(e))
+        return json.dumps({})
 
 def get_functions(level, access):
     funcs = []

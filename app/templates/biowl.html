@@ -54,6 +54,10 @@ background-color: White;
      margin:4px !important; 
    }
    
+ input[type="text"]{
+	background-color:gray !important
+}
+
 </style>
 
 {% endblock %}
@@ -109,8 +113,8 @@ background-color: White;
            <div class="col-md-6" style="padding:2px" data-bind="with: tasksViewModel">
                <div class="panel panel-primary" style="margin:2px">
                    <div class="panel-heading text-center">
-                    <h3 class="panel-title">Bioinformatics Workflow Language</h3>
-                    <span class="text-light" style="margin: 4px">Write DSL for workflow. Double click services/samples/data to insert into editor.</span><br>
+                    <h3 class="panel-title">Bioinformatics Workflow Language (BioWL)</h3>
+                    <span class="text-light" style="margin: 4px">Write workflow DSL. Double click services/samples/data to insert into editor.</span><br>
                     <ul class="list-inline panel-actions">
                         <li><a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a></li>
                     </ul>
@@ -140,7 +144,8 @@ background-color: White;
 					<li><a href="#2" data-toggle="tab">Error</a></li>
 					<li><a href="#3" data-toggle="tab">Output</a></li>
 				</ul>
-
+				<span class="badge badge-pill badge-primary" style="float: right" id="execstatus"></span>
+<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
 				<div class="tab-content ">
 			  		<div class="tab-pane fade in active" id="1">
           				<textarea rows="10" style="min-width: 100%" id="output"></textarea><br>
@@ -149,11 +154,12 @@ background-color: White;
           				<textarea rows="10" style="min-width: 100%" id="error"></textarea><br>
 					</div>
 	        		<div class="tab-pane fade" id="3">
-	          			<table class="table table-striped" id="log">
+	        			<span id="executable-status"></span>
+	          			<table class="table table-striped" id="log" style="table-layout:fixed; width: 100%">
 						  <thead>
 						    <tr>
-						      <th scope="col" align="center">Data</th>
-						      <th scope="col" align="center">Status</th>
+						      <th scope="col" align="center" width="80%">Data</th>
+						      <th scope="col" align="center" width="20%">Status</th>
 						    </tr>
 						  </thead>
 						  <tbody>
@@ -193,23 +199,26 @@ background-color: White;
 					  </ul>
 					</div> 
 					</div>
-					</div> 
-                   <div class="btn-group" data-bind="with: tasksViewModel">
+					 <div class="col-sm-6" style="padding:2px;">
+                   <div class="btn-group">
                        <div class="btn-group-sm">
                            <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
                            <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAddLibrary"><i class="glyphicon glyphicon-plus"></i></button>
                        </div>
+                       </div>
+                   </div>
                    </div>
                 </div>
                 <div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding:3px" data-bind="with: tasksViewModel">
-                        <!-- ko foreach: tasks -->
-                        <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
-                           <div class="col-sm-6 draggable-func" data-bind="text: name"></div>
-                           <div class="col-sm-6">
-                                <span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
-                           </div>
+                	<!-- <input id="query" placeholder="Search…" type="text" data-bind="textInput: query"> -->
+                	<div data-bind="foreach: tasks">
+                     <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+                        <div class="col-sm-6 draggable-func" data-bind="text: name"></div>
+                        <div class="col-sm-6">
+                             <span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
                         </div>
-                        <!-- /ko -->
+                     </div>
+                     </div>
                 </div>
             </div>
 <!-- 	            <div data-bind="stopBinding: true"> -->
@@ -942,6 +951,21 @@ background-color: White;
             self.tasks = ko.observableArray();
             self.samplesURI = '/samples';
             self.samples = ko.observableArray();
+            self.query = ko.observable('');
+//             self.filtered = ko.dependentObservable(function() {
+//                 var search = this.query().toLowerCase();
+//                 return ko.utils.arrayFilter(self.tasks, function(task) {
+//                     return task.name.toLowerCase().indexOf(search) >= 0;
+//                 });
+//             }, self);
+
+			self.filtered = ko.computed(function(){
+		       return self.tasks().filter(function(task){
+		           if(!self.query() || task.name.toLowerCase().indexOf(self.query().toLowerCase()) !== -1)
+		             return task;
+		       });
+		   },this);
+			
             self.serviceaccesstypes = ko.observableArray([
             	{
             		Id: 0,
@@ -994,6 +1018,7 @@ background-color: White;
                 $("#error").val("");
                 $("#log tbody").empty();
                 $("#duration").text("");
+                $("#execstatus").text("");
             }
 
             self.updateTask = function(task, newTask) {
@@ -1055,6 +1080,7 @@ background-color: White;
                     $("#log tbody").empty();
                     jsonArray2Table($("#log"), data['log']);
                     $("#duration").text(data['duration']);
+                    $("#execstatus").text(data['status']);
                     runnablesViewModel.load();                    
                 }).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
@@ -1082,6 +1108,7 @@ background-color: White;
                     $("#error").val(data.err);
                     $("#log tbody").empty();
                     jsonArray2Table($("#log"), data['log']);
+                    $("#execstatus").text(data['status']);
                     $("#duration").text(data.duration);
                 });
             }
@@ -1357,6 +1384,9 @@ background-color: White;
                     $("#output").val(data.out);
                     $("#error").val(data.err);
                     $("#log tbody").empty();
+                    if (data.err.length != 0) {
+                    	$("#execstatus").text("FAILED");
+                    }
                 });
             }
             
@@ -1423,6 +1453,7 @@ background-color: White;
 	            	$("#log tbody").empty();
 	            	jsonArray2Table($("#log"), data['log']);
 	            	$("#duration").html(data['duration'] + 's');
+	            	$("#execstatus").text(data['status']);
             	});
             }
             

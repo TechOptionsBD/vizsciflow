@@ -127,14 +127,11 @@ background-color: White;
 	        </div>
 	        <div class="panel panel-primary" style="padding:0px; border:0;margin:4px">
 		        <div class="panel-body" style="padding:0">
-			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
-			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
-<!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddLibrary">Add Library</button> -->
-<!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: beginAddSample">Save</button> -->
-<!-- 			        <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: generatePythonCode">Python Code</button> -->
-                    <button class="btn pull-left" style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
+			        <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
+			        <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
+                    <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
 			        <label class="checkbox-inline"><input type="checkbox" id="immediate">Immediate</label> 
-			        <span class="label label-default">Time: </span><span id="duration">0s</span>
+			        <span class="badge badge-primary">Time: <span id="duration" class="badge badge-light">0s</span> </span>
 		            <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" id="refresh"></span>
 		        </div>
 	        </div>
@@ -951,7 +948,7 @@ background-color: White;
             self.tasks = ko.observableArray();
             self.samplesURI = '/samples';
             self.samples = ko.observableArray();
-            self.query = ko.observable('');
+            self.query = ko.observable("");
 //             self.filtered = ko.dependentObservable(function() {
 //                 var search = this.query().toLowerCase();
 //                 return ko.utils.arrayFilter(self.tasks, function(task) {
@@ -960,11 +957,16 @@ background-color: White;
 //             }, self);
 
 			self.filtered = ko.computed(function(){
-		       return self.tasks().filter(function(task){
-		           if(!self.query() || task.name.toLowerCase().indexOf(self.query().toLowerCase()) !== -1)
-		             return task;
-		       });
-		   },this);
+				var filter = self.query().toLowerCase();
+
+		        if (!filter) {
+		            return self.tasks();
+		        } else {
+		            return ko.utils.arrayFilter(self.tasks(), function (item) {
+		                return item.name().toLowerCase().indexOf(filter) !== -1;
+		            });
+		        }
+		   });
 			
             self.serviceaccesstypes = ko.observableArray([
             	{
@@ -1017,7 +1019,7 @@ background-color: White;
                 $("#output").val("");
                 $("#error").val("");
                 $("#log tbody").empty();
-                $("#duration").text("");
+                $("#duration").text("0s");
                 $("#execstatus").text("");
             }
 
@@ -1057,29 +1059,12 @@ background-color: White;
                 	
                 	if (data === undefined)
                 		return;
-                	data = JSON.parse(data)
-//                 	if ($('#immediate').prop('checked'))
-//                 	{
-// 	                	var text = '';
-// 	                	if (data.out !== undefined) {
-// 		                    $.each(data.out, function(i, t) {
-// 		                    	text += t + '\n';
-// 		                    });
-// 	                	}
-// 	                	$("#output").val(text);
-	                    
-// 	                	text = '';
-// 	                	if (data.err !== undefined) {
-// 		                    $.each(data.err, function(i, t) {
-// 		                        text += t + '\n';
-// 		                    });
-// 	                	}
-//                 	}                    
+                	data = JSON.parse(data)                
                     $("#output").val(data['out']);
                     $("#error").val(data['err']);
                     $("#log tbody").empty();
                     jsonArray2Table($("#log"), data['log']);
-                    $("#duration").text(data['duration']);
+                    $("#duration").text(data['duration'] + 's');
                     $("#execstatus").text(data['status']);
                     runnablesViewModel.load();                    
                 }).fail(function(jqXHR, textStatus) {
@@ -1109,7 +1094,7 @@ background-color: White;
                     $("#log tbody").empty();
                     jsonArray2Table($("#log"), data['log']);
                     $("#execstatus").text(data['status']);
-                    $("#duration").text(data.duration);
+                    $("#duration").text(data.duration + 's');
                 });
             }
             self.beginEditLibrary = function(task) {

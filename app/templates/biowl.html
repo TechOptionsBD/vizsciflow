@@ -55,7 +55,7 @@ background-color: White;
    }
    
  input[type="text"]{
-	background-color:gray !important
+	background-color:white !important
 }
 
 </style>
@@ -173,10 +173,9 @@ background-color: White;
                        <div class="col-sm-6"><h5 class="">Services</h5></div>
                    </div>
                    <div class="row" data-bind="with: tasksViewModel">
-                   
-					<div class="col-sm-6" style="padding:2px;">
-                   	  <div class="dropdown">
-					  <button style="float: left" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
+                   <div class="btn-group">
+                   	  <div class="btn-group">
+					  <button style="float: left; margin-right: 10px; margin-bottom: 10px;" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
 					    <span data-bind="text: selectedServiceAccessType() ? selectedServiceAccessType().Name : 'Access Type'"></span>
 					    <span class="caret"></span>
 					  </button>
@@ -184,9 +183,7 @@ background-color: White;
 					    <li role="presentation" ><a role="menuitem" tabindex="-1" href="#" data-bind="text: Name, click: $parent.selectServiceAccessType"></a></li>
 					  </ul>
 					 </div>
-					 </div>
-					 <div class="col-sm-6" style="padding:2px;">
-                   <div class="dropdown">
+                   <div class="btn-group">
 					  <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
 					    <span data-bind="text: selectedCategory() ? selectedCategory().Name : 'Level'"></span>
 					    <span class="caret"></span>
@@ -194,28 +191,26 @@ background-color: White;
 					  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" data-bind="foreach: categories" > 
 					    <li role="presentation" ><a role="menuitem" tabindex="-1" href="#" data-bind="text: Name, click: $parent.selectCategory"></a></li>
 					  </ul>
-					</div> 
 					</div>
-					 <div class="col-sm-6" style="padding:2px;">
-                   <div class="btn-group">
-                       <div class="btn-group-sm">
-                           <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
-                           <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAddLibrary"><i class="glyphicon glyphicon-plus"></i></button>
-                       </div>
-                       </div>
-                   </div>
+					</div>
+					 <div class="input-group">
+					  <span class="input-group-btn">
+					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
+					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAddLibrary"><i class="glyphicon glyphicon-plus"></i></button>
+					  </span>
+					  <input class="form-control" type="text" data-bind="value: taskFilter, valueUpdate: 'keyup'"/>
+					 </div>
                    </div>
                 </div>
                 <div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding:3px" data-bind="with: tasksViewModel">
-                	<!-- <input id="query" placeholder="Search…" type="text" data-bind="textInput: query"> -->
-                	<div data-bind="foreach: tasks">
-                     <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
-                        <div class="col-sm-6 draggable-func" data-bind="text: name"></div>
-                        <div class="col-sm-6">
-                             <span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
-                        </div>
-                     </div>
-                     </div>
+               	<div data-bind="foreach: filteredTasks">
+                    <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+                       <div class="col-sm-6 draggable-func" style="word-wrap: break-word;" data-bind="text: name"></div>
+                       <div class="col-sm-6">
+                            <span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
+                       </div>
+                    </div>
+                    </div>
                 </div>
             </div>
 <!-- 	            <div data-bind="stopBinding: true"> -->
@@ -948,25 +943,15 @@ background-color: White;
             self.tasks = ko.observableArray();
             self.samplesURI = '/samples';
             self.samples = ko.observableArray();
-            self.query = ko.observable("");
-//             self.filtered = ko.dependentObservable(function() {
-//                 var search = this.query().toLowerCase();
-//                 return ko.utils.arrayFilter(self.tasks, function(task) {
-//                     return task.name.toLowerCase().indexOf(search) >= 0;
-//                 });
-//             }, self);
-
-			self.filtered = ko.computed(function(){
-				var filter = self.query().toLowerCase();
-
-		        if (!filter) {
-		            return self.tasks();
-		        } else {
-		            return ko.utils.arrayFilter(self.tasks(), function (item) {
-		                return item.name().toLowerCase().indexOf(filter) !== -1;
-		            });
-		        }
-		   });
+            self.taskFilter = ko.observable("");
+			this.filteredTasks = ko.computed(function(){
+		       return this.tasks().filter(function(task){
+		           if(!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
+		        		   || task.package_name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
+		        		   || task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
+		             return task;
+		       });
+   			},this);
 			
             self.serviceaccesstypes = ko.observableArray([
             	{

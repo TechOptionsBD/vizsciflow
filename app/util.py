@@ -48,7 +48,7 @@ class Utility:
         elif ds.type == 'posix':
             return PosixFileSystem(ds.url)
         elif ds.type == 'gfs':
-            return GalaxyFileSystem(ds.url, ds.user)
+            return GalaxyFileSystem(ds.url, ds.password)
     
     @staticmethod
     def ds_by_prefix(path):

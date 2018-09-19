@@ -1,11 +1,18 @@
 import os
+import sys
 import json
+import tarfile
+import tempfile
+import zipfile
+import shutil
+import pathlib
 
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
 from ..models import Runnable
 from . import main
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app
+from werkzeug.utils import secure_filename
 
 from ..biowl.dsl.func_resolver import Library
 
@@ -43,6 +50,23 @@ def run_biowl(user_id, script, args, immediate = True, pygen = False):
         run_script.delay(user_id, library.library, script, args)
         return json.dumps({})
 
+def make_fn(path, prefix, ext, suffix):
+    path = os.path.join(path, '{0}'.format(prefix))
+    if suffix:
+        path = '{0}_{1}'.format(path, suffix)
+    if ext:
+        path = '{0}.{1}'.format(path, ext)
+    return path
+    
+def unique_filename(path, prefix, ext):
+    uni_fn = make_fn(path, prefix, ext, '')
+    if not os.path.exists(uni_fn):
+        return uni_fn
+    for i in range(1, sys.maxsize):
+        uni_fn = make_fn(path, prefix, ext, i)
+        if not os.path.exists(uni_fn):
+            return uni_fn
+            
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -81,7 +105,7 @@ def functions():
                         os.makedirs(user_package_dir)
                     
                     pkg_or_default = package if package else 'mylib'
-                    path = Samples.unique_filename(user_package_dir, pkg_or_default, '')
+                    path = unique_filename(user_package_dir, pkg_or_default, '')
                     if not os.path.isdir(path):
                         os.makedirs(path)
 
@@ -90,7 +114,9 @@ def functions():
                     temppath = os.path.join(tempfile.gettempdir(), filename)
                     if os.path.exists(temppath):
                         import uuid
-                        temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()), filename)
+                        temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+                        os.makedirs(temppath)
+                        temppath = os.path.join(temppath, filename)
                     file.save(temppath)
                     
                     if zipfile.is_zipfile(temppath):
@@ -102,7 +128,7 @@ def functions():
                     else:
                         shutil.move(temppath, path)
                                         
-                    base = Samples.unique_filename(path, pkg_or_default, 'json')
+                    base = unique_filename(path, pkg_or_default, 'json')
                     with open(base, 'w') as mapper:
                         mapper.write(request.form.get('mapper'))
                     

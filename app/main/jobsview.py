@@ -6,15 +6,18 @@ import tempfile
 import zipfile
 import shutil
 import pathlib
+import mimetypes
 
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
 from ..models import Runnable
 from . import main
 from flask_login import login_required, current_user
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, send_from_directory
 from werkzeug.utils import secure_filename
 
 from ..biowl.dsl.func_resolver import Library
+
+basedir = os.path.dirname(os.path.abspath(__file__))
 
 class LibraryHelper():
     librariesdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/libraries')

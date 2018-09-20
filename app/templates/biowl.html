@@ -934,7 +934,12 @@ background-color: White;
             row.append(cell);
             table.append(row);
         });
-    }   
+    }
+    
+    function activateTab(tab){
+        $('.nav-tabs a[href="#' + tab + '"]').tab('show');
+      };
+      
         function TasksViewModel() {
             var self = this;
             self.tasksURI = '/functions';
@@ -998,7 +1003,7 @@ background-color: White;
            		self.login();
            	    return true;
             }
-            
+                          
             self.clearEditor = function() {
                 editor.session.setValue("");
                 $("#output").val("");
@@ -1044,17 +1049,22 @@ background-color: White;
                 	
                 	if (data === undefined)
                 		return;
-                	data = JSON.parse(data)                
+                	data = JSON.parse(data)
                     $("#output").val(data['out']);
                     $("#error").val(data['err']);
                     $("#log tbody").empty();
                     jsonArray2Table($("#log"), data['log']);
                     $("#duration").text(data['duration'] + 's');
                     $("#execstatus").text(data['status']);
-                    runnablesViewModel.load();                    
+                    runnablesViewModel.load();
+                    if (data['err'] && data['status'] !== 'SUCCESS')
+                    	activateTab(2);
+                    else
+                    	activateTab(3);
                 }).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
-                	$("#error").val(textStatus);
+                	$("#error").val(jqXHR.statusText);
+                	activateTab(2);
                 });
             }
             self.provenance = function() {
@@ -1354,8 +1364,13 @@ background-color: White;
                     $("#output").val(data.out);
                     $("#error").val(data.err);
                     $("#log tbody").empty();
+                    
                     if (data.err.length != 0) {
                     	$("#execstatus").text("FAILED");
+                    	activateTab(2);
+                    }
+                    else {
+                    	activateTab(1);
                     }
                 });
             }
@@ -1424,7 +1439,16 @@ background-color: White;
 	            	jsonArray2Table($("#log"), data['log']);
 	            	$("#duration").html(data['duration'] + 's');
 	            	$("#execstatus").text(data['status']);
-            	});
+	            	
+	            	if (data['err'] && data['status'] !== 'SUCCESS')
+                    	activateTab(2);
+                    else
+                    	activateTab(3);
+            	}).fail(function(jqXHR, textStatus) {
+                	$('#refresh').hide();
+                	$("#error").val(jqXHR.statusText);
+                	activateTab(2);
+                });
             }
             
             self.selectedIds = function() {

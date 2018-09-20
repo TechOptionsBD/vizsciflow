@@ -12,7 +12,7 @@ from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_
 from ..models import Runnable
 from . import main
 from flask_login import login_required, current_user
-from flask import request, jsonify, current_app, send_from_directory
+from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 
 from ..biowl.dsl.func_resolver import Library
@@ -43,15 +43,15 @@ class LibraryHelper():
 library = LibraryHelper()
 
 def run_biowl(user_id, script, args, immediate = True, pygen = False):
-    if immediate:
-        try:
+    try:
+        if immediate:
             result = run_script(user_id, library.library, script, args)
-        except:
-            result = {}            
-        return json.dumps(result)
-    else:
-        run_script.delay(user_id, library.library, script, args)
-        return json.dumps({})
+            return json.dumps(result)
+        else:
+            run_script.delay(user_id, library.library, script, args)
+            return json.dumps({})
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
 
 def make_fn(path, prefix, ext, suffix):
     path = os.path.join(path, '{0}'.format(prefix))

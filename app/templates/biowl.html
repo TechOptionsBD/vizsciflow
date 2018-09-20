@@ -1067,14 +1067,8 @@ background-color: White;
                 	data = JSON.parse(data)
                 	if ($.isEmptyObject(data))
                 		return;
-                    $("#output").val(data['out']);
-                    $("#error").val(data['err']);
-                    $("#log tbody").empty();
-                    jsonArray2Table($("#log"), data['log']);
-                    $("#duration").text(data['duration'] + 's');
-                    $("#execstatus").text(data['status']);
-                    runnablesViewModel.load();
-                    if (data['err'] && data['status'] !== 'SUCCESS')
+                	
+                	if (data['err'] && data['status'] !== 'SUCCESS')
                     	activateTab(2);
                     else {
                     	if (!$.isEmptyObject(data['log']))
@@ -1082,6 +1076,14 @@ background-color: White;
                     	else
                     		activateTab(1);
                     }
+                	
+                    $("#output").val(data['out']);
+                    $("#error").val(data['err']);
+                    $("#log tbody").empty();
+                    jsonArray2Table($("#log"), data['log']);
+                    $("#duration").text(data['duration'] + 's');
+                    $("#execstatus").text(data['status']);
+                    runnablesViewModel.load();                    
                 }).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
                 	$("#error").val(jqXHR.statusText);
@@ -1460,13 +1462,6 @@ background-color: White;
             		
 					if (data === undefined)
 						return;
-					
-					$("#output").val(data['out']);
-	            	$("#error").val(data['err']);
-	            	$("#log tbody").empty();
-	            	jsonArray2Table($("#log"), data['log']);
-	            	$("#duration").html(data['duration'] + 's');
-	            	$("#execstatus").text(data['status']);
 	            	
 	            	if (data['err'] && data['status'] !== 'SUCCESS')
                     	activateTab(2);
@@ -1476,6 +1471,13 @@ background-color: White;
                     	else
                     		activateTab(1);
                     }
+	            	
+					$("#output").val(data['out']);
+	            	$("#error").val(data['err']);
+	            	$("#log tbody").empty();
+	            	jsonArray2Table($("#log"), data['log']);
+	            	$("#duration").html(data['duration'] + 's');
+	            	$("#execstatus").text(data['status']);
             	}).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
                 	$("#error").val(jqXHR.statusText);

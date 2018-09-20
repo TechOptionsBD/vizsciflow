@@ -70,6 +70,7 @@ background-color: White;
               <div class="row">
                   <div><h5  class="col-sm-6">Data Sources</h5></div>
               </div>
+              
               <div class="btn-group">
                    <div class="btn-group-sm">
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
@@ -79,6 +80,7 @@ background-color: White;
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button>
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: addFolder" ><i class="glyphicon glyphicon-plus"></i></button>
                    </div>
+<!--                    <input class="form-control" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'"/> -->
                </div>
            </div>
            <div class="panel-body draggable-datasources" style="height: 416px; overflow-y: scroll; padding:0">
@@ -623,12 +625,22 @@ background-color: White;
     
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
     
+    var findExpandibleNodes = function(text) {
+        return $('#tree').treeview('search', [ text, { ignoreCase: false, exactMatch: false } ]);
+    };
+
     // Create the View Model.
     var DataSourceViewModel = function() {
       var self = this;
       self.dataSourcesURI = '/datasources';
       self.dataSources = ko.observableArray();
       self.expandedNodes = [];
+      self.searchDataSource = ko.observable();
+      
+      self.searchDataSource.subscribe(function () {
+    	  var expandibleNodes = findExpandibleNodes(self.searchDataSource());
+    	  $('#tree').treeview('expandNode', [ expandibleNodes, { levels: 2, silent: false }]);
+      });
       
       self.refresh = function(path) {
           ajaxcalls.simple(self.samplesURI, 'POST', {'path': path}).done(function(data) {
@@ -1002,14 +1014,17 @@ background-color: White;
            		self.login();
            	    return true;
             }
-                          
-            self.clearEditor = function() {
-                editor.session.setValue("");
-                $("#output").val("");
+            
+           	self.clearResults = function() {
+           		$("#output").val("");
                 $("#error").val("");
                 $("#log tbody").empty();
                 $("#duration").text("0s");
                 $("#execstatus").text("");
+           	}
+            self.clearEditor = function() {
+                editor.session.setValue("");
+                self.clearResults();
             }
 
             self.updateTask = function(task, newTask) {
@@ -1043,12 +1058,15 @@ background-color: White;
               formdata.append('script', script);
               formdata.append('args', $('#args').val());
               formdata.append('immediate', $('#immediate').prop('checked'));
+              self.clearResults();
               ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
             	  $('#refresh').hide();
                 	
                 	if (data === undefined)
                 		return;
                 	data = JSON.parse(data)
+                	if ($.isEmptyObject(data))
+                		return;
                     $("#output").val(data['out']);
                     $("#error").val(data['err']);
                     $("#log tbody").empty();
@@ -1058,8 +1076,12 @@ background-color: White;
                     runnablesViewModel.load();
                     if (data['err'] && data['status'] !== 'SUCCESS')
                     	activateTab(2);
-                    else
-                    	activateTab(3);
+                    else {
+                    	if (!$.isEmptyObject(data['log']))
+                    		activateTab(3);
+                    	else
+                    		activateTab(1);
+                    }
                 }).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
                 	$("#error").val(jqXHR.statusText);
@@ -1448,8 +1470,12 @@ background-color: White;
 	            	
 	            	if (data['err'] && data['status'] !== 'SUCCESS')
                     	activateTab(2);
-                    else
-                    	activateTab(3);
+                    else {
+                    	if (!$.isEmptyObject(data['log']))
+                    		activateTab(3);
+                    	else
+                    		activateTab(1);
+                    }
             	}).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
                 	$("#error").val(jqXHR.statusText);

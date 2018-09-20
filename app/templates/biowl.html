@@ -219,29 +219,30 @@ background-color: White;
                  	<div class="row">
                         <div class="col-sm-6"><h5 class="">Workflows</h5></div>
                     </div>
-                 	<div class="row">                 	
-                      <div class="col-sm-4"><input type="radio" name="access" value="0" data-bind="checked: access, click:click"/>Public</div>
-                      <div class="col-sm-4"><input type="radio" name="access" value="1" data-bind="checked: access, click:click" />Shared</div>
-                      <div class="col-sm-4"><input type="radio" name="access" value="2" data-bind="checked: access, click:click" />Private</div>
+                 	<div class="row">
+                 		<div class="btn-group">
+	                      <div class="col-sm-4"><input type="radio" name="access" value="0" data-bind="checked: access, click:click"/>Public</div>
+	                      <div class="col-sm-4"><input type="radio" name="access" value="1" data-bind="checked: access, click:click" />Shared</div>
+	                      <div class="col-sm-4"><input type="radio" name="access" value="2" data-bind="checked: access, click:click" />Private</div>
+	                    </div>
+                      <div class="input-group">
+					  <span class="input-group-btn">
+					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
+					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAdd"><i class="glyphicon glyphicon-plus"></i></button>
+					  </span>
+					  <input class="form-control" type="text" placeholder="Search…" data-bind="value: workflowFilter, valueUpdate: 'keyup'"/>
+					 </div>
                     </div>
-                    
-                  <div class="btn-group">
-                       <div class="btn-group-sm">
-                           <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
-<!--                            <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-bind="click: beginRename" ><i class="glyphicon glyphicon-edit"></i></button> -->
-<!--                            <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button> -->
-                           <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAdd"><i class="glyphicon glyphicon-plus"></i></button>
-                       </div>
-                   </div>
                  </div>
-                 <div class="panel-body draggable-samples" style="max-height: 200px; width: 100%; overflow-y: scroll;" data-bind="foreach: items">
-                         <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
-                            <input type="checkbox" class="draggable-sample" style="margin-left: 10px;" data-bind="checked: selected" />
-                            <span data-bind="text: name" style="width: 100%; margin:0"></span>
-                         </div>
+                 <div class="panel-body draggable-samples" style="max-height: 200px; width: 100%; overflow-y: scroll;">
+                  <div data-bind="foreach: filteredWorkflows">
+                    <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
+                       <input type="checkbox" class="draggable-sample" style="margin-left: 10px;" data-bind="checked: selected" />
+                       <span data-bind="text: name" style="width: 100%; margin:0"></span>
+                    </div>
+                 </div>
                  </div>
                 </div>
-<!--                 </div> -->
             </div>
         </div>
    </div>
@@ -946,8 +947,6 @@ background-color: White;
             self.username = "";
             self.password = "";
             self.tasks = ko.observableArray();
-            self.samplesURI = '/samples';
-            self.samples = ko.observableArray();
             self.taskFilter = ko.observable("");
 			this.filteredTasks = ko.computed(function(){
 		       return this.tasks().filter(function(task){
@@ -1157,7 +1156,14 @@ background-color: White;
            self.items = ko.observableArray();
            self.sampleViewModel = sampleViewModel;
            self.access = 0;
-           
+           self.workflowFilter = ko.observable("");
+			this.filteredWorkflows = ko.computed(function(){
+		       return this.items().filter(function(item){
+		           if(!self.workflowFilter() || item.name().toLowerCase().indexOf(self.workflowFilter().toLowerCase()) !== -1)
+		             return item;
+		       });
+  			},this);
+			
            self.remove = function() {
         	   
         	   var item = self.firstSelectedItem();

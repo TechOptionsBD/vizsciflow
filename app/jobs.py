@@ -8,8 +8,10 @@ import os
 import random
 import time
 import json
+from pyparsing import ParseException
 
 from config import Config
+
 from . import celery
 from .biowl.dsl.parser import PhenoWLParser, PythonGrammar
 from .biowl.dsl.interpreter import Interpreter
@@ -162,7 +164,7 @@ def run_script(self, user_id, library, script, args):
         duration = float("{0:.3f}".format(t.secs))
 
         runnable.status = Status.SUCCESS
-    except Exception as e:
+    except (ParseException, Exception) as e:
         runnable.status = Status.FAILURE
         machine.context.err.append(str(e))
     finally:

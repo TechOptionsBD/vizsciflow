@@ -26,15 +26,8 @@ class PhenoWLParser(object):
         self.err.append("{0}".format(', '.join(map(str, args))))
 
     def parse(self, text):
-        try:
-            self.tokens = self.grammar.program.ignore(pythonStyleComment).parseString(text, parseAll=True)
-            return self.tokens
-        except ParseException as err:
-            print(err)
-            self.error(err)
-        except Exception as err:
-            print(err)
-            self.error(err)
+        self.tokens = self.grammar.program.ignore(pythonStyleComment).parseString(text, parseAll=True)
+        return self.tokens
     
     def parse_subgrammar(self, subgrammer, text):
         try:

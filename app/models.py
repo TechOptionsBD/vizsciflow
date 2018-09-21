@@ -1,19 +1,23 @@
 from datetime import datetime
 import hashlib
-from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from markdown import markdown
+import os
+
 import bleach
 from flask import current_app, request, url_for
 from flask_login import UserMixin, AnonymousUserMixin
-from app.exceptions import ValidationError
-from . import db, login_manager
+from flask_login import current_user
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from markdown import markdown
+from sqlalchemy.engine import default
+from sqlalchemy.orm import backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.schema import ForeignKey
-from sqlalchemy.engine import default
-from flask_login import current_user
-import os
-from sqlalchemy.orm import backref
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from app.exceptions import ValidationError
+
+from . import db, login_manager
+
 
 class Permission:
     FOLLOW = 0x01
@@ -498,7 +502,7 @@ class Workflow(db.Model):
     @staticmethod
     def from_json(json_post):
         name = json_post.get('name')
-        if name is None or body == '':
+        if name is None:
             raise ValidationError('workflow does not have a name')
         return Workflow(name=name)
     
@@ -543,7 +547,7 @@ class WorkItem(db.Model):
         if name is None or name == '':
             raise ValidationError('WorkItem does not have a name')
         return WorkItem(name=name)
-    
+
 #class OperationDataLink(db.Model):
 #    __table_name__ = "workitem_data_link"
 #    workitem_id = db.Column(db.Integer, db.ForeignKey('workitems.id'), primary_key=True)
@@ -611,6 +615,7 @@ class Task(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
     runnable_id = db.Column(db.Integer, db.ForeignKey('runnables.id'))
+    name = db.Column(db.Text)
     started_on = db.Column(db.DateTime, default=datetime.utcnow)
     ended_on = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Text)    
@@ -621,15 +626,16 @@ class Task(db.Model):
     tasklogs = db.relationship('TaskLog', cascade="all,delete-orphan", backref='task', lazy='dynamic')
 
     @staticmethod
-    def create_task(runnable_id):
+    def create_task(runnable_id, name = None):
         task = Task()
         task.runnable_id = runnable_id
+        task.name = name
         task.status = Status.RECEIVED
         task.tasklogs.append(TaskLog(log=Status.RECEIVED, type=LogType.INFO)) # 2 = Created
         db.session.add(task)
         db.session.commit()
         return task
-    
+        
     def update(self):
         db.session.commit()
     
@@ -639,12 +645,12 @@ class Task(db.Model):
         self.add_log(Status.STARTED, LogType.INFO)
         db.session.commit()
     
-    def succeeded(self, result):
+    def succeeded(self, datatype, result):
         self.status = Status.SUCCESS
         self.add_log(Status.SUCCESS, LogType.INFO)
         self.ended_on = datetime.utcnow()
         self.data = result
-        self.datatype = DataType.File      
+        self.datatype = datatype      
         db.session.commit()
     
     def failed(self, log = "Task Failed."):
@@ -718,13 +724,13 @@ class Runnable(db.Model):
             'duration': self.duration,
             'created_on': str(self.created_on),
             'modified_on': str(self.modified_on)
-        }    
+        }
     
     def to_json_log(self):
         log = []
 
         for task in self.tasks:
-            log.append({ 'data': task.data, 'status': task.status })
+            log.append({ 'name': task.name if task.name else "", 'datatype': task.datatype, 'data': task.data, 'status': task.status })
 
         return {
             'id': self.id,

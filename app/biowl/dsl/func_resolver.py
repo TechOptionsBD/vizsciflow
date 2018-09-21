@@ -6,7 +6,7 @@ import os
 from ...util import Utility
 from ..exechelper import func_exec_run
 from flask_login import current_user
-from ...models import Task, Status
+from ...models import Task, Status, DataType
 
 # import_module can't load the following modules in the NGINX server
 # while running in 'immediate' mode. The early imports here are needed.
@@ -260,13 +260,13 @@ class Library():
         
         task = None
         if context.runnable:
-            task = Task.create_task(context.runnable)
+            task = Task.create_task(context.runnable, func[0].name)
             task.start()
         try:
             result = function(*arguments, **kwargs)
             try:
                 if task:
-                    task.succeeded(result)
+                    task.succeeded(DataType.File, result)
             finally:
                 return result
         except Exception as e:

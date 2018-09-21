@@ -157,8 +157,9 @@ background-color: White;
 	          			<table class="table table-striped" id="log" style="table-layout:fixed; width: 100%">
 						  <thead>
 						    <tr>
-						      <th scope="col" align="center" width="80%">Data</th>
-						      <th scope="col" align="center" width="20%">Status</th>
+						      <th scope="col" align="center" width="15%">Task</th>
+						      <th scope="col" align="center" width="70%">Data</th>
+						      <th scope="col" align="center" width="15%">Status</th>
 						    </tr>
 						  </thead>
 						  <tbody>
@@ -932,15 +933,21 @@ background-color: White;
                 TableRow += "<td>" + val + "</td>";
             }) */;
             
-            var cell = $('<td></td>');
+            var row = $('<tr></tr>');
+            var cell = $("<td>" + value['name'] + "</td>")
+           		.css('overflow', 'hidden')
+           		.css('word-wrap', 'break-word');
+           row.append(cell);
+            
+            cell = $('<td></td>');
             var link =  $('<a />', {
                 'href': 'javascript:void(0)',
                 'text': value['data']
             }).on('click', function() {
+            	//window.open('data:text/plain;charset=utf-8,' + str);
             	$.redirect('/datasources', { 'download': value['data'] }, "POST", "_blank");
             });
-            cell.append(link)
-            var row = $('<tr></tr>');
+            cell.append(link)            
             row.append(cell);
             
             cell = "<td>" + value['status'] + "</td>";

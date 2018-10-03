@@ -2,6 +2,7 @@ from datetime import datetime
 import hashlib
 import os
 
+import json
 import bleach
 from flask import current_app, request, url_for
 from flask_login import UserMixin, AnonymousUserMixin
@@ -12,12 +13,13 @@ from sqlalchemy.engine import default
 from sqlalchemy.orm import backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.schema import ForeignKey
+from sqlalchemy.dialects.postgresql import JSON
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.exceptions import ValidationError
 
 from . import db, login_manager
-
+from sqlalchemy.sql.expression import desc
 
 class Permission:
     FOLLOW = 0x01
@@ -77,19 +79,20 @@ class Follow(db.Model):
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(64), unique=True, index=True)
-    username = db.Column(db.String(64), unique=True, index=True)
+    email = db.Column(db.Text, unique=True, index=True)
+    username = db.Column(db.Text, unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.Text)
     confirmed = db.Column(db.Boolean, default=False)
-    name = db.Column(db.String(64))
-    location = db.Column(db.String(64))
+    name = db.Column(db.Text)
+    location = db.Column(db.Text)
     about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
-    avatar_hash = db.Column(db.String(32))
+    avatar_hash = db.Column(db.Text)
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     workflows = db.relationship('Workflow', backref='user', lazy='dynamic')
+    services = db.relationship('Service', backref='user', lazy='dynamic')
     datasource_allocation = db.relationship('DataSourceAllocation', backref='user', lazy='dynamic')
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
@@ -400,7 +403,6 @@ class Comment(db.Model):
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
   
-#Phenodoop,Folder, Custom
 class DataSource(db.Model):
     __tablename__ = 'datasources'
     id = db.Column(db.Integer, primary_key=True)
@@ -412,6 +414,7 @@ class DataSource(db.Model):
     user = db.Column(db.String(30), nullable=True)
     password = db.Column(db.String(50), nullable=True)
     prefix = db.Column(db.String(30), nullable=True)
+    active = db.Column(db.Boolean, nullable=True, default=True)
     
     @staticmethod
     def insert_datasources():
@@ -428,76 +431,93 @@ class DataSource(db.Model):
     def __repr__(self):
         return '<DataSource %r>' % self.name
 
-class OperationSource(db.Model):
-    __tablename__ = 'operationsources'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    desc = db.Column(db.Text, nullable=True)
-    operations = db.relationship('Operation', backref='operationsource', lazy='dynamic')
+
+class AccessRights:
+    NotSet = 0x00
+    Read = 0x01
+    Write = 0x02
+    Request = 0x4
     
     @staticmethod
-    def insert_operationsources():
-        opsrc = OperationSource(name='Phenodoop', desc='Various operations run primarily on Hadoop scheduler.')
-        db.session.add(opsrc)
-        opsrc = OperationSource(name='QIIME', desc='Various QIIME operations.')
-        db.session.add(opsrc)
-        opsrc = OperationSource(name='Mothur', desc='Various Mothur.')
-        db.session.add(opsrc)
-        opsrc = OperationSource(name='Custom', desc='Various custom operations.')
-        db.session.add(opsrc)
-        db.session.commit()
-
-    def __repr__(self):
-        return '<OperationSource %r>' % self.name
-
-class Operation(db.Model):
-    __tablename__ = 'operations'
-    id = db.Column(db.Integer, primary_key=True)
-    parent_id = db.Column(db.Integer, db.ForeignKey('operations.id'))
-    operationsource_id = db.Column(db.Integer, db.ForeignKey('operationsources.id'))
-    name = db.Column(db.String(100))
-    desc = db.Column(db.Text)
-    example = db.Column(db.Text)
-    children = db.relationship("Operation", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
-#    workitems = db.relationship('WorkItem', backref='operation', lazy='dynamic')
+    def hasRight(rights, checkRight):
+        if checkRight == 0:
+            return rights == 0
+        return (rights & checkRight) == checkRight
     
-    def to_json(self):
-        json_post = {
-            'operationsource' : self.operationsource_id,
-            'name': self.name,
-            'desc': self.desc,
-            'example': self.desc,
-        }
-        return json_post
-
     @staticmethod
-    def from_json(json_post):
-        name = json_post.get('name')
-        if name is None or name == '':
-            raise ValidationError('Operation does not have a name')
-        return Operation(name=name)
-
+    def requested(rights):
+        return AccessRights.Requested(rights, AccessRights.Request)
+    
+    @staticmethod
+    def readRequested(rights):
+        return AccessRights.Requested(rights) and (AccessRights.Requested(rights, AccessRights.Read) or AccessRights.Requested(rights, AccessRights.Write))
+    
+    @staticmethod
+    def writeRequested(rights):
+        return AccessRights.Requested(rights) and AccessRights.Requested(rights, AccessRights.Write)
+    
 class Workflow(db.Model):
     __tablename__ = "workflows"
     id = db.Column(db.Integer, primary_key=True)
-    parent_id = db.Column(db.Integer, db.ForeignKey('workflows.id'), default=-1)
-#    parent = db.relationships('WorkItem', remote_side=[id])
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    #parent_id = db.Column(db.Integer, db.ForeignKey('workflows.id'), default=-1, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    name = db.Column(db.String(100))
-    desc = db.Column(db.Text, nullable=True)
+    created_on = db.Column(db.DateTime, default=datetime.utcnow)
+    modified_on = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    name = db.Column(db.Text, nullable=False)
+    desc = db.Column(db.Text, default='', nullable=True)
+    script = db.Column(JSON, nullable=False)
     public = db.Column(db.Boolean, default=False)
+    
+    accesses = db.relationship('WorkflowAccess', backref='workflow', lazy=True) #cascade="all,delete-orphan", 
     runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflows', lazy='dynamic')
-    children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
-   
+    #children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
+    
+    def add_access(self, user_id, rights =  AccessRights.NotSet):
+        wfAccess = WorkflowAccess(rights=rights)
+        wfAccess.user_id = user_id
+        self.accesses.append(wfAccess)
+        db.session.commit()
+        return wfAccess
+    
+    @staticmethod
+    def create(user_id, name, desc, script, access, users):
+        wf = Workflow()
+        wf.user_id = user_id
+        wf.name = name
+        wf.desc = desc
+        wf.script = script
+        wf.public = int(access) == 0
+        
+        if (int(access) == 1 and users):
+            for username in users:
+                user = User.query.filter(User.username == username).first()
+                if user:
+                    wf.accesses.append(WorkflowAccess(user_id = user.id, rights = 0x01))
+        
+        db.session.add(wf)
+        db.session.commit()
+        return wf
+        
     def to_json(self):
         json_post = {
+            'id': self.id,
+            'user': self.user.username,
             'name': self.name,
             'desc': self.desc,
-            'timestamp': self.timestamp,
-            'user': url_for('api.get_user', id=self.user_id, _external=True)
+            'script': json.loads(self.script)
         }
         return json_post
+    
+    def to_json_info(self):
+        json_post = {
+            'id': self.id,
+            'user': self.user.username,
+            'name': self.name,
+            'desc': self.desc
+        }
+        return json_post
+    
 
     @staticmethod
     def from_json(json_post):
@@ -508,51 +528,69 @@ class Workflow(db.Model):
     
 #db.event.listen(Workflow.body, 'set', Workflow.on_changed_body)
 
-# class WorkItemDataLink(db.Model):
-#     __tablename__ = 'workitem_data_link'
-#     workitem_id = db.Column(db.Integer, db.ForeignKey('workitems.id'), primary_key=True)
-#     data_id = db.Column(db.Integer, db.ForeignKey('data.id'), primary_key=True)
-#     extra_data = db.Column(db.String(20))
-#     workitem = db.relationship('WorkItem', backref=db.backref("workitems_assoc"))
-#     data = db.relationship('Data', backref=db.backref("data_assoc"))
-   
-class WorkItem(db.Model):
-    __tablename__ = 'workitems'
+class Param(db.Model):
+    __tablename__ = 'params'
     id = db.Column(db.Integer, primary_key=True)
-    workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'))
-    name = db.Column(db.String(100))
-    desc = db.Column(db.Text, nullable=True)
-    input_id = db.Column(db.Integer, ForeignKey('data.id'), nullable=True)
-    output_id = db.Column(db.Integer, ForeignKey('data.id'), nullable=True)
-    operation_id = db.Column(db.Integer, ForeignKey('operations.id'), nullable=True)
-    inputs = db.relationship('Data', foreign_keys=[input_id])
-    outputs = db.relationship('Data', foreign_keys=[output_id])
-    operation = db.relationship('Operation', foreign_keys=[operation_id])
+    name = db.Column(db.Text)
+    service_id = db.Column(db.Integer, ForeignKey('services.id'))
+    type = db.Column(db.Integer)
+             
+class Service(db.Model):
+    __tablename__ = 'services'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'))
+    name = db.Column(db.Text)
+    internal_name = db.Column(db.Text)
+    package = db.Column(db.Text)
+    module = db.Column(db.Text)
+    example = db.Column(JSON, nullable=True)
+    desc = db.Column(db.Text)
+    runmode = db.Column(db.Text)
+    level = db.Column(db.Integer)
+    group = db.Column(db.Text)
+    returns = db.Column(db.Text)
+    example2 = db.Column(JSON, nullable=True)
     
-#     inputs = db.relationship('Data', secondary='workitem_data_link')
-#     outputs = db.relationship('Data', secondary='workitem_data_link', primaryjoin= workitem_data_link.extra_data == 'output')
+    accesses = db.relationship('ServiceAccess', backref='service', lazy=True) #cascade="all,delete-orphan", 
+    params = db.relationship('Param', backref='service', lazy=True) #cascade="all,delete-orphan",
     
     def to_json(self):
         json_post = {
-            'url': url_for('api.get_post', id=self.id, _external=True),
+            'id': self.id,
+            'user': self.user.username,
             'name': self.name,
             'desc': self.desc,
-            'timestamp': self.timestamp,
+            'example': json.loads(self.example),
+            'example2': json.loads(self.example2)
         }
         return json_post
-
-    @staticmethod
-    def from_json(json_post):
-        name = json_post.get('name')
-        if name is None or name == '':
-            raise ValidationError('WorkItem does not have a name')
-        return WorkItem(name=name)
-
-#class OperationDataLink(db.Model):
-#    __table_name__ = "workitem_data_link"
-#    workitem_id = db.Column(db.Integer, db.ForeignKey('workitems.id'), primary_key=True)
-#    data_id = db.Column(db.Integer, db.ForeignKey('data.id'), primary_key=True)
-
+    
+    def to_json_info(self):
+        json_post = {
+            'id': self.id,
+            'user': self.user.username,
+            'name': self.name,
+            'desc': self.desc
+        }
+        return json_post
+    
+class ServiceAccess(db.Model):
+    __tablename__ = 'serviceaccesses'
+    id = db.Column(db.Integer, primary_key=True)
+    service_id = db.Column(db.Integer, ForeignKey('services.id'))
+    user_id = db.Column(db.Integer, ForeignKey('users.id'))
+    rights = db.Column(db.Integer, default = 0)
+    
+    def hasRight(self, checkRight):
+        return AccessRights.hasRight(self.rights, checkRight)
+    
+class WorkflowAccess(db.Model):
+    __tablename__ = 'workflowaccesses'
+    id = db.Column(db.Integer, primary_key=True)
+    workflow_id = db.Column(db.Integer, ForeignKey('workflows.id'), nullable=False)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
+    rights = db.Column(db.Integer, default = 0)
+    
 class DataType:
     Unknown = 0x00
     Folder = 0x01
@@ -590,13 +628,6 @@ class TaskStatus(db.Model):
             'id': self.id,
             'name': self.name
             }
-#     Unknown = 0x00
-#     Created = 0x01
-#     Running = 0x02
-#     Completed = 0x03
-#     Faulted = 0x04
-#     Cancelled = 0x05
-
 class Status:
     PENDING = 'PENDING'
     RECEIVED = 'RECEIVED'

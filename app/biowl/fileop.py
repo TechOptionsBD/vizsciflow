@@ -176,13 +176,14 @@ class PosixFileSystem():
             return None
                                    
 class HadoopFileSystem():
+    timeout = 20 # 100s timeout
     def __init__(self, url, root, user, prefix = None):
         u = urlsplit(url)
         if u.scheme != 'http' and u.scheme != 'https' and u.scheme != 'hdfs':
             raise ValueError("Invalid name node address")
         
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
-        self.client = InsecureClient(self.url, user=user, timeout=100)
+        self.client = InsecureClient(self.url, user=user, timeout=HadoopFileSystem.timeout)
         self.localdir = root
         self.prefix = prefix
     
@@ -319,15 +320,10 @@ class HadoopFileSystem():
         return data_json
     
     def make_json_r(self, path):
-        normalized_path = self.normalize_path(path)
-        data_json = { 'path': urljoin(self.url, normalized_path), 'text': os.path.basename(path) }
-        status = self.client.status(normalized_path, False)
-
-        if status is not None:
-            data_json['folder'] = status['type'] == "DIRECTORY"
-            if status['type'] == "DIRECTORY":
-                data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in self.client.list(normalized_path)]
-        #print(json.dumps(data_json))
+        data_json = self.make_json_item(path)
+        if self.isdir(path):
+            data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in self.client.list(self.normalize_path(path))]
+            data_json['loaded'] = True
         return data_json
      
     def save_upload(self, file, path):       
@@ -612,33 +608,30 @@ class GalaxyFileSystem():
             
     def make_json_r(self, path):
         normalized_path = self.normalize_path(path)
-        if not normalized_path:
-            return [self.make_json_r(self.lddaprefix), self.make_json_r(self.hdaprefix)]
+        if not normalized_path or normalized_path == self.url:
+            return [self.make_json_r(urljoin(self.url, self.lddaprefix)), self.make_json_r(urljoin(self.url, self.hdaprefix))]
         else:
-            data_json = { 'path': urljoin(self.url, normalized_path), 'text': self.name_from_id(path) }
+            data_json = self.make_json_item(path)
             parts = self.path_parts(normalized_path)
             if self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]):
-                if len(parts) == 1:
-                    data_json['folder'] = True
+                if len(parts) == GalaxyFileSystem.hlddTitleKey + 1:
                     libraries = self.client.libraries.get_libraries()
                     data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in libraries]
-                elif len(parts) == 2:
-                    data_json['folder'] = True
-                    folders = self.client.libraries.get_folders(library_id = parts[1])
+                elif len(parts) == GalaxyFileSystem.hlddKey + 1:
+                    folders = self.client.libraries.get_folders(library_id = parts[GalaxyFileSystem.hlddKey])
                     data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in folders]
-                elif len(parts) == 3:
-                    data_json['folder'] = True
-                    folder = self.client.folders.show_folder(parts[2], True)
-                    data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in folder['folder_contents']]
+                elif len(parts) == GalaxyFileSystem.folderKey + 1:
+                    folder = self.client.folders.show_folder(parts[GalaxyFileSystem.folderKey], True)
+                    data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in folder['folder_contents']]
             else :
-                if len(parts) == 1:
-                    data_json['folder'] = True
+                if len(parts) == GalaxyFileSystem.hlddTitleKey + 1:
                     histories = self.client.histories.get_histories()
                     data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in histories]
-                elif len(parts) == 2:
-                    data_json['folder'] =  True
-                    datasets = self.client.histories.show_matching_datasets(parts[1])
-                    data_json['nodes'] = [self.make_json_r(os.path.join(path, fn['id'])) for fn in datasets]
+                elif len(parts) == GalaxyFileSystem.hlddKey + 1:
+                    datasets = self.client.histories.show_matching_datasets(parts[GalaxyFileSystem.hlddKey])
+                    data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in datasets]
+                    
+            data_json['loaded'] = True
             return data_json
      
     def save_upload(self, file, path):

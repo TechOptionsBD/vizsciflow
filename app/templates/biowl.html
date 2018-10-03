@@ -58,6 +58,24 @@ background-color: White;
 	background-color:white !important
 }
 
+.menu_button {
+    color: #666;
+    
+    cursor: pointer;
+}
+
+.menu_button:hover {
+    color: #f26d7d;
+}
+
+.menu_button:active {
+    color: #ccc;
+}
+
+.menu_button.selected {
+    background-color: #ccc;
+}
+
 </style>
 
 {% endblock %}
@@ -73,14 +91,15 @@ background-color: White;
               
               <div class="btn-group">
                    <div class="btn-group-sm">
-                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
+                   	   <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Recursive Reload" data-bind="click: load.bind($data, true)"><i class="glyphicon glyphicon-unchecked"></i></button>
+                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load.bind($data, false)"><i class="glyphicon glyphicon-refresh"></i></button>
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Download" data-bind="click: download"><i class="glyphicon glyphicon-download"></i></button>
                        <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Upload" data-bind="click: beginFileUpload"><i class="glyphicon glyphicon-upload"></i></button>
                        <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-bind="click: beginRename" ><i class="glyphicon glyphicon-edit"></i></button>
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button>
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: addFolder" ><i class="glyphicon glyphicon-plus"></i></button>
                    </div>
-<!--                    <input class="form-control" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'"/> -->
+                   <input class="form-control" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'"/>
                </div>
            </div>
            <div class="panel-body draggable-datasources" style="height: 416px; overflow-y: scroll; padding:0">
@@ -101,12 +120,13 @@ background-color: White;
                </div>
            </div>
            <div class="panel-body" style="max-height: 200px; width: 100%; overflow-y: scroll;" data-bind="foreach: items">
-              <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
-<!--                  <span data-bind="text: status" style="width: 100%; margin:0"></span><span>/</span><span data-bind="text: name" style="width: 100%; margin:0"></span> -->
-<!--                 <span data-bind="css: { 'glyphicon glyphicon-refresh' : status === 'Running', 'glyphicon glyphicon-refresh' : status === 'Completed' }"></span> -->
+              <div class="row menu_button" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
+                <div style="vertical-align: middle;">
                 <input type="checkbox" style="margin-left: 10px;" data-bind="checked: selected" />
-                <img width="16px" height="16px" data-bind="attr:{src: statusImg}" />
+                
+                <img style="vertical-align:middle" width="16px" height="16px" data-bind="attr:{src: statusImg}" />
                 <span data-bind="text: name" style="width: 100%; margin:0"></span>
+                </div>
               </div>
            </div>
        </div>
@@ -206,13 +226,17 @@ background-color: White;
                    </div>
                 </div>
                 <div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding:3px" data-bind="with: tasksViewModel">
-               	<div data-bind="foreach: filteredTasks">
-                    <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
-                       <div class="col-sm-6 draggable-func" style="word-wrap: break-word;" data-bind="text: name"></div>
-                       <div class="col-sm-6">
-                            <span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
+	                <div class="row" style="width: 100%;margin:0">
+	                       <div class="p-3 mb-2 bg-primary text-white" style="float:left;text-align:center;width:60%">Name</div>
+	                       <div class="p-3 mb-2 bg-primary text-white" style="float:right;padding-left:4px;text-align:center;width:40%">Group(Package)</div>
+	                </div>
+	               	<div data-bind="foreach: filteredTasks">
+                       <div class="row menu_button" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%;margin:0">
+                       		<div class="col-sm-6 draggable-func" style="word-wrap: break-word" data-bind="text: name"></div>
+                       		<div class="col-sm-6" style="float:right;">
+                            	<span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
+                       		</div>
                        </div>
-                    </div>
                     </div>
                 </div>
             </div>
@@ -223,12 +247,18 @@ background-color: White;
                         <div class="col-sm-6"><h5 class="">Workflows</h5></div>
                     </div>
                  	<div class="row">
-                 		<div class="btn-group">
-	                      <div class="col-sm-4"><input type="radio" name="access" value="0" data-bind="checked: access, click:click"/>Public</div>
-	                      <div class="col-sm-4"><input type="radio" name="access" value="1" data-bind="checked: access, click:click" />Shared</div>
-	                      <div class="col-sm-4"><input type="radio" name="access" value="2" data-bind="checked: access, click:click" />Private</div>
-	                    </div>
-                      <div class="input-group">
+                 	
+					<label class="radio-inline">
+				      <input type="radio" name="access" value="0" data-bind="checked: access, click:click">Public
+				    </label>
+				    <label class="radio-inline">
+				      <input type="radio" name="access" value="1" data-bind="checked: access, click:click">Shared
+				    </label>
+				    <label class="radio-inline">
+				      <input type="radio" name="access" value="2" data-bind="checked: access, click:click">Private
+				    </label>
+				    
+                      <div class="input-group" style="margin-top:10px" >
 					  <span class="input-group-btn">
 					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
 					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAdd"><i class="glyphicon glyphicon-plus"></i></button>
@@ -237,11 +267,16 @@ background-color: White;
 					 </div>
                     </div>
                  </div>
-                 <div class="panel-body draggable-samples" style="max-height: 200px; width: 100%; overflow-y: scroll;">
+                 <div class="panel-body draggable-samples" style="max-height: 200px; width: 100%; overflow-y: scroll;padding:3px">
+                    <div class="row" style="width: 100%;margin:0">
+                       <div class="p-3 mb-2 bg-primary text-white" style="float:left;width:80%;text-align:center">Name</div>
+                       <div class="p-3 mb-2 bg-primary text-white" style="float:right;padding-left:4px;width:20%;text-align:center">Owner</div>
+                    </div>
+                 
                   <div data-bind="foreach: filteredWorkflows">
-                    <div class="row" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
-                       <input type="checkbox" class="draggable-sample" style="margin-left: 10px;" data-bind="checked: selected" />
-                       <span data-bind="text: name" style="width: 100%; margin:0"></span>
+                    <div class="row menu_button" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%;margin:0">
+                       <div class="col-xm-6" style="float:left;margin:0;width:80%" data-bind="text: name"></div>
+                       <div class="col-xm-3" style="float:right;margin:0;padding-left:4px;width:20%" data-bind="text: user"></div>
                     </div>
                  </div>
                  </div>
@@ -290,7 +325,7 @@ background-color: White;
             <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
         </div>
     </div>
-    <div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 480px; height: 550px; background: #fff">
+    <div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 560px; height: 720px; background: #fff">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h3 id="addSampleDialogLabel">Add Sample</h3>
@@ -299,23 +334,33 @@ background-color: White;
             <form class="form-horizontal">
                 <div class="control-group">
                     <div class="controls">
-                    	<label class="control-label" for="sampleName">Name</label>                    
-                        <input data-bind="value: name" type="text" id="sampleName" placeholder="Name" style="width: 300px;">
-                    </div>
-                    <div class="controls">
-	                    <label class="control-label" for="sampleDesc">Description</label>                    
-                        <input data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description" style="width: 300px;">
+                    	<label class="control-label" for="sampleName">Name                 
+                        	<input data-bind="value: name" type="text" id="sampleName" placeholder="Name" style="width: 300px;">
+                        </label>
+	                    <label class="control-label" for="sampleDesc">Description                    
+                        	<input data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description" style="width: 300px;">
+                        </label>
                     </div>
                     
+                    <label class="control-label" for="sample">Script:</label>
                     <div class="controls">
-                    	<label class="control-label" for="sampleAccess">Shared</label>
-                    	<input type="checkbox" id="sampleAccess" data-bind="checked: access" />
+                        <textarea rows="18" style="width: 540px;" id="sample"></textarea>
                     </div>
-                    <label class="control-label" for="sample">Sample:</label>
-                    <div class="controls">
-                        <textarea rows="12" style="width: 460px;" id="sample"></textarea>
                     </div>
-                </div>
+                    <div class="btn-group-vertical">
+                    <label class="btn btn-light-blue form-check-label active">
+        				<input class="form-check-input" style="align:left" type="radio" name="wfaccess" value="2" data-bind="checked: access" autocomplete="off" checked> Private
+    				</label>
+    				<label class="btn btn-light-blue form-check-label active">
+        				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="0" data-bind="checked: access" autocomplete="off">Public
+    				</label>
+    				<label class="btn btn-light-blue form-check-label active">
+        				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="1" data-bind="checked: access" autocomplete="off">Shared
+        				<input type="text" id="wfusers" placeholder="Users" style="width: 300px;" data-bind="value: users">
+    				</label>
+                      
+	                </div>
+                
             </form>
         </div>
         <div class="modal-footer">
@@ -392,40 +437,6 @@ background-color: White;
 	    </div>
 	</div>
 
-    <div class="modal fade" id="rename-workflow-dialog" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <!-- Modal Header -->
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">
-                           <span aria-hidden="true">&times;</span>
-                           <span class="sr-only">Close</span>
-                    </button>
-                    <h4 class="modal-title" id="renameModalLabel">
-                        Rename Workflow
-                    </h4>
-                </div>
-                
-                <!-- Modal Body -->
-                <div class="modal-body">
-                    <form id="rename-workflow" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
-                      <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <input type="text" name="rename-workflow-text" id="rename-workflow-text" />
-                        </div>
-                      </div>
-                      
-                      <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                          <button type="button" class="btn btn-default" id="rename-workflow-btn" data-dismiss="modal" data-bind="click: rename">Rename</button>
-                        </div>
-                      </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-	
     <div id="edit" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true" style="background: #fff">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
@@ -548,6 +559,10 @@ background-color: White;
         $(document).ready(function() {
             //$('[data-toggle="tooltip"]').tooltip();
             
+            $('.menu_button').click(function() {
+          		$(this).addClass('selected').siblings().removeClass('selected')
+        	});
+            
             refreshId = setInterval(function() 
             {
                 if (runnablesViewModel !== undefined) {
@@ -588,6 +603,7 @@ background-color: White;
             var request = {
                     url: uri,
                     type: method,
+                    async: true,
                     contentType: false,
                     processData: false,
                     cache: false,
@@ -607,6 +623,7 @@ background-color: White;
             var request = {
                     url: uri,
                     type: method,
+                    async: true,
                     contentType: "application/json",
                     accepts: "application/json",
                     cache: false,
@@ -658,8 +675,8 @@ background-color: White;
           $('#rename-filefolder-dialog').modal('show');
       }
       
-      self.load = function() {
-          ajaxcalls.simple(self.dataSourcesURI, 'GET').done(function(data) {
+      self.load = function(recursive) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'recursive': recursive }).done(function(data) {
         	  self.dataSources(data.datasources);
               ko.cleanNode($("#dataSourcesPanel")[0]);
               ko.applyBindings(self, $("#dataSourcesPanel")[0]);
@@ -788,56 +805,56 @@ background-color: White;
           });
       }
       
-      self.load();
+      self.load(false);
     }
    
    // Last trigger node Id
-       var lastSelectedNodeId = null;
-       // Last time trigger 
-       var lastSelectTime = null;
-       
-       // Custom business method 
-       function customBusiness(data){
-           var pos = editor.selection.getCursor();             
-           editor.session.insert(pos, data.path);
-           editor.focus();
-       }
+   var lastSelectedNodeId = null;
+   // Last time trigger 
+   var lastSelectTime = null;
+   
+   // Custom business method 
+   function customBusiness(data){
+       var pos = editor.selection.getCursor();             
+       editor.session.insert(pos, data.path);
+       editor.focus();
+   }
 
-       function clickNode(event, data) {
-        if (lastSelectedNodeId && lastSelectTime) {
-         var time = new Date().getTime();
-         var t = time - lastSelectTime;
-         if (lastSelectedNodeId == data.nodeId && t < 600) {
-          customBusiness(data);
-         }
-        }
-        lastSelectedNodeId = data.nodeId;
-        lastSelectTime = new Date().getTime();
-       }
+   function clickNode(event, data) {
+    if (lastSelectedNodeId && lastSelectTime) {
+     var time = new Date().getTime();
+     var t = time - lastSelectTime;
+     if (lastSelectedNodeId == data.nodeId && t < 600) {
+      customBusiness(data);
+     }
+    }
+    lastSelectedNodeId = data.nodeId;
+    lastSelectTime = new Date().getTime();
+   }
     
     ko.bindingHandlers.treeview = {
-            init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-                $(element).treeview({data: ko.toJS(valueAccessor())})
-                .on('nodeSelected', function(event, data) {
-                	clickNode(event, data);
-                }).on('nodeUnselected', function(event, data) {
-                	clickNode(event, data);
-        		}).on('nodeExpanded', function(event, data) {
-        			
-        			dataSourceViewModel.expandedNodes.push(data.nodeId);
-        			if (data.loaded === undefined || !data.loaded) {
-        				dataSourceViewModel.loadItem(data)
-        			}
-        		}).on('nodeCollapsed', function(event, data) {
-        			
-        			var index = dataSourceViewModel.expandedNodes.indexOf(data.nodeId);
-        		    if (index > -1) 
-        		    	dataSourceViewModel.expandedNodes.splice(index, 1);
-        		});
-            },
-            update: function(element, valueAccessor, allBindings) {
-            }
-        };
+       init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+           $(element).treeview({data: ko.toJS(valueAccessor())})
+           .on('nodeSelected', function(event, data) {
+           	clickNode(event, data);
+           }).on('nodeUnselected', function(event, data) {
+           	clickNode(event, data);
+   		}).on('nodeExpanded', function(event, data) {
+   			
+   			dataSourceViewModel.expandedNodes.push(data.nodeId);
+   			if (data.loaded === undefined || !data.loaded) {
+   				dataSourceViewModel.loadItem(data)
+   			}
+   		}).on('nodeCollapsed', function(event, data) {
+   			
+   			var index = dataSourceViewModel.expandedNodes.indexOf(data.nodeId);
+   		    if (index > -1) 
+   		    	dataSourceViewModel.expandedNodes.splice(index, 1);
+   		});
+       },
+       update: function(element, valueAccessor, allBindings) {
+       }
+   };
     
     // Create the View Model and initialise with initial data 
     var dataSourceViewModel = new DataSourceViewModel();
@@ -1162,7 +1179,7 @@ background-color: White;
                           internal: ko.observable(f.internal),
                           example: ko.observable(f.example),
                           example2: ko.observable(f.example2),
-                          desc: ko.observable(f.desc),
+                          desc: ko.observable(f.desc + "\nDouble click to insert into code editor."),
                           runmode: ko.observable(f.runmode),
                           group: ko.observable(f.group)
                       });
@@ -1226,31 +1243,20 @@ background-color: White;
                return null;
            }
            
-           self.beginRename = function() {
-        	   
-        	   var item = self.firstSelectedItem();
-        	   if (item !== null){
-        		   centerDialog($('#rename-workflow-dialog'));
-                   $('#rename-workflow-dialog').modal('show');
-        	   }
-           }
-           
-           self.rename = function() {
-               $('#rename-workflow-dialog').modal('hide');
-               
-               var item = self.firstSelectedItem();
-               if (item == null)
-            	   return;
-               
-               ajaxcalls.simple(self.samplesURI, 'POST', { 'oldname': item.name, 'rename': $('#rename-workflow-text').val() }).done(function(data) {
-                   self.load();
-               });
-           }
-       
            self.copyToEditor = function(item) {
-        	   var pos = editor.selection.getCursor();        	   
-               editor.session.insert(pos, item.sample());
-               editor.focus();
+        	   
+        	   ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item.id}).done(function(data) {
+        		   
+               	   if ($.isEmptyObject(data))
+               		   return;
+        		   
+        		   var pos = editor.selection.getCursor();        	   
+                   editor.session.insert(pos, data['script'].join('\r\n'));
+                   editor.focus();
+            	   
+               }).fail(function(jqXHR) {
+                   
+               });
            }
            
            self.click = function(model){
@@ -1263,11 +1269,11 @@ background-color: White;
             	   self.items([]);
             	   $.each(data.samples, function(i, s){
             		   self.items.push({
+            			   id: ko.observable(s.id),
+            			   user:ko.observable(s.user),
                            name: ko.observable(s.name),
-                           sample: ko.observable(s.sample),
-                           desc: ko.observable(s.desc),
-                           selected: ko.observable(false),
-                           access: ko.observable(s.access)
+                           desc: ko.observable(s.desc + "\nDouble click to insert into code editor."),
+                           selected: ko.observable(false)
                        });
             	   });
             	   
@@ -1278,6 +1284,27 @@ background-color: White;
            }
        }
        
+       $('input[name="wfaccess"]').change(function(e) { // Select the radio input group
+
+    	    // This returns the value of the checked radio button
+    	    // which triggered the event.
+    	    if ($(this).val() == 1) {
+    	    	$("#wfusers").show();
+    	    }
+    	    else {
+    	    	$("#wfusers").hide();
+    	    }
+    	});
+       
+       $("input[name='loadr']").change(function(e) { // Select the radio input group
+	   	    if (this.checked) {
+	   	    	
+	   	    }
+	   	    else {
+	   	    	
+	   	    }
+   		});
+       
         function SampleViewModel() {
             var self = this;
             self.samplesURI = '/samples';
@@ -1285,6 +1312,7 @@ background-color: White;
             self.name = ko.observable();
             self.desc = ko.observable();
             self.access = ko.observable();
+            self.users = ko.observable();
  
             // configure ace.js for code editor
             var mapperArea = $("#sample");
@@ -1293,7 +1321,7 @@ background-color: White;
                 position: 'absolute',
                 id: 'aceeditor',
                 width: mapperArea.width(),
-                height: 200,//mapperArea.height(),
+                height: 300,//mapperArea.height(),
                 'class': mapperArea.attr('class'),
                 'css': 'border:2px solid black'
             }).insertBefore(mapperArea);
@@ -1329,8 +1357,13 @@ background-color: White;
                 if (self.desc() !== undefined)
                 	formdata.append('desc', self.desc());
                 
-                if (self.access() !== undefined)
+                if (self.access() !== undefined) {
                 	formdata.append('access', self.access());
+                
+	                if (self.access() == 1) {
+	                	formdata.append('users', self.users());
+	                }
+                }
 
                 ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
                 	mainViewModel.samplesViewModel.load();
@@ -1583,17 +1616,7 @@ background-color: White;
         ko.applyBindings(editTaskViewModel, $('#edit')[0]);
         ko.applyBindings(loginViewModel, $('#login')[0]);
         
-        ko.applyBindings(mainViewModel.samplesViewModel, $("#rename-workflow-dialog")[0]);
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
-        
-        $('#rename-workflow-dialog').on('shown.bs.modal', function () {
-            var node = dataSourceViewModel.selectedNode();
-            if (node === undefined)
-                return;
-//             var filename = ;
-//             $('#rename-workflow-text').val(filename);
-//             $('#rename-workflow-text').focus();
-        });
         
         $(window).on('unload', function() {
             if (refreshId != 0)

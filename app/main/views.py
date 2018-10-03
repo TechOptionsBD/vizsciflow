@@ -18,11 +18,12 @@ from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 import pip
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy import or_, and_
 
 from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, AccessRights, WorkflowAccess
 from ..util import Utility
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 
@@ -301,26 +302,28 @@ def translate():
         result = db.engine.execute(sql)
         return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
 
-def load_data_sources_biowl():
+def load_data_sources_biowl(recursive):
         # construct data source tree
     datasources = DataSource.query.all()
     datasource_tree = []
     for ds in datasources:
+        if not ds.active:
+            continue
         datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'loaded': True}
         try:
             fs = Utility.fs_by_prefix(ds.url)
             if fs:
                 if current_user.is_authenticated:
                     if ds.type == 'gfs':
-                        datasource['nodes'] = fs.make_json('/')
+                        datasource['nodes'] = fs.make_json_r('/') if recursive else fs.make_json('/')
     #                     datasource['nodes'].append(fs.make_json('/' + fs.lddaprefix))
     #                     datasource['nodes'].append(fs.make_json('/' + fs.hdaprefix))
                     else:
                         if not fs.exists(current_user.username):
                             fs.mkdirs(current_user.username)
-                        datasource['nodes'].append(fs.make_json(os.sep + current_user.username))
+                        datasource['nodes'].append(fs.make_json_r(os.sep + current_user.username) if recursive else fs.make_json(os.sep + current_user.username))
                 if ds.public and fs.exists(ds.public):
-                    datasource['nodes'].append(fs.make_json(ds.public))
+                    datasource['nodes'].append(fs.make_json_r(ds.public) if recursive else fs.make_json(ds.public))
                         
                 datasource_tree.append(datasource)
         except:
@@ -373,7 +376,7 @@ def datasources():
         fs = Utility.fs_by_prefix_or_default(request.args['load'])
         return json.dumps(fs.make_json(request.args['load']))
             
-    return json.dumps({'datasources': load_data_sources_biowl() })
+    return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 
 def install(package):
     pip.main(['install', package])
@@ -433,10 +436,18 @@ class Samples():
         
     @staticmethod
     def get_samples_as_list(access):
+        workflows = []
+        if access == 0:
+            workflows = Workflow.query.filter(Workflow.public == True)
+            #workflows=Workflow.query.join(User).filter(User.role != None).join(Role).filter(and_(Role.permissions != None, Role.permissions.op('&')(Permission.ADMINISTER) == Permission.ADMINISTER)).filter(Workflow.accesses.any(WorkflowAccess.user_id.is_(None)))
+        elif access == 1:
+            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id)))
+        else:
+            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id)).filter(Workflow.accesses.any(WorkflowAccess.user_id != current_user.id) != True)
+        
         samples = []
-        samplesdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/samples')
-        for s in Samples.load_samples_recursive_for_user(samplesdir, access):
-            samples.append({"name": s["name"], "desc": s["desc"], "access": s["access"], "sample": '\n'.join(s["sample"])})
+        for workflow in workflows:
+            samples.append(workflow.to_json_info())
         return samples
     
     @staticmethod
@@ -457,7 +468,20 @@ class Samples():
             uni_fn = Samples.make_fn(path, prefix, ext, i)
             if not os.path.exists(uni_fn):
                 return uni_fn
-            
+    
+    @staticmethod
+    def add_workflow(sample, name, desc, access, users):
+        try:
+            if sample and name:
+                
+                sample = sample.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'")
+                lines = sample.split("\n")
+                users = users.split(";") if users else []
+                workflow = Workflow.create(current_user.id, name, desc if desc else '', json.dumps(lines), 2 if not access else access, users)
+                return json.dumps(workflow.to_json_info());
+        except:
+            return json.dumps({})
+                
     @staticmethod
     def add_sample(sample, name, desc, shared):
         this_path = os.path.dirname(os.path.abspath(__file__))
@@ -496,7 +520,11 @@ class Samples():
 @login_required
 def samples():
     if request.form.get('sample'):
-        return Samples.add_sample(request.form.get('sample'), request.form.get('name'), request.form.get('desc'), request.form.get('access'))
+        return Samples.add_workflow(request.form.get('sample'), request.form.get('name'), request.form.get('desc'), request.form.get('access'), request.form.get('users'))
+    elif request.args.get('sample_id'):
+        workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
+        return json.dumps(workflow.to_json())
+            
     
     access = int(request.args.get('access')) if request.args.get('access') else 0
     return json.dumps({'samples': Samples.get_samples_as_list(access)})

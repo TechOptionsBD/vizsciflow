@@ -15,6 +15,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.exceptions import ValidationError
 
@@ -54,14 +55,19 @@ class Role(db.Model):
                           Permission.MODERATE_WORKFLOWS, False),
             'Administrator': (0xff, False)
         }
-        for r in roles:
-            role = Role.query.filter_by(name=r).first()
-            if role is None:
-                role = Role(name=r)
-            role.permissions = roles[r][0]
-            role.default = roles[r][1]
-            db.session.add(role)
-        db.session.commit()
+        try:
+            for r in roles:
+                role = Role.query.filter_by(name=r).first()
+                if role is None:
+                    role = Role(name=r)
+                role.permissions = roles[r][0]
+                role.default = roles[r][1]
+                db.session.add(role)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+            
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -474,30 +480,38 @@ class Workflow(db.Model):
     #children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
     
     def add_access(self, user_id, rights =  AccessRights.NotSet):
-        wfAccess = WorkflowAccess(rights=rights)
-        wfAccess.user_id = user_id
-        self.accesses.append(wfAccess)
-        db.session.commit()
-        return wfAccess
+        try:
+            wfAccess = WorkflowAccess(rights=rights)
+            wfAccess.user_id = user_id
+            self.accesses.append(wfAccess)
+            db.session.commit()
+            return wfAccess
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
     @staticmethod
     def create(user_id, name, desc, script, access, users):
-        wf = Workflow()
-        wf.user_id = user_id
-        wf.name = name
-        wf.desc = desc
-        wf.script = script
-        wf.public = int(access) == 0
-        
-        if (int(access) == 1 and users):
-            for username in users:
-                user = User.query.filter(User.username == username).first()
-                if user:
-                    wf.accesses.append(WorkflowAccess(user_id = user.id, rights = 0x01))
-        
-        db.session.add(wf)
-        db.session.commit()
-        return wf
+        try:
+            wf = Workflow()
+            wf.user_id = user_id
+            wf.name = name
+            wf.desc = desc
+            wf.script = script
+            wf.public = int(access) == 0
+            
+            if (int(access) == 1 and users):
+                for username in users:
+                    user = User.query.filter(User.username == username).first()
+                    if user:
+                        wf.accesses.append(WorkflowAccess(user_id = user.id, rights = 0x01))
+            
+            db.session.add(wf)
+            db.session.commit()
+            return wf
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
         
     def to_json(self):
         json_post = {
@@ -658,44 +672,68 @@ class Task(db.Model):
 
     @staticmethod
     def create_task(runnable_id, name = None):
-        task = Task()
-        task.runnable_id = runnable_id
-        task.name = name
-        task.status = Status.RECEIVED
-        task.tasklogs.append(TaskLog(log=Status.RECEIVED, type=LogType.INFO)) # 2 = Created
-        db.session.add(task)
-        db.session.commit()
-        return task
+        try:
+            task = Task()
+            task.runnable_id = runnable_id
+            task.name = name
+            task.status = Status.RECEIVED
+            task.tasklogs.append(TaskLog(log=Status.RECEIVED, type=LogType.INFO)) # 2 = Created
+            db.session.add(task)
+            db.session.commit()
+            return task
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
         
     def update(self):
-        db.session.commit()
+        try:
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
     def start(self):
-        self.status = Status.STARTED
-        self.started_on = datetime.utcnow()
-        self.add_log(Status.STARTED, LogType.INFO)
-        db.session.commit()
+        try:
+            self.status = Status.STARTED
+            self.started_on = datetime.utcnow()
+            self.add_log(Status.STARTED, LogType.INFO)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
     def succeeded(self, datatype, result):
-        self.status = Status.SUCCESS
-        self.add_log(Status.SUCCESS, LogType.INFO)
-        self.ended_on = datetime.utcnow()
-        self.data = result
-        self.datatype = datatype      
-        db.session.commit()
+        try:
+            self.status = Status.SUCCESS
+            self.add_log(Status.SUCCESS, LogType.INFO)
+            self.ended_on = datetime.utcnow()
+            self.data = result
+            self.datatype = datatype      
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
     def failed(self, log = "Task Failed."):
-        self.status = Status.FAILED
-        self.add_log(log, LogType.ERROR)
-        self.add_log(Status.FAILED, LogType.INFO)        
-        self.ended_on = datetime.utcnow()
-        db.session.commit()
+        try:
+            self.status = Status.FAILED
+            self.add_log(log, LogType.ERROR)
+            self.add_log(Status.FAILED, LogType.INFO)        
+            self.ended_on = datetime.utcnow()
+            db.session.commit()            
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
                     
     def add_log(self, log, logtype =  LogType.ERROR):
-        tasklog = TaskLog(type=logtype, log = log)
-        self.tasklogs.append(tasklog)
-        db.session.commit()
-        return tasklog
+        try:
+            tasklog = TaskLog(type=logtype, log = log)
+            self.tasklogs.append(tasklog)
+            db.session.commit()
+            return tasklog
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
        
 class TaskLog(db.Model):
     __tablename__ = 'tasklogs'
@@ -706,8 +744,12 @@ class TaskLog(db.Model):
     log = db.Column(db.Text)
     
     def updateTime(self):
-        self.time = datetime.utcnow()
-        db.session.add(self)
+        try:
+            self.time = datetime.utcnow()
+            db.session.add(self)
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
 class Runnable(db.Model):
     __tablename__ = 'runnables'
@@ -728,17 +770,29 @@ class Runnable(db.Model):
     tasks = db.relationship('Task', backref='runnable', lazy=True) #cascade="all,delete-orphan", 
     
     def updateTime(self):
-        self.modified_on = datetime.utcnow()
-        db.session.commit()
+        try:
+            self.modified_on = datetime.utcnow()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
     def update_status(self, status):
-        self.status = status
-        self.modified_on = datetime.utcnow()
-        db.session.commit()
+        try:
+            self.status = status
+            self.modified_on = datetime.utcnow()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
     def update(self):
-        self.modified_on = datetime.utcnow()
-        db.session.commit()
+        try:
+            self.modified_on = datetime.utcnow()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
     def completed(self):
         return self.status == 'SUCCESS' or self.status == 'FAILURE' or self.status == 'REVOKED'
@@ -782,9 +836,13 @@ class Runnable(db.Model):
         
     @staticmethod
     def create_runnable(user_id):
-        runnable = Runnable()
-        runnable.user_id = user_id
-        runnable.status = Status.PENDING
-        db.session.add(runnable)
-        db.session.commit()
-        return runnable
+        try:
+            runnable = Runnable()
+            runnable.user_id = user_id
+            runnable.status = Status.PENDING
+            db.session.add(runnable)
+            db.session.commit()
+            return runnable
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise

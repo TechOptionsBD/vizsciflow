@@ -716,9 +716,9 @@ class Task(db.Model):
     
     def failed(self, log = "Task Failed."):
         try:
-            self.status = Status.FAILED
+            self.status = Status.FAILURE
             self.add_log(log, LogType.ERROR)
-            self.add_log(Status.FAILED, LogType.INFO)        
+            self.add_log(Status.FAILURE, LogType.INFO)        
             self.ended_on = datetime.utcnow()
             db.session.commit()            
         except SQLAlchemyError:

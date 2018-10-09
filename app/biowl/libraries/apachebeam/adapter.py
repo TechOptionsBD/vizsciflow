@@ -8,9 +8,13 @@ from ...fileop import PosixFileSystem
 from ....util import Utility
 from ...ssh import ssh_hadoop_command, scp_get, scp_put
 
-cluster = '206.12.102.75'
-user = 'hadoop'
-password = 'spark#2018'
+# cluster = '206.12.102.75'
+# user = 'hadoop'
+# password = 'spark#2018'
+
+cluster = 'sr-p2irc-big3.usask.ca'
+user = 'spark'
+password = 'sr-hadoop'
 
 spark_submit_app = 'spark-submit'
 jar = "/home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar"

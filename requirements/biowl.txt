@@ -11,3 +11,4 @@ jsonpickle
 Flask-SSLify
 coverage
 typing
+scp

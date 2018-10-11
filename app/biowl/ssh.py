@@ -20,7 +20,9 @@ def ssh_hadoop_command(myhost, myuser, mypassword, command):
 #     . ~/.profile;
 #     . ~/.bashrc;
 #     """
-    _, stdout, _ = ssh_client.exec_command('export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop;' + command)
+
+    #_, stdout, _ = ssh_client.exec_command('export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop;' + command)
+    _, stdout, _ = ssh_client.exec_command('export HADOOP_CONF_DIR=/etc/hadoop/2.5.3.0-37/0/;' + command)
     exit_status = stdout.channel.recv_exit_status() # Channel.exit_status_ready for non-blocking call
     ssh_client.close()
     return exit_status

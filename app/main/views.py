@@ -303,12 +303,10 @@ def translate():
         return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
 
 def load_data_sources_biowl(recursive):
-        # construct data source tree
-    datasources = DataSource.query.all()
+     # construct data source tree
+    datasources = DataSource.query.filter_by(active = True)
     datasource_tree = []
     for ds in datasources:
-        if not ds.active:
-            continue
         datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'loaded': True}
         try:
             fs = Utility.fs_by_prefix(ds.url)

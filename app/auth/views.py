@@ -1,17 +1,16 @@
+import os
+
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
+
 from . import auth
 from .. import db
-from ..models import User
 from ..email import send_email
-from .forms import LoginForm, RegistrationForm, ChangePasswordForm,\
+from ..models import User, DataSource
+from ..util import Utility
+from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm
-import os
-import sys
-try:
-    from hdfs import InsecureClient
-except:
-    pass
+
 
 @auth.before_app_request
 def before_request():
@@ -51,21 +50,20 @@ def logout():
 
 
 def allocate_storage(user):
-    directory = os.path.join(current_app.config['DATA_DIR'], user.username)
-    if not os.path.exists(directory):
-         os.makedirs(directory)        
-    try: 
-        client = InsecureClient(current_app.config['WEBHDFS_ADDR'], user=current_app.config['WEBHDFS_USER'])
-        lst = client.list(current_app.config['HDFS_DIR'])
-        if not user.username in lst:
-            directory = os.path.join(current_app.config['HDFS_DIR'], user.username)
-            client.makedirs(directory)
-            client.set_owner(directory, current_app.config['HDFS_USER'], current_app.config['HDFS_GROUP'])
-    except:
-        flash('Storage allocation on Phenodoop has failed.')
-    else:
-        pass
-    return
+    datasources = DataSource.query.filter_by(active = True)
+    for ds in datasources:
+        try:
+            fs = Utility.fs_by_prefix(ds.url)
+            if fs:
+                if current_user.is_authenticated:
+                    if ds.type == 'gfs':
+                        continue
+                    else:
+                        userpath = os.path.join(ds.root, user.username)
+                        if not fs.exists(userpath):
+                            os.makedirs(userpath)
+        except:
+            flash('Storage allocation on {0} has failed.'.format(ds.name))
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():

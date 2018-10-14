@@ -6,7 +6,7 @@ import pathlib
 import shutil
 import sys
 import tempfile
-from urllib.parse import urlunparse, urlsplit, urljoin
+from urllib.parse import urlparse, urlunparse, urlsplit, urljoin
 import uuid
 
 
@@ -15,7 +15,7 @@ __date__ = "$Dec 10, 2016 2:23:14 PM$"
 
 
 try:
-    from hdfs import InsecureClient
+    import pyarrow
 except:
     pass
 
@@ -182,8 +182,9 @@ class HadoopFileSystem():
         if u.scheme != 'http' and u.scheme != 'https' and u.scheme != 'hdfs':
             raise ValueError("Invalid name node address")
         
+        parsedurl = urlparse(url)
+        self.client = pyarrow.hdfs.connect(host=parsedurl.hostname, port=parsedurl.port, user=user, library='libhdfs3')
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
-        self.client = InsecureClient(self.url, user=user, timeout=HadoopFileSystem.timeout)
         self.localdir = root
         self.prefix = prefix
     
@@ -217,7 +218,7 @@ class HadoopFileSystem():
     def mkdirs(self, path):
         try:
             path = self.normalize_path(path)
-            self.client.makedirs(path)
+            self.client.makedir(path)
         except:
             return None
         return path
@@ -228,8 +229,8 @@ class HadoopFileSystem():
     def remove(self, path):
         try: 
             path = self.normalize_path(path)
-            if self.client.status(path, False) is not None:
-                self.client.delete(path, True)
+            if not self.client.exists(path):
+                self.client.rm(path, True)
         except Exception as e:
             print(e)
            
@@ -244,9 +245,8 @@ class HadoopFileSystem():
     def get_files(self, path):
         path = self.normalize_path(path)
         files = []
-        for f in self.client.list(path):
-            status = self.client.status(join(path, f), False)
-            if status['type'] != "DIRECTORY":
+        for f in self.client.ls(path):
+            if self.client.isfile(join(path, f)):
                 files.append(f)
         return files
     
@@ -254,14 +254,13 @@ class HadoopFileSystem():
         path = self.normalize_path(path)
         folders = []
         for f in self.client.list(path):
-            status = self.client.status(join(path, f), False)
-            if status['type'] == "DIRECTORY":
+            if self.client.isdir(join(path, f)):
                 folders.append(f)
         return folders
     
     def listdir(self, path):
         path = self.normalize_path(path)
-        for f in self.client.list(path):
+        for f in self.client.ls(path):
             yield f
     
     def unique_filename(self, path, prefix, ext):
@@ -279,18 +278,15 @@ class HadoopFileSystem():
     
     def exists(self, path):
         path = self.normalize_path(path)
-        status = self.client.status(path, False)
-        return not (status is None)
+        return self.client.exists(path)
         
     def isdir(self, path):
         path = self.normalize_path(path)
-        status = self.client.status(path, False)
-        return status['type'] == "DIRECTORY"
+        return self.client.isdir(path)
     
     def isfile(self, path):
         path = self.normalize_path(path)
-        status = self.client.status(path, False)
-        return status['type'] == "FILE"
+        return self.client.isfile(path)
     
     def join(self, path1, path2):
         path1 = self.normalize_path(path1)
@@ -298,12 +294,13 @@ class HadoopFileSystem():
     
     def read(self, path):
         path = self.normalize_path(path)
-        with self.client.read(path) as reader:
+        with self.client.open(path) as reader:
             return reader.read().decode('utf-8')
     
     def write(self, path, content):
         path = self.normalize_path(path)
-        self.client.write(path, content)
+        with self.client.open(path, 'wb') as writer:
+            return writer.write(content)
     
     def make_json_item(self, path):
         data_json = { 'path': urljoin(self.url, self.normalize_path(path)), 'text': os.path.basename(path) }
@@ -315,14 +312,14 @@ class HadoopFileSystem():
         data_json = self.make_json_item(path)
         
         if self.isdir(path):
-            data_json['nodes'] = [self.make_json_item(os.path.join(path, fn)) for fn in self.client.list(self.normalize_path(path))]
+            data_json['nodes'] = [self.make_json_item(os.path.join(path, fn)) for fn in self.listdir(self.normalize_path(path))]
             data_json['loaded'] = True
         return data_json
     
     def make_json_r(self, path):
         data_json = self.make_json_item(path)
         if self.isdir(path):
-            data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in self.client.list(self.normalize_path(path))]
+            data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in self.listdir(self.normalize_path(path))]
             data_json['loaded'] = True
         return data_json
      
@@ -338,18 +335,24 @@ class HadoopFileSystem():
             file.save(localpath)
             if self.isfile(path):
                 path = os.path.dirname(path)
-            self.client.upload(self.normalize_path(path), localpath, True)
+            
+            with open(localpath, 'rb') as reader:
+                self.write(path, reader.read())
         except:
             pass
         
     def download(self, path):
         path = self.normalize_path(path)
-        status = self.client.status(path, False)
-        if status is not None and status['type'] == "FILE":
+        if self.client.isfile(path):
             localpath = os.path.join(tempfile.gettempdir(), os.path.basename(path))
-            return self.client.download(path, localpath, True)
-        else:
-            return None
+            if os.path.exists(localpath):
+                fs = PosixFileSystem('/')
+                unique_dir = fs.make_unique_dir(os.path.dirname(localpath))
+                localpath = os.path.join(unique_dir, os.path.basename(path))
+            
+            with open(localpath, "wb") as writer:
+                writer.write(self.read(path))
+            return localpath
 
 class GalaxyFileSystem():
     urlKey = 0
@@ -687,7 +690,7 @@ class IOHelper():
     def getFileSystem(url):
         try:
             u = urlsplit(url)
-            if u.scheme == 'http' or u.scheme == 'https':
+            if u.scheme == 'http' or u.scheme == 'https' or u.scheme == 'hdfs':
                 return HadoopFileSystem(url, 'hdfs')
         except:
             pass

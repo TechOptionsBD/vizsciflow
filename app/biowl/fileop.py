@@ -183,7 +183,7 @@ class HadoopFileSystem():
             raise ValueError("Invalid name node address")
         
         parsedurl = urlparse(url)
-        self.client = pyarrow.hdfs.connect(host=parsedurl.hostname, port=parsedurl.port, user=user, library='libhdfs3')
+        self.client = pyarrow.hdfs.connect(host=parsedurl.hostname, port=parsedurl.port, user=user, driver='libhdfs3')
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
         self.localdir = root
         self.prefix = prefix

@@ -136,7 +136,7 @@ background-color: White;
                <div class="panel panel-primary" style="margin:2px">
                    <div class="panel-heading text-center">
                     <h3 class="panel-title">Bioinformatics Workflow Language (BioWL)</h3>
-                    <span class="text-light" style="margin: 4px">Write workflow DSL. Double click services/samples/data to insert into editor.</span><br>
+                    <span class="text-light" style="margin: 4px">Write workflow DSL. Double click services/workflows/data to insert into editor.</span><br>
                     <ul class="list-inline panel-actions">
                         <li><a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a></li>
                     </ul>
@@ -328,7 +328,7 @@ background-color: White;
     <div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 560px; height: 720px; background: #fff">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3 id="addSampleDialogLabel">Add Sample</h3>
+            <h3 id="addSampleDialogLabel">Add Workflow</h3>
         </div>
         <div class="modal-body">
             <form class="form-horizontal">
@@ -349,7 +349,7 @@ background-color: White;
                     </div>
                     <div class="btn-group-vertical">
                     <label class="btn btn-light-blue form-check-label active">
-        				<input class="form-check-input" style="align:left" type="radio" name="wfaccess" value="2" data-bind="checked: access" autocomplete="off" checked> Private
+        				<input class="form-check-input" style="align:left" type="radio" name="wfaccess" value="2" data-bind="checked: access" autocomplete="off" checked>Private
     				</label>
     				<label class="btn btn-light-blue form-check-label active">
         				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="0" data-bind="checked: access" autocomplete="off">Public
@@ -1435,6 +1435,9 @@ background-color: White;
                     $("#error").val(data.err);
                     $("#log tbody").empty();
                     
+                    if (mainViewModel !== undefined) {
+                    	mainViewModel.tasksViewModel.load();
+                    }
                     if (data.err.length != 0) {
                     	$("#execstatus").text("FAILED");
                     	activateTab(2);

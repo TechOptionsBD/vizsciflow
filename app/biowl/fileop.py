@@ -8,11 +8,13 @@ import sys
 import tempfile
 from urllib.parse import urlparse, urlunparse, urlsplit, urljoin
 import uuid
-
+import urllib
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
 
+urllib.parse.uses_relative.append('hdfs')
+urllib.parse.uses_netloc.append('hdfs')
 
 try:
     import pyarrow
@@ -572,7 +574,7 @@ class GalaxyFileSystem():
             return info['name']
     
     def make_json_item(self, path):
-        data_json = { 'path': self.normalize_path(path), 'text': self.name_from_id(path) }
+        data_json = { 'path': self.normalize_path(path), 'text': "{0}(id:{1})".format(self.name_from_id(path), self.id_from_path(path)) }
         if self.isdir(path):
             data_json['nodes'] = []
         return data_json

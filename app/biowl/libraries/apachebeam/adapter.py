@@ -489,10 +489,11 @@ def run_beam_align(*args, **kwargs):
             paramindex +=1
 
     if not output:
-        output = Path(data1).stem + ".sam"
-        #fs = Utility.fs_by_prefix(data1)
         outdir = os.path.join(path.dirname(data1), str(uuid.uuid4()))
-        output = os.path.join(outdir, os.path.basename(output))
+    else:
+        outdir = output
+        
+    output = os.path.join(outdir, Path(data1).stem + ".sam")   
         
     runner = 'spark'
     if 'runner' in kwargs.keys():
@@ -502,7 +503,7 @@ def run_beam_align(*args, **kwargs):
             runner = args[paramindex]
             paramindex +=1
 
-    ssh_cmd = ''        
+    ssh_cmd = ''
     if runner == 'spark':
         if data2:
             ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Alignment --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --referenceFile={1} --input1File={2} --input2File={3} --output={4} --runner=SparkRunner".format(jar, ref, data1, data2, output)

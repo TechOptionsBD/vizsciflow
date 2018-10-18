@@ -1,29 +1,24 @@
 from __future__ import print_function
 
+import os
+import sys
+import pip
+from os import path
 import json
 import mimetypes
-from os import path
-import os
-import pathlib
-import shutil
-import sys
-import tarfile
-import tempfile
-import zipfile
 
 from flask import Flask, render_template, redirect, url_for, abort, flash, request, \
-    current_app, make_response, g
+    current_app, make_response
 from flask import send_from_directory
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
-import pip
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from sqlalchemy import or_, and_
+from sqlalchemy import and_
 
 from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, AccessRights, WorkflowAccess
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess
 from ..util import Utility
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 
@@ -319,7 +314,8 @@ def load_data_sources_biowl(recursive):
                     else:
                         if not fs.exists(current_user.username):
                             fs.mkdirs(current_user.username)
-                        datasource['nodes'].append(fs.make_json_r(os.sep + current_user.username) if recursive else fs.make_json(os.sep + current_user.username))
+                        if fs.exists(current_user.username):
+                            datasource['nodes'].append(fs.make_json_r(os.sep + current_user.username) if recursive else fs.make_json(os.sep + current_user.username))
                 if ds.public and fs.exists(ds.public):
                     datasource['nodes'].append(fs.make_json_r(ds.public) if recursive else fs.make_json(ds.public))
                         

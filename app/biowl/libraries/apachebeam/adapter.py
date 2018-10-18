@@ -543,9 +543,11 @@ def run_beam_sam_to_bam(*args, **kwargs):
             paramindex += 1
     
     if not output:
-        output = Path(data).stem + ".bam"
         outdir = os.path.join(path.dirname(data), str(uuid.uuid4()))
-        output = os.path.join(outdir, path.basename(output))
+    else:
+        outdir = output
+        
+    output = os.path.join(outdir, Path(data).stem + ".bam")
         
 #    output = fs.normalize_path(output)
     

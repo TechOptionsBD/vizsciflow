@@ -107,12 +107,12 @@ class PosixFileSystem():
             
     def read(self, path):
         path = self.normalize_path(path)
-        with open(path) as reader:
+        with open(path, 'rb') as reader:
             return reader.read()
         
     def write(self, path, content):
         path = self.normalize_path(path)
-        with open(path, 'w') as writer:
+        with open(path, 'wb') as writer:
             return writer.write(content)
         
     def unique_filename(self, path, prefix, ext):
@@ -307,7 +307,7 @@ class HadoopFileSystem():
     
     def read(self, path):
         path = self.normalize_path(path)
-        with self.client.open(path) as reader:
+        with self.client.open(path, 'rb') as reader:
             return reader.read()
     
     def write(self, path, content):
@@ -524,7 +524,7 @@ class GalaxyFileSystem():
         
     def read(self, path):
         path = self.normalize_path(path)
-        with self.client.read(path) as reader:
+        with self.client.read(path, 'rb') as reader:
             return reader.read()
     
     def write(self, path, content):

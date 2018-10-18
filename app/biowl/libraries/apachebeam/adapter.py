@@ -116,7 +116,7 @@ def copy_posix_file_to_cluster(data):
 #         outdir = fs.normalize_path(outdir)
 #         
 #     if not fs.exists(outdir):
-#         fs.mkdirs(outdir)
+#         fs.makedirs(outdir)
 #             
 #     runner = 'spark'
 #     if 'runner' in kwargs.keys():
@@ -413,7 +413,7 @@ def run_beam_quality(*args, **kwargs):
 #         outdir = fs.normalize_path(outdir)
         
 #     if not fs.exists(outdir):
-#         fs.mkdirs(outdir)
+#         fs.makedirs(outdir)
             
     runner = 'spark'
     if 'runner' in kwargs.keys():

@@ -46,7 +46,10 @@ class PosixFileSystem():
         return os.path.join(self.localdir, path)
     
     def makedirs(self, path):
-        os.makedirs(self.normalize_path(path))
+        path = self.normalize_path(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return self.make_prefix(path)
     
     def unique_fs_name(self, path, prefix, ext):
         return IOHelper.unique_fs_name(self, path, prefix, ext)
@@ -69,10 +72,10 @@ class PosixFileSystem():
         path = self.strip_prefix(path)
         return path[len(self.localdir):] if path.startswith(self.localdir) else path
             
-    def mkdirs(self, path):
+    def mkdir(self, path):
         path = self.normalize_path(path)
         if not os.path.exists(path):
-            os.makedirs(path) 
+            os.mkdir(path) 
         return self.make_prefix(path)
     
     def remove(self, path):
@@ -216,13 +219,21 @@ class HadoopFileSystem():
             if not path.startswith(self.localdir):
                 raise 'Invalid hdfs path. It must start with the root directory'
         return path[len(self.localdir):] if path.startswith(self.localdir) else path
+    
+    def makedirs(self, path):
+        path = self.normalize_path(path)
+        if self.exists(path):
+            return path
+        dirnames = self.strip_root(path).split(os.sep)
+        done = ''
+        for dirname in dirnames:
+            done = os.path.join(done, dirname)
+            self.mkdir(done)
+        return path
         
-    def mkdirs(self, path):
-        try:
-            path = self.normalize_path(path)
-            self.client.makedir(path)
-        except:
-            return None
+    def mkdir(self, path):
+        path = self.normalize_path(path)
+        self.client.mkdir(path)
         return path
     
     def unique_fs_name(self, path, prefix, ext):
@@ -410,8 +421,11 @@ class GalaxyFileSystem():
     def make_fullpath(self, path):
         path = self.normalize_path(path)
         return os.path.join(self.prefix, path)
+     
+    def makedirs(self, path):
+        return self.mkdir(path)
         
-    def mkdirs(self, path):
+    def mkdir(self, path):
         try:
             path = self.normalize_path(path)
             parts = self.path_parts(path)
@@ -714,9 +728,9 @@ class IOHelper():
         filesystem.remove(path)
         
     @staticmethod
-    def mkdirs(path):
+    def makedirs(path):
         filesystem = IOHelper.getFileSystem(path)
-        return filesystem.mkdirs(path)
+        return filesystem.makedirs(path)
     
     @staticmethod
     def rename(oldpath, newpath):

@@ -61,7 +61,7 @@ def allocate_storage(user):
                     else:
                         userpath = os.path.join(ds.root, user.username)
                         if not fs.exists(userpath):
-                            os.makedirs(userpath)
+                            fs.makedirs(userpath)
         except:
             flash('Storage allocation on {0} has failed.'.format(ds.name))
 

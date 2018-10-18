@@ -214,7 +214,7 @@ class Library():
                 return fs.get_folders(arguments[0])
             elif function.lower() == "createfolder":
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.mkdirs(arguments[0])
+                return fs.makedirs(arguments[0])
             elif function.lower() == "remove":
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 return fs.remove(arguments[0])

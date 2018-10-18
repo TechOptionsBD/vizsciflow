@@ -313,7 +313,7 @@ def load_data_sources_biowl(recursive):
     #                     datasource['nodes'].append(fs.make_json('/' + fs.hdaprefix))
                     else:
                         if not fs.exists(current_user.username):
-                            fs.mkdirs(current_user.username)
+                            fs.makedirs(current_user.username)
                         if fs.exists(current_user.username):
                             datasource['nodes'].append(fs.make_json_r(os.sep + current_user.username) if recursive else fs.make_json(os.sep + current_user.username))
                 if ds.public and fs.exists(ds.public):
@@ -356,7 +356,7 @@ def datasources():
         fileSystem = Utility.fs_by_prefix_or_default(path)
         parent = path if fileSystem.isdir(path) else os.path.dirname(path)
         unique_filename = fileSystem.unique_fs_name(parent, 'newfolder', '')
-        return json.dumps({'path' : fileSystem.mkdirs(unique_filename) })
+        return json.dumps({'path' : fileSystem.makedirs(unique_filename) })
     elif request.args.get('delete'):
         path = request.args['delete']
         fileSystem = Utility.fs_by_prefix_or_default(path)

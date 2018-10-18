@@ -609,15 +609,18 @@ def run_beam_pear(*args, **kwargs):
     data1_path = Path(os.path.basename(data1))
     if not output:
         outdir = os.path.join(path.dirname(data1), str(uuid.uuid4()))
-        output = os.path.join(outdir, data1_path.stem)
+    else:
+        outdir = output
+    
+    
+    output = os.path.join(outdir, data1_path.stem)    
         
 #    output = fs.normalize_path(output)
     
-    outdir = path.dirname(output)
 #     if not fs.exists(outdir):
 #         fs.makedirs(outdir)
     
-    assembled_output = output + ".assembled" + data1_path.suffix    
+    assembled_output = output + ".assembled" + data1_path.suffix
 #     if os.path.exists(assembled_output):
 #         os.remove(assembled_output)
     

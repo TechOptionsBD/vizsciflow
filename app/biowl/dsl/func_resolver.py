@@ -248,7 +248,7 @@ class Library():
             kwargs['dci'] = context.get_activedci()
         
         # special handling for galaxy if history_id is not given, use history id from symbol table
-        if (func[0].module == 'app.biowl.libraries.galaxy.adapter'):
+        if (func[0].module == 'app.biowl.libraries.galaxy.adapter' or func[0].module == 'app.biowl.libraries.apachebeam.adapter'):
             kwargs['context'] = context
 #             if not 'history_id' in kwargs and context.var_exists('history_id'):
 # #                     create_history_function = getattr(module_obj, "create_history") # history not running, create one

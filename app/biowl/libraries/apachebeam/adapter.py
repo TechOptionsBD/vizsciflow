@@ -6,6 +6,7 @@ import uuid
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
 from ....util import Utility
+from ....models import Runnable, User
 from ...ssh import ssh_hadoop_command, scp_get, scp_put
 
 # cluster = '206.12.102.75'
@@ -16,6 +17,7 @@ cluster = 'sr-p2irc-big3.usask.ca'
 user = 'spark'
 password = 'sr-hadoop'
 
+cluster_hdfs = 'hdfs://sr-p2irc-big1.usask.ca:8020'
 spark_submit_app = 'spark-submit'
 jar = "/home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar"
 
@@ -374,15 +376,14 @@ def copy_posix_file_to_cluster(data):
 #     
 #     return stripped_path
 
-
-
-
-
-
-
-
-
-
+def get_username(**kwargs):
+    try:
+        if 'context' in kwargs.keys():
+            runnable_id = kwargs['context'].runnable
+            runnable = Runnable.query.get(runnable_id)
+            return User.query.get(runnable.user_id).username
+    except:
+        pass
 
 def run_beam_quality(*args, **kwargs):
     
@@ -395,8 +396,18 @@ def run_beam_quality(*args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-#     fs = Utility.fs_by_prefix(data)
-#     data = fs.normalize_path(data)
+    fs = None
+    destpath = None
+    if Utility.fs_type_by_prefix(data) != 'hdfs':
+        fssrc = Utility.fs_by_prefix(data)
+        fs = Utility.fs_by_prefix(cluster_hdfs)
+        username = get_username(**kwargs)
+        destpath = os.path.join(username if username else 'public', str(uuid.uuid4()))
+        data = fs.write(destpath, fssrc.read(data))
+    else:
+        fs = Utility.fs_by_prefix(data)
+
+    data = fs.normalize_path(data)
     
     outdir = ''
     if 'outdir' in kwargs.keys():
@@ -407,13 +418,12 @@ def run_beam_quality(*args, **kwargs):
             paramindex +=1
     
     if not outdir:
-        #fs = Utility.fs_by_prefix(data)
-        outdir = os.path.join(path.dirname(data), str(uuid.uuid4()))
-#     else:
-#         outdir = fs.normalize_path(outdir)
+        outdir = destpath if destpath else fs.join(os.path.dirname(data), str(uuid.uuid4()))
+    else:
+        outdir = fs.normalize_path(outdir)
         
-#     if not fs.exists(outdir):
-#         fs.makedirs(outdir)
+    if not fs.exists(outdir):
+        fs.makedirs(outdir)
             
     runner = 'spark'
     if 'runner' in kwargs.keys():
@@ -423,12 +433,10 @@ def run_beam_quality(*args, **kwargs):
             runner = args[paramindex]
             paramindex +=1
 
-    #data = copy_posix_file_to_cluster(data);
-    
     outpath = Path(data).stem + "_fastqc.html"
     outpath = os.path.join(outdir, os.path.basename(outpath))
-#     if fs.exists(outpath):
-#         fs.remove(outpath)
+    if fs.exists(outpath):
+        fs.remove(outpath)
        
     ssh_cmd = ''    
     if runner == 'spark':
@@ -439,11 +447,10 @@ def run_beam_quality(*args, **kwargs):
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
            
-    stripped_path = outpath#fs.strip_root(outpath)
-#     if not os.path.exists(outpath):
-#         raise ValueError("Apache beam could not generate the file: " + stripped_path)
+    if not fs.exists(outpath):
+        raise ValueError("Check quality beam could not generate the file: " + outpath)
     
-    return stripped_path
+    return outpath
 
 
 def run_beam_align(*args, **kwargs):

@@ -399,10 +399,10 @@ def run_beam_quality(*args, **kwargs):
     fs = None
     destpath = None
     if Utility.fs_type_by_prefix(data) != 'hdfs':
-        fssrc = Utility.fs_by_prefix(data)
+        fssrc = Utility.fs_by_prefix_or_default(data)
         fs = Utility.fs_by_prefix(cluster_hdfs)
         username = get_username(**kwargs)
-        destpath = os.path.join(username if username else 'public', str(uuid.uuid4()))
+        destpath = os.path.join(username, str(uuid.uuid4()))
         data = fs.write(destpath, fssrc.read(data))
     else:
         fs = Utility.fs_by_prefix(data)
@@ -415,12 +415,12 @@ def run_beam_quality(*args, **kwargs):
             outdir = args[paramindex]
             paramindex +=1
     
-    if not outdir:
+    if not outdir or Utility.fs_type_by_prefix(outdir) != 'hdfs':
         if destpath:
             outdir = destpath
         else:
             username = get_username(**kwargs)
-            outdir = os.path.join(username if username else data,  str(uuid.uuid4()))
+            outdir = os.path.join(username,  str(uuid.uuid4()))
         
     if not fs.exists(outdir):
         fs.makedirs(outdir)
@@ -468,7 +468,16 @@ def run_beam_align(*args, **kwargs):
         ref = args[paramindex]
         paramindex +=1
     
-    #ref = copy_posix_file_to_cluster(ref)
+    fs = None
+    destpath = None
+    if Utility.fs_type_by_prefix(ref) != 'hdfs':
+        fssrc = Utility.fs_by_prefix_or_default(ref)
+        fs = Utility.fs_by_prefix(cluster_hdfs)
+        username = get_username(**kwargs)
+        destpath = os.path.join(username, str(uuid.uuid4()))
+        ref = fs.write(destpath, fssrc.read(ref))
+    else:
+        fs = Utility.fs_by_prefix(ref)
     
     data1 = ''
     if 'data1' in kwargs.keys():
@@ -479,8 +488,14 @@ def run_beam_align(*args, **kwargs):
         data1 = args[paramindex]
         paramindex +=1
     
-    #data1 = copy_posix_file_to_cluster(data1)
-    
+    if Utility.fs_type_by_prefix(data1) != 'hdfs':
+        fssrc = Utility.fs_by_prefix_or_default(data1)
+        if not destpath:
+            username = get_username(**kwargs)
+            destpath = os.path.join(username, str(uuid.uuid4()))
+        data1 = fs.write(destpath, fssrc.read(data1))
+     
+        
     data2 = ''
     if 'data2' in kwargs.keys():
         data2 = kwargs['data2']
@@ -488,9 +503,15 @@ def run_beam_align(*args, **kwargs):
         if len(args) > paramindex:
             data2 = args[paramindex]
             paramindex +=1
-    
-    
-    output = ''    
+      
+    if Utility.fs_type_by_prefix(data2) != 'hdfs':
+        fssrc = Utility.fs_by_prefix_or_default(data2)
+        if not destpath:
+            username = get_username(**kwargs)
+            destpath = os.path.join(username, str(uuid.uuid4()))
+        data2 = fs.write(destpath, fssrc.read(data2))
+        
+    output = ''
     if 'output' in kwargs.keys():
         output = kwargs['output']
     else:
@@ -498,12 +519,23 @@ def run_beam_align(*args, **kwargs):
             output = args[paramindex]
             paramindex +=1
 
-    if not output:
-        outdir = os.path.join(path.dirname(data1), str(uuid.uuid4()))
+    outdir = ''
+    if not output or Utility.fs_type_by_prefix(output) != 'hdfs':
+        if destpath:
+            outdir = destpath
+        else:
+            username = get_username(**kwargs)
+            outdir = os.path.join(username,  str(uuid.uuid4()))
     else:
-        outdir = output
-        
-    output = os.path.join(outdir, Path(data1).stem + ".sam")   
+        if fs.isdir(output):
+            outdir = output
+            output = ''
+
+    if outdir and not fs.exists(outdir):
+        fs.makedirs(outdir)
+    
+    if outdir:
+        output = os.path.join(outdir, Path(data1).stem + ".sam")   
         
     runner = 'spark'
     if 'runner' in kwargs.keys():
@@ -522,6 +554,7 @@ def run_beam_align(*args, **kwargs):
     else:
         ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.Alignment -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(ref, data1, data2, output)
     
+    kwargs['context'].out.append(ssh_cmd)
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
     stripped_path = output

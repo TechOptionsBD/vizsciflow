@@ -45,6 +45,9 @@ class PosixFileSystem():
             path = path[1:]    
         return os.path.join(self.localdir, path)
     
+    def normalize_fullpath(self, path):
+        return self.normalize_path(path)
+    
     def makedirs(self, path):
         path = self.normalize_path(path)
         if not os.path.exists(path):
@@ -208,6 +211,9 @@ class HadoopFileSystem():
         while path and path[0] == os.sep:
             path = path[1:]
         return os.path.join(self.localdir, path)
+    
+    def normalize_fullpath(self, path):
+        return urljoin(self.url, self.normalize_path(path))
     
     def strip_prefix(self, path):
         return path[len(self.prefix):] if self.prefix and path.startswith(self.prefix) else path
@@ -407,6 +413,9 @@ class GalaxyFileSystem():
             path = path[1:]
         return os.path.join(self.localdir, path)
 
+    def normalize_fullpath(self, path):
+        return self.normalize_path(path)
+    
     def strip_root(self, path):
         if path.startswith(self.url):
             path = path[len(self.url):]

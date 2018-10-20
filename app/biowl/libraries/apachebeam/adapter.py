@@ -407,8 +407,6 @@ def run_beam_quality(*args, **kwargs):
     else:
         fs = Utility.fs_by_prefix(data)
 
-    data = fs.normalize_fullpath(data)
-    
     outdir = ''
     if 'outdir' in kwargs.keys():
         outdir = kwargs['outdir']
@@ -418,9 +416,11 @@ def run_beam_quality(*args, **kwargs):
             paramindex +=1
     
     if not outdir:
-        outdir = destpath if destpath else fs.join(os.path.dirname(data), str(uuid.uuid4()))
-    else:
-        outdir = fs.normalize_fullpath(outdir)
+        if destpath:
+            outdir = destpath
+        else:
+            username = get_username(**kwargs)
+            outdir = os.path.join(username if username else data,  str(uuid.uuid4()))
         
     if not fs.exists(outdir):
         fs.makedirs(outdir)
@@ -435,10 +435,12 @@ def run_beam_quality(*args, **kwargs):
 
     outpath = Path(data).stem + "_fastqc.html"
     outpath = fs.join(outdir, os.path.basename(outpath))
-    if fs.exists(outpath):
-        fs.remove(outpath)
     outpath = fs.normalize_fullpath(outpath)
-    
+    if fs.exists(outpath):
+        fs.remove(outpath)   
+    data = fs.normalize_fullpath(data)
+    outdir = fs.normalize_fullpath(outdir)
+
     ssh_cmd = ''    
     if runner == 'spark':
         ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.CheckQ --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 {0} --inputFile={1} --outDir={2} --runner=SparkRunner".format(jar, data, outdir)

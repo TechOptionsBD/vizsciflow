@@ -402,10 +402,10 @@ def run_beam_quality(*args, **kwargs):
         fssrc = Utility.fs_by_prefix_or_default(data)
         fs = Utility.fs_by_prefix(cluster_hdfs)
         username = get_username(**kwargs)
-        destpath = os.path.join(username, str(uuid.uuid4()))
-        destpath = fs.makedirs(destpath)
+        destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
+        srcpath = data
         data = fs.join(destpath, os.path.basename(data))
-        fs.write(data, fssrc.read(data))
+        fs.write(data, fssrc.read(srcpath))
     else:
         fs = Utility.fs_by_prefix(data)
 

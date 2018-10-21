@@ -698,7 +698,9 @@ class GalaxyFileSystem():
             return None
         
         dataset = self.client.datasets.show_dataset(dataset_id = os.path.basename(path), hda_ldda = 'ldda' if self.islibrarydata(path) else 'hda')
-        name = dataset['name']    
+        name = dataset['name']
+        if not pathlib.Path(name).suffix and dataset['file_ext']:
+            name += '.' + dataset['file_ext']
         
         localpath = os.path.join(tempfile.gettempdir(), name)
             

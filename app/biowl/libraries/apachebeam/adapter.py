@@ -476,8 +476,10 @@ def run_beam_align(*args, **kwargs):
         fssrc = Utility.fs_by_prefix_or_default(ref)
         fs = Utility.fs_by_prefix(cluster_hdfs)
         username = get_username(**kwargs)
-        destpath = os.path.join(username, str(uuid.uuid4()))
-        ref = fs.write(destpath, fssrc.read(ref))
+        destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
+        srcpath = ref
+        ref = fs.join(destpath, os.path.basename(ref))
+        fs.write(ref, fssrc.read(srcpath))
     else:
         fs = Utility.fs_by_prefix(ref)
     
@@ -494,9 +496,10 @@ def run_beam_align(*args, **kwargs):
         fssrc = Utility.fs_by_prefix_or_default(data1)
         if not destpath:
             username = get_username(**kwargs)
-            destpath = os.path.join(username, str(uuid.uuid4()))
-        data1 = fs.write(destpath, fssrc.read(data1))
-     
+            destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
+        srcpath = data1
+        data1 = fs.join(destpath, os.path.basename(data1))
+        fs.write(data1, fssrc.read(srcpath))
         
     data2 = ''
     if 'data2' in kwargs.keys():
@@ -510,8 +513,10 @@ def run_beam_align(*args, **kwargs):
         fssrc = Utility.fs_by_prefix_or_default(data2)
         if not destpath:
             username = get_username(**kwargs)
-            destpath = os.path.join(username, str(uuid.uuid4()))
-        data2 = fs.write(destpath, fssrc.read(data2))
+            destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
+        srcpath = data2
+        data2 = fs.join(destpath, os.path.basename(data2))
+        fs.write(data2, fssrc.read(srcpath))
         
     output = ''
     if 'output' in kwargs.keys():

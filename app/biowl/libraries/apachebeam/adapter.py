@@ -509,7 +509,7 @@ def run_beam_align(*args, **kwargs):
             data2 = args[paramindex]
             paramindex +=1
       
-    if Utility.fs_type_by_prefix(data2) != 'hdfs':
+    if data2 and Utility.fs_type_by_prefix(data2) != 'hdfs':
         fssrc = Utility.fs_by_prefix_or_default(data2)
         if not destpath:
             username = get_username(**kwargs)
@@ -542,8 +542,14 @@ def run_beam_align(*args, **kwargs):
         fs.makedirs(outdir)
     
     if outdir:
-        output = os.path.join(outdir, Path(data1).stem + ".sam")   
-        
+        output = os.path.join(outdir, Path(data1).stem + ".sam")
+    
+    ref = fs.normalize_fullpath(ref)
+    data1 = fs.normalize_fullpath(data1)
+    if data2:
+        data2 = fs.normalize_fullpath(data2)
+    output = fs.normalize_fullpath(output)
+    
     runner = 'spark'
     if 'runner' in kwargs.keys():
         runner = kwargs['runner']
@@ -565,8 +571,8 @@ def run_beam_align(*args, **kwargs):
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
     stripped_path = output
-#     if not fs.exists(output):
-#         raise ValueError("Apache beam could not generate the .sam file: " + stripped_path)
+    if not fs.exists(stripped_path):
+        raise ValueError("Apache beam could not generate the .sam file: " + stripped_path)
     
     return stripped_path
 
@@ -580,9 +586,20 @@ def run_beam_sam_to_bam(*args, **kwargs):
             raise ValueError("Argument missing error in sam2bam.")
         data = args[paramindex]
         paramindex +=1
-    
-#     fs = Utility.fs_by_prefix_or_default(data)
-#     data = fs.normalize_path(data)
+        
+    fs = None
+    destpath = None
+    if Utility.fs_type_by_prefix(data) != 'hdfs':
+        fssrc = Utility.fs_by_prefix_or_default(data)
+        fs = Utility.fs_by_prefix(cluster_hdfs)
+        username = get_username(**kwargs)
+        destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
+        srcpath = data
+        ref = fs.join(destpath, os.path.basename(data))
+        fs.write(ref, fssrc.read(srcpath))
+    else:
+        fs = Utility.fs_by_prefix(data)
+
     
     output = ''
     if 'output' in kwargs.keys():
@@ -590,22 +607,28 @@ def run_beam_sam_to_bam(*args, **kwargs):
     else:
         if len(args) > paramindex:
             output = args[paramindex]
-            paramindex += 1
-    
-    if not output:
-        outdir = os.path.join(path.dirname(data), str(uuid.uuid4()))
+            paramindex +=1
+
+    outdir = ''
+    if not output or Utility.fs_type_by_prefix(output) != 'hdfs':
+        if destpath:
+            outdir = destpath
+        else:
+            username = get_username(**kwargs)
+            outdir = os.path.join(username,  str(uuid.uuid4()))
     else:
-        outdir = output
-        
-    output = os.path.join(outdir, Path(data).stem + ".bam")
-        
-#    output = fs.normalize_path(output)
+        if fs.isdir(output):
+            outdir = output
+            output = ''
+
+    if outdir and not fs.exists(outdir):
+        fs.makedirs(outdir)
     
-#     if not fs.exists(path.dirname(output)):
-#         fs.makedirs(path.dirname(output))
-#         
-#     if fs.exists(output):
-#         fs.remove(output)
+    if outdir:
+        output = os.path.join(outdir, Path(data).stem + ".bam")
+
+    data = fs.normalize_fullpath(data)
+    output = fs.normalize_fullpath(output)
     
     runner = 'spark'
     if 'runner' in kwargs.keys():
@@ -621,9 +644,9 @@ def run_beam_sam_to_bam(*args, **kwargs):
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
-    stripped_path = output #fs.strip_root(output)
-#     if not fs.exists(output):
-#         raise ValueError("Apache beam could not generate the .bam  " + stripped_path)
+    stripped_path = output
+    if not fs.exists(stripped_path):
+        raise ValueError("Apache beam could not generate the .bam  " + stripped_path)
     
     return stripped_path
 
@@ -638,44 +661,68 @@ def run_beam_pear(*args, **kwargs):
         data1 = args[paramindex]
         paramindex +=1
     
-#     fs = Utility.fs_by_prefix_or_default(data1)
-#     data1 = fs.normalize_path(data1)
-    
+    fs = None
+    destpath = None
+    if Utility.fs_type_by_prefix(data1) != 'hdfs':
+        fssrc = Utility.fs_by_prefix_or_default(data1)
+        username = get_username(**kwargs)
+        fs = Utility.fs_by_prefix(cluster_hdfs)
+        destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
+        srcpath = data1
+        data1 = fs.join(destpath, os.path.basename(data1))
+        fs.write(data1, fssrc.read(srcpath))
+        
+    data2 = ''
     if 'data2' in kwargs.keys():
         data2 = kwargs['data2']
     else:
-        if len(args) == paramindex:
+        if len(args) <= paramindex:
             raise ValueError("Argument missing error in apache beam merge.")
         data2 = args[paramindex]
         paramindex +=1
-    
-#     data2 = fs.normalize_path(data2)
-    
-    output = ''    
+      
+    if Utility.fs_type_by_prefix(data2) != 'hdfs':
+        fssrc = Utility.fs_by_prefix_or_default(data2)
+        if not destpath:
+            username = get_username(**kwargs)
+            destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
+        srcpath = data2
+        data2 = fs.join(destpath, os.path.basename(data2))
+        fs.write(data2, fssrc.read(srcpath))
+        
+    output = ''
     if 'output' in kwargs.keys():
         output = kwargs['output']
     else:
         if len(args) > paramindex:
             output = args[paramindex]
             paramindex +=1
-    
-    data1_path = Path(os.path.basename(data1))
-    if not output:
-        outdir = os.path.join(path.dirname(data1), str(uuid.uuid4()))
+
+    outdir = ''
+    if not output or Utility.fs_type_by_prefix(output) != 'hdfs':
+        if destpath:
+            outdir = destpath
+        else:
+            username = get_username(**kwargs)
+            outdir = os.path.join(username,  str(uuid.uuid4()))
     else:
-        outdir = output
-    
-    
+        if fs.isdir(output):
+            outdir = output
+            output = ''
+
+    if outdir and not fs.exists(outdir):
+        fs.makedirs(outdir)
+        
+    data1_path = Path(os.path.basename(data1))
     output = os.path.join(outdir, data1_path.stem)    
         
-#    output = fs.normalize_path(output)
-    
-#     if not fs.exists(outdir):
-#         fs.makedirs(outdir)
-    
     assembled_output = output + ".assembled" + data1_path.suffix
-#     if os.path.exists(assembled_output):
-#         os.remove(assembled_output)
+    if fs.exists(assembled_output):
+        fs.remove(assembled_output)
+    
+    data1 = fs.normalize_fullpath(data1)
+    data2 = fs.normalize_fullpath(data2)
+    output = fs.normalize_fullpath(output)
     
     runner = 'spark'
     if 'runner' in kwargs.keys():
@@ -690,8 +737,8 @@ def run_beam_pear(*args, **kwargs):
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
-    stripped_path = assembled_output #fs.strip_root(assembled_output)
-#     if not fs.exists(output):
-#         raise ValueError("Apache beam could not generate the merged file." + stripped_path)
+    stripped_path = assembled_output
+    if not fs.exists(stripped_path):
+        raise ValueError("Apache beam could not generate the merged file." + stripped_path)
     
     return stripped_path

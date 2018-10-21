@@ -595,8 +595,8 @@ def run_beam_sam_to_bam(*args, **kwargs):
         username = get_username(**kwargs)
         destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
         srcpath = data
-        ref = fs.join(destpath, os.path.basename(data))
-        fs.write(ref, fssrc.read(srcpath))
+        data = fs.join(destpath, os.path.basename(data))
+        fs.write(data, fssrc.read(srcpath))
     else:
         fs = Utility.fs_by_prefix(data)
 
@@ -737,7 +737,7 @@ def run_beam_pear(*args, **kwargs):
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
     
-    stripped_path = assembled_output
+    stripped_path = fs.normalize_fullpath(assembled_output)
     if not fs.exists(stripped_path):
         raise ValueError("Apache beam could not generate the merged file." + stripped_path)
     

@@ -99,7 +99,7 @@ background-color: White;
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button>
                        <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: addFolder" ><i class="glyphicon glyphicon-plus"></i></button>
                    </div>
-<!--                    <input class="form-control" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'"/> -->
+                   <input class="form-control" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'"/>
                </div>
            </div>
            <div class="panel-body draggable-datasources" style="height: 416px; overflow-y: scroll; padding:0">
@@ -644,9 +644,18 @@ background-color: White;
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
     
     var findExpandibleNodes = function(text) {
-        return $('#tree').treeview('search', [ text, { ignoreCase: false, exactMatch: false } ]);
+    	var options = {
+    		    ignoreCase: true,
+    		    exactMatch: false,
+    		    revealResults: true,
+    		  };
+        return $('#tree').treeview('search', [ text, options ]);
     };
-
+    $('#tree').bind('mousewheel', function(e) {
+    	  $(this).scrollTop($(this).scrollTop() - e.originalEvent.wheelDeltaY);
+    	  return false;
+    	});
+    
     // Create the View Model.
     var DataSourceViewModel = function() {
       var self = this;
@@ -657,7 +666,15 @@ background-color: White;
       
       self.searchDataSource.subscribe(function () {
     	  var expandibleNodes = findExpandibleNodes(self.searchDataSource());
-    	  $('#tree').treeview('expandNode', [ expandibleNodes, { levels: 2, silent: false }]);
+    	  filter = self.searchDataSource().toUpperCase();
+    	  div = document.getElementById("tree");
+    	  li = div.getElementsByTagName("li");
+    	  for (i = 0; i < li.length; i++) {
+    	    a = li[i];
+    	    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+    	      li[i].scrollIntoView(false)[0];
+    	    }
+    	  }
       });
       
       self.refresh = function(path) {

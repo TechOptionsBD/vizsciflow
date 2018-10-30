@@ -107,7 +107,10 @@ class PosixFileSystem():
     def listdir(self, path):
         path = self.normalize_path(path)
         return os.listdir(path)
-            
+    
+    def copyfile(self, src, dst):
+        return shutil.copy2(src, dst)
+                
     def read(self, path):
         path = self.normalize_path(path)
         with open(path, 'rb') as reader:
@@ -165,6 +168,7 @@ class PosixFileSystem():
         
         if os.path.isdir(normalized_path):
             data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in os.listdir(normalized_path)]
+            data_json['loaded'] = True
         return data_json
 
     def save_upload(self, file, path):
@@ -276,6 +280,13 @@ class HadoopFileSystem():
             if self.client.isdir(join(path, f)):
                 folders.append(f)
         return folders
+    
+    def copyfile(self, src, dst):
+        content = self.read(src)
+        if self.isdir(dst):
+            dst = os.path.join(dst, os.path.basename(src))
+        self.write(dst, content)
+        return self.normalize_fullpath(dst)
     
     def listdir(self, path):
         path = self.normalize_path(path)
@@ -478,6 +489,20 @@ class GalaxyFileSystem():
             self.client.rename(oldpath, newpath)
         except Exception as e:
             print(e)
+    
+    def copyfile(self, src, dst):
+        if self.islibrarydata(src) and not self.islibrarydata(dst):
+            parts = self.path_parts(self.normalize_path(src))
+            self.client.libraries.copy_from_dataset(parts[GalaxyFileSystem.hlddKey], self.id_from_path(dst), parts[GalaxyFileSystem.folderKey])
+        elif not self.islibrary(parts[GalaxyFileSystem.hlddTitleKey]) and self.islibrarydata(dst):
+            parts = self.path_parts(self.normalize_path(dst))
+            self.client.histories.upload_dataset_from_library(parts[GalaxyFileSystem.hdaKey], self.id_from_path(src))
+        else:
+            content = self.read(src)
+            if self.isdir(dst):
+                dst = os.path.join(dst, os.path.basename(src))
+                self.write(dst, content)
+        return self.normalize_fullpath(dst)
     
     def get_files(self, path):
         path = self.normalize_path(path)

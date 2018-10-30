@@ -233,7 +233,13 @@ class Library():
             elif function.lower() == "len":
                 return len(arguments[0])
             elif function.lower() == "exec":
-                return func_exec_run(arguments[0], *arguments[1:])
+                return func_exec_run(arguments[0], *arguments[1:])            
+            elif function.lower() == "copyfile":
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                return fs.copy(arguments[0], arguments[1])                        
+            elif function.lower() == "deletefile":
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                return fs.remove(arguments[0])
             #    return func_exec(arguments[0], *arguments[1:])
 #             else:
 #                 raise ValueError("{0} function not implemented".format(function))

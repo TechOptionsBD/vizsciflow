@@ -89,6 +89,20 @@ class Utility:
         return Utility.create_fs(ds)
     
     @staticmethod
+    def copyfile(src, dest):
+        srctype = Utility.fs_type_by_prefix_or_default(src)
+        desttype = Utility.fs_type_by_prefix_or_default(dest)
+        
+        fssrc = Utility.fs_type_by_prefix_or_default(src)
+        if srctype != desttype:
+            fsdest = Utility.fs_type_by_prefix_or_default(dest)
+            content = fssrc.read(src)
+            fsdest.write(dest, content)
+        else:
+            return fssrc.copyfile(src, dest)
+        
+        
+    @staticmethod
     def get_normalized_path(path):
         fs = Utility.fs_by_prefix_or_default(path)
         path = fs.strip_root(path)

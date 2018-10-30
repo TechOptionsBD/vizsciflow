@@ -368,7 +368,7 @@ def datasources():
         return json.dumps({'path' : fileSystem.rename(oldpath, newpath)})
     elif request.args.get('load'):
         fs = Utility.fs_by_prefix_or_default(request.args['load'])
-        return json.dumps(fs.make_json(request.args['load']))
+        return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
             
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 

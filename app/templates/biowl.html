@@ -659,6 +659,7 @@ background-color: White;
     // Create the View Model.
     var DataSourceViewModel = function() {
       var self = this;
+      self.init = false;
       self.dataSourcesURI = '/datasources';
       self.dataSources = ko.observableArray();
       self.expandedNodes = [];
@@ -676,12 +677,7 @@ background-color: White;
     	    }
     	  }
       });
-      
-      self.refresh = function(path) {
-          ajaxcalls.simple(self.samplesURI, 'POST', {'path': path}).done(function(data) {
-          });
-      }
-      
+           
       self.beginFileUpload = function() {
           centerDialog($('#file-upload-dialog'));
           $('#file-upload-dialog').modal('show');
@@ -693,6 +689,14 @@ background-color: White;
       }
       
       self.load = function(recursive) {
+    	  if (self.init) {
+	    	  node = self.selectedNode();
+	          if (node !== undefined) {
+	        	  self.loadItem(node, recursive)
+	        	  return;
+	          }
+    	  }
+
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'recursive': recursive }).done(function(data) {
         	  self.dataSources(data.datasources);
               ko.cleanNode($("#dataSourcesPanel")[0]);
@@ -732,8 +736,8 @@ background-color: White;
     	  return null;	
       }
       
-      self.loadItem = function(node) {
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.path }).done(function(data) {
+      self.loadItem = function(node, recursive = false) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.path, 'recursive': recursive }).done(function(data) {
               
               var dataSources = self.dataSources();
               
@@ -823,6 +827,7 @@ background-color: White;
       }
       
       self.load(false);
+      self.init = true;
     }
    
    // Last trigger node Id

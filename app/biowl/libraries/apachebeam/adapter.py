@@ -148,13 +148,15 @@ def run_beam_quality(*args, **kwargs):
             runner = args[paramindex]
             paramindex +=1
 
-    outpath = Path(data).stem + "_fastqc.html"
-    outpath = fs.join(outdir, os.path.basename(outpath))
-    outpath = fs.normalize_fullpath(outpath)
-    if fs.exists(outpath):
-        fs.remove(outpath)   
     data = fs.normalize_fullpath(data)
     outdir = fs.normalize_fullpath(outdir)
+
+    outpath = outdir
+    if fs.isfile(data):
+        outpath = Path(data).stem + "_fastqc.html"
+        outpath = fs.join(outdir, os.path.basename(outpath))
+        if fs.exists(outpath):
+            fs.remove(outpath)
 
     ssh_cmd = ''    
     if runner == 'spark':

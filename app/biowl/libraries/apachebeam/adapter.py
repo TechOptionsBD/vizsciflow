@@ -307,6 +307,7 @@ def run_beam_align(*args, **kwargs):
 def run_beam_sam_to_bam(*args, **kwargs):
     
     paramindex = 0
+    data = ''
     if 'data' in kwargs.keys():
         data = kwargs['data']
     else:
@@ -381,11 +382,12 @@ def run_beam_sam_to_bam(*args, **kwargs):
 def run_beam_pear(*args, **kwargs):
     
     paramindex = 0
+    data1 = ''
     if 'data' in kwargs.keys():
         data1 = kwargs['data']
     else:
         if len(args) <= paramindex:
-            raise ValueError("Argument missing error in apache beam merge.")
+            raise ValueError("Argument missing error in apache beam merge: data.")
         data1 = args[paramindex]
         paramindex +=1
     
@@ -399,13 +401,15 @@ def run_beam_pear(*args, **kwargs):
         srcpath = data1
         data1 = fs.join(destpath, os.path.basename(data1))
         fs.write(data1, fssrc.read(srcpath))
-        
+    else:
+        fs = Utility.fs_by_prefix(data1)
+            
     data2 = ''
     if 'data2' in kwargs.keys():
         data2 = kwargs['data2']
     else:
         if len(args) <= paramindex:
-            raise ValueError("Argument missing error in apache beam merge.")
+            raise ValueError("Argument missing error in apache beam merge: data2.")
         data2 = args[paramindex]
         paramindex +=1
       

@@ -232,9 +232,9 @@ def run_beam_align(*args, **kwargs):
         fs.write(data1, fssrc.read(srcpath))
     
     output = ''
-    
+    data2 = ''
     if fs.isfile(data1):
-        data2 = ''
+        
         if 'data2' in kwargs.keys():
             data2 = kwargs['data2']
         else:

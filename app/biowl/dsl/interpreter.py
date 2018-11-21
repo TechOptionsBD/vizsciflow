@@ -1,5 +1,7 @@
 import ast
 import logging
+import threading
+import _thread
 
 from .func_resolver import Library
 from ..tasks import TaskManager

@@ -230,56 +230,75 @@ def run_beam_align(*args, **kwargs):
         srcpath = data1
         data1 = fs.join(destpath, os.path.basename(data1))
         fs.write(data1, fssrc.read(srcpath))
-        
-    data2 = ''
-    if 'data2' in kwargs.keys():
-        data2 = kwargs['data2']
-    else:
-        if len(args) > paramindex:
-            data2 = args[paramindex]
-            paramindex +=1
-      
-    if data2 and Utility.fs_type_by_prefix(data2) != 'hdfs':
-        fssrc = Utility.fs_by_prefix_or_default(data2)
-        if not destpath:
-            username = get_username(**kwargs)
-            destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
-        srcpath = data2
-        data2 = fs.join(destpath, os.path.basename(data2))
-        fs.write(data2, fssrc.read(srcpath))
-        
+    
     output = ''
-    if 'output' in kwargs.keys():
-        output = kwargs['output']
-    else:
-        if len(args) > paramindex:
-            output = args[paramindex]
-            paramindex +=1
-
-    outdir = ''
-    if not output or Utility.fs_type_by_prefix(output) != 'hdfs':
-        if destpath:
-            outdir = destpath
+    
+    if fs.isfile(data1):
+        data2 = ''
+        if 'data2' in kwargs.keys():
+            data2 = kwargs['data2']
         else:
-            username = get_username(**kwargs)
-            outdir = os.path.join(username,  str(uuid.uuid4()))
+            if len(args) > paramindex:
+                data2 = args[paramindex]
+                paramindex +=1
+          
+        if data2 and Utility.fs_type_by_prefix(data2) != 'hdfs':
+            fssrc = Utility.fs_by_prefix_or_default(data2)
+            if not destpath:
+                username = get_username(**kwargs)
+                destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
+            srcpath = data2
+            data2 = fs.join(destpath, os.path.basename(data2))
+            fs.write(data2, fssrc.read(srcpath))
+            
+        if 'output' in kwargs.keys():
+            output = kwargs['output']
+        else:
+            if len(args) > paramindex:
+                output = args[paramindex]
+                paramindex +=1
+    
+        outdir = ''
+        if not output or Utility.fs_type_by_prefix(output) != 'hdfs':
+            if destpath:
+                outdir = destpath
+            else:
+                username = get_username(**kwargs)
+                outdir = os.path.join(username,  str(uuid.uuid4()))
+        else:
+            if fs.isdir(output):
+                outdir = output
+                output = ''
+    
+        if outdir and not fs.exists(outdir):
+            fs.makedirs(outdir)
+        
+        if outdir:
+            output = os.path.join(outdir, Path(data1).stem + ".sam")        
     else:
-        if fs.isdir(output):
-            outdir = output
-            output = ''
-
-    if outdir and not fs.exists(outdir):
-        fs.makedirs(outdir)
+        if 'output' in kwargs.keys():
+            output = kwargs['output']
+        else:
+            if len(args) > paramindex:
+                output = args[paramindex]
+                paramindex +=1
     
-    if outdir:
-        output = os.path.join(outdir, Path(data1).stem + ".sam")
+        if not output or Utility.fs_type_by_prefix(output) != 'hdfs':
+            if destpath:
+                output = destpath
+            else:
+                username = get_username(**kwargs)
+                output = os.path.join(username,  str(uuid.uuid4()))
     
+        if output and not fs.exists(output):
+            fs.makedirs(output)
+            
     ref = fs.normalize_fullpath(ref)
     data1 = fs.normalize_fullpath(data1)
     if data2:
         data2 = fs.normalize_fullpath(data2)
     output = fs.normalize_fullpath(output)
-    
+
     runner = 'spark'
     if 'runner' in kwargs.keys():
         runner = kwargs['runner']

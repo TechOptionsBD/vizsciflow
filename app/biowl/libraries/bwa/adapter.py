@@ -41,49 +41,87 @@ def run_bwa(*args, **kwargs):
         paramindex +=1
     
     data1 = fs.normalize_path(data1)
-    
-    data2 = ''
-    if 'data2' in kwargs.keys():
-        data2 = kwargs['data2']
-    else:
-        if len(args) > paramindex:
-            data2 = args[paramindex]
-            paramindex +=1
-    
-    if data2:
-        data2 = fs.normalize_path(data2)
-    
-    output = ''    
-    if 'output' in kwargs.keys():
-        output = kwargs['output']
-    else:
-        if len(args) > paramindex:
-            output = args[paramindex]
-            paramindex +=1
-    
-    if not output:
-        output = Path(data1).stem + ".sam"
-        outdir = fs.make_unique_dir(path.dirname(data1))
-        output = os.path.join(outdir, os.path.basename(output))
-        
-    output = fs.normalize_path(output)
-    
-    if not fs.exists(path.dirname(output)):
-        fs.makedirs(path.dirname(output))
-        
-    if os.path.exists(output):
-        os.remove(output)
 
-    cmdargs = ['mem', ref, data1]
-    if data2:
-        cmdargs.append(data2)
+    output = ''    
+    if fs.isfile(data1):
+        data2 = ''
+        if 'data2' in kwargs.keys():
+            data2 = kwargs['data2']
+        else:
+            if len(args) > paramindex:
+                data2 = args[paramindex]
+                paramindex +=1
         
-    cmdargs.append("-o {0}".format(output))
+        if data2:
+            data2 = fs.normalize_path(data2)
+        
+        if 'output' in kwargs.keys():
+            output = kwargs['output']
+        else:
+            if len(args) > paramindex:
+                output = args[paramindex]
+                paramindex +=1
+            
+        if not output:
+            output = Path(data1).stem + ".sam"
+            outdir = fs.make_unique_dir(path.dirname(data1))
+            output = os.path.join(outdir, os.path.basename(output))
+            
+        output = fs.normalize_path(output)
+        
+        if not fs.exists(path.dirname(output)):
+            fs.makedirs(path.dirname(output))
+            
+        if os.path.exists(output):
+            os.remove(output)
     
-    for arg in args[paramindex + 1:]:
-        cmdargs.append(arg)
-    
-    _,err = func_exec_run(bwa, *cmdargs)
+        cmdargs = ['mem', ref, data1]
+        if data2:
+            cmdargs.append(data2)
+            
+        cmdargs.append("-o {0}".format(output))
+        
+        for arg in args[paramindex + 1:]:
+            cmdargs.append(arg)
+        
+        _,err = func_exec_run(bwa, *cmdargs)
+    else:
+        if 'output' in kwargs.keys():
+            output = kwargs['output']
+        else:
+            if len(args) > paramindex:
+                output = args[paramindex]
+                paramindex +=1
+                
+        datafiles = []
+        for r, _, f in os.walk(data1):
+            for file in f:
+                if file.endswith(".fastq") or file.endswith(".fq"):
+                    datafiles.append(os.path.join(r, file))
+                    
+        if not output:
+            output = fs.make_unique_dir(path.dirname(data1))
+        
+        output = fs.normalize_path(output)
+        if fs.isfile(output):
+            raise ValueError("File already exists: " + output)
+        
+        if not fs.exists(output):
+            fs.makedirs(output)       
+        
+        for datafile in datafiles:
+            try:
+                outfile = Path(datafile).stem + ".sam"
+                if os.path.exists(outfile):
+                    os.remove(outfile)
+                cmdargs = [datafile, "-o {0}".format(outfile)]
+                           
+                for arg in args[paramindex + 1:]:
+                    cmdargs.append(arg)
+        
+                _,err = func_exec_run(bwa, *cmdargs)
+            except:
+                pass # continue in case of exception
     
     stripped_path = fs.strip_root(output)
     if not fs.exists(output):

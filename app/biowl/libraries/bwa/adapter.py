@@ -111,10 +111,11 @@ def run_bwa(*args, **kwargs):
         
         for datafile in datafiles:
             try:
-                outfile = Path(datafile).stem + ".sam"
+                outfile = os.path.join(output, Path(datafile).stem + ".sam")
                 if os.path.exists(outfile):
                     os.remove(outfile)
-                cmdargs = [datafile, "-o {0}".format(outfile)]
+                
+                cmdargs = ['mem', ref, datafile, "-o {0}".format(outfile)]
                            
                 for arg in args[paramindex + 1:]:
                     cmdargs.append(arg)

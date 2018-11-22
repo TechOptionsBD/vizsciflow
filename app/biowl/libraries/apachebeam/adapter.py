@@ -349,7 +349,6 @@ def run_beam_sam_to_bam(*args, **kwargs):
         fs.write(data, fssrc.read(srcpath))
     else:
         fs = Utility.fs_by_prefix(data)
-
     
     output = ''
     if 'output' in kwargs.keys():
@@ -374,9 +373,20 @@ def run_beam_sam_to_bam(*args, **kwargs):
     if outdir and not fs.exists(outdir):
         fs.makedirs(outdir)
     
-    if outdir:
-        output = os.path.join(outdir, Path(data).stem + ".bam")
-
+    if fs.isfile(data):
+        if outdir:
+            output = os.path.join(outdir, Path(data).stem + ".bam")
+    else:
+        if outdir:
+            output = outdir
+        elif output:
+            if not fs.exists(output):
+                fs.makedirs(output)
+            elif fs.isfile(output):
+                output = os.path.dirname(output)
+        else:
+            raise ValueError("Output path can't be found.")
+            
     data = fs.normalize_fullpath(data)
     output = fs.normalize_fullpath(output)
     

@@ -4,6 +4,21 @@ from pathlib import Path
 from os import path
 from ....util import Utility
 
+def exec_sam_to_bam(fs, data, output):
+    output = fs.normalize_path(output)
+    
+    if not fs.exists(path.dirname(output)):
+        fs.makedirs(path.dirname(output))
+        
+    if fs.exists(output):
+        fs.remove(output)
+               
+    infile = pysam.AlignmentFile(data, "r")
+    outfile = pysam.AlignmentFile(output, "wb", template=infile)
+    for s in infile:
+        outfile.write(s)
+    return output
+        
 def run_sam_to_bam(*args, **kwargs):
     
     paramindex = 0
@@ -25,23 +40,36 @@ def run_sam_to_bam(*args, **kwargs):
         if len(args) > paramindex:
             output = args[paramindex]
     
-    if not output:
-        output = Path(data).stem + ".bam"
-        outdir = fs.make_unique_dir(path.dirname(data))
-        output = os.path.join(outdir, path.basename(output))
+    if fs.isfile(data):
+        if not output:
+            output = Path(data).stem + ".bam"
+            outdir = fs.make_unique_dir(path.dirname(data))
+            output = os.path.join(outdir, path.basename(output))
+        output = exec_sam_to_bam(fs, data, output)
+    else:
+        if not output:
+            output = fs.make_unique_dir(path.dirname(data))
         
-    output = fs.normalize_path(output)
+        output = fs.normalize_path(output)
+        if fs.isfile(output):
+            raise ValueError("File already exists: " + output)
+        
+        if not fs.exists(output):
+            fs.makedirs(output)  
+        
+        datafiles = []
+        for r, _, f in os.walk(data):
+            for file in f:
+                if file.endswith(".sam"):
+                    datafiles.append(os.path.join(r, file))
+                    
+        for datafile in datafiles:
+            try:
+                outfile = fs.join(output, Path(datafile).stem + ".bam")
+                exec_sam_to_bam(fs, fs.join(data, datafile), outfile)
+            except:
+                pass
     
-    if not fs.exists(path.dirname(output)):
-        fs.makedirs(path.dirname(output))
-        
-    if fs.exists(output):
-        fs.remove(output)
-               
-    infile = pysam.AlignmentFile(data, "r")
-    outfile = pysam.AlignmentFile(output, "wb", template=infile)
-    for s in infile:
-        outfile.write(s)
     
     stripped_path = fs.strip_root(output)
     if not fs.exists(output):

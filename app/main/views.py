@@ -329,6 +329,8 @@ def download_biowl(path):
     # construct data source tree
     fs = Utility.fs_by_prefix_or_default(path)
     fullpath = fs.download(path)
+    if not fullpath:
+        abort(422)
     mime = mimetypes.guess_type(fullpath)[0]
     return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 

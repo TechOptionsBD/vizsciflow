@@ -272,7 +272,11 @@ class Library():
             result = function(*arguments, **kwargs)
             try:
                 if task:
-                    task.succeeded(DataType.File, result)
+                    datatype = DataType.Unknown
+                    fs = Utility.fs_by_prefix(result)
+                    if fs and fs.isfile(result):
+                        datatype = DataType.File
+                    task.succeeded(datatype, result)
             finally:
                 return result
         except Exception as e:

@@ -976,17 +976,21 @@ background-color: White;
             var cell = $("<td>" + value['name'] + "</td>")
            		.css('overflow', 'hidden')
            		.css('word-wrap', 'break-word');
-           row.append(cell);
-            
-            cell = $('<td></td>');
-            var link =  $('<a />', {
-                'href': 'javascript:void(0)',
-                'text': value['data']
-            }).on('click', function() {
-            	//window.open('data:text/plain;charset=utf-8,' + str);
-            	$.redirect('/datasources', { 'download': value['data'] }, "POST", "_blank");
-            });
-            cell.append(link)            
+            row.append(cell);
+            if (parseInt(value['datatype']) === 2) {
+	            cell = $('<td></td>');
+	            var link =  $('<a />', {
+	                'href': 'javascript:void(0)',
+	                'text': value['data']
+	            }).on('click', function() {
+	            	//window.open('data:text/plain;charset=utf-8,' + str);
+	           		$.redirect('/datasources', { 'download': value['data'] }, "POST", "_blank");
+	            });
+	            cell.append(link);
+            }
+            else {
+            	cell = "<td>" + value['data'] + "</td>";
+            }
             row.append(cell);
             
             cell = "<td>" + value['status'] + "</td>";

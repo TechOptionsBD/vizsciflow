@@ -838,7 +838,7 @@ background-color: White;
    // Custom business method 
    function customBusiness(data){
        var pos = editor.selection.getCursor();             
-       editor.session.insert(pos, data.path);
+       editor.session.insert(pos,  "'" + data.path + "'");
        editor.focus();
    }
 

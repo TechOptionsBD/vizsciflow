@@ -568,13 +568,6 @@ background-color: White;
           		$(this).addClass('selected').siblings().removeClass('selected')
         	});
             
-            refreshId = setInterval(function() 
-            {
-                if (runnablesViewModel !== undefined) {
-                	runnablesViewModel.load();
-                }
-            }, 10000); //  refresh the executables once in 10 seconds
-            
           //Toggle fullscreen
             $("#panel-fullscreen").click(function (e) {
                 e.preventDefault();
@@ -1121,7 +1114,7 @@ background-color: White;
               $('#refresh').show();
               var formdata = new FormData();
               
-              formdata.append('workflowId', workflowId);
+              formdata.append('workflowId', parseInt(workflowId));
               formdata.append('script', script);
               formdata.append('args', $('#args').val());
               formdata.append('immediate', $('#immediate').prop('checked'));
@@ -1296,7 +1289,7 @@ background-color: White;
         		   var pos = editor.selection.getCursor();        	   
                    editor.session.insert(pos, data['script'].join('\r\n'));
                    editor.focus();
-                   workflowId = item.id;
+                   workflowId = item.id();
             	   
                }).fail(function(jqXHR) {
                    
@@ -1669,6 +1662,30 @@ background-color: White;
             if (refreshId != 0)
                 clearInterval(refreshId);
         });
+        
+        $(window).on("blur focus", function(e) {
+            var prevType = $(this).data("prevType");
+
+            if (prevType != e.type) {   //  reduce double fire issues
+                switch (e.type) {
+                    case "blur":
+                    	clearInterval(refreshId);
+                    	refreshId = 0;
+                        break;
+                    case "focus":
+                    	if (!refreshId) {
+                    		refreshId = setInterval(function() {
+                    			if (runnablesViewModel !== undefined)
+                    				runnablesViewModel.load();
+                            }, 10000); //  refresh the executables once in 10 seconds
+                    	}
+                        break;
+                }
+            }
+
+            $(this).data("prevType", e.type);
+        })
+        
   </script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}

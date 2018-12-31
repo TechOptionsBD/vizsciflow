@@ -9,11 +9,14 @@
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css">
 
-<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.min.js"></script>
+<!-- <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script> -->
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<!-- <script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.min.js"></script> -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
-<script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+<!-- <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script>
 <!-- <script src="http://ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script> -->
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ace.js') }}"></script>
 <!-- <script src="ace-builds/src-min-noconflict/ext-language_tools.js"></script> -->
@@ -501,6 +504,8 @@ background-color: White;
     
     <script type="text/javascript">
     var refreshId = 0;
+    var workflowId = 0;
+    
     $(window).on('load', function() {
     	    	
     	$('#refresh').hide();
@@ -1006,6 +1011,7 @@ background-color: White;
         function TasksViewModel() {
             var self = this;
             self.tasksURI = '/functions';
+            //self.updateWorkflowURI = '/workflow';
             self.username = "";
             self.password = "";
             self.tasks = ko.observableArray();
@@ -1097,6 +1103,16 @@ background-color: White;
                 $('#add').modal('show');
             }
             
+//             self.updateWorkflow = function(task) {
+//                 var script = $.trim(editor.getSession().getValue());
+//                 if (!script && !workflowId)
+//               	  return; // workflow is not set
+              	 
+//                 ajaxcalls.simple(self.updateWorkflowURI, 'GET', { 'workflowId': workflowId, 'script': script }).done(function(workflowId) {
+//                 	workflowId = workflowId;
+//                 });
+//             }
+            
             self.runBioWL = function(task) {
               var script = $.trim(editor.getSession().getValue());
               if (!script)
@@ -1105,6 +1121,7 @@ background-color: White;
               $('#refresh').show();
               var formdata = new FormData();
               
+              formdata.append('workflowId', workflowId);
               formdata.append('script', script);
               formdata.append('args', $('#args').val());
               formdata.append('immediate', $('#immediate').prop('checked'));
@@ -1117,23 +1134,23 @@ background-color: White;
                 	data = JSON.parse(data)
                 	if ($.isEmptyObject(data))
                 		return;
+                	workflowId = data['workflowId'];
+//                 	if (data['err'] && data['status'] !== 'SUCCESS')
+//                     	activateTab(2);
+//                     else {
+//                     	if (!$.isEmptyObject(data['log']))
+//                     		activateTab(3);
+//                     	else
+//                     		activateTab(1);
+//                     }
                 	
-                	if (data['err'] && data['status'] !== 'SUCCESS')
-                    	activateTab(2);
-                    else {
-                    	if (!$.isEmptyObject(data['log']))
-                    		activateTab(3);
-                    	else
-                    		activateTab(1);
-                    }
-                	
-                    $("#output").val(data['out']);
-                    $("#error").val(data['err']);
-                    $("#log tbody").empty();
-                    jsonArray2Table($("#log"), data['log']);
-                    $("#duration").text(data['duration'] + 's');
-                    $("#execstatus").text(data['status']);
-                    runnablesViewModel.load();                    
+//                     $("#output").val(data['out']);
+//                     $("#error").val(data['err']);
+//                     $("#log tbody").empty();
+//                     jsonArray2Table($("#log"), data['log']);
+//                     $("#duration").text(data['duration'] + 's');
+//                     $("#execstatus").text(data['status']);
+//                     runnablesViewModel.load();                    
                 }).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
                 	$("#error").val(jqXHR.statusText);
@@ -1279,6 +1296,7 @@ background-color: White;
         		   var pos = editor.selection.getCursor();        	   
                    editor.session.insert(pos, data['script'].join('\r\n'));
                    editor.focus();
+                   workflowId = item.id;
             	   
                }).fail(function(jqXHR) {
                    

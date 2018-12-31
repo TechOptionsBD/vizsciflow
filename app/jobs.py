@@ -16,7 +16,7 @@ from . import celery
 from .biowl.dsl.parser import PhenoWLParser, PythonGrammar
 from .biowl.dsl.interpreter import Interpreter
 from .biowl.timer import Timer
-from .models import Runnable, Status
+from .models import Runnable, Status, Workflow
 
 
 class ContextTask(AbortableTask):
@@ -130,19 +130,14 @@ class RequestContextTask(AbortableTask):
         kwargs[self.GLOBALS_ARG_NAME] = d
              
 @celery.task(bind=True, base=RequestContextTask)#, base = AbortableTask
-def run_script(self, user_id, library, script, args):
+def run_script(self, library, workflow_id, args):
     parserdir = Config.BIOWL
     curdir = os.getcwd()
     os.chdir(parserdir) #set dir of this file to current directory
     duration = 0
     
-    runnable = Runnable.create_runnable(user_id)
-    runnable.script = script
-    runnable.name = script[:min(40, len(script))]
-    if len(script) > len(runnable.name):
-        runnable.name += "..."
-    runnable.arguments = args
-    runnable.update()
+    workflow = Workflow.query.get(workflow_id)
+    runnable = Runnable.create(workflow_id, workflow.script, args)
 
     machine = Interpreter()
     try:
@@ -159,7 +154,7 @@ def run_script(self, user_id, library, script, args):
             if args:
                 args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
                 machine.args_to_symtab(args_tokens) 
-            prog = parser.parse(script)
+            prog = parser.parse(runnable.script)
             machine.run(prog)                
         duration = float("{0:.3f}".format(t.secs))
 
@@ -199,7 +194,7 @@ def sync_task_status_with_db(task):
     return task.status
     
 def sync_task_status_with_db_for_user(user_id):
-    tasks = Runnable.query.filter(Runnable.user_id == user_id)
+    tasks = Runnable.query.join(Workflow).filter(Workflow.user_id == user_id)
     for task in tasks:
         if not task.completed():
             sync_task_status_with_db(task)

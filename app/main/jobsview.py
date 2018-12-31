@@ -9,7 +9,7 @@ import pathlib
 import mimetypes
 
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
-from ..models import Runnable
+from ..models import Runnable, Workflow, AccessType
 from . import main
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
@@ -42,14 +42,20 @@ class LibraryHelper():
 
 library = LibraryHelper()
 
-def run_biowl(user_id, script, args, immediate = True, pygen = False):
+def run_biowl(user_id, workflow_id, script, args, immediate = True, pygen = False):
     try:
-        if immediate:
-            result = run_script(user_id, library.library, script, args)
-            return json.dumps(result)
+        if workflow_id:
+            workflow = Workflow.query.get(workflow_id)
+            workflow.update_script(script)
         else:
-            run_script.delay(user_id, library.library, script, args)
-            return json.dumps({})
+            workflow = Workflow.create(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
+                
+        if immediate:
+            run_script(library.library, workflow.id, args)
+        else:
+            run_script.delay(library.library, workflow.id, args)
+            
+        return json.dumps({'workflowId': workflow.id})
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
 
@@ -75,11 +81,12 @@ def unique_filename(path, prefix, ext):
 def functions():
     if request.method == "POST":
         if request.form.get('script') or request.form.get('code'):
+            workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
             script = request.form.get('script') if request.form.get('script') else request.form.get('code')
             args = request.form.get('args') if request.form.get('args') else ''
             immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
             pygen = True if request.form.get('code') else False
-            return run_biowl(current_user.id, script, args, immediate, pygen)
+            return run_biowl(current_user.id, workflowId, script, args, immediate, pygen)
         
         elif request.form.get('mapper'):
             result = {"out": [], "err": []}
@@ -179,7 +186,7 @@ def functions():
         return get_functions(level, access)
 
 def get_user_status(user_id):
-    return jsonify(runnables =[i.to_json_info() for i in Runnable.query.filter(Runnable.user_id == user_id).order_by(Runnable.id)])
+    return jsonify(runnables =[i.to_json_info() for i in Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.id)])
 
 def get_task_status(task_id):
     runnable = Runnable.query.get(task_id)

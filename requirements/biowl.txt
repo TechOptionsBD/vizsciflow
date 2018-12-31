@@ -12,3 +12,4 @@ Flask-SSLify
 coverage
 typing
 scp
+demultiplex==1.0.0

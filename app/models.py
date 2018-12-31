@@ -461,7 +461,12 @@ class AccessRights:
     @staticmethod
     def writeRequested(rights):
         return AccessRights.Requested(rights) and AccessRights.Requested(rights, AccessRights.Write)
-    
+
+class AccessType:
+    PUBLIC = 0
+    SHARED = 1
+    PRIVATE = 2
+        
 class Workflow(db.Model):
     __tablename__ = "workflows"
     id = db.Column(db.Integer, primary_key=True)
@@ -474,9 +479,10 @@ class Workflow(db.Model):
     desc = db.Column(db.Text, default='', nullable=True)
     script = db.Column(JSON, nullable=False)
     public = db.Column(db.Boolean, default=False)
+    temp = db.Column(db.Boolean, default=False)
     
-    accesses = db.relationship('WorkflowAccess', backref='workflow', lazy=True) #cascade="all,delete-orphan", 
-    runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflows', lazy='dynamic')
+    accesses = db.relationship('WorkflowAccess', backref='workflow', lazy=True, cascade="all,delete-orphan") 
+    runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflow', lazy='dynamic')
     #children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
     
     def add_access(self, user_id, rights =  AccessRights.NotSet):
@@ -491,16 +497,16 @@ class Workflow(db.Model):
             raise
     
     @staticmethod
-    def create(user_id, name, desc, script, access, users):
+    def create(user_id, name, desc, script, access, users, temp=False):
         try:
             wf = Workflow()
             wf.user_id = user_id
             wf.name = name
             wf.desc = desc
             wf.script = script
-            wf.public = int(access) == 0
-            
-            if (int(access) == 1 and users):
+            wf.public = (access == AccessType.PUBLIC)
+            wf.temp = temp
+            if (access == AccessType.SHARED and users):
                 for username in users:
                     user = User.query.filter(User.username == username).first()
                     if user:
@@ -512,7 +518,11 @@ class Workflow(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
-        
+    
+    def update_script(self, script):
+        self.script = script
+        db.session.commit()
+            
     def to_json(self):
         json_post = {
             'id': self.id,
@@ -565,8 +575,8 @@ class Service(db.Model):
     returns = db.Column(db.Text)
     example2 = db.Column(JSON, nullable=True)
     
-    accesses = db.relationship('ServiceAccess', backref='service', lazy=True) #cascade="all,delete-orphan", 
-    params = db.relationship('Param', backref='service', lazy=True) #cascade="all,delete-orphan",
+    accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
+    params = db.relationship('Param', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan",
     
     def to_json(self):
         json_post = {
@@ -617,13 +627,15 @@ class DataType:
     SQL = 0x80
     Custom = 0x100
     Root = 0x200
+
     
 class DataSourceAllocation(db.Model):
-     __tablename__ = 'datasource_allocations'  
-     id = db.Column(db.Integer, primary_key=True)
-     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'))
-     url = db.Column(db.Text) # part added to the data source url
+    __tablename__ = 'datasource_allocations'  
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'))
+    url = db.Column(db.Text)  # part added to the data source url
+
 
 class Data(db.Model):
     __tablename__ = 'data'
@@ -755,9 +767,9 @@ class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)
     workflow_id  = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    #user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     celery_id = db.Column(db.String(64))
-    name = db.Column(db.String(64))
+    #name = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
     script = db.Column(db.Text)
     arguments = db.Column(db.Text)
@@ -767,7 +779,7 @@ class Runnable(db.Model):
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
     
-    tasks = db.relationship('Task', backref='runnable', lazy=True) #cascade="all,delete-orphan", 
+    tasks = db.relationship('Task', backref='runnable', lazy=True, cascade="all,delete-orphan") 
     
     def updateTime(self):
         try:
@@ -801,7 +813,7 @@ class Runnable(db.Model):
         
         return {
             'id': self.id,
-            'name': self.name,
+            'name': self.workflow.name,
             'script': self.script,
             'status': self.status,
             'out': self.out,
@@ -830,16 +842,19 @@ class Runnable(db.Model):
     def to_json_info(self):
         return {
             'id': self.id,
-            'name': self.name,
+            'name': self.workflow.name,
             'status': self.status
         }
         
     @staticmethod
-    def create_runnable(user_id):
+    def create(workflow_id, script, args):
         try:
             runnable = Runnable()
-            runnable.user_id = user_id
+            runnable.workflow_id = workflow_id
+            runnable.script = script
+            runnable.args = args
             runnable.status = Status.PENDING
+            
             db.session.add(runnable)
             db.session.commit()
             return runnable

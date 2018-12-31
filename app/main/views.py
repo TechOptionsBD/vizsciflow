@@ -516,7 +516,7 @@ class Samples():
 @login_required
 def samples():
     if request.form.get('sample'):
-        return Samples.add_workflow(request.form.get('sample'), request.form.get('name'), request.form.get('desc'), request.form.get('access'), request.form.get('users'))
+        return Samples.add_workflow(request.form.get('sample'), request.form.get('name'), request.form.get('desc'), int(request.form.get('access')), request.form.get('users'), False)
     elif request.args.get('sample_id'):
         workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
         return json.dumps(workflow.to_json())

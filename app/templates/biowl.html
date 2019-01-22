@@ -23,6 +23,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ext-language_tools.js') }}"></script>
 <!-- <script src="ace-builds/src-min-noconflict/ext-language_tools.js"></script> -->
 <script src="https://cdn.rawgit.com/mgalante/jquery.redirect/master/jquery.redirect.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.js"></script> -->
 <style>
 
 .odd-row {
@@ -79,6 +80,11 @@ background-color: White;
     background-color: #ccc;
 }
 
+/* @media (min-width: auto) { */
+/*     .container{ */
+/*         max-width: auto; */
+/*     } */
+/* } */
 </style>
 
 {% endblock %}
@@ -153,6 +159,7 @@ background-color: White;
 	        <div class="panel panel-primary" style="padding:0px; border:0;margin:4px">
 		        <div class="panel-body" style="padding:0">
 			        <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
+			        <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: buildGraph">Graph</button>
 			        <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
                     <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
 			        <label class="checkbox-inline"><input type="checkbox" id="immediate">Immediate</label> 
@@ -235,8 +242,8 @@ background-color: White;
 	                </div>
 	               	<div data-bind="foreach: filteredTasks">
                        <div class="row menu_button" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%;margin:0">
-                       		<div class="col-sm-6 draggable-func" style="word-wrap: break-word" data-bind="text: name"></div>
-                       		<div class="col-sm-6" style="float:right;">
+                       		<div class="col-md-auto draggable-func" style="word-wrap: break-word" data-bind="text: name"></div>
+                       		<div class="col" style="float:right;">
                             	<span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
                        		</div>
                        </div>
@@ -505,6 +512,7 @@ background-color: White;
     <script type="text/javascript">
     var refreshId = 0;
     var workflowId = 0;
+    var isDirty = false;
     
     $(window).on('load', function() {
     	    	
@@ -597,11 +605,11 @@ background-color: White;
     	self.username = username;
     	self.password = password;
     	
-    	self.form = function(uri, method, data) {
+    	self.form = function(uri, method, data, asyncParam = true) {
             var request = {
                     url: uri,
                     type: method,
-                    async: true,
+                    async: asyncParam,
                     contentType: false,
                     processData: false,
                     cache: false,
@@ -617,11 +625,11 @@ background-color: White;
                 return $.ajax(request);
         }
         
-        self.simple = function(uri, method, data) {
+        self.simple = function(uri, method, data, asyncParam = true) {
             var request = {
                     url: uri,
                     type: method,
-                    async: true,
+                    async: asyncParam,
                     contentType: "application/json",
                     accepts: "application/json",
                     cache: false,
@@ -927,6 +935,9 @@ background-color: White;
     //editor.setTheme("ace/theme/twilight");
     editor.setTheme("ace/theme/iplastic");
     editor.setShowPrintMargin(false);
+    editor.on("input", function() {
+        isDirty = !editor.session.getUndoManager().isClean();
+    });
     
     $("#aceeditor").droppable({
 
@@ -975,16 +986,24 @@ background-color: White;
            		.css('overflow', 'hidden')
            		.css('word-wrap', 'break-word');
             row.append(cell);
-            if (parseInt(value['datatype']) === 2) {
-	            cell = $('<td></td>');
-	            var link =  $('<a />', {
-	                'href': 'javascript:void(0)',
-	                'text': value['data']
-	            }).on('click', function() {
-	            	//window.open('data:text/plain;charset=utf-8,' + str);
-	           		$.redirect('/datasources', { 'download': value['data'] }, "POST", "_blank");
-	            });
-	            cell.append(link);
+            if (parseInt(value['datatype']) === 2 || parseInt(value['datatype']) === 1024) {
+            	cell = $('<td></td>');
+    			data = value['data'];
+            	if (!Array.isArray(data)) {
+        			data = [data];
+				}
+            	$.each(data, function (key, val) {
+		            var link =  $('<a />', {
+		                'href': 'javascript:void(0)',
+		                'text': val
+		            }).on('click', function() {
+		            	//window.open('data:text/plain;charset=utf-8,' + str);
+		           		$.redirect('/datasources', { 'download': val }, "POST", "_blank");
+		            });
+		            	
+		            cell.append(link);
+		            cell.append('; ');
+            	});
             }
             else {
             	cell = "<td>" + value['data'] + "</td>";
@@ -1004,7 +1023,7 @@ background-color: White;
         function TasksViewModel() {
             var self = this;
             self.tasksURI = '/functions';
-            //self.updateWorkflowURI = '/workflow';
+            self.graphsURI = '/graphs';
             self.username = "";
             self.password = "";
             self.tasks = ko.observableArray();
@@ -1096,17 +1115,26 @@ background-color: White;
                 $('#add').modal('show');
             }
             
-//             self.updateWorkflow = function(task) {
-//                 var script = $.trim(editor.getSession().getValue());
-//                 if (!script && !workflowId)
-//               	  return; // workflow is not set
-              	 
-//                 ajaxcalls.simple(self.updateWorkflowURI, 'GET', { 'workflowId': workflowId, 'script': script }).done(function(workflowId) {
-//                 	workflowId = workflowId;
-//                 });
-//             }
+            self.updateWorkflow = function() {
+                var script = $.trim(editor.getSession().getValue());
+                if ((!script && !workflowId) || editor.session.getUndoManager().isClean())
+              	  return; // if script emtpy and workflowId not set, it means (empty) workflow is not set yet.
+              	
+              	var formdata = new FormData();
+                
+                formdata.append('workflowId', parseInt(workflowId));
+                formdata.append('script', script);
+                
+                ajaxcalls.form(self.tasksURI, 'POST', formdata, false).done(function(data) {
+                	if (!$.isEmptyObject(data)) {
+                		workflowId = parseInt(data['workflowId']);
+                		editor.session.getUndoManager().markClean();
+                	}
+                });
+            }
             
             self.runBioWL = function(task) {
+              self.updateWorkflow();
               var script = $.trim(editor.getSession().getValue());
               if (!script)
             	  return;
@@ -1115,7 +1143,6 @@ background-color: White;
               var formdata = new FormData();
               
               formdata.append('workflowId', parseInt(workflowId));
-              formdata.append('script', script);
               formdata.append('args', $('#args').val());
               formdata.append('immediate', $('#immediate').prop('checked'));
               self.clearResults();
@@ -1127,29 +1154,56 @@ background-color: White;
                 	data = JSON.parse(data)
                 	if ($.isEmptyObject(data))
                 		return;
-                	workflowId = data['workflowId'];
-//                 	if (data['err'] && data['status'] !== 'SUCCESS')
-//                     	activateTab(2);
-//                     else {
-//                     	if (!$.isEmptyObject(data['log']))
-//                     		activateTab(3);
-//                     	else
-//                     		activateTab(1);
-//                     }
                 	
-//                     $("#output").val(data['out']);
-//                     $("#error").val(data['err']);
-//                     $("#log tbody").empty();
-//                     jsonArray2Table($("#log"), data['log']);
-//                     $("#duration").text(data['duration'] + 's');
-//                     $("#execstatus").text(data['status']);
-//                     runnablesViewModel.load();                    
+                	if (data['err'] && data['status'] !== 'SUCCESS')
+                    	activateTab(2);
+                    else {
+                    	if (!$.isEmptyObject(data['log']))
+                    		activateTab(3);
+                    	else
+                    		activateTab(1);
+                    }
+                	
+                    $("#output").val(data['out']);
+                    $("#error").val(data['err']);
+                    $("#log tbody").empty();
+                    jsonArray2Table($("#log"), data['log']);
+                    $("#duration").text(data['duration'] + 's');
+                    $("#execstatus").text(data['status']);
+                    runnablesViewModel.load();                    
                 }).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
                 	$("#error").val(jqXHR.statusText);
                 	activateTab(2);
                 });
             }
+            
+            self.buildGraph = function(task) {
+            	self.updateWorkflow();
+                if (!$.trim(editor.getSession().getValue()))
+              	  return;
+                
+                var formdata = new FormData();
+                
+                formdata.append('workflowId', parseInt(workflowId));
+                ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function(data) {
+                  	
+                  	if (data === undefined)
+                  		return;
+                  	data = JSON.parse(data)
+                  	if ($.isEmptyObject(data))
+                  		return;
+                  	graphId = data['graphId'];
+                  	
+                  	$.redirect(self.graphsURI, { 'graph_id': graphId }, "POST", "_blank");
+                  	
+                 }).fail(function(jqXHR, textStatus) {
+                 	$('#refresh').hide();
+                 	$("#error").val(jqXHR.statusText);
+                 	activateTab(2);
+                });
+            }
+            
             self.provenance = function() {
             	$.redirect(self.tasksURI, { 'provenance': true }, "POST", "_blank");
            	}

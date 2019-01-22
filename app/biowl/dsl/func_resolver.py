@@ -272,10 +272,12 @@ class Library():
             result = function(*arguments, **kwargs)
             try:
                 if task:
-                    datatype = DataType.Unknown
-                    fs = Utility.fs_by_prefix(result)
-                    if fs and fs.isfile(result):
-                        datatype = DataType.File
+                    if result:
+                        datatype = DataType.Unknown
+                        output1 = result[0] if isinstance(result, list) else result
+                        fs = Utility.fs_by_prefix_or_default(output1)
+                        if fs and fs.isfile(output1):
+                            datatype = DataType.FileList if isinstance(result, list) else DataType.File
                     task.succeeded(datatype, result)
             finally:
                 return result

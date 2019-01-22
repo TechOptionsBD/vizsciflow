@@ -627,6 +627,7 @@ class DataType:
     SQL = 0x80
     Custom = 0x100
     Root = 0x200
+    FileList = 0x400
 
     
 class DataSourceAllocation(db.Model):
@@ -720,7 +721,7 @@ class Task(db.Model):
             self.add_log(Status.SUCCESS, LogType.INFO)
             self.ended_on = datetime.utcnow()
             self.data = result
-            self.datatype = datatype      
+            self.datatype = datatype
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
@@ -729,6 +730,7 @@ class Task(db.Model):
     def failed(self, log = "Task Failed."):
         try:
             self.status = Status.FAILURE
+            self.datatype = DataType.Unknown
             self.add_log(log, LogType.ERROR)
             self.add_log(Status.FAILURE, LogType.INFO)        
             self.ended_on = datetime.utcnow()
@@ -746,6 +748,17 @@ class Task(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+        
+    def to_json_log(self):
+        log = { 
+            'name': self.name if self.name else "", 
+            'datatype': self.datatype, 
+            'status': self.status,
+            'data': self.data
+        }
+        if self.status == Status.SUCCESS and (self.datatype & DataType.FileList) > 0:
+            log['data'] = log['data'].strip('}{').split(',')
+        return log
        
 class TaskLog(db.Model):
     __tablename__ = 'tasklogs'
@@ -827,7 +840,7 @@ class Runnable(db.Model):
         log = []
 
         for task in self.tasks:
-            log.append({ 'name': task.name if task.name else "", 'datatype': task.datatype, 'data': task.data, 'status': task.status })
+            log.append(task.to_json_log())
 
         return {
             'id': self.id,

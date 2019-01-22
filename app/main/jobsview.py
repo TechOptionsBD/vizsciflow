@@ -8,11 +8,11 @@ import shutil
 import pathlib
 import mimetypes
 
-from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
+from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user, generate_graph
 from ..models import Runnable, Workflow, AccessType
 from . import main
 from flask_login import login_required, current_user
-from flask import request, jsonify, current_app, send_from_directory, make_response
+from flask import request, jsonify, current_app, send_from_directory, make_response, flash
 from werkzeug.utils import secure_filename
 
 from ..biowl.dsl.func_resolver import Library
@@ -42,7 +42,7 @@ class LibraryHelper():
 
 library = LibraryHelper()
 
-def run_biowl(user_id, workflow_id, script, args, immediate = True, pygen = False):
+def update_workflow(user_id, workflow_id, script):
     try:
         if workflow_id:
             workflow = Workflow.query.get(workflow_id)
@@ -50,12 +50,26 @@ def run_biowl(user_id, workflow_id, script, args, immediate = True, pygen = Fals
         else:
             workflow = Workflow.create(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
                 
+        return jsonify(workflowId = workflow.id)
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
+    
+def run_biowl(workflow_id, args, immediate = True):
+    try:
+        workflow = Workflow.query.get(workflow_id)
+                
         if immediate:
-            run_script(library.library, workflow.id, args)
+            return json.dumps(run_script(library.library, workflow.id, args))
         else:
             run_script.delay(library.library, workflow.id, args)
-            
-        return json.dumps({'workflowId': workflow.id})
+            return json.dumps({})
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
+
+def build_graph(workflow_id):
+    try:
+        graph_id = generate_graph(workflow_id)
+        return jsonify(graph_id = graph_id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
 
@@ -80,13 +94,19 @@ def unique_filename(path, prefix, ext):
 @login_required
 def functions():
     if request.method == "POST":
-        if request.form.get('script') or request.form.get('code'):
+        if request.form.get('workflowId'):
             workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
-            script = request.form.get('script') if request.form.get('script') else request.form.get('code')
+            if request.form.get('script'):
+                return update_workflow(current_user.id, workflowId, request.form.get('script'));
+            
+            # Here we must have a valid workflow id
+            if not workflowId:
+                flash("Invalid workflow to run. Check if the workflow is already saved.")
+                return json.dumps({})
+            
             args = request.form.get('args') if request.form.get('args') else ''
             immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
-            pygen = True if request.form.get('code') else False
-            return run_biowl(current_user.id, workflowId, script, args, immediate, pygen)
+            return run_biowl(workflowId, args, immediate)
         
         elif request.form.get('mapper'):
             result = {"out": [], "err": []}
@@ -169,7 +189,7 @@ def functions():
                                 
                     os.remove(base)
                     with open(base, 'w') as f:
-                        json.dump(data, f, indent=4)
+                        json.dumps(data, f, indent=4)
                     library.reload()
                     
                     result['out'].append("Library successfully added.")
@@ -184,6 +204,19 @@ def functions():
         level = int(request.args.get('level')) if request.args.get('level') else 0
         access = int(request.args.get('access')) if request.args.get('access') else 0
         return get_functions(level, access)
+
+@main.route('/graphs', methods=['GET', 'POST'])
+@login_required
+def graphs():
+    if request.method == "POST":
+#        if request.form.get('script'):
+        workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
+        if not workflowId:
+            flash('Invalid workflow. Check if the workflow is already saved.')
+            return json.dumps({})
+        else:
+            return build_graph(workflowId)
+    return json.dumps({})
 
 def get_user_status(user_id):
     return jsonify(runnables =[i.to_json_info() for i in Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.id)])

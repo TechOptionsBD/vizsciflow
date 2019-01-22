@@ -7,6 +7,14 @@ def func_exec_stdout(app, *args):
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     return p.stdout, p.stderr
 
+def func_exec_bash_stdout(app, *args):
+    cmd = ["/bin/bash", app]
+    if args:
+        cmd.append(' '.join(args))
+    out, err = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    return out.decode('utf-8'), err.decode('utf-8')
+    
+
 def func_exec_run(app, *args):
     out, err = func_exec_stdout(app, *args)
     return out.decode('utf-8'), err.decode('utf-8')

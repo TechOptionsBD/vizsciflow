@@ -473,7 +473,7 @@ class Samples():
                 sample = sample.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'")
                 lines = sample.split("\n")
                 users = users.split(";") if users else []
-                workflow = Workflow.create(current_user.id, name, desc if desc else '', json.dumps(lines), 2 if not access else access, users)
+                workflow = Workflow.create(current_user.id, name, desc if desc else '', json.dumps(lines), 2 if not access else int(access), users)
                 return json.dumps(workflow.to_json_info());
         except:
             return json.dumps({})
@@ -516,12 +516,10 @@ class Samples():
 @login_required
 def samples():
     if request.form.get('sample'):
-        return Samples.add_workflow(request.form.get('sample'), request.form.get('name'), request.form.get('desc'), int(request.form.get('access')), request.form.get('users'), False)
+        return Samples.add_workflow(request.form.get('sample'), request.form.get('name'), request.form.get('desc'), request.form.get('access'), request.form.get('users'))
     elif request.args.get('sample_id'):
         workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
         return json.dumps(workflow.to_json())
-            
-    
+               
     access = int(request.args.get('access')) if request.args.get('access') else 0
     return json.dumps({'samples': Samples.get_samples_as_list(access)})
-

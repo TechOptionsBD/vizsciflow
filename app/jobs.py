@@ -15,6 +15,7 @@ from config import Config
 from . import celery
 from .biowl.dsl.parser import PhenoWLParser, PythonGrammar
 from .biowl.dsl.interpreter import Interpreter
+from .biowl.dsl.graphgen import GraphGenerator
 from .biowl.timer import Timer
 from .models import Runnable, Status, Workflow
 
@@ -198,3 +199,8 @@ def sync_task_status_with_db_for_user(user_id):
     for task in tasks:
         if not task.completed():
             sync_task_status_with_db(task)
+            
+def generate_graph(workflow_id):
+    workflow = Workflow.query.get(workflow_id)
+    graphgen = GraphGenerator(Config.GRAPHDB, Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD)
+    return graphgen.run_workflow(workflow)

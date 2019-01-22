@@ -122,7 +122,10 @@ class PosixFileSystem():
             return writer.write(content)
         
     def unique_filename(self, path, prefix, ext):
-        make_fn = lambda i: os.path.join(self.normalize_path(path), '{0}_{1}.{2}'.format(prefix, i, ext))
+        stem = pathlib.Path(prefix).stem
+        if not ext:
+            ext = pathlib.Path(prefix).suffix
+        make_fn = lambda i: self.join(path, '{0}_{1}.{2}'.format(stem, i, ext) if ext else '{0}_{1}'.format(stem, i))
 
         for i in range(1, sys.maxsize):
             uni_fn = make_fn(i)
@@ -186,6 +189,16 @@ class PosixFileSystem():
             return path
         else:
             return None
+    
+    def basename(self, path):
+        path = self.normalize_path(path)
+        return os.path.basename(path)
+    
+    #check again
+    def dirname(self, path):
+        path = self.strip_root(path)
+        return os.path.dirname(path) if path.startswith('/') else path
+    
                                    
 class HadoopFileSystem():
     timeout = 20 # 100s timeout
@@ -294,7 +307,10 @@ class HadoopFileSystem():
             yield f
     
     def unique_filename(self, path, prefix, ext):
-        make_fn = lambda i: os.path.join(self.normalize_path(path), '{0}_{1}.{2}'.format(prefix, i, ext))
+        stem = pathlib.Path(prefix).stem
+        if not ext:
+            ext = pathlib.Path(prefix).suffix
+        make_fn = lambda i: self.join(path, '{0}_{1}.{2}'.format(stem, i, ext) if ext else '{0}_{1}'.format(stem, i))
 
         for i in range(1, sys.maxsize):
             uni_fn = make_fn(i)

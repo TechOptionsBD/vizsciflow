@@ -1269,7 +1269,7 @@ background-color: White;
                           internal: ko.observable(f.internal),
                           example: ko.observable(f.example),
                           example2: ko.observable(f.example2),
-                          desc: ko.observable(f.desc + "\nDouble click to insert into code editor."),
+                          desc: ko.observable(f.desc + "\nReturns: " + f.returns + "\nExample:\n    " + (self.selectedCategory().Id == 0 ? f.example : f.example2) + "\nDouble click to insert into code editor."),
                           runmode: ko.observable(f.runmode),
                           group: ko.observable(f.group)
                       });

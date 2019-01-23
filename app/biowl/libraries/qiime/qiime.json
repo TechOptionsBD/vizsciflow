@@ -82,7 +82,7 @@
 			"internal": "run_qiime_deblur_denoise_16s",
 			"runmode": "local",
 			"desc": "Detects and corrects Illumina amplicon sequence data.",
-			"returns": "file[]seqs,table,stats",
+			"returns": "file[seqs,table,stats]",
 			"example": "dataList = qiime.DeblurDenoise16S(data, trimlen=120)",
 			"example2": "data = qiime.DeblurDenoise16S(data=data, trimlen=120, repseqs='', table='', stats='')",
 			"params": [				

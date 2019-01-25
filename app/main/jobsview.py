@@ -11,6 +11,7 @@ import mimetypes
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user, generate_graph
 from ..models import Runnable, Workflow, AccessType
 from . import main
+from .views import Samples
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response, flash
 from werkzeug.utils import secure_filename
@@ -46,9 +47,9 @@ def update_workflow(user_id, workflow_id, script):
     try:
         if workflow_id:
             workflow = Workflow.query.get(workflow_id)
-            workflow.update_script(script)
+            workflow.update_script(Samples.jsonify_script(script))
         else:
-            workflow = Workflow.create(user_id, "No Name", "No Description. Is it a no name workflow?", script, AccessType.PRIVATE, '', True)
+            workflow = Samples.add_workflow(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
                 
         return jsonify(workflowId = workflow.id)
     except Exception as e:

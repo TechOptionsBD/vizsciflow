@@ -437,7 +437,7 @@ class Samples():
             workflows = Workflow.query.filter(Workflow.public == True)
             #workflows=Workflow.query.join(User).filter(User.role != None).join(Role).filter(and_(Role.permissions != None, Role.permissions.op('&')(Permission.ADMINISTER) == Permission.ADMINISTER)).filter(Workflow.accesses.any(WorkflowAccess.user_id.is_(None)))
         elif access == 1:
-            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id)))
+            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id))) # TODO: Do we need or_ operator here? 
         else:
             workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id)).filter(Workflow.accesses.any(WorkflowAccess.user_id != current_user.id) != True)
         
@@ -466,14 +466,16 @@ class Samples():
                 return uni_fn
     
     @staticmethod
-    def add_workflow(sample, name, desc, access, users):
-        try:
-            if sample and name:
+    def jsonify_script(script):
+        return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
                 
-                sample = sample.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'")
-                lines = sample.split("\n")
+    @staticmethod
+    def add_workflow(user, name, desc, script, access, users, temp):
+        try:
+            if script and name:
+                lines = Samples.jsonify_script(script)
                 users = users.split(";") if users else []
-                workflow = Workflow.create(current_user.id, name, desc if desc else '', json.dumps(lines), 2 if not access else int(access), users)
+                workflow = Workflow.create(user, name, desc if desc else '', json.dumps(lines), 2 if not access else int(access), users, temp)
                 return json.dumps(workflow.to_json_info());
         except:
             return json.dumps({})
@@ -516,7 +518,7 @@ class Samples():
 @login_required
 def samples():
     if request.form.get('sample'):
-        return Samples.add_workflow(request.form.get('sample'), request.form.get('name'), request.form.get('desc'), request.form.get('access'), request.form.get('users'))
+        return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('access'), request.form.get('users'), False)
     elif request.args.get('sample_id'):
         workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
         return json.dumps(workflow.to_json())

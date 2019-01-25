@@ -48,7 +48,7 @@ def update_workflow(user_id, workflow_id, script):
             workflow = Workflow.query.get(workflow_id)
             workflow.update_script(script)
         else:
-            workflow = Workflow.create(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
+            workflow = Workflow.create(user_id, "No Name", "No Description. Is it a no name workflow?", script, AccessType.PRIVATE, '', True)
                 
         return jsonify(workflowId = workflow.id)
     except Exception as e:

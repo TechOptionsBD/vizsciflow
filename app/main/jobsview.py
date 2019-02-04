@@ -47,9 +47,12 @@ def update_workflow(user_id, workflow_id, script):
     try:
         if workflow_id:
             workflow = Workflow.query.get(workflow_id)
-            workflow.update_script(Samples.jsonify_script(script))
+            if workflow.temp:
+                workflow.update_script(script)
+            else:
+                workflow = Samples.create_workflow(user_id, workflow.name, workflow.desc, script, AccessType.PRIVATE, '', True, workflow.id)
         else:
-            workflow = Samples.add_workflow(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
+            workflow = Samples.create_workflow(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
                 
         return jsonify(workflowId = workflow.id)
     except Exception as e:
@@ -102,8 +105,7 @@ def functions():
             
             # Here we must have a valid workflow id
             if not workflowId:
-                flash("Invalid workflow to run. Check if the workflow is already saved.")
-                return json.dumps({})
+                return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
             
             args = request.form.get('args') if request.form.get('args') else ''
             immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False

@@ -133,6 +133,7 @@ class User(UserMixin, db.Model):
                 db.session.commit()
             except IntegrityError:
                 db.session.rollback()
+                raise
 
     @staticmethod
     def add_self_follows():
@@ -424,15 +425,19 @@ class DataSource(db.Model):
     
     @staticmethod
     def insert_datasources():
-        datasrc = DataSource(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
-        db.session.add(datasrc)
-        datasrc = DataSource(name='LocalFS', type='posix', url='/home/phenodoop/phenoproc/storage/', root='/', public='/public')
-        db.session.add(datasrc)
-        datasrc = DataSource(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
-        db.session.add(datasrc)
-        datasrc = DataSource(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
-        db.session.add(datasrc)
-        db.session.commit()
+        try:
+            datasrc = DataSource(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
+            db.session.add(datasrc)
+            datasrc = DataSource(name='LocalFS', type='posix', url='/home/phenodoop/phenoproc/storage/', root='/', public='/public')
+            db.session.add(datasrc)
+            datasrc = DataSource(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
+            db.session.add(datasrc)
+            datasrc = DataSource(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
+            db.session.add(datasrc)
+            db.session.commit()
+        except:
+            db.session.rollbakc()
+            raise
 
     def __repr__(self):
         return '<DataSource %r>' % self.name
@@ -477,9 +482,10 @@ class Workflow(db.Model):
     
     name = db.Column(db.Text, nullable=False)
     desc = db.Column(db.Text, default='', nullable=True)
-    script = db.Column(JSON, nullable=False)
+    script = db.Column(db.Text, nullable=False)
     public = db.Column(db.Boolean, default=False)
     temp = db.Column(db.Boolean, default=False)
+    derived = db.Column(db.Integer, nullable=True)
     
     accesses = db.relationship('WorkflowAccess', backref='workflow', lazy=True, cascade="all,delete-orphan") 
     runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflow', lazy='dynamic')
@@ -497,7 +503,7 @@ class Workflow(db.Model):
             raise
     
     @staticmethod
-    def create(user_id, name, desc, script, access, users, temp=False):
+    def create(user_id, name, desc, script, access, users, temp=False, derived = 0):
         try:
             wf = Workflow()
             wf.user_id = user_id
@@ -520,8 +526,13 @@ class Workflow(db.Model):
             raise
     
     def update_script(self, script):
-        self.script = script
-        db.session.commit()
+        try:
+            self.script = script
+            self.modified_on = datetime.utcnow() 
+            db.session.commit()
+        except:
+            db.session.rollbakc()
+            raise
             
     def to_json(self):
         json_post = {
@@ -529,7 +540,7 @@ class Workflow(db.Model):
             'user': self.user.username,
             'name': self.name,
             'desc': self.desc,
-            'script': json.loads(self.script)
+            'script': self.script
         }
         return json_post
     
@@ -784,7 +795,7 @@ class Runnable(db.Model):
     celery_id = db.Column(db.String(64))
     #name = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
-    script = db.Column(db.Text)
+    script = db.Column(db.Text, nullable=False)
     arguments = db.Column(db.Text)
     out = db.Column(db.Text)
     err = db.Column(db.Text)

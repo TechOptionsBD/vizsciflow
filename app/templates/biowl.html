@@ -80,436 +80,572 @@ background-color: White;
     background-color: #ccc;
 }
 
-/* @media (min-width: auto) { */
-/*     .container{ */
-/*         max-width: auto; */
-/*     } */
+/* .main-wrapper { */
+/*   height: 100vh;   */
 /* } */
+
+.row-flex {
+  display: flex;
+/*   height: 100%; */
+}
+
+.col-md-6 {
+  flex-grow: 1;
+}
+
+.box-one {
+/*  background-color: red; */
+  max-width: 400px;
+/*   min-width: 200px; */
+}
+
+.box-two {
+/*  background-color: green; */
+}
+
+.box-three {
+/*  background-color: red; */
+  max-width: 400px;
+/*   min-width: 200px;   */
+}
+
 </style>
 
 {% endblock %}
 {% block page_content %}
 
-<div class="container">
-    <div class="col-sm-3" style="padding:0">
-        <div id="dataSourcesPanel" class="panel panel-primary">
-           <div class="panel-heading">
-              <div class="row">
-                  <div><h5  class="col-sm-6">Data Sources</h5></div>
-              </div>
-              
-              <div class="btn-group">
-                   <div class="btn-group-sm">
-                   	   <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Recursive Reload" data-bind="click: load.bind($data, true)"><i class="glyphicon glyphicon-unchecked"></i></button>
-                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load.bind($data, false)"><i class="glyphicon glyphicon-refresh"></i></button>
-                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Download" data-bind="click: download"><i class="glyphicon glyphicon-download"></i></button>
-                       <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Upload" data-bind="click: beginFileUpload"><i class="glyphicon glyphicon-upload"></i></button>
-                       <button class="btn btn-primary pull-right" data-toggle="modal" data-placement="top" title="Rename" data-bind="click: beginRename" ><i class="glyphicon glyphicon-edit"></i></button>
-                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Delete" data-bind="click: remove"><i class="glyphicon glyphicon-minus"></i></button>
-                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: addFolder" ><i class="glyphicon glyphicon-plus"></i></button>
-                   </div>
-                   <input class="form-control" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'"/>
-               </div>
-           </div>
-           <div class="panel-body draggable-datasources" style="height: 416px; overflow-y: scroll; padding:0">
-               <div id="tree" data-bind="treeview: dataSources"></div>
-           </div>
-       </div>
-       <div id="runnableWorkflowsPanel" class="panel panel-primary">
-           <div class="panel-heading">
-              <div class="row">
-                  <div><h5  class="col-sm-6">Job Histories</h5></div>
-              </div>
-              <div class="btn-group">
-                   <div class="btn-group-sm">
-                   	   <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Restart Execution" data-bind="click: restart"><i class="glyphicon glyphicon-repeat"></i></button>
-                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Stop Execution" data-bind="click: stop"><i class="glyphicon glyphicon-stop"></i></button>
-                       <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
-                   </div>
-               </div>
-           </div>
-           <div class="panel-body" style="max-height: 200px; width: 100%; overflow-y: scroll;" data-bind="foreach: items">
-              <div class="row menu_button" data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%">
-                <div style="vertical-align: middle;">
-                <input type="checkbox" style="margin-left: 10px;" data-bind="checked: selected" />
-                
-                <img style="vertical-align:middle" width="16px" height="16px" data-bind="attr:{src: statusImg}" />
-                <span data-bind="text: name" style="width: 100%; margin:0"></span>
-                </div>
-              </div>
-           </div>
-       </div>
-    </div>
-        <div class="col" id="main">
-           <div class="col-md-6" style="padding:2px" data-bind="with: tasksViewModel">
-               <div class="panel panel-primary" style="margin:2px">
-                   <div class="panel-heading text-center">
-                    <h3 class="panel-title">Bioinformatics Workflow Language (BioWL)</h3>
-                    <span class="text-light" style="margin: 4px">Write workflow DSL. Double click services/workflows/data to insert into editor.</span><br>
-                    <ul class="list-inline panel-actions">
-                        <li><a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a></li>
-                    </ul>
-                   </div>
-                   <div class="panel-body" style="padding=0; margin=0px;">
-       		        <textarea rows="16" style="width: 100%; height=100%; padding=0; margin=0px;" id="script"></textarea><br>
-                    <span class="text-secondary">Arguments:</span>
-       		        <textarea rows="1" style="width: 100%; padding=0; margin=0px;" id="args"></textarea><br>
-	            </div>
-	        </div>
-	        <div class="panel panel-primary" style="padding:0px; border:0;margin:4px">
-		        <div class="panel-body" style="padding:0">
-			        <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
-			        <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: buildGraph">Graph</button>
-			        <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
-                    <button class="btn pull-left btn-primary" style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
-			        <label class="checkbox-inline"><input type="checkbox" id="immediate">Immediate</label> 
-			        <span class="badge badge-primary">Time: <span id="duration" class="badge badge-light">0s</span> </span>
-		            <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right" id="refresh"></span>
-		        </div>
-	        </div>
-	        <div id="exTab2" class="panel panel-primary">	
-				<ul class="nav nav-tabs">
-					<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
-					<li><a href="#2" data-toggle="tab">Error</a></li>
-					<li><a href="#3" data-toggle="tab">Output</a></li>
-				</ul>
-				<span class="badge badge-pill badge-primary" style="float: right" id="execstatus"></span>
-<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
-				<div class="tab-content ">
-			  		<div class="tab-pane fade in active" id="1">
-          				<textarea rows="10" style="min-width: 100%" id="output"></textarea><br>
+<div class="container-fluid">
+	<div class="row row-flex">
+		<div class="col-md-3 box-one" style="padding: 0">
+			<div id="dataSourcesPanel" class="panel panel-primary">
+				<div class="panel-heading">
+					<div class="row">
+						<div>
+							<h5 class="col-sm-6">Data Sources</h5>
+						</div>
 					</div>
-					<div class="tab-pane fade" id="2">
-          				<textarea rows="10" style="min-width: 100%" id="error"></textarea><br>
-					</div>
-	        		<div class="tab-pane fade" id="3">
-	        			<span id="executable-status"></span>
-	          			<table class="table table-striped" id="log" style="table-layout:fixed; width: 100%">
-						  <thead>
-						    <tr>
-						      <th scope="col" align="center" width="15%">Task</th>
-						      <th scope="col" align="center" width="70%">Data</th>
-						      <th scope="col" align="center" width="15%">Status</th>
-						    </tr>
-						  </thead>
-						  <tbody>
-						  </tbody>
-						</table>
+
+					<div class="btn-group">
+						<div class="btn-group-sm">
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Recursive Reload"
+								data-bind="click: load.bind($data, true)">
+								<i class="glyphicon glyphicon-unchecked"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Reload"
+								data-bind="click: load.bind($data, false)">
+								<i class="glyphicon glyphicon-refresh"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Download"
+								data-bind="click: download">
+								<i class="glyphicon glyphicon-download"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="modal"
+								data-placement="top" title="Upload"
+								data-bind="click: beginFileUpload">
+								<i class="glyphicon glyphicon-upload"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="modal"
+								data-placement="top" title="Rename"
+								data-bind="click: beginRename">
+								<i class="glyphicon glyphicon-edit"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Delete" data-bind="click: remove">
+								<i class="glyphicon glyphicon-minus"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Add" data-bind="click: addFolder">
+								<i class="glyphicon glyphicon-plus"></i>
+							</button>
+						</div>
+						<input class="form-control" type="text" placeholder="Search…"
+							data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
 					</div>
 				</div>
-  			</div>
-           </div>
-           <div class="col-sm-3" id="functions" style="padding:2px;">
-            <div  class="panel panel-primary" >
-                <div class="panel-heading">
-                	<div class="row">
-                       <div class="col-sm-6"><h5 class="">Services</h5></div>
-                   </div>
-                   <div class="row" data-bind="with: tasksViewModel">
-                   <div class="btn-group">
-                   	  <div class="btn-group">
-					  <button style="float: left; margin-right: 10px; margin-bottom: 10px;" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
-					    <span data-bind="text: selectedServiceAccessType() ? selectedServiceAccessType().Name : 'Access Type'"></span>
-					    <span class="caret"></span>
-					  </button>
-					  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu2" data-bind="foreach: serviceaccesstypes" > 
-					    <li role="presentation" ><a role="menuitem" tabindex="-1" href="#" data-bind="text: Name, click: $parent.selectServiceAccessType"></a></li>
-					  </ul>
-					 </div>
-                   <div class="btn-group">
-					  <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
-					    <span data-bind="text: selectedCategory() ? selectedCategory().Name : 'Level'"></span>
-					    <span class="caret"></span>
-					  </button>
-					  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1" data-bind="foreach: categories" > 
-					    <li role="presentation" ><a role="menuitem" tabindex="-1" href="#" data-bind="text: Name, click: $parent.selectCategory"></a></li>
-					  </ul>
+				<div class="panel-body draggable-datasources"
+					style="height: 416px; overflow-y: scroll; padding: 0">
+					<div id="tree" data-bind="treeview: dataSources"></div>
+				</div>
+			</div>
+			<div id="runnableWorkflowsPanel" class="panel panel-primary">
+				<div class="panel-heading">
+					<div class="row">
+						<div>
+							<h5 class="col-sm-6">Job Histories</h5>
+						</div>
 					</div>
+					<div class="btn-group">
+						<div class="btn-group-sm">
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Restart Execution"
+								data-bind="click: restart">
+								<i class="glyphicon glyphicon-repeat"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Stop Execution"
+								data-bind="click: stop">
+								<i class="glyphicon glyphicon-stop"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Reload" data-bind="click: load">
+								<i class="glyphicon glyphicon-refresh"></i>
+							</button>
+						</div>
 					</div>
-					 <div class="input-group">
-					  <span class="input-group-btn">
-					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
-					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAddLibrary"><i class="glyphicon glyphicon-plus"></i></button>
-					  </span>
-					  <input class="form-control" type="text" placeholder="Search…" data-bind="value: taskFilter, valueUpdate: 'keyup'"/>
-					 </div>
-                   </div>
-                </div>
-                <div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding:3px" data-bind="with: tasksViewModel">
-	                <div class="row" style="width: 100%;margin:0">
-	                       <div class="p-3 mb-2 bg-primary text-white" style="float:left;text-align:center;width:60%">Name</div>
-	                       <div class="p-3 mb-2 bg-primary text-white" style="float:right;padding-left:4px;text-align:center;width:40%">Group(Package)</div>
-	                </div>
-	               	<div data-bind="foreach: filteredTasks">
-                       <div class="row menu_button" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%;margin:0">
-                       		<div class="col-md-auto draggable-func" style="word-wrap: break-word" data-bind="text: name"></div>
-                       		<div class="col" style="float:right;">
-                            	<span data-bind="text: group" style="text-align:right"></span>(<span data-bind="text: package_name" style="text-align:left"></span>)
-                       		</div>
-                       </div>
-                    </div>
-                </div>
-            </div>
-<!-- 	            <div data-bind="stopBinding: true"> -->
-                <div  id="samples" class="panel panel-primary" style="padding:2px" data-bind="with: samplesViewModel">
-                 <div class="panel-heading">
-                 	<div class="row">
-                        <div class="col-sm-6"><h5 class="">Workflows</h5></div>
-                    </div>
-                 	<div class="row">
-                 	
-					<label class="radio-inline">
-				      <input type="radio" name="access" value="0" data-bind="checked: access, click:click">Public
-				    </label>
-				    <label class="radio-inline">
-				      <input type="radio" name="access" value="1" data-bind="checked: access, click:click">Shared
-				    </label>
-				    <label class="radio-inline">
-				      <input type="radio" name="access" value="2" data-bind="checked: access, click:click">Private
-				    </label>
-				    
-                      <div class="input-group" style="margin-top:10px" >
-					  <span class="input-group-btn">
-					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Reload" data-bind="click: load"><i class="glyphicon glyphicon-refresh"></i></button>
-					    <button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Add" data-bind="click: beginAdd"><i class="glyphicon glyphicon-plus"></i></button>
-					  </span>
-					  <input class="form-control" type="text" placeholder="Search…" data-bind="value: workflowFilter, valueUpdate: 'keyup'"/>
-					 </div>
-                    </div>
-                 </div>
-                 <div class="panel-body draggable-samples" style="max-height: 200px; width: 100%; overflow-y: scroll;padding:3px">
-                    <div class="row" style="width: 100%;margin:0">
-                       <div class="p-3 mb-2 bg-primary text-white" style="float:left;width:80%;text-align:center">Name</div>
-                       <div class="p-3 mb-2 bg-primary text-white" style="float:right;padding-left:4px;width:20%;text-align:center">Owner</div>
-                    </div>
-                 
-                  <div data-bind="foreach: filteredWorkflows">
-                    <div class="row menu_button" data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }" style="width: 100%;margin:0">
-                       <div class="col-xm-6" style="float:left;margin:0;width:80%" data-bind="text: name"></div>
-                       <div class="col-xm-3" style="float:right;margin:0;padding-left:4px;width:20%" data-bind="text: user"></div>
-                    </div>
-                 </div>
-                 </div>
-                </div>
-            </div>
-        </div>
-   </div>
+				</div>
+				<div class="panel-body"
+					style="max-height: 200px; width: 100%; overflow-y: scroll;"
+					data-bind="foreach: items">
+					<div class="row menu_button"
+						data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+						style="width: 100%">
+						<div style="vertical-align: middle;">
+							<input type="checkbox" style="margin-left: 10px;"
+								data-bind="checked: selected" /> <img
+								style="vertical-align: middle" width="16px" height="16px"
+								data-bind="attr:{src: statusImg}" /> <span
+								data-bind="text: name" style="width: 100%; margin: 0"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6 box-two" id="main">
+				<div class="panel panel-primary" style="margin: 2px">
+					<div class="panel-heading text-center">
+						<h3 class="panel-title">Bioinformatics Workflow Language
+							(BioWL)</h3>
+						<span class="text-light" style="margin: 4px">Write workflow
+							DSL. Double click services/workflows/data to insert into editor.</span><br>
+						<ul class="list-inline panel-actions">
+							<li><a href="#" id="panel-fullscreen" role="button"
+								title="Toggle fullscreen"><i
+									class="glyphicon glyphicon-resize-full"></i></a></li>
+						</ul>
+					</div>
+					<div class="panel-body" style="">
+						<textarea rows="32" style="width: 100%;" id="script"></textarea>
+						<br> <span class="text-secondary">Arguments:</span>
+						<textarea rows="1" style="width: 100%;" id="args"></textarea>
+						<br>
+					</div>
+				</div>
+				<div class="panel panel-primary"
+					style="padding: 0px; border: 0; margin: 4px">
+					<div class="panel-body" style="padding: 0">
+						<button class="btn pull-left btn-primary"
+							style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
+						<button class="btn pull-left btn-primary"
+							style="margin-right: 5px;" data-bind="click: buildGraph">Graph</button>
+						<button class="btn pull-left btn-primary"
+							style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
+						<button class="btn pull-left btn-primary"
+							style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
+						<label class="checkbox-inline"><input type="checkbox"
+							id="immediate">Immediate</label> <span
+							class="badge badge-primary">Time: <span id="duration"
+							class="badge badge-light">0s</span>
+						</span> <span
+							class="glyphicon glyphicon-repeat normal-right-spinner pull-right"
+							id="refresh"></span>
+					</div>
+				</div>
+				<div id="exTab2" class="panel panel-primary">
+					<ul class="nav nav-tabs">
+						<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
+						<li><a href="#2" data-toggle="tab">Error</a></li>
+						<li><a href="#3" data-toggle="tab">Output</a></li>
+					</ul>
+					<span class="badge badge-pill badge-primary" style="float: right"
+						id="execstatus"></span>
+					<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
+					<div class="tab-content ">
+						<div class="tab-pane fade in active" id="1">
+							<textarea rows="10" style="min-width: 100%" id="output"></textarea>
+							<br>
+						</div>
+						<div class="tab-pane fade" id="2">
+							<textarea rows="10" style="min-width: 100%" id="error"></textarea>
+							<br>
+						</div>
+						<div class="tab-pane fade" id="3">
+							<span id="executable-status"></span>
+							<table class="table table-striped" id="log"
+								style="table-layout: fixed; width: 100%">
+								<thead>
+									<tr>
+										<th scope="col" align="center" width="15%">Task</th>
+										<th scope="col" align="center" width="70%">Data</th>
+										<th scope="col" align="center" width="15%">Status</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+		</div>
+		<div class="col-md-3 box-three" style="padding: 2px;">
+			<div id="functions" class="panel panel-primary">
+				<div class="panel-heading">
+					<div class="row">
+						<div class="col-sm-6">
+							<h5 class="">Services</h5>
+						</div>
+					</div>
+					<div class="row">
+						<div class="btn-group">
+							<div class="btn-group">
+								<button
+									style="float: left; margin-right: 10px; margin-bottom: 10px;"
+									class="btn btn-primary dropdown-toggle" type="button"
+									id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
+									<span
+										data-bind="text: selectedServiceAccessType() ? selectedServiceAccessType().Name : 'Access Type'"></span>
+									<span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" role="menu"
+									aria-labelledby="dropdownMenu2"
+									data-bind="foreach: serviceaccesstypes">
+									<li role="presentation"><a role="menuitem" tabindex="-1"
+										href="#"
+										data-bind="text: Name, click: $parent.selectServiceAccessType"></a></li>
+								</ul>
+							</div>
+							<div class="btn-group">
+								<button class="btn btn-primary dropdown-toggle" type="button"
+									id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+									<span
+										data-bind="text: selectedCategory() ? selectedCategory().Name : 'Level'"></span>
+									<span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" role="menu"
+									aria-labelledby="dropdownMenu1" data-bind="foreach: categories">
+									<li role="presentation"><a role="menuitem" tabindex="-1"
+										href="#" data-bind="text: Name, click: $parent.selectCategory"></a></li>
+								</ul>
+							</div>
+						</div>
+						<div class="input-group">
+							<span class="input-group-btn">
+								<button style="margin-right: 10px;" class="btn btn-primary"
+									data-toggle="tooltip" data-placement="top" title="Reload"
+									data-bind="click: load">
+									<i class="glyphicon glyphicon-refresh"></i>
+								</button>
+								<button style="margin-right: 10px;" class="btn btn-primary"
+									data-toggle="tooltip" data-placement="top" title="Add"
+									data-bind="click: beginAddLibrary">
+									<i class="glyphicon glyphicon-plus"></i>
+								</button>
+							</span>
+							<input class="form-control" type="text" placeholder="Search…"
+								data-bind="value: taskFilter, valueUpdate: 'keyup'" />
+						</div>
+					</div>
+				</div>
+				<div class="panel-body draggable-functions"
+					style="max-height: 500px; overflow-y: scroll; padding: 3px">
+					<div class="row" style="width: 100%; margin: 0">
+						<div class="p-3 mb-2 bg-primary text-white"
+							style="float: left; text-align: center; width: 60%">Name</div>
+						<div class="p-3 mb-2 bg-primary text-white"
+							style="float: right; padding-left: 4px; text-align: center; width: 40%">Group(Package)</div>
+					</div>
+					<div data-bind="foreach: filteredTasks">
+						<div class="row menu_button"
+							data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+							style="width: 100%; margin: 0">
+							<div class="col-md-auto draggable-func"
+								style="word-wrap: break-word" data-bind="text: name"></div>
+							<div class="col" style="float: right;">
+								<span data-bind="text: group" style="text-align: right"></span>(<span
+									data-bind="text: package_name" style="text-align: left"></span>)
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- 	            <div data-bind="stopBinding: true"> -->
+			<div id="samples" class="panel panel-primary" style="padding: 2px">
+				<div class="panel-heading">
+					<div class="row">
+						<div class="col-sm-6">
+							<h5 class="">Workflows</h5>
+						</div>
+					</div>
+					<div class="row">
+						<label class="radio-inline"> <input type="radio"
+							name="access" value="0" data-bind="checked: access, click:click">Public
+						</label> <label class="radio-inline"> <input type="radio"
+							name="access" value="1" data-bind="checked: access, click:click">Shared
+						</label> <label class="radio-inline"> <input type="radio"
+							name="access" value="2" data-bind="checked: access, click:click">Private
+						</label>
 
-    <div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 480px; height: 620px; background: #fff">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3 id="addDialogLabel">Add Library</h3>
-        </div>
-        <div class="modal-body">
-            <form class="form-horizontal">
-                <div class="control-group">
-                    <div class="controls">
-	                    <label class="control-label" for="package">Package</label>
-                        <input data-bind="value: name" type="text" id="package" placeholder="Package" style="width: 150px;">
-                    </div>
-                    <div class="controls">                    
-                    	<label class="control-label" for="organization">Organization</label>
-                        <input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 200px;">
-                    </div>
-                	<div class="controls">
-    	                <label class="control-label" for="module">Module</label>
-                        <input type="file" id="module">
-	                </div>
-	                <label class="control-label" for="mapper">Module to JSON mapper:</label>
-	                <div class="controls">
-                        <textarea rows="16" style="width: 460px;" id="mapper"></textarea>
-                    </div>
-                    <div class="controls">
-	                    <label class="control-label" for="pippkgs">pip Install</label>
-	                    <input data-bind="value: pippkgs" type="text" id="pippkgs" placeholder="" style="width: 200px;">
-                    </div>
-	                <div class="controls">
-	                   	<label class="control-label" for="access">Shared</label>
-	                   	<input type="checkbox" id="access" data-bind="checked: access" />
-	                </div>
-            	</div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-        </div>
+						<div class="input-group" style="margin-top: 10px">
+							<span class="input-group-btn">
+								<button style="margin-right: 10px;" class="btn btn-primary"
+									data-toggle="tooltip" data-placement="top" title="Reload"
+									data-bind="click: load">
+									<i class="glyphicon glyphicon-refresh"></i>
+								</button>
+								<button style="margin-right: 10px;" class="btn btn-primary"
+									data-toggle="tooltip" data-placement="top" title="Add"
+									data-bind="click: beginAdd">
+									<i class="glyphicon glyphicon-plus"></i>
+								</button>
+							</span> 
+							<input class="form-control" type="text" placeholder="Search…"
+								data-bind="value: workflowFilter, valueUpdate: 'keyup'" />
+						</div>
+					</div>
+				</div>
+				<div class="panel-body draggable-samples"
+					style="max-height: 200px; width: 100%; overflow-y: scroll; padding: 3px">
+					<div class="row" style="width: 100%; margin: 0">
+						<div class="p-3 mb-2 bg-primary text-white"
+							style="float: left; width: 80%; text-align: center">Name</div>
+						<div class="p-3 mb-2 bg-primary text-white"
+							style="float: right; padding-left: 4px; width: 20%; text-align: center">Owner</div>
+					</div>
+
+					<div data-bind="foreach: filteredWorkflows">
+						<div class="row menu_button"
+							data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+							style="width: 100%; margin: 0">
+							<div class="col-xm-6" style="float: left; margin: 0; width: 80%"
+								data-bind="text: name"></div>
+							<div class="col-xm-3"
+								style="float: right; margin: 0; padding-left: 4px; width: 20%"
+								data-bind="text: user"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 480px; height: 620px; background: #fff">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3 id="addDialogLabel">Add Library</h3>
     </div>
-    <div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 560px; height: 720px; background: #fff">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3 id="addSampleDialogLabel">Add Workflow</h3>
-        </div>
-        <div class="modal-body">
-            <form class="form-horizontal">
-                <div class="control-group">
-                    <div class="controls">
-                    	<label class="control-label" for="sampleName">Name                 
-                        	<input data-bind="value: name" type="text" id="sampleName" placeholder="Name" style="width: 300px;">
-                        </label>
-	                    <label class="control-label" for="sampleDesc">Description                    
-                        	<input data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description" style="width: 300px;">
-                        </label>
-                    </div>
-                    
-                    <label class="control-label" for="sample">Script:</label>
-                    <div class="controls">
-                        <textarea rows="18" style="width: 540px;" id="sample"></textarea>
-                    </div>
-                    </div>
-                    <div class="btn-group-vertical">
-                    <label class="btn btn-light-blue form-check-label active">
-        				<input class="form-check-input" style="align:left" type="radio" name="wfaccess" value="2" data-bind="checked: access" autocomplete="off" checked>Private
-    				</label>
-    				<label class="btn btn-light-blue form-check-label active">
-        				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="0" data-bind="checked: access" autocomplete="off">Public
-    				</label>
-    				<label class="btn btn-light-blue form-check-label active">
-        				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="1" data-bind="checked: access" autocomplete="off">Shared
-        				<input type="text" id="wfusers" placeholder="Users" style="width: 300px;" data-bind="value: users">
-    				</label>
-                      
-	                </div>
+    <div class="modal-body">
+        <form class="form-horizontal">
+            <div class="control-group">
+                <div class="controls">
+                 <label class="control-label" for="package">Package</label>
+                    <input data-bind="value: name" type="text" id="package" placeholder="Package" style="width: 150px;">
+                </div>
+                <div class="controls">                    
+                	<label class="control-label" for="organization">Organization</label>
+                    <input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 200px;">
+                </div>
+            	<div class="controls">
+	                <label class="control-label" for="module">Module</label>
+                    <input type="file" id="module">
+             </div>
+             <label class="control-label" for="mapper">Module to JSON mapper:</label>
+             <div class="controls">
+                    <textarea rows="16" style="width: 460px;" id="mapper"></textarea>
+                </div>
+                <div class="controls">
+                 <label class="control-label" for="pippkgs">pip Install</label>
+                 <input data-bind="value: pippkgs" type="text" id="pippkgs" placeholder="" style="width: 200px;">
+                </div>
+             <div class="controls">
+                	<label class="control-label" for="access">Shared</label>
+                	<input type="checkbox" id="access" data-bind="checked: access" />
+             </div>
+        	</div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    </div>
+</div>
+<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 560px; height: 720px; background: #fff">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3 id="addSampleDialogLabel">Add Workflow</h3>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal">
+            <div class="control-group">
+                <div class="controls">
+                	<label class="control-label" for="sampleName">Name                 
+                    	<input data-bind="value: name" type="text" id="sampleName" placeholder="Name" style="width: 300px;">
+                    </label>
+                 <label class="control-label" for="sampleDesc">Description                    
+                    	<input data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description" style="width: 300px;">
+                    </label>
+                </div>
                 
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button data-bind="click: addSample" class="btn btn-primary">Add</button>
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-        </div>
+                <label class="control-label" for="sample">Script:</label>
+                <div class="controls">
+                    <textarea rows="18" style="width: 540px;" id="sample"></textarea>
+                </div>
+                </div>
+                <div class="btn-group-vertical">
+                <label class="btn btn-light-blue form-check-label active">
+    				<input class="form-check-input" style="align:left" type="radio" name="wfaccess" value="2" data-bind="checked: access" autocomplete="off" checked>Private
+				</label>
+				<label class="btn btn-light-blue form-check-label active">
+    				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="0" data-bind="checked: access" autocomplete="off">Public
+				</label>
+				<label class="btn btn-light-blue form-check-label active">
+    				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="1" data-bind="checked: access" autocomplete="off">Shared
+    				<input type="text" id="wfusers" placeholder="Users" style="width: 300px;" data-bind="value: users">
+				</label>
+                  
+             </div>
+            
+        </form>
     </div>
+    <div class="modal-footer">
+        <button data-bind="click: addSample" class="btn btn-primary">Add</button>
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    </div>
+</div>
     
-	<div class="modal fade" id="file-upload-dialog" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
-	    <div class="modal-dialog">
-	        <div class="modal-content">
-	            <!-- Modal Header -->
-	            <div class="modal-header">
-	                <button type="button" class="close" data-dismiss="modal">
-	                       <span aria-hidden="true">&times;</span>
-	                       <span class="sr-only">Close</span>
-	                </button>
-	                <h4 class="modal-title" id="uploadModalLabel">
-	                    File Upload
-	                </h4>
-	            </div>
-	            
-	            <!-- Modal Body -->
-	            <div class="modal-body">
-	                <form id="upload-file" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
-	                  <div class="form-group">
-	                    <div class="col-sm-offset-2 col-sm-10">
-	                        <input type="file" name="file" id="upload" multiple>
-	                    </div>
-	                  </div>
-	                  
-	                  <div class="form-group">
-	                    <div class="col-sm-offset-2 col-sm-10">
-	                      <button data-bind="click: upload" type="button" class="btn btn-default" id="upload-file-btn" data-dismiss="modal">Upload</button>
-	                    </div>
-	                  </div>
-	                </form>
-	            </div>
-	        </div>
-	    </div>
-	</div>
-
-	<div class="modal fade" id="rename-filefolder-dialog" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
-	    <div class="modal-dialog">
-	        <div class="modal-content">
-	            <!-- Modal Header -->
-	            <div class="modal-header">
-	                <button type="button" class="close" data-dismiss="modal">
-	                       <span aria-hidden="true">&times;</span>
-	                       <span class="sr-only">Close</span>
-	                </button>
-	                <h4 class="modal-title" id="renameModalLabel">
-	                    File/Folder Rename
-	                </h4>
-	            </div>
-	            
-	            <!-- Modal Body -->
-	            <div class="modal-body">
-	                <form id="rename-filefolder" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
-	                  <div class="form-group">
-	                    <div class="col-sm-offset-2 col-sm-10">
-	                        <input type="text" name="rename-filefolder-text" id="rename-filefolder-text">
-	                    </div>
-	                  </div>
-	                  
-	                  <div class="form-group">
-	                    <div class="col-sm-offset-2 col-sm-10">
-	                      <button type="button" class="btn btn-default" id="rename-filefolder-btn" data-dismiss="modal" data-bind="click: rename">Rename</button>
-	                    </div>
-	                  </div>
-	                </form>
-	            </div>
-	        </div>
-	    </div>
-	</div>
-
-    <div id="edit" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true" style="background: #fff">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
-            <h3 id="editDialogLabel">Edit Task</h3>
-        </div>
-        <div class="modal-body">
-            <form class="form-horizontal">
-                <div class="control-group">
-                    <label class="control-label" for="inputTask">Task</label>
-                    <div class="controls">
-                        <input data-bind="value: module" type="text" id="inputTask" placeholder="Module" style="width: 150px;">
+<div class="modal fade" id="file-upload-dialog" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+           <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal">
+                      <span aria-hidden="true">&times;</span>
+                      <span class="sr-only">Close</span>
+               </button>
+               <h4 class="modal-title" id="uploadModalLabel">
+                   File Upload
+               </h4>
+           </div>
+           
+           <!-- Modal Body -->
+            <div class="modal-body">
+                <form id="upload-file" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <input type="file" name="file" id="upload" multiple>
                     </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputDescription">Name</label>
-                    <div class="controls">
-                        <input data-bind="value: name" type="text" id="inputDescription" placeholder="Name" style="width: 300px;">
+                  </div>
+                  
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button data-bind="click: upload" type="button" class="btn btn-default" id="upload-file-btn" data-dismiss="modal">Upload</button>
                     </div>
-                </div>
-                <div class="control-group">
-                    <div class="controls">
-                        <label class="checkbox">
-                            <input type="checkbox"> Done
-                        </label>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button data-bind="click:editTask" class="btn btn-primary">Update Task</button>
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+                  </div>
+                </form>
+            </div>
         </div>
     </div>
-    <div id="login" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
-        <div class="modal-header">
-            <h3 id="loginLabel">Sign In</h3>
-        </div>
-        <div class="modal-body">
-            <form class="form-horizontal">
-                <div class="control-group">
-                    <label class="control-label" for="inputUsername">Username</label>
-                    <div class="controls">
-                        <input data-bind="value: username" type="text" id="inputUsername" placeholder="Username">
+</div>
+
+<div class="modal fade" id="rename-filefolder-dialog" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                       <span aria-hidden="true">&times;</span>
+                       <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="renameModalLabel">
+                    File/Folder Rename
+                </h4>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form id="rename-filefolder" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <input type="text" name="rename-filefolder-text" id="rename-filefolder-text">
                     </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputPassword">Password</label>
-                    <div class="controls">
-                        <input data-bind="value: password" type="password" id="inputPassword" placeholder="Password">
+                  </div>
+                  
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button type="button" class="btn btn-default" id="rename-filefolder-btn" data-dismiss="modal" data-bind="click: rename">Rename</button>
                     </div>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button data-bind="click: login" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Sign In</button>
+                  </div>
+                </form>
+            </div>
         </div>
     </div>
+</div>
+
+<div id="edit" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true" style="background: #fff">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
+        <h3 id="editDialogLabel">Edit Task</h3>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal">
+            <div class="control-group">
+                <label class="control-label" for="inputTask">Task</label>
+                <div class="controls">
+                    <input data-bind="value: module" type="text" id="inputTask" placeholder="Module" style="width: 150px;">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="inputDescription">Name</label>
+                <div class="controls">
+                    <input data-bind="value: name" type="text" id="inputDescription" placeholder="Name" style="width: 300px;">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <label class="checkbox">
+                        <input type="checkbox"> Done
+                    </label>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button data-bind="click:editTask" class="btn btn-primary">Update Task</button>
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    </div>
+</div>
+<div id="login" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+    <div class="modal-header">
+        <h3 id="loginLabel">Sign In</h3>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal">
+            <div class="control-group">
+                <label class="control-label" for="inputUsername">Username</label>
+                <div class="controls">
+                    <input data-bind="value: username" type="text" id="inputUsername" placeholder="Username">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="inputPassword">Password</label>
+                <div class="controls">
+                    <input data-bind="value: password" type="password" id="inputPassword" placeholder="Password">
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button data-bind="click: login" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Sign In</button>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 
     
-    <script type="text/javascript">
+<script type="text/javascript">
     var refreshId = 0;
     var workflowId = 0;
     var isDirty = false;
@@ -517,10 +653,9 @@ background-color: White;
     $(window).on('load', function() {
     	    	
     	$('#refresh').hide();
-    	   	 
         $('.draggable-functions').each(function() {
-             // inner scope
-             var phrase = $(this);
+            // inner scope
+            var phrase = $(this);
              
              $(this).find('div.draggable-func').each(function() {
                  // cache jquery object
@@ -1020,273 +1155,273 @@ background-color: White;
         $('.nav-tabs a[href="#' + tab + '"]').tab('show');
       };
       
-        function TasksViewModel() {
-            var self = this;
-            self.tasksURI = '/functions';
-            self.graphsURI = '/graphs';
-            self.username = "";
-            self.password = "";
-            self.tasks = ko.observableArray();
-            self.taskFilter = ko.observable("");
-			this.filteredTasks = ko.computed(function(){
-		       return this.tasks().filter(function(task){
-		           if(!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
-		        		   || task.package_name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
-		        		   || task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
-		             return task;
-		       });
-   			},this);
-			
-            self.serviceaccesstypes = ko.observableArray([
-            	{
-            		Id: 0,
-            		Name: "Public"
-            	}, 
-            	{
-          	  		Id: 1,
-          	  		Name: "Shared"
-          	  	}, 
-            	{
-          	  		Id: 2,
-          	  		Name: "Private"
-          	  	}]);
-            
-            self.selectedServiceAccessType = ko.observable({
-        	  	Id: 0,
-      	  		Name: "Public"
-      		});
-            
-            self.categories = ko.observableArray([{
-            	  Id: 0,
-            	  Name: "Basic"
-            	}, {
-            	  Id: 1,
-            	  Name: "Advanced"
-            	}]);
-            
-            self.selectedCategory = ko.observable({
-          	  Id: 0,
-        	  Name: "Basic"
-        	});
+     function TasksViewModel() {
+         var self = this;
+         self.tasksURI = '/functions';
+         self.graphsURI = '/graphs';
+         self.username = "";
+         self.password = "";
+         self.tasks = ko.observableArray();
+         self.taskFilter = ko.observable("");
+		 this.filteredTasks = ko.computed(function(){
+			 return this.tasks().filter(function(task){
+				 if(!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
+	       		   || task.package_name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
+	       		   || task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
+	            return task;
+	      	});
+		 },this);
 
-            self.selectCategory = function(category) {
-                self.selectedCategory(category);
-              }
-            
-            self.selectServiceAccessType = function(serviceAccessType) {
-                self.selectedServiceAccessType(serviceAccessType);
-                self.load();
-              }
-            
-           	self.click = function(model){
-           		self.login();
-           	    return true;
-            }
-            
-           	self.clearResults = function() {
-           		$("#output").val("");
-                $("#error").val("");
-                $("#log tbody").empty();
-                $("#duration").text("0s");
-                $("#execstatus").text("");
-           	}
-            self.clearEditor = function() {
-                editor.session.setValue("");
-                self.clearResults();
-            }
+         self.serviceaccesstypes = ko.observableArray([
+         	{
+         		Id: 0,
+         		Name: "Public"
+         	}, 
+         	{
+       	  		Id: 1,
+       	  		Name: "Shared"
+       	  	}, 
+         	{
+       	  		Id: 2,
+       	  		Name: "Private"
+       	  	}]);
+         
+         self.selectedServiceAccessType = ko.observable({
+     	  	Id: 0,
+   	  		Name: "Public"
+   		});
+         
+         self.categories = ko.observableArray([{
+         	  Id: 0,
+         	  Name: "Basic"
+         	}, {
+         	  Id: 1,
+         	  Name: "Advanced"
+         	}]);
+         
+         self.selectedCategory = ko.observable({
+       	  Id: 0,
+     	  Name: "Basic"
+     	});
 
-            self.updateTask = function(task, newTask) {
-                var i = self.tasks.indexOf(task);
-                self.tasks()[i].package_name(newTask.package_name);
-                self.tasks()[i].name(newTask.name);
-                self.tasks()[i].internal(newTask.internal);
-                self.tasks()[i].example(newTask.example);
-                self.tasks()[i].example2(newTask.example2);
-                self.tasks()[i].desc(newTask.desc);
-                self.tasks()[i].desc(newTask.runmode);
-                self.tasks()[i].desc(newTask.group);
-            }
-            
-            self.beginAddLibrary = function() {
-            	var obj = { "functions": [{ "name": "", "internal": "", "example": ""} ] };
-
-            	addLibraryViewModel.getCodeEditor().setValue(JSON.stringify(obj, null, 4), 1);
-            	centerDialog($('#add'));
-                $('#add').modal('show');
-            }
-            
-            self.updateWorkflow = function() {
-                var script = $.trim(editor.getSession().getValue());
-                if ((!script && !workflowId) || editor.session.getUndoManager().isClean())
-              	  return; // if script emtpy and workflowId not set, it means (empty) workflow is not set yet.
-              	
-              	var formdata = new FormData();
-                
-                formdata.append('workflowId', parseInt(workflowId));
-                formdata.append('script', script);
-                
-                ajaxcalls.form(self.tasksURI, 'POST', formdata, false).done(function(data) {
-                	if (!$.isEmptyObject(data)) {
-                		workflowId = parseInt(data['workflowId']);
-                		editor.session.getUndoManager().markClean();
-                	}
-                });
-            }
-            
-            self.runBioWL = function(task) {
-              self.updateWorkflow();
-              var script = $.trim(editor.getSession().getValue());
-              if (!script)
-            	  return;
-              
-              $('#refresh').show();
-              var formdata = new FormData();
-              
-              formdata.append('workflowId', parseInt(workflowId));
-              formdata.append('args', $('#args').val());
-              formdata.append('immediate', $('#immediate').prop('checked'));
-              self.clearResults();
-              ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
-            	  $('#refresh').hide();
-                	
-                	if (data === undefined)
-                		return;
-                	data = JSON.parse(data)
-                	if ($.isEmptyObject(data))
-                		return;
-                	
-                	if (data['err'] && data['status'] !== 'SUCCESS')
-                    	activateTab(2);
-                    else {
-                    	if (!$.isEmptyObject(data['log']))
-                    		activateTab(3);
-                    	else
-                    		activateTab(1);
-                    }
-                	
-                    $("#output").val(data['out']);
-                    $("#error").val(data['err']);
-                    $("#log tbody").empty();
-                    jsonArray2Table($("#log"), data['log']);
-                    $("#duration").text(data['duration'] + 's');
-                    $("#execstatus").text(data['status']);
-                    runnablesViewModel.load();                    
-                }).fail(function(jqXHR, textStatus) {
-                	$('#refresh').hide();
-                	$("#error").val(jqXHR.statusText);
-                	activateTab(2);
-                });
-            }
-            
-            self.buildGraph = function(task) {
-            	self.updateWorkflow();
-                if (!$.trim(editor.getSession().getValue()))
-              	  return;
-                
-                var formdata = new FormData();
-                
-                formdata.append('workflowId', parseInt(workflowId));
-                ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function(data) {
-                  	
-                  	if (data === undefined)
-                  		return;
-                  	data = JSON.parse(data)
-                  	if ($.isEmptyObject(data))
-                  		return;
-                  	graphId = data['graphId'];
-                  	
-                  	$.redirect(self.graphsURI, { 'graph_id': graphId }, "POST", "_blank");
-                  	
-                 }).fail(function(jqXHR, textStatus) {
-                 	$('#refresh').hide();
-                 	$("#error").val(jqXHR.statusText);
-                 	activateTab(2);
-                });
-            }
-            
-            self.provenance = function() {
-            	$.redirect(self.tasksURI, { 'provenance': true }, "POST", "_blank");
-           	}
-            
-            self.generatePythonCode = function(task) {
-            	$('#refresh').show();
-            	var formdata = new FormData();
-                formdata.append('code', editor.getSession().getValue());
-                formdata.append('args', $('#args').val());
-                formdata.append('immediate', $('#immediate').prop('checked'));
-                ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
-                    $('#refresh').hide();
-                    if (data === undefined)
-                        return;
-                    
-                    data = JSON.parse(data)
-                    
-                    $("#output").val(data.out);
-                    $("#error").val(data.err);
-                    $("#log tbody").empty();
-                    jsonArray2Table($("#log"), data['log']);
-                    $("#execstatus").text(data['status']);
-                    $("#duration").text(data.duration + 's');
-                });
-            }
-            self.beginEditLibrary = function(task) {
-               // editTaskViewModel.setTask(task);
-                $('#edit').modal('show');
-            }
-            self.edit = function(task, data) {
-              ajaxcalls.simple(task.uri(), 'PUT', data).done(function(res) {
-                    self.updateTask(task, res.task);
-                });
-            }
-            self.remove = function(task) {
-              ajaxcalls.simple(task.uri(), 'DELETE').done(function() {
-                    self.tasks.remove(task);
-                });
-            }
-            self.markInProgress = function(task) {
-              ajaxcalls.simple(task.uri(), 'PUT', { internal: "" }).done(function(res) {
-                    self.updateTask(task, res.task);
-                });
-            }
-            self.markDone = function(task) {
-              ajaxcalls.simple(task.uri(), 'PUT', { internal: "" }).done(function(res) {
-                    self.updateTask(task, res.task);
-                });
-            }
-            self.beginLogin = function() {
-                $('#login').modal('show');
-            }
-            self.login = function() {
-            	self.load();
-            }
-            self.load = function() {
-              ajaxcalls.simple(self.tasksURI, 'GET', {'level': 1, 'access': self.selectedServiceAccessType().Id}).done(function(data) {
-            	  self.tasks([]);
-            	  $.each(data.functions, function(i, f) {
-            		  self.tasks.push({
-                          package_name: ko.observable(f.package_name),
-                          name: ko.observable(f.name),
-                          internal: ko.observable(f.internal),
-                          example: ko.observable(f.example),
-                          example2: ko.observable(f.example2),
-                          desc: ko.observable(f.desc + "\nReturns: " + f.returns + "\nExample:\n    " + (self.selectedCategory().Id == 0 ? f.example : f.example2) + "\nDouble click to insert into code editor."),
-                          runmode: ko.observable(f.runmode),
-                          group: ko.observable(f.group)
-                      });
-            	  });
-                }).fail(function(jqXHR) {
-                    if (jqXHR.status == 403)
-                        setTimeout(self.beginLogin, 500);
-                });
-            }
-            //self.beginLogin();
-            
-            self.copyToEditor = function(item) {
-               var pos = editor.selection.getCursor();             
-               editor.session.insert(pos, self.selectedCategory().Id == 0 ? item.example() : item.example2());
-               editor.focus();
+         self.selectCategory = function(category) {
+             self.selectedCategory(category);
            }
+         
+         self.selectServiceAccessType = function(serviceAccessType) {
+             self.selectedServiceAccessType(serviceAccessType);
+             self.load();
+           }
+         
+        	self.click = function(model){
+        		self.login();
+        	    return true;
+         }
+         
+        	self.clearResults = function() {
+        		$("#output").val("");
+             $("#error").val("");
+             $("#log tbody").empty();
+             $("#duration").text("0s");
+             $("#execstatus").text("");
+        	}
+         self.clearEditor = function() {
+             editor.session.setValue("");
+             self.clearResults();
+         }
+
+         self.updateTask = function(task, newTask) {
+             var i = self.tasks.indexOf(task);
+             self.tasks()[i].package_name(newTask.package_name);
+             self.tasks()[i].name(newTask.name);
+             self.tasks()[i].internal(newTask.internal);
+             self.tasks()[i].example(newTask.example);
+             self.tasks()[i].example2(newTask.example2);
+             self.tasks()[i].desc(newTask.desc);
+             self.tasks()[i].desc(newTask.runmode);
+             self.tasks()[i].desc(newTask.group);
+         }
+         
+         self.beginAddLibrary = function() {
+         	var obj = { "functions": [{ "name": "", "internal": "", "example": ""} ] };
+
+         	addLibraryViewModel.getCodeEditor().setValue(JSON.stringify(obj, null, 4), 1);
+         	centerDialog($('#add'));
+             $('#add').modal('show');
+         }
+         
+         self.updateWorkflow = function() {
+             var script = $.trim(editor.getSession().getValue());
+             if ((!script && !workflowId) || editor.session.getUndoManager().isClean())
+           	  return; // if script emtpy and workflowId not set, it means (empty) workflow is not set yet.
+           	
+           	var formdata = new FormData();
+             
+             formdata.append('workflowId', parseInt(workflowId));
+             formdata.append('script', script);
+             
+             ajaxcalls.form(self.tasksURI, 'POST', formdata, false).done(function(data) {
+             	if (!$.isEmptyObject(data)) {
+             		workflowId = parseInt(data['workflowId']);
+             		editor.session.getUndoManager().markClean();
+             	}
+             });
+         }
+         
+         self.runBioWL = function(task) {
+           self.updateWorkflow();
+           var script = $.trim(editor.getSession().getValue());
+           if (!script)
+         	  return;
+           
+           $('#refresh').show();
+           var formdata = new FormData();
+           
+           formdata.append('workflowId', parseInt(workflowId));
+           formdata.append('args', $('#args').val());
+           formdata.append('immediate', $('#immediate').prop('checked'));
+           self.clearResults();
+           ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
+         	  $('#refresh').hide();
+             	
+             	if (data === undefined)
+             		return;
+             	data = JSON.parse(data)
+             	if ($.isEmptyObject(data))
+             		return;
+             	
+             	if (data['err'] && data['status'] !== 'SUCCESS')
+                 	activateTab(2);
+                 else {
+                 	if (!$.isEmptyObject(data['log']))
+                 		activateTab(3);
+                 	else
+                 		activateTab(1);
+                 }
+             	
+                 $("#output").val(data['out']);
+                 $("#error").val(data['err']);
+                 $("#log tbody").empty();
+                 jsonArray2Table($("#log"), data['log']);
+                 $("#duration").text(data['duration'] + 's');
+                 $("#execstatus").text(data['status']);
+                 runnablesViewModel.load();                    
+             }).fail(function(jqXHR, textStatus) {
+             	$('#refresh').hide();
+             	$("#error").val(jqXHR.statusText);
+             	activateTab(2);
+             });
+         }
+         
+         self.buildGraph = function(task) {
+         	self.updateWorkflow();
+             if (!$.trim(editor.getSession().getValue()))
+           	  return;
+             
+             var formdata = new FormData();
+             
+             formdata.append('workflowId', parseInt(workflowId));
+             ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function(data) {
+               	
+               	if (data === undefined)
+               		return;
+               	data = JSON.parse(data)
+               	if ($.isEmptyObject(data))
+               		return;
+               	graphId = data['graphId'];
+               	
+               	$.redirect(self.graphsURI, { 'graph_id': graphId }, "POST", "_blank");
+               	
+              }).fail(function(jqXHR, textStatus) {
+              	$('#refresh').hide();
+              	$("#error").val(jqXHR.statusText);
+              	activateTab(2);
+             });
+         }
+         
+         self.provenance = function() {
+         	$.redirect(self.tasksURI, { 'provenance': true }, "POST", "_blank");
+        	}
+         
+         self.generatePythonCode = function(task) {
+         	$('#refresh').show();
+         	var formdata = new FormData();
+             formdata.append('code', editor.getSession().getValue());
+             formdata.append('args', $('#args').val());
+             formdata.append('immediate', $('#immediate').prop('checked'));
+             ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
+                 $('#refresh').hide();
+                 if (data === undefined)
+                     return;
+                 
+                 data = JSON.parse(data)
+                 
+                 $("#output").val(data.out);
+                 $("#error").val(data.err);
+                 $("#log tbody").empty();
+                 jsonArray2Table($("#log"), data['log']);
+                 $("#execstatus").text(data['status']);
+                 $("#duration").text(data.duration + 's');
+             });
+         }
+         self.beginEditLibrary = function(task) {
+            // editTaskViewModel.setTask(task);
+             $('#edit').modal('show');
+         }
+         self.edit = function(task, data) {
+           ajaxcalls.simple(task.uri(), 'PUT', data).done(function(res) {
+                 self.updateTask(task, res.task);
+             });
+         }
+         self.remove = function(task) {
+           ajaxcalls.simple(task.uri(), 'DELETE').done(function() {
+                 self.tasks.remove(task);
+             });
+         }
+         self.markInProgress = function(task) {
+           ajaxcalls.simple(task.uri(), 'PUT', { internal: "" }).done(function(res) {
+                 self.updateTask(task, res.task);
+             });
+         }
+         self.markDone = function(task) {
+           ajaxcalls.simple(task.uri(), 'PUT', { internal: "" }).done(function(res) {
+                 self.updateTask(task, res.task);
+             });
+         }
+         self.beginLogin = function() {
+             $('#login').modal('show');
+         }
+         self.login = function() {
+         	self.load();
+         }
+         self.load = function() {
+           ajaxcalls.simple(self.tasksURI, 'GET', {'level': 1, 'access': self.selectedServiceAccessType().Id}).done(function(data) {
+         	  self.tasks([]);
+         	  $.each(data.functions, function(i, f) {
+         		  self.tasks.push({
+                       package_name: ko.observable(f.package_name),
+                       name: ko.observable(f.name),
+                       internal: ko.observable(f.internal),
+                       example: ko.observable(f.example),
+                       example2: ko.observable(f.example2),
+                       desc: ko.observable(f.desc + "\nReturns: " + f.returns + "\nExample:\n    " + (self.selectedCategory().Id == 0 ? f.example : f.example2) + "\nDouble click to insert into code editor."),
+                       runmode: ko.observable(f.runmode),
+                       group: ko.observable(f.group)
+                   });
+         	  });
+             }).fail(function(jqXHR) {
+                 if (jqXHR.status == 403)
+                     setTimeout(self.beginLogin, 500);
+             });
+         }
+         //self.beginLogin();
+         
+         self.copyToEditor = function(item) {
+            var pos = editor.selection.getCursor();             
+            editor.session.insert(pos, self.selectedCategory().Id == 0 ? item.example() + "\r\n": item.example2() + "\r\n");
+            editor.focus();
         }
+     }
         
        function SamplesViewModel(sampleViewModel) {
            var self = this;
@@ -1341,7 +1476,7 @@ background-color: White;
                		   return;
         		   
         		   var pos = editor.selection.getCursor();        	   
-                   editor.session.insert(pos, data['script'].join('\r\n'));
+                   editor.session.insert(pos, data['script']);//.join('\r\n'));
                    editor.focus();
                    workflowId = item.id();
             	   
@@ -1457,7 +1592,7 @@ background-color: White;
                 }
 
                 ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
-                	mainViewModel.samplesViewModel.load();
+                	samplesViewModel.load();
                 });
             }
             
@@ -1690,21 +1825,18 @@ background-color: White;
         var sampleViewModel = new SampleViewModel();
         var editTaskViewModel = new EditTaskViewModel();
         var loginViewModel = new LoginViewModel();
-        var runnablesViewModel = new RunnablesViewModel();
+        var tasksViewModel = new TasksViewModel();
+        tasksViewModel.login();
         
-        var MainViewModel = function() {
-            var self = this;
-            self.tasksViewModel = new TasksViewModel();
-            self.tasksViewModel.login();
-            
-            self.samplesViewModel = new SamplesViewModel(sampleViewModel);
-            self.samplesViewModel.load();
-       }
+        var samplesViewModel = new SamplesViewModel(sampleViewModel);
+        samplesViewModel.load();
         
-        mainViewModel = new MainViewModel();
+        var runnablesViewModel = new RunnablesViewModel();        
         runnablesViewModel.load();
         
-        ko.applyBindings(mainViewModel, $('#main')[0]);
+        ko.applyBindings(tasksViewModel, $('#main')[0]);
+        ko.applyBindings(tasksViewModel, $('#functions')[0]);
+        ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
         ko.applyBindings(sampleViewModel, $('#addSample')[0]);
         ko.applyBindings(editTaskViewModel, $('#edit')[0]);

@@ -467,16 +467,20 @@ class Samples():
     
     @staticmethod
     def jsonify_script(script):
-        return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
-                
+        return script
+        #return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
+
+    @staticmethod
+    def create_workflow(user, name, desc, script, access, users, temp, derived = 0):
+        if script and name:
+            users = users.split(";") if users else []
+            return Workflow.create(user, name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
+
     @staticmethod
     def add_workflow(user, name, desc, script, access, users, temp):
         try:
-            if script and name:
-                lines = Samples.jsonify_script(script)
-                users = users.split(";") if users else []
-                workflow = Workflow.create(user, name, desc if desc else '', json.dumps(lines), 2 if not access else int(access), users, temp)
-                return json.dumps(workflow.to_json_info());
+            workflow = Samples.create_workflow(user, name, desc, script, access, users, temp)
+            return json.dumps(workflow.to_json_info());
         except:
             return json.dumps({})
                 

@@ -193,6 +193,16 @@ background-color: White;
 								data-placement="top" title="Reload" data-bind="click: load">
 								<i class="glyphicon glyphicon-refresh"></i>
 							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Deselect All"
+								data-bind="click: deselectAll">
+								<i class="glyphicon glyphicon-unchecked"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Select All"
+								data-bind="click: selectAll">
+								<i class="glyphicon glyphicon-check"></i>
+							</button>
 						</div>
 					</div>
 				</div>
@@ -1725,21 +1735,24 @@ background-color: White;
             self.runnablesURI = '/runnables';
             self.items = ko.observableArray();
         
-            self.copyToEditor = function(item) {
+			self.loadHistory = function(id, switchTab = false) {
             	
-				ajaxcalls.simple(self.runnablesURI, 'GET', { 'id':  item.id()}).done(function(data) {
+				ajaxcalls.simple(self.runnablesURI, 'GET', { 'id':  id}).done(function(data) {
             		
 					if (data === undefined)
 						return;
 	            	
-	            	if (data['err'] && data['status'] !== 'SUCCESS')
-                    	activateTab(2);
-                    else {
-                    	if (!$.isEmptyObject(data['log']))
-                    		activateTab(3);
-                    	else
-                    		activateTab(1);
-                    }
+					if (switchTab) {
+		            	if (data['err'] && data['status'] !== 'SUCCESS'){
+	                    	activateTab(2);
+		            	}
+	                    else {
+	                    	if (!$.isEmptyObject(data['log']))
+	                    		activateTab(3);
+	                    	else
+	                    		activateTab(1);
+	                    }
+					}
 	            	
 					$("#output").val(data['out']);
 	            	$("#error").val(data['err']);
@@ -1754,8 +1767,12 @@ background-color: White;
                 });
             }
             
+            self.copyToEditor = function(item) {
+            	self.loadHistory(item.id(), true);
+            }
+            
             self.selectedIds = function() {
-            	ids = [];
+            	var ids = [];
                 var items = self.items();
                 for (var i = 0; i < items.length; i++) {
                     if (items[i].selected()){
@@ -1786,6 +1803,20 @@ background-color: White;
             		
             	});
             }
+			
+			self.changeSelection = function(state){
+				$.each(self.items(), function(index, item){
+					item.selected(state);
+				});
+			}
+			
+			self.selectAll = function(){
+            	self.changeSelection(true);
+            }
+			
+			self.deselectAll = function(){
+				self.changeSelection(false);
+            }
             
             self.statusIcon = function(status){
             	if (status == "STARTED")
@@ -1803,6 +1834,7 @@ background-color: White;
                 	if (data == undefined)
                 		return;
                 	
+                	var selectedIds = self.selectedIds();
                     self.items([]);
                     $.each(data['runnables'], function(i, s){
                         self.items.push({
@@ -1810,10 +1842,9 @@ background-color: White;
                             name: ko.observable(s.name),
                             status: ko.observable(s.status),
                             statusImg: ko.observable(self.statusIcon(s.status)),
-                            selected: ko.observable(false)
+                            selected: ko.observable($.inArray(s.id, selectedIds) !== -1)
                         });
                     });
-                    
                 }).fail(function(jqXHR) {
                     if (jqXHR.status == 403)
                         setTimeout(self.beginLogin, 500);
@@ -1863,6 +1894,10 @@ background-color: White;
                     		refreshId = setInterval(function() {
                     			if (runnablesViewModel !== undefined)
                     				runnablesViewModel.load();
+                   				ids = runnablesViewModel.selectedIds();
+                                if (ids.length == 1) {
+                                	runnablesViewModel.loadHistory(ids[0], false);
+                    			}
                             }, 10000); //  refresh the executables once in 10 seconds
                     	}
                         break;

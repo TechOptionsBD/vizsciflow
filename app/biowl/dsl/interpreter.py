@@ -206,7 +206,7 @@ class Interpreter(object):
             t = ast.literal_eval(str_value)
             if type(t) in [int, float, bool, complex]:
                 if t in set((True, False)):
-                    bool(str_value)
+                    return bool(str_value)
                 if type(t) is int:
                     return int(str_value)
                 if type(t) is float:

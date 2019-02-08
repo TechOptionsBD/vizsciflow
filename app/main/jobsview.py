@@ -215,8 +215,7 @@ def graphs():
 #        if request.form.get('script'):
         workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
         if not workflowId:
-            flash('Invalid workflow. Check if the workflow is already saved.')
-            return json.dumps({})
+            return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
         else:
             return build_graph(workflowId)
     return json.dumps({})

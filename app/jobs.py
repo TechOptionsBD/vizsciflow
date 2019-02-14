@@ -200,7 +200,8 @@ def sync_task_status_with_db_for_user(user_id):
         if not task.completed():
             sync_task_status_with_db(task)
             
-def generate_graph(workflow_id):
+def generate_graph(library, workflow_id):
     workflow = Workflow.query.get(workflow_id)
     graphgen = GraphGenerator(Config.GRAPHDB, Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD)
+    graphgen.context.library = library
     return graphgen.run_workflow(workflow)

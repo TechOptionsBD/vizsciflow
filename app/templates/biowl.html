@@ -23,7 +23,8 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ext-language_tools.js') }}"></script>
 <!-- <script src="ace-builds/src-min-noconflict/ext-language_tools.js"></script> -->
 <script src="https://cdn.rawgit.com/mgalante/jquery.redirect/master/jquery.redirect.js"></script>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.js"></script> -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.0/d3.min.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
 <style>
 
 .odd-row {
@@ -107,6 +108,23 @@ background-color: White;
 /*  background-color: red; */
   max-width: 400px;
 /*   min-width: 200px;   */
+}
+
+.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+.node circle {
+  fill: #ccc;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+text {
+  font: 10px sans-serif;
+  pointer-events: none;
 }
 
 </style>
@@ -237,7 +255,20 @@ background-color: White;
 						</ul>
 					</div>
 					<div class="panel-body" style="">
-						<textarea rows="32" style="width: 100%;" id="script"></textarea>
+						<div id="exTabBiowl" class="panel panel-primary">
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#1" data-toggle="tab">Script</a></li>
+								<li><a href="#2" data-toggle="tab">Graph</a></li>
+							</ul>
+						<div class="tab-content ">
+							<div class="tab-pane fade in active" id="1">
+								<textarea rows="24" style="width: 100%;" id="script"></textarea>
+							</div>
+							<div class="tab-pane fade" id="2" style="height: 400px">
+								<div style="width: 100%; height: 100%" id="graph"></div>
+							</div>
+						</div>
+						</div>
 						<br> <span class="text-secondary">Arguments:</span>
 						<textarea rows="1" style="width: 100%;" id="args"></textarea>
 						<br>
@@ -248,8 +279,6 @@ background-color: White;
 					<div class="panel-body" style="padding: 0">
 						<button class="btn pull-left btn-primary"
 							style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
-						<button class="btn pull-left btn-primary"
-							style="margin-right: 5px;" data-bind="click: buildGraph">Graph</button>
 						<button class="btn pull-left btn-primary"
 							style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
 						<button class="btn pull-left btn-primary"
@@ -1335,12 +1364,11 @@ background-color: White;
                	
                	if (data === undefined)
                		return;
-               	data = JSON.parse(data)
+               	data = JSON.parse(data);
                	if ($.isEmptyObject(data))
                		return;
-               	graphId = data['graphId'];
                	
-               	$.redirect(self.graphsURI, { 'graph_id': graphId }, "POST", "_blank");
+    			d3graph.show(data);
                	
               }).fail(function(jqXHR, textStatus) {
               	$('#refresh').hide();
@@ -1671,8 +1699,8 @@ background-color: White;
                     $("#error").val(data.err);
                     $("#log tbody").empty();
                     
-                    if (mainViewModel !== undefined) {
-                    	mainViewModel.tasksViewModel.load();
+                    if (tasksViewModel !== undefined) {
+                    	tasksViewModel.load();
                     }
                     if (data.err.length != 0) {
                     	$("#execstatus").text("FAILED");
@@ -1874,39 +1902,141 @@ background-color: White;
         ko.applyBindings(loginViewModel, $('#login')[0]);
         
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
-        
-        $(window).on('unload', function() {
-            if (refreshId != 0)
-                clearInterval(refreshId);
-        });
-        
-        $(window).on("blur focus", function(e) {
-            var prevType = $(this).data("prevType");
+    
+    function D3Graph()
+    {
+    	var self = this;
+   		self.width = 960;
+   		self.height = 500;
+    	self.links = [
+    		  {source: "Microsoft", target: "Amazon", type: "licensing"},
+    		  {source: "Microsoft", target: "HTC", type: "licensing"},
+    		  {source: "Samsung", target: "Apple", type: "suit"},
+    		  {source: "Motorola", target: "Apple", type: "suit"},
+    		  {source: "Nokia", target: "Apple", type: "resolved"},
+    		  {source: "HTC", target: "Apple", type: "suit"},
+    		  {source: "Kodak", target: "Apple", type: "suit"},
+    		];
 
-            if (prevType != e.type) {   //  reduce double fire issues
-                switch (e.type) {
-                    case "blur":
-                    	clearInterval(refreshId);
-                    	refreshId = 0;
-                        break;
-                    case "focus":
-                    	if (!refreshId) {
-                    		refreshId = setInterval(function() {
-                    			if (runnablesViewModel !== undefined)
-                    				runnablesViewModel.load();
-                   				ids = runnablesViewModel.selectedIds();
-                                if (ids.length == 1) {
-                                	runnablesViewModel.loadHistory(ids[0], false);
-                    			}
-                            }, 10000); //  refresh the executables once in 10 seconds
-                    	}
-                        break;
-                }
-            }
+		self.show = function(links) {
+			self.nodes = {};
+			self.links = links;
+			// Compute the distinct nodes from the links.
+	   		self.links.forEach(function(link) {
+	   		  link.source = self.nodes[link.source] || (self.nodes[link.source] = link.source);
+	   		  link.target = self.nodes[link.target] || (self.nodes[link.target] = link.target);
+	   		});
+			
+			self.width = $("#graph").width();
+			self.height = $("#graph").height();
+			
+			var force = d3.layout.force()
+	   		    .nodes(d3.values(self.nodes))
+	   		    .links(self.links)
+	   		    .size([self.width, self.height])
+	   		    .linkDistance(60)
+	   		    .charge(-300)
+	   		    .on("tick", self.tick)
+	   		    .start();
+			
+			if (self.svg !== undefined && self.svg != null) {
+				d3.select("svg")
+					.selectAll("*")
+					.remove();
+				d3.select("svg").remove();
+			}
+			
+			self.svg = d3.select("#graph").append("svg")
+   		    	.attr("width", self.width)
+   		    	.attr("height", self.height);
+			
+			self.link = self.svg.selectAll(".link")
+	   		    .data(force.links())
+	   		  	.enter().append("line")
+	   		    .attr("class", "link");
 
-            $(this).data("prevType", e.type);
-        })
+   			self.node = self.svg.selectAll(".node")
+	   			.data(force.nodes())
+	   			.enter().append("g")
+	   		    .attr("class", "node")
+	   		    .on("mouseover", self.mouseover)
+	   		    .on("mouseout", self.mouseout)
+	   		    .call(force.drag);
+
+   			self.node.append("circle")
+   		    	.attr("r", 8);
+
+   			self.node.append("text")
+	   		    .attr("x", 12)
+	   		    .attr("dy", ".35em")
+	   		    .text(function(d) { return d.label; });
+		}
+   		
+   		self.tick = function() {
+   		  self.link
+   		      .attr("x1", function(d) { return d.source.x; })
+   		      .attr("y1", function(d) { return d.source.y; })
+   		      .attr("x2", function(d) { return d.target.x; })
+   		      .attr("y2", function(d) { return d.target.y; });
+
+   		  self.node
+   		      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+   		}
+
+   		self.mouseover = function() {
+   		  d3.select(this).select("circle").transition()
+   		      .duration(750)
+   		      .attr("r", 16);
+   		}
+
+   		self.mouseout = function() {
+   		  d3.select(this).select("circle").transition()
+   		      .duration(750)
+   		      .attr("r", 8);
+   		}
+    }
+    
+    d3graph = new D3Graph();
+    
+    $(window).on('unload', function() {
+        if (refreshId != 0)
+            clearInterval(refreshId);
+    });
         
-  </script>
+	$(window).on("blur focus", function(e) {
+	    var prevType = $(this).data("prevType");
+	
+	    if (prevType != e.type) {   //  reduce double fire issues
+	        switch (e.type) {
+	            case "blur":
+	            	clearInterval(refreshId);
+	            	refreshId = 0;
+	                break;
+	            case "focus":
+	            	if (!refreshId) {
+	            		refreshId = setInterval(function() {
+	            			if (runnablesViewModel !== undefined)
+	            				runnablesViewModel.load();
+	           				ids = runnablesViewModel.selectedIds();
+	                        if (ids.length == 1) {
+	                        	runnablesViewModel.loadHistory(ids[0], false);
+	            			}
+	                    }, 10000); //  refresh the executables once in 10 seconds
+	            	}
+	                break;
+	        }
+	    }
+	
+	    $(this).data("prevType", e.type);
+	})
+	
+	$(exTabBiowl).on('shown.bs.tab', function (e) {
+		var x = $(e.target).text();
+		if (x === "Graph") {
+			tasksViewModel.buildGraph();
+		}
+	})
+        
+</script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}

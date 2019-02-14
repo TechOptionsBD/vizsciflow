@@ -2,11 +2,14 @@ import ast
 import logging
 import threading
 import _thread
+import json
 
 from .func_resolver import Library
 from ..tasks import TaskManager
 from .context import Context
 from ...models import Workflow
+from .grammar import PythonGrammar
+from .parser import PhenoWLParser
 
 from py2neo import Graph, Subgraph
 from py2neo.data import Node, Relationship
@@ -15,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class GraphGenerator(object):
     '''
-    The interpreter for PhenoWL DSL
+    The BioWL graph generator
     '''
     def __init__(self, url, username, password):
         self.context = Context()
@@ -44,10 +47,18 @@ class GraphGenerator(object):
         if package is None and function in self.context.library.tasks:
             return self.context.library.run_task(function, v, self.dotaskstmt)
 
-        if not self.context.library.check_function(function, package):
-            raise Exception(r"'{0}' doesn't exist.".format(function))
-            
-        return self.context.library.call_func(self.context, package, function, v)
+        funcInstances = self.context.library.get_function(function, package)
+        if not funcInstances:
+            raise ValueError(r"'{0}' doesn't exist.".format(function))
+        
+        node = Node("Service", package=package, name=function)
+        for arg in v:
+            self.graph.create(Relationship(arg, "Input", node))
+        
+        outnode = Node('Data', type=funcInstances[0].returns, name="{0} output".format(function))
+        self.graph.create(Relationship(node, "Output", outnode))
+        
+        return outnode
 
     def dorelexpr(self, expr):
         '''
@@ -116,7 +127,7 @@ class GraphGenerator(object):
         if len(left) > 1:
             left = ['LOGEXPR'] + left
         left = self.eval(left)
-        return left or right
+        return self.createbinarynode(left, right, "or")
     
     def domult(self, expr):
         '''
@@ -130,8 +141,16 @@ class GraphGenerator(object):
         if len(left) > 1:
             left = ['MULTEXPR'] + left
         left = self.eval(left)
-        return left / right if expr[-2] == '/' else left * right
-
+        return self.createbinarynode(left, right, expr[-2])
+    
+    def createbinarynode(self, left, right, name):
+        node = Node("Service", package="built-in", name=name)
+        self.graph.create(Relationship(left, "Input", node))
+        self.graph.create(Relationship(right, "Input", node))
+        outnode = Node('Data', type='primitive', name="{0} output".format(name))
+        self.graph.create(Relationship(node, "Output", outnode))
+        return outnode
+            
     def doarithmetic(self, expr):
         '''
         Executes arithmetic operation.
@@ -144,7 +163,8 @@ class GraphGenerator(object):
         if len(left) > 1:
             left = ['NUMEXPR'] + left
         left = self.eval(left)
-        return left + right if expr[-2] == '+' else left - right
+        
+        return self.createbinarynode(left, right, expr[-2])
     
     def doif(self, expr):
         '''
@@ -202,6 +222,12 @@ class GraphGenerator(object):
             self.context.update_var(expr[0], var)
             self.eval(expr[2])
     
+    def eval_value_node(self, typename, value):
+        node = Node("Data", type=typename, name=value)
+        relationship = Relationship(self.workflow_node, "Dataset", node)
+        self.graph.create(relationship)
+        return node
+    
     def eval_value(self, str_value):
         '''
         Evaluate a single expression for value.
@@ -211,22 +237,22 @@ class GraphGenerator(object):
             t = ast.literal_eval(str_value)
             if type(t) in [int, float, bool, complex]:
                 if t in set((True, False)):
-                    bool(str_value)
+                    return self.eval_value_node('bool', bool(t))
                 if type(t) is int:
-                    return int(str_value)
+                    return self.eval_value_node('int', int(t))
                 if type(t) is float:
-                    return float(t)
+                    return self.eval_value_node('float', float(t))
                 if type(t) is complex:
-                    return complex(t)
+                    return self.eval_value_node('complex', complex(t))
             else:
                 if len(str_value) > 1:
                     if (str_value.startswith("'") and str_value.endswith("'")) or (str_value.startswith('"') and str_value.endswith('"')):
-                        return str_value[1:-1]
+                        return self.eval_value_node('str', str_value[1:-1]) 
             return str_value
         except ValueError:
             if self.context.var_exists(str_value):
                 return self.context.get_var(str_value)
-            return str_value
+            return self.graph.create(Relationship(Node('Data', type(str_value), name=str_value), "Dataset", self.workflow_node))
     
     def dolist(self, expr):
         '''
@@ -423,9 +449,27 @@ class GraphGenerator(object):
         except Exception as err:
             self.context.err.append("Error at line {0}: {1}".format(self.line, err))
     
-    def run_workflow(self, workflow):        
-        self.workflow_node = self.graph.nodes.match("Workflow", id=workflow.id).first()
+    def run_workflow(self, workflow):
+        parser = PhenoWLParser(PythonGrammar())
+        prog = parser.parse(workflow.script)
+        
+        graph_id= str(workflow.id) +'#' + str(workflow.user_id)
+        self.workflow_node = self.graph.nodes.match("Workflow", wid=graph_id).first()
         if self.workflow_node:
             self.graph.delete(self.workflow_node)
-        self.workflow_node = self.graph.create(Node("Workflow", id=workflow.id))
-        return self.run(workflow.script)
+            
+        self.graph.create(Node("Workflow", wid=graph_id, name=workflow.name))
+        self.workflow_node = self.graph.nodes.match("Workflow", wid=graph_id).first()
+        if not self.workflow_node:
+            raise ValueError("Graph is not created")
+        self.run(prog)
+        #wf_graph = self.graph.run("MATCH (w:Workflow)-[r*]->(x) WHERE w.id='{0}' RETURN *".format(graph_id))
+        #cypher = "MATCH (a)-[r]->(b) WITH collect({ source: id(a), target: id(b), type: type(r) }) AS links RETURN links"
+        #cypher = "MATCH(w:Workflow{wid:'{0}'})-[r*]-() WITH last(r) AS rx RETURN {source:startNode(rx), type: type(rx), target:endNode(rx)}".format(graph_id)
+        #cypher = "MATCH(w:Workflow{wid:'" + graph_id + "'})-[r*]-() WITH last(r) AS rx RETURN {source:{label: labels(startNode(rx))[0], id: ID(startNode(rx))}, type: type(rx), target:{label: labels(endNode(rx))[0], id: ID(endNode(rx))}} AS links"
+        cypher = "MATCH(w:Workflow{wid:'" + graph_id + "'})-[r*]-() WITH last(r) AS rx RETURN {source:{label: labels(startNode(rx))[0], id: ID(startNode(rx)), name: startNode(rx).name}, type: type(rx), target:{label: labels(endNode(rx))[0], id: ID(endNode(rx)), name: endNode(rx).name}}"
+        wf_graph = self.graph.run(cypher).data()
+        links = []
+        for g in wf_graph:
+            links.extend(g.values())         
+        return json.dumps(links)

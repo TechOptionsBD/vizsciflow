@@ -72,8 +72,7 @@ def run_biowl(workflow_id, args, immediate = True):
 
 def build_graph(workflow_id):
     try:
-        graph_id = generate_graph(workflow_id)
-        return jsonify(graph_id = graph_id)
+        return generate_graph(library.library, workflow_id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
 

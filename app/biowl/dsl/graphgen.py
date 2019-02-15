@@ -55,7 +55,7 @@ class GraphGenerator(object):
         for arg in v:
             self.graph.create(Relationship(arg, "Input", node))
         
-        outnode = Node('Data', type=funcInstances[0].returns, name="{0} output".format(function))
+        outnode = Node('Data', type=funcInstances[0].returns, name="output")
         self.graph.create(Relationship(node, "Output", outnode))
         
         return outnode
@@ -190,7 +190,11 @@ class GraphGenerator(object):
         :param expr:
         '''
         if len(left) == 1:
-            self.context.add_var(left[0], self.eval(right))
+            rightNode = self.eval(right)
+            self.context.add_var(left[0], rightNode)
+            
+            #node = Node("Service", package="built-in", name=left[0]+"=")
+            #self.graph.create(Relationship(rightNode, "=", node))
         elif left[0] == 'LISTIDX':
             left = left[1]
             idx = self.eval(left[1])

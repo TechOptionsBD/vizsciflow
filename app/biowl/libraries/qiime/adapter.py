@@ -4,8 +4,8 @@ from ....util import Utility
 from ...exechelper import func_exec_bash_stdout
 
 
-activate = 'source /home/mainul/miniconda3/bin/activate /home/mainul/miniconda3/envs/qiime2-2018.11;'
-qiime_runner = "/home/mainul/Development/biowl/app/biowl/libraries/qiime/conda_service.sh"
+activate = 'source /home/phenodoop/miniconda3/bin/activate /home/phenodoop/miniconda3/envs/qiime2-2018.11;'
+qiime_runner = "/home/phenodoop/phenoproc/app/biowl/libraries/qiime/conda_service.sh"
 
 # def run_qiime2(*args):
 #     return func_exec_bash_stdout(qiime_service, *args)

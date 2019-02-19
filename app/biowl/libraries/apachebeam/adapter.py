@@ -8,6 +8,7 @@ from ...fileop import PosixFileSystem
 from ....util import Utility
 from ....models import Runnable, User, Workflow
 from ...ssh import ssh_hadoop_command, scp_get, scp_put
+from app.biowl.libraries.qiime.adapter import get_input_from_args_optional
 
 # cluster = '206.12.102.75'
 # user = 'hadoop'
@@ -149,30 +150,16 @@ def get_output_path_from_args(paramindex, fs, data, keyname, default, *args, **k
     return paramindex, fs.normalize_path(repseqs)
 
 def run_beam_quality(*args, **kwargs):
-    paramindex = 0
-    paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
+    paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
     if not data.startswith('hdfs://'):
         raise ValueError("Apache beam service runs only on HDFS file system.")
 
-    outdir = ''
-    if 'outdir' in kwargs.keys():
-        outdir = kwargs['outdir']
-    else:
-        if len(args) > paramindex:
-            outdir = args[paramindex]
-            paramindex +=1
-    
+    paramindex, outdir = get_input_from_args_optional(paramindex, 'outdir', '', *args, **kwargs)
     if not outdir or not outdir.startswith('hdfs://'):
         username = get_username(**kwargs)
         outdir = os.path.join(os.path.dirname(data), username,  str(uuid.uuid4()))
                    
-    runner = 'spark'
-    if 'runner' in kwargs.keys():
-        runner = kwargs['runner']
-    else:
-        if len(args) > paramindex:
-            runner = args[paramindex]
-            paramindex +=1
+    paramindex, runner = get_input_from_args_optional(paramindex, 'runner', 'spark', *args, **kwargs)
 
     outpath = outdir
     ext = Path(data).suffix
@@ -195,121 +182,27 @@ def run_beam_quality(*args, **kwargs):
 def run_beam_align(*args, **kwargs):
     
     paramindex = 0
-    ref = ''
-    if 'ref' in kwargs.keys():
-        ref = kwargs['ref']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument error")
-        ref = args[paramindex]
-        paramindex +=1
+    paramindex, ref = get_input_from_args(paramindex, 'ref', *args, **kwargs)
+    if not ref.startswith('hdfs://'):
+        raise ValueError("Apache beam service runs only on HDFS file system.")
     
-    fs = None
-    destpath = None
-    if Utility.fs_type_by_prefix(ref) != 'hdfs':
-        fssrc = Utility.fs_by_prefix_or_default(ref)
-        fs = Utility.fs_by_prefix(cluster_hdfs)
+    paramindex, data1 = get_input_from_args(paramindex, 'data1', *args, **kwargs)
+    if not data1.startswith('hdfs://'):
+        raise ValueError("Apache beam service runs only on HDFS file system.")
+    
+    paramindex, data2 = get_input_from_args_optional(paramindex, 'data2', '', *args, **kwargs)
+    if data2 and not data2.startswith('hdfs://'):
+        raise ValueError("Apache beam service runs only on HDFS file system.")
+    
+    paramindex, output = get_input_from_args_optional(paramindex, 'output', '', *args, **kwargs)
+    if output and not output.startswith('hdfs://'):
+        raise ValueError("Apache beam service runs only on HDFS file system.")
+    
+    if not output:
         username = get_username(**kwargs)
-        destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
-        srcpath = ref
-        ref = fs.join(destpath, os.path.basename(ref))
-        fs.write(ref, fssrc.read(srcpath))
-    else:
-        fs = Utility.fs_by_prefix(ref)
-    
-    data1 = ''
-    if 'data1' in kwargs.keys():
-        data1 = kwargs['data1']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument error")
-        data1 = args[paramindex]
-        paramindex +=1
-    
-    if Utility.fs_type_by_prefix(data1) != 'hdfs':
-        fssrc = Utility.fs_by_prefix_or_default(data1)
-        if not destpath:
-            username = get_username(**kwargs)
-            destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
-        srcpath = data1
-        data1 = fs.join(destpath, os.path.basename(data1))
-        fs.write(data1, fssrc.read(srcpath))
-    
-    output = ''
-    data2 = ''
-    if fs.isfile(data1):
+        output = os.path.join(os.path.dirname(data1), username,  str(uuid.uuid4()))
         
-        if 'data2' in kwargs.keys():
-            data2 = kwargs['data2']
-        else:
-            if len(args) > paramindex:
-                data2 = args[paramindex]
-                paramindex +=1
-          
-        if data2 and Utility.fs_type_by_prefix(data2) != 'hdfs':
-            fssrc = Utility.fs_by_prefix_or_default(data2)
-            if not destpath:
-                username = get_username(**kwargs)
-                destpath = fs.makedirs(os.path.join(username, str(uuid.uuid4())))
-            srcpath = data2
-            data2 = fs.join(destpath, os.path.basename(data2))
-            fs.write(data2, fssrc.read(srcpath))
-            
-        if 'output' in kwargs.keys():
-            output = kwargs['output']
-        else:
-            if len(args) > paramindex:
-                output = args[paramindex]
-                paramindex +=1
-    
-        outdir = ''
-        if not output or Utility.fs_type_by_prefix(output) != 'hdfs':
-            if destpath:
-                outdir = destpath
-            else:
-                username = get_username(**kwargs)
-                outdir = os.path.join(username,  str(uuid.uuid4()))
-        else:
-            if fs.isdir(output):
-                outdir = output
-                output = ''
-    
-        if outdir and not fs.exists(outdir):
-            fs.makedirs(outdir)
-        
-        if outdir:
-            output = os.path.join(outdir, Path(data1).stem + ".sam")        
-    else:
-        if 'output' in kwargs.keys():
-            output = kwargs['output']
-        else:
-            if len(args) > paramindex:
-                output = args[paramindex]
-                paramindex +=1
-    
-        if not output or Utility.fs_type_by_prefix(output) != 'hdfs':
-            if destpath:
-                output = destpath
-            else:
-                username = get_username(**kwargs)
-                output = os.path.join(username,  str(uuid.uuid4()))
-    
-        if output and not fs.exists(output):
-            fs.makedirs(output)
-            
-    ref = fs.normalize_fullpath(ref)
-    data1 = fs.normalize_fullpath(data1)
-    if data2:
-        data2 = fs.normalize_fullpath(data2)
-    output = fs.normalize_fullpath(output)
-
-    runner = 'spark'
-    if 'runner' in kwargs.keys():
-        runner = kwargs['runner']
-    else:
-        if len(args) > paramindex:
-            runner = args[paramindex]
-            paramindex +=1
+    paramindex, runner = get_input_from_args_optional(paramindex, 'runner', 'spark', *args, **kwargs)
 
     ssh_cmd = ''
     if runner == 'spark':
@@ -320,14 +213,8 @@ def run_beam_align(*args, **kwargs):
     else:
         ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.Alignment -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(ref, data1, data2, output)
     
-    kwargs['context'].out.append(ssh_cmd)
-    ssh_hadoop_command(cluster, user, password, ssh_cmd)
-    
-    stripped_path = output
-    if not fs.exists(stripped_path):
-        raise ValueError("Apache beam could not generate the .sam file: " + stripped_path)
-    
-    return stripped_path
+    ssh_hadoop_command(cluster, user, keyfile, ssh_cmd)
+    return output
 
 def run_beam_sam_to_bam(*args, **kwargs):
     

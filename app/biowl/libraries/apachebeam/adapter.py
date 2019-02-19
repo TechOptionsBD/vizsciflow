@@ -6,7 +6,7 @@ import uuid
 from ...exechelper import func_exec_run
 from ...fileop import PosixFileSystem
 from ....util import Utility
-from ....models import Runnable, User
+from ....models import Runnable, User, Workflow
 from ...ssh import ssh_hadoop_command, scp_get, scp_put
 
 # cluster = '206.12.102.75'
@@ -101,7 +101,8 @@ def get_username(**kwargs):
         if 'context' in kwargs.keys():
             runnable_id = kwargs['context'].runnable
             runnable = Runnable.query.get(runnable_id)
-            return User.query.get(runnable.user_id).username
+            workflow = Workflow.query.get(runnable.workflow_id)
+            return User.query.get(workflow.user_id).username
     except:
         pass
 

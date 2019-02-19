@@ -5,6 +5,8 @@ def get_ssh_client(myhost, myuser, mypassword = None, keyfile=None):
     k = None
     if keyfile:
         k = paramiko.RSAKey.from_private_key_file(keyfile)
+        if not k:
+            raise ValueError("RSAKey from private key file did not work.")
     
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())

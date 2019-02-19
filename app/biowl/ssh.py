@@ -1,10 +1,18 @@
 import paramiko
 from scp import SCPClient
 
-def get_ssh_client(myhost, myuser, mypassword):
+def get_ssh_client(myhost, myuser, mypassword = None, keyfile=None):
+    k = None
+    if keyfile:
+        k = paramiko.RSAKey.from_private_key_file(keyfile)
+    
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_client.connect(hostname=myhost, username=myuser, password=mypassword)
+    
+    if k:
+        ssh_client.connect(hostname=myhost, username=myuser, pkey = k)
+    else:
+        ssh_client.connect(hostname=myhost, username=myuser, password=mypassword)
     return ssh_client
 
 def ssh_command(myhost, myuser, mypassword, command):
@@ -14,7 +22,20 @@ def ssh_command(myhost, myuser, mypassword, command):
     ssh_client.close()
     return exit_status
 
-def ssh_hadoop_command(myhost, myuser, mypassword, command):
+def ssh_hadoop_command(myhost, myuser, keyfile, command):
+    ssh_client = get_ssh_client(myhost, myuser, None, keyfile)
+#     pre_command = """
+#     . ~/.profile;
+#     . ~/.bashrc;
+#     """
+
+    #_, stdout, _ = ssh_client.exec_command('export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop;' + command)
+    _, stdout, _ = ssh_client.exec_command('export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop;' + command)
+    exit_status = stdout.channel.recv_exit_status() # Channel.exit_status_ready for non-blocking call
+    ssh_client.close()
+    return exit_status
+
+def ssh_hadoop_command_big1(myhost, myuser, mypassword, command):
     ssh_client = get_ssh_client(myhost, myuser, mypassword)
 #     pre_command = """
 #     . ~/.profile;

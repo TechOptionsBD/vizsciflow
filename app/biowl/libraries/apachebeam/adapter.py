@@ -254,17 +254,18 @@ def run_beam_pear(*args, **kwargs):
     if output and not output.startswith('hdfs://'):
         raise ValueError("Apache beam service runs only on HDFS file system.")
     
+    assembled = output
     if not output:
         username = get_username(**kwargs)
         output = os.path.join(os.path.dirname(data1), username,  str(uuid.uuid4()))
-        output = path.join(output, Path(data1).stem + ".assembled" + Path(data1).suffix)
+        assembled = path.join(output, Path(data1).stem + ".assembled" + Path(data1).suffix)
         
     paramindex, runner = get_input_from_args_optional(paramindex, 'runner', 'spark', *args, **kwargs)
     if runner == 'spark':
         ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.Merge --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g  --executor-cores 4 {0} --input1File={1} --input2File={2} --output={3} --runner=SparkRunner".format(jar, data1, data2, output)
     
     ssh_hadoop_command(cluster, user, keyfile, ssh_cmd)
-    return output
+    return assembled
 
 def run_beam_quality_big1(*args, **kwargs):
     

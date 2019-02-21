@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class GraphGenerator(object):
     '''
-    The BioWL graph generator
+    The Bio-DSL graph generator
     '''
     def __init__(self, url, username, password):
         self.context = Context()

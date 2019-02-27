@@ -27,7 +27,7 @@
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script> -->
 <script src="http://d3js.org/d3.v4.min.js" type="text/javascript"></script>
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script>
-<style>
+<style type="text/css" >
 
 .odd-row {
 background-color: LightGray;
@@ -130,7 +130,21 @@ text {
   font: 10px sans-serif;
   pointer-events: none;
 }
-
+#scripttab
+{
+    width:100%;
+    height: 600px;
+    display:inline-block;
+    position:relative;
+}
+#editor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+    
 </style>
 
 {% endblock %}
@@ -259,14 +273,14 @@ text {
 						</ul>
 					</div>
 					<div class="panel-body" style="">
-						<div id="exTabBiowl" class="panel panel-primary">
+						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px">
 							<ul class="nav nav-tabs">
 								<li class="active"><a href="#scripttab" data-toggle="tab">Script</a></li>
 								<li><a href="#graphtab" data-toggle="tab">Graph</a></li>
 							</ul>
 						<div class="tab-content ">
 							<div class="tab-pane fade in active" id="scripttab">
-								<textarea rows="24" style="width: 100%;" id="script"></textarea>
+								<div id="editor" class="editor"></div>
 							</div>
 							<div class="tab-pane fade" id="graphtab" style="height: 400px">
 								<div style="width: 100%; height: 100%" id="graph"></div>
@@ -771,8 +785,7 @@ text {
                     $this.children('i').addClass('glyphicon-resize-full');
                 }
                 $(this).closest('.panel').toggleClass('panel-fullscreen');
-                $('#aceeditor').css("width", "100%");
-                $('#aceeditor').resize();
+                editor.resize();
             });
         });
         
@@ -1079,24 +1092,9 @@ text {
     });
     
     // configure ace.js for code editor
-    var textarea = $("#script");
-    
-    var editDiv = $('<div>', {
-        position: 'absolute',
-        id: 'aceeditor',
-        width: textarea.width(),
-        height: textarea.height(),
-        'class': textarea.attr('class'),
-        'css': 'border:2px solid black'
-    }).insertBefore(textarea);
-        
-    textarea.css('visibility', 'hidden');
-    var offset = editDiv.offset();
-    textarea.attr('rows', 1);
-    
-    var editor = ace.edit(editDiv[0]);
+    var langTools = ace.require("ace/ext/language_tools");
+    var editor = ace.edit("editor");
     editor.renderer.setShowGutter(false);
-    editor.getSession().setValue(textarea.val());
     editor.getSession().setMode("ace/mode/python");
     editor.setOptions({
     	highlightSelectedWord: true, 
@@ -1117,41 +1115,68 @@ text {
         isDirty = !editor.session.getUndoManager().isClean();
     });
     
-    $("#aceeditor").droppable({
+    var staticWordCompleter = {
+   	    getCompletions: function(editor, session, pos, prefix, callback) {
+   	        var wordList = ["foo", "bar", "baz"];
+   	        callback(null, wordList.map(function(word) {
+   	            return {
+   	                caption: word,
+   	                value: word,
+   	                meta: "static"
+   	            };
+   	        }));
 
-        activeClass: "ui-state-default",
-        hoverClass: "ui-state-hover",
-        accept: ":not(.ui-sortable-helper)",
+   	    }
+   	}
+
+//     var staticWordCompleter = {
+//     	getCompletions: function(editor, session, pos, prefix, callback) {
+// 	    $.getJSON(jsonURL,
+// 	      function(tagList) {
+// 	        callback(null, tagList.map(function(qtag) {
+// 	          return {name: qtag.name, value: "#"+qtag.name+"() ", meta: "qtag"}
+// 	      }));
+// 	    })
+// 	   }
+//  	}
+    
+   	langTools.setCompleters([staticWordCompleter])
+   	// or 
+   	//editor.completers = [staticWordCompleter]
+    
+//     editor.droppable({
+
+//         activeClass: "ui-state-default",
+//         hoverClass: "ui-state-hover",
+//         accept: ":not(.ui-sortable-helper)",
         
-        drop: function(event, ui) {
-          var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
-          var v = ko.dataFor(ui.draggable[0]);
-          example = ''
-          if (v)
-        	  if (v.example)
-        		  example = v.example();
-        	  else if (v.sample)
-        		  example = v.sample();
-              else {
-            	  node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
-            	  if (node){
-            		  example = node.path;
-//             		  path = split(node.path, ';');
-//             		  if (path.length >= 2)
-//             			  example = node[]
-            	  }
-            	  else
-            		  example = v.name() + "()";
-              }
-          editor.session.insert(pos, example);
-          editor.focus();
-          return true;
-        }
-      });
+//         drop: function(event, ui) {
+//           var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
+//           var v = ko.dataFor(ui.draggable[0]);
+//           example = ''
+//           if (v)
+//         	  if (v.example)
+//         		  example = v.example();
+//         	  else if (v.sample)
+//         		  example = v.sample();
+//               else {
+//             	  node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
+//             	  if (node){
+//             		  example = node.path;
+// //             		  path = split(node.path, ';');
+// //             		  if (path.length >= 2)
+// //             			  example = node[]
+//             	  }
+//             	  else
+//             		  example = v.name() + "()";
+//               }
+//           editor.session.insert(pos, example);
+//           editor.focus();
+//           return true;
+//         }
+//       });
 
-    textarea.on('resize', function(){
-        alert()
-  });
+    
     
     jsonArray2Table = function(table, jsonArr) {
     	$.each(jsonArr, function (index, value) {

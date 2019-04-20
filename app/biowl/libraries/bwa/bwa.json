@@ -10,8 +10,20 @@
            "internal":"run_bwa",
            "desc": "Map with BWA. Mapping low-divergent sequences against a large reference genome, such as the human genome and is designed for Illumina sequence reads up to 100bp.",
            "returns": "string",
-           "example":"data = bwa.Align(ref, data) #single-read",
-           "example2":"data = bwa.Align(ref=, data=, [data2=], [output=]) #pair-read"
+           "example":"data = bwa.Align(ref, data, index='') #single-read",
+           "example2":"data = bwa.Align(ref, data, data2='', index='', output='') #pair-read",
+			"params": [
+				{
+					"name": "data",
+					"type": "file/folder",
+					"comment": "if folder, all .fastq/.fq files are recursively collected from that folder."
+				},
+				{
+					"name": "output",
+					"type": "file/folder",
+					"desc": "folder if data is a folder; otherwise a .sam file."
+				}
+			]
        }
    ]
 }

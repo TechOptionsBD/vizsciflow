@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import os
 import sys
-import pip
 from os import path
 import json
 import mimetypes
@@ -302,24 +301,22 @@ def load_data_sources_biowl(recursive):
     datasources = DataSource.query.filter_by(active = True)
     datasource_tree = []
     for ds in datasources:
-        datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'loaded': True}
         try:
-            fs = Utility.fs_by_prefix(ds.url)
-            if fs:
-                if current_user.is_authenticated:
-                    if ds.type == 'gfs':
-                        datasource['nodes'] = fs.make_json_r('/') if recursive else fs.make_json('/')
-    #                     datasource['nodes'].append(fs.make_json('/' + fs.lddaprefix))
-    #                     datasource['nodes'].append(fs.make_json('/' + fs.hdaprefix))
-                    else:
-                        if not fs.exists(current_user.username):
-                            fs.makedirs(current_user.username)
-                        if fs.exists(current_user.username):
-                            datasource['nodes'].append(fs.make_json_r(os.sep + current_user.username) if recursive else fs.make_json(os.sep + current_user.username))
-                if ds.public and fs.exists(ds.public):
-                    datasource['nodes'].append(fs.make_json_r(ds.public) if recursive else fs.make_json(ds.public))
+            fs = Utility.create_fs(ds)
+            if not fs:
+                continue
+            datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'loaded': True}
+            if current_user.is_authenticated:
+                if not fs.exists(current_user.username):
+                    fs.makedirs(current_user.username)
+                    
+                if fs.exists(current_user.username):
+                    datasource['nodes'].append(fs.make_json_r(os.sep + current_user.username) if recursive else fs.make_json(os.sep + current_user.username))
                         
-                datasource_tree.append(datasource)
+            if ds.public and fs.exists(ds.public):
+                datasource['nodes'].append(fs.make_json_r(ds.public) if recursive else fs.make_json(ds.public))
+
+            datasource_tree.append(datasource)
         except:
             pass
         
@@ -344,7 +341,7 @@ def upload_biowl(file, fullpath):
 @main.route('/', methods = ['GET', 'POST'])
 #@login_required
 def index():
-    return render_template('biowl.html')
+    return render_template('biowl.html', username= current_user.username if current_user.is_authenticated else "")
  
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
@@ -374,9 +371,6 @@ def datasources():
             
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 
-def install(package):
-    pip.main(['install', package])
-        
 class Samples():
     @staticmethod
     def load_samples_recursive_for_user(samples_dir, access):

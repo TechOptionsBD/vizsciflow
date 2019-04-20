@@ -5,7 +5,7 @@ from ....util import Utility
 
 seqtk = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'seqtk'))
 
-def run_seqtk(*args, **kwargs):
+def run_seqtk(context, *args, **kwargs):
     
     fs = Utility.fs_by_prefix_or_default(args[0])
     data = fs.normalize_path(args[0])
@@ -23,7 +23,7 @@ def run_seqtk(*args, **kwargs):
         
     return fs.strip_root(output)
 
-def seqtk_fastq_to_fasta(*args, **kwargs):
+def seqtk_fastq_to_fasta(context, *args, **kwargs):
     paramindex = 0
     if 'data' in kwargs.keys():
         data = kwargs['data']
@@ -64,7 +64,7 @@ def seqtk_fastq_to_fasta(*args, **kwargs):
         cmdargs.append(arg)
     return run_seqtk(*cmdargs)
 
-def seqtk_extract_sample(*args, **kwargs):
+def seqtk_extract_sample(context, *args, **kwargs):
     paramindex = 0
     if 'data' in kwargs.keys():
         data = kwargs['data']
@@ -124,7 +124,7 @@ def seqtk_extract_sample(*args, **kwargs):
         
     return fs.strip_root(output)
 
-def seqtk_trim(*args, **kwargs):
+def seqtk_trim(context, *args, **kwargs):
     paramindex = 0
     if 'data' in kwargs.keys():
         data = kwargs['data']

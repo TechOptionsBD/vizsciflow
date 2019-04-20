@@ -1,13 +1,14 @@
 from Bio import Entrez
 from urllib.error import HTTPError  # for Python 3
 from Bio import Cluster
+import time
 
 from ....util import Utility
 from ...fileop import IOHelper
 
 Entrez.email = "phenoproc@gmail.com"
 
-def search_entrez(*args):
+def run_search_entrez(context, *args, **kwargs):
     #search_string = "Myb AND txid3702[ORGN] AND 0:6000[SLEN]"
     #db = "nucleotide"
     search_string = args[0]
@@ -26,13 +27,13 @@ def count_search_results(*args):
     args.append("Count")
     return int(query_search_results(*args))
 
-def search_and_download(*args):
+def run_search_and_download(context, *args, **kwargs):
     
     db_type = args[1] if len(args) > 1 else "nucleotide"
     return_type = args[2] if len(args) > 2 else ".fasta"
     return_mode = args[3] if len(args) > 3 else "text"
     
-    search_results = search_entrez(*args)
+    search_results = run_search_entrez(*args)
     webenv = search_results["WebEnv"]
     query_key = search_results["QueryKey"]
     count = int(search_results["Count"])

@@ -10,7 +10,7 @@ flash = path.join(path.dirname(path.abspath(__file__)), path.join('bin', 'flash'
 # to merge pairs of reads when the original DNA fragments are shorter than twice the 
 # length of reads. The resulting longer reads can significantly improve genome assemblies. 
 # They can also improve transcriptome assembly when FLASH is used to merge RNA-seq data.
-def run_flash(*args, **kwargs):
+def run_flash(context, *args, **kwargs):
     paramindex = 0
     if 'data' in kwargs.keys():
         data1 = kwargs['data']

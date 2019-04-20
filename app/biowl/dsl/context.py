@@ -1,6 +1,8 @@
 import threading
 
 from .func_resolver import Library
+from ...util import Utility
+from flask_login import current_user
 
 class SymbolTable():
     '''
@@ -175,8 +177,19 @@ class Context:
         '''
         self.library = Library()
         self.runnable = None
+        self.user_id = 0
+        self.tempdirs = {}
         self.reload()
     
+    def get_temp_dir(self, typename = "posix"):
+        '''
+        The user directory for a fs type is the temp directory.
+        '''
+        if not typename in self.tempdirs:
+            fs = Utility.fs_by_typename(typename)
+            self.tempdirs[typename] = fs.make_unique_dir(current_user.username)
+        return self.tempdirs[typename]
+        
     def reload(self):
         '''
         Reinitializes this object for new processing.

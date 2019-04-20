@@ -12,9 +12,9 @@ from .context import Context
 from .interpreter import Interpreter
 from .pygen import CodeGenerator
  
-class PhenoWLParser(object):
+class BioDSLParser(object):
     '''
-    The parser for PhenoWL DSL.
+    The parser for Bio-DSL.
     '''
 
     def __init__(self, grammar = None):
@@ -54,7 +54,7 @@ class PhenoWLParser(object):
 if __name__ == "__main__":
     from ..timer import Timer
     with Timer() as t:
-        p = PhenoWLParser(PythonGrammar())
+        p = BioDSLParser(PythonGrammar())
         if len(sys.argv) > 1:
             tokens = p.parse_file(sys.argv[1])
         else:

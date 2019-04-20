@@ -13,7 +13,7 @@ from pyparsing import ParseException
 from config import Config
 
 from . import celery
-from .biowl.dsl.parser import PhenoWLParser, PythonGrammar
+from .biowl.dsl.parser import BioDSLParser, PythonGrammar
 from .biowl.dsl.interpreter import Interpreter
 from .biowl.dsl.graphgen import GraphGenerator
 from .biowl.timer import Timer
@@ -131,41 +131,40 @@ class RequestContextTask(AbortableTask):
         kwargs[self.GLOBALS_ARG_NAME] = d
              
 @celery.task(bind=True, base=RequestContextTask)#, base = AbortableTask
-def run_script(self, library, workflow_id, args):
+def run_script(self, library, workflow_id, script, args):
+    
+    workflow = Workflow.query.get(workflow_id)
+    runnable = Runnable.create(workflow_id, script if script else workflow.script, args)
+    machine = Interpreter()
+    
     parserdir = Config.BIOWL
     curdir = os.getcwd()
     os.chdir(parserdir) #set dir of this file to current directory
-    duration = 0
-    
-    workflow = Workflow.query.get(workflow_id)
-    runnable = Runnable.create(workflow_id, workflow.script, args)
 
-    machine = Interpreter()
     try:
-        
         machine.context.library = library
         machine.context.runnable = runnable.id
+        machine.context.user_id = workflow.user_id
         
         if self and self.request:
             runnable.celery_id = self.request.id
         runnable.update_status(Status.STARTED)
 
-        parser = PhenoWLParser(PythonGrammar())   
         with Timer() as t:
+            parser = BioDSLParser(PythonGrammar())   
             if args:
                 args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
                 machine.args_to_symtab(args_tokens) 
             prog = parser.parse(runnable.script)
-            machine.run(prog)                
-        duration = float("{0:.3f}".format(t.secs))
-
+            machine.run(prog)
+                            
         runnable.status = Status.SUCCESS
     except (ParseException, Exception) as e:
         runnable.status = Status.FAILURE
         machine.context.err.append(str(e))
     finally:
         os.chdir(curdir)
-        runnable.duration = duration
+        runnable.duration = float("{0:.3f}".format(t.secs))
         runnable.err = "\n".join(machine.context.err)
         runnable.out = "\n".join(machine.context.out)
         runnable.update()

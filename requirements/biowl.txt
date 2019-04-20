@@ -13,3 +13,4 @@ coverage
 typing
 scp
 py2neo
+regex

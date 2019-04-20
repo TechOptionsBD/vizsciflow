@@ -1,75 +1,36 @@
 import os
 import pysam
 from pathlib import Path
-from os import path
-from ....util import Utility
+from ...argshelper import get_posix_data_args, get_posix_output_args, get_posix_output_folder_args
 
 def exec_sam_to_bam(fs, data, output):
-    output = fs.normalize_path(output)
-    
-    if not fs.exists(path.dirname(output)):
-        fs.makedirs(path.dirname(output))
-        
+
+    if not fs.exists(fs.dirname(output)):
+        fs.makedirs(fs.dirname(output))
+
     if fs.exists(output):
-        fs.remove(output)
-               
+        output = fs.unique_filename(fs.dir(output), Path(output).stem, Path(output).suffix)
+           
     infile = pysam.AlignmentFile(data, "r")
     outfile = pysam.AlignmentFile(output, "wb", template=infile)
     for s in infile:
         outfile.write(s)
     return output
         
-def run_sam_to_bam(*args, **kwargs):
+def run_sam_to_bam(context, *args, **kwargs):
     
-    paramindex = 0
-    if 'data' in kwargs.keys():
-        data = kwargs['data']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument missing error in pysam.")
-        data = args[paramindex]
-        paramindex +=1
-    
-    fs = Utility.fs_by_prefix_or_default(data)
-    data = fs.normalize_path(data)
-    
-    output = ''
-    if 'output' in kwargs.keys():
-        output = kwargs['output']
-    else:
-        if len(args) > paramindex:
-            output = args[paramindex]
+    paramindex, data, fs = get_posix_data_args(0, 'data', context, *args, **kwargs)
+    output = get_posix_output_args(paramindex, 'output', fs, data, context, ".bam", *args, **kwargs) if fs.isfile(data) else get_posix_output_folder_args(paramindex, 'output', fs, context, *args, **kwargs)
     
     if fs.isfile(data):
-        if not output:
-            output = Path(data).stem + ".bam"
-            outdir = fs.make_unique_dir(path.dirname(data))
-            output = os.path.join(outdir, path.basename(output))
         output = exec_sam_to_bam(fs, data, output)
     else:
-        if not output:
-            output = fs.make_unique_dir(path.dirname(data))
-        
-        output = fs.normalize_path(output)
-        if fs.isfile(output):
-            raise ValueError("File already exists: " + output)
-        
-        if not fs.exists(output):
-            fs.makedirs(output)  
-        
-        datafiles = []
         for r, _, f in os.walk(data):
-            for file in f:
-                if file.endswith(".sam"):
-                    datafiles.append(os.path.join(r, file))
-                    
-        for datafile in datafiles:
-            try:
-                outfile = fs.join(output, Path(datafile).stem + ".bam")
-                exec_sam_to_bam(fs, fs.join(data, datafile), outfile)
-            except:
-                pass
-    
+            for datafile in [os.path.join(r, file) for file in f if file.endswith(".sam")]:
+                try:
+                    output = exec_sam_to_bam(fs, datafile, output)
+                except Exception as err:
+                    context.err.append(str(err))
     
     stripped_path = fs.strip_root(output)
     if not fs.exists(output):

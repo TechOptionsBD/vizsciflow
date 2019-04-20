@@ -2,11 +2,12 @@ from importlib import import_module
 import json
 from os import path, getcwd
 import os
+import pathlib
 
 from ...util import Utility
 from ..exechelper import func_exec_run
 from flask_login import current_user
-from ...models import Task, Status, DataType
+from ...models import Task, Status, DataType, AccessRights, DataSourceAllocation
 
 # import_module can't load the following modules in the NGINX server
 # while running in 'immediate' mode. The early imports here are needed.
@@ -82,6 +83,10 @@ class Library():
     def load(library_def_file):
         library = Library()
         
+#         datafiles = []
+#         for r, d, f in os.walk(library_def_file):
+#             datafiles.extend([os.path.join(r, file) for file in f if file.endswith(".json")])
+            
         all_funcs = {}
         for f in os.listdir(library_def_file):
             fsitem = os.path.join(library_def_file, f)
@@ -106,8 +111,8 @@ class Library():
     @staticmethod
     def load_funcs_recursive(library_def_file, user):
         if os.path.isfile(library_def_file):
-            return Library.load_funcs(library_def_file, user)
-        
+            return Library.load_funcs(library_def_file, user) if pathlib.Path(library_def_file).suffix == ".json" else {}
+
         all_funcs = {}
         for f in os.listdir(library_def_file):
             Library.merge_funcs(all_funcs, Library.load_funcs_recursive(os.path.join(library_def_file, f), user))
@@ -123,7 +128,7 @@ class Library():
             with open(library_def_file, 'r') as json_data:
                 d = json.load(json_data)
                 libraries = d["functions"]
-                libraries = sorted(libraries, key = lambda k : k['package'].lower())
+                libraries = sorted(libraries, key = lambda k : k['package'].lower() if k['package'] else '')
                 for f in libraries:
                     name = f["name"] if f.get("name") else f["internal"]
                     internal = f["internal"] if f.get("internal") else f["name"]
@@ -155,7 +160,7 @@ class Library():
                 return f["internal"]
             
     def get_function(self, name, package = None):
-        if package is not None:
+        if package:
             for func in self.funcs[name.lower()]:
                 if func.package == package:
                     return [func]
@@ -163,8 +168,12 @@ class Library():
             return self.funcs[name.lower()]
     
     def check_function(self, name, package = None):
-        functions = self.get_function(name, package)
-        return functions is not None and len(functions) > 0
+        if package:
+            for func in self.funcs[name.lower()]:
+                if func.package == package:
+                    return True
+        else:
+            return name.lower() in self.funcs
         
     def funcs_flat(self):
         funcs = []
@@ -182,7 +191,7 @@ class Library():
             else:
                 args.append(arg)
         return args, kwargs
-       
+    
     def call_func(self, context, package, function, args):
         '''
         Call a function from a module.
@@ -191,57 +200,79 @@ class Library():
         :param function: Name of the function
         :param args: The arguments for the function
         '''
-        arguments, kwargs = Library.split_args(args)
+        task = None
+        try:
+            arguments, kwargs = Library.split_args(args)
+            func = self.get_function(function, package)
+    
+            task = Task.create_task(context.runnable, func[0].name)
+            task.start()
         
-        if not package or package == "None":
-            if function.lower() == "print":
-                return context.write(*arguments)
-            elif function.lower() == "range":
-                return range(*arguments)
-            elif function.lower() == "read":
-                if not arguments:
-                    raise ValueError("Read must have one argument.")
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.read(arguments[0])
-            elif function.lower() == "write":
-                if len(arguments) < 2:
-                    raise ValueError("Write must have two arguments.")
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.write(arguments[0], arguments[1])
-            elif function.lower() == "getfiles":
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.get_files(arguments[0])
-            elif function.lower() == "getfolders":
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.get_folders(arguments[0])
-            elif function.lower() == "createfolder":
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.makedirs(arguments[0])
-            elif function.lower() == "remove":
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.remove(arguments[0])
-            elif function.lower() == "makedirs":
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.makedirs(arguments[0])
-            elif function.lower() == "getcwd":
-                return getcwd()
-            elif function.lower() == "isfile":
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.isfile(arguments[0])
-            elif function.lower() == "dirname":
-                return os.path.dirname(arguments[0])
-            elif function.lower() == "basename":
-                return os.path.basename(arguments[0])
-            elif function.lower() == "len":
-                return len(arguments[0])
-            elif function.lower() == "exec":
-                return func_exec_run(arguments[0], *arguments[1:])            
-            elif function.lower() == "copyfile":
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.copy(arguments[0], arguments[1])                        
-            elif function.lower() == "deletefile":
-                fs = Utility.fs_by_prefix_or_default(arguments[0])
-                return fs.remove(arguments[0])
+            if not package or package == "None":
+                if function.lower() == "print":
+                    result = context.write(*arguments)
+                elif function.lower() == "range":
+                    result = range(*arguments)
+                elif function.lower() == "read":
+                    if not arguments:
+                        raise ValueError("Read must have one argument.")
+                    
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    result = fs.read(arguments[0])
+                elif function.lower() == "write":
+                    if len(arguments) < 2:
+                        raise ValueError("Write must have two arguments.")
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.write(arguments[0], arguments[1])
+                elif function.lower() == "getfiles":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.get_files(arguments[0])
+                elif function.lower() == "getfolders":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.get_folders(arguments[0])
+                elif function.lower() == "createfolder":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.makedirs(arguments[0])
+                elif function.lower() == "remove":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.remove(arguments[0])
+                elif function.lower() == "makedirs":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.makedirs(arguments[0])
+                elif function.lower() == "getcwd":
+                    return getcwd()
+                elif function.lower() == "isfile":
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.isfile(arguments[0])
+                elif function.lower() == "dirname":
+                    return os.path.dirname(arguments[0])
+                elif function.lower() == "basename":
+                    return os.path.basename(arguments[0])
+                elif function.lower() == "getdatatype":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    extension = pathlib.Path(arguments[0]).suffix
+                    return extension[1:] if extension else extension
+                elif function.lower() == "len":
+                    return len(arguments[0])
+                elif function.lower() == "exec":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
+                    return func_exec_run(arguments[0], *arguments[1:])            
+                elif function.lower() == "copyfile":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[1], AccessRights.Write)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.copy(arguments[0], arguments[1])                        
+                elif function.lower() == "deletefile":
+                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                    fs = Utility.fs_by_prefix_or_default(arguments[0])
+                    return fs.remove(arguments[0])
             #    return func_exec(arguments[0], *arguments[1:])
 #             else:
 #                 raise ValueError("{0} function not implemented".format(function))
@@ -249,15 +280,7 @@ class Library():
     #             possibles.update(locals())
     #             function = possibles.get(function)
     #             return function(*arguments)
-        func = self.get_function(function, package)
-        module_obj = load_module(func[0].module)
-        function = getattr(module_obj, func[0].internal)
-        if func[0].runmode == 'dist':
-            kwargs['dci'] = context.get_activedci()
         
-        # special handling for galaxy if history_id is not given, use history id from symbol table
-        if (func[0].module == 'app.biowl.libraries.galaxy.adapter' or func[0].module == 'app.biowl.libraries.apachebeam.adapter'):
-            kwargs['context'] = context
 #             if not 'history_id' in kwargs and context.var_exists('history_id'):
 # #                     create_history_function = getattr(module_obj, "create_history") # history not running, create one
 # #                     history_id = create_history_function(context.get_activedci())
@@ -265,24 +288,19 @@ class Library():
 #                 fullargspec = inspect.getfullargspec(function)
 #                 if fullargspec.varkw:
 #                     kwargs['history_id'] = context.get_var('history_id')
-        
-        task = None
-        if context.runnable:
-            task = Task.create_task(context.runnable, func[0].name)
-            task.start()
-        try:
-            result = function(*arguments, **kwargs)
-            try:
-                if task:
-                    if result:
-                        datatype = DataType.Unknown
-                        output1 = result[0] if isinstance(result, list) else result
-                        fs = Utility.fs_by_prefix_or_default(output1)
-                        if fs and fs.isfile(output1):
-                            datatype = DataType.FileList if isinstance(result, list) else DataType.File
-                    task.succeeded(datatype, result)
-            finally:
-                return result
+            else:
+                module_obj = load_module(func[0].module)
+                function = getattr(module_obj, func[0].internal)
+                
+                result = function(context, *arguments, **kwargs)
+                if result:
+                    datatype = DataType.Unknown
+                    output1 = result[0] if isinstance(result, list) else result
+                    fs = Utility.fs_by_prefix_or_default(output1)
+                    if fs and fs.isfile(output1):
+                        datatype = DataType.FileList if isinstance(result, list) else DataType.File
+                task.succeeded(datatype, result)
+            return result
         except Exception as e:
             if task:
                 task.failed(str(e))

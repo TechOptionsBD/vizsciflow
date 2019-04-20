@@ -7,7 +7,7 @@ from ....util import Utility
 
 usearch = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'usearch10.0.240_i86linux32'))
 
-def run_usearch(*args):
+def run_usearch(context, *args, **kwargs):
     cmdargs = ["-" + args[0]]
     
     fs = PosixFileSystem(Utility.get_rootdir(2))

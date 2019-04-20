@@ -11,15 +11,16 @@
 			"desc": "Measure the quality of a fastq file using fastqc tool.",
 			"returns": "string",
 			"example": "fq_html = fastqc.CheckQuality(data)",
-			"example2": "fq_html = fastqc.CheckQuality(data=, [outdir=])",
+			"example2": "fq_html = fastqc.CheckQuality(data, outdir='')",
 			"params": [
 				{
 					"name": "data",
-					"type": "string"
+					"type": "file/folder",
+					"desc": "if folder, all .fastq and .fq files are recursively collected from that folder."
 				},
 				{
 					"name": "outdir",
-					"type": "string"
+					"type": "folder"
 				}
 			]
 		}

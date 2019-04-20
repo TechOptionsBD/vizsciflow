@@ -40,7 +40,7 @@ class Interpreter(object):
             return self.context.library.run_task(function, v, self.dotaskstmt)
 
         if not self.context.library.check_function(function, package):
-            raise Exception(r"'{0}' doesn't exist.".format(function))
+            raise Exception(r"Function '{0}' doesn't exist.".format(function))
             
         return self.context.library.call_func(self.context, package, function, v)
 
@@ -416,4 +416,4 @@ class Interpreter(object):
             stmt = prog.asList()
             self.eval(stmt)
         except Exception as err:
-            self.context.err.append("Error at line {0}: {1}".format(self.line, err))
+            raise ValueError("Error at line {0}: {1}".format(self.line, err))

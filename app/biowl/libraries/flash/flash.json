@@ -10,21 +10,24 @@
            "internal":"run_flash",
            "runmode": "local",
            "desc": "Merge mates from fragments that are shorter than twice the read length.",
-           "returns": "string",
+           "returns": "file",
            "example":"data = flash.Merge(data, data2)",
-           "example2":"data = flash.Merge(data=, data2=, [outdir=], [max_overlap=50])",
+           "example2":"data = flash.Merge(data, data2, outdir='', max_overlap=50)",
            "params":[  
             {  
                "name":"data",
-               "type":"string"
+               "type":"string",
+               "desc":"forward fastq file"
             },
             {  
                "name":"data2",
-               "type":"string"
+               "type":"string",
+               "desc":"reverse fastq file"
             },
-            {  
-               "name":"outdir",
-               "type":"string"
+            {
+               "name": "output",
+               "type": "string",
+               "desc":"optional. Output path with filename prefix."
             },
             {
                 "name": "max_overlap",

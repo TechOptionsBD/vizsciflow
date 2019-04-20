@@ -1,5 +1,5 @@
 import unittest
-from phenoparser import PhenoWLParser, PythonGrammar
+from phenoparser import BioDSLParser, PythonGrammar
 
 class TestGrammar(unittest.TestCase):
     @classmethod
@@ -11,7 +11,7 @@ class TestGrammar(unittest.TestCase):
         pass
     
     def setUp(self):
-        self.parser = PhenoWLParser(PythonGrammar())
+        self.parser = BioDSLParser(PythonGrammar())
     
     def tearDown(self):
         pass

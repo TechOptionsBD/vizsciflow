@@ -26,27 +26,102 @@ try:
 except:
     pass
 
-class PosixFileSystem():
-    
-    def __init__(self, root, prefix = None):
-        
+class BaseFileSystem(object):
+    def __init__(self, root, public, prefix):
         self.localdir = root
-        if not os.path.exists(self.localdir):
-            os.makedirs(self.localdir)
         self.prefix = prefix
+        self.public = public
+        self.url = '/'
+        
+    def is_parent_of(self, parent, child):
+        parent = self.normalize_path(parent)
+        child = self.normalize_path(child)
+        return child.startswith(parent)
+
+    def normalize_fullpath(self, path):
+        return self.normalize_path(path)
+    
+    def mkdir(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def remove(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def rename(self, oldpath, newpath):
+        raise ValueError("Not implemented error.")
+    
+    def get_files(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def get_folders(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def listdir(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def copyfile(self, src, dst):
+        raise ValueError("Not implemented error.")
+                
+    def read(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def write(self, path, content):
+        raise ValueError("Not implemented error.")
+        
+    def unique_filename(self, path, prefix, ext):
+        raise ValueError("Not implemented error.")
+    
+    def make_unique_dir(self, path):
+        raise ValueError("Not implemented error.")
+            
+    def exists(self, path):
+        raise ValueError("Not implemented error.")
+        
+    def isdir(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def isfile(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def join(self, path1, path2):
+        raise ValueError("Not implemented error.")
+    
+    def basename(self, path):
+        raise ValueError("Not implemented error.")
+    
+    #check again
+    def dirname(self, path):
+        raise ValueError("Not implemented error.")
+
+    def make_json(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def make_json_r(self, path):
+        raise ValueError("Not implemented error.")
+
+    def save_upload(self, file, path):
+        raise ValueError("Not implemented error.")
+    
+    def download(self, path):
+        raise ValueError("Not implemented error.")
+
+class PosixFileSystem(BaseFileSystem):
+    
+    def __init__(self, root, public = None, prefix = None):
+        super().__init__(root, public, prefix)
+    
+    def typename(self):
+        return "posix"
         
     def normalize_path(self, path):
         path = os.path.normpath(path)
         if self.prefix:
             path = self.strip_prefix(path)
-        if path.startswith(self.localdir):
+        if not self.localdir or path.startswith(self.localdir):
             return path
         while path and path[0] == os.sep:
             path = path[1:]    
         return os.path.join(self.localdir, path)
-    
-    def normalize_fullpath(self, path):
-        return self.normalize_path(path)
     
     def makedirs(self, path):
         path = self.normalize_path(path)
@@ -68,12 +143,20 @@ class PosixFileSystem():
             path = os.sep + path
         return self.prefix + path
     
-    def strip_prefix(self, path):      
+    def make_url(self, path):
+        path = self.strip_prefix(path) 
+        if self.localdir and path.startswith(self.localdir):
+            path = path[len(self.localdir):]
+        return path if path.startswith(os.sep) else os.sep + path
+    
+    def strip_prefix(self, path):
         return path[len(self.prefix):] if self.prefix and path.startswith(self.prefix) else path
         
     def strip_root(self, path):
         path = self.strip_prefix(path)
-        return path[len(self.localdir):] if path.startswith(self.localdir) else path
+        if path.startswith(self.localdir):
+            path = path[len(self.localdir):]
+        return path if path.startswith(os.sep) else os.sep + path
             
     def mkdir(self, path):
         path = self.normalize_path(path)
@@ -109,7 +192,7 @@ class PosixFileSystem():
         return os.listdir(path)
     
     def copyfile(self, src, dst):
-        return shutil.copy2(src, dst)
+        return shutil.copy2(self.normalize_path(src), self.normalize_path(dst))
                 
     def read(self, path):
         path = self.normalize_path(path)
@@ -151,7 +234,7 @@ class PosixFileSystem():
         return os.path.join(path1, path2)
     
     def make_json_item(self, path):
-        data_json =  { 'path': self.make_prefix(path), 'text': os.path.basename(path) }
+        data_json =  { 'path': self.make_url(path), 'text': os.path.basename(path) }
         if self.isdir(path):
             data_json['nodes'] = []
         return data_json
@@ -159,18 +242,15 @@ class PosixFileSystem():
     def make_json(self, path):
         data_json = self.make_json_item(path)
         
-        if self.isdir(path):
-            data_json['nodes'] = [self.make_json_item(os.path.join(path, fn)) for fn in os.listdir(self.normalize_path(path))]
+        if 'nodes' in data_json: # folder
+            data_json['nodes'] = [self.make_json_item(self.join(path, fn)) for fn in self.listdir(path)]
             data_json['loaded'] = True
         return data_json
     
     def make_json_r(self, path):
-        normalized_path = self.normalize_path(path)
-        data_json = { 'path': self.make_prefix(path), 'text': os.path.basename(path) }
-        data_json['folder'] = os.path.isdir(normalized_path)
-        
-        if os.path.isdir(normalized_path):
-            data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in os.listdir(normalized_path)]
+        data_json = self.make_json_item(path)  
+        if 'nodes' in data_json: # folder 
+            data_json['nodes'] = [self.make_json_r(self.join(path, fn)) for fn in self.listdir(path)]
             data_json['loaded'] = True
         return data_json
 
@@ -212,6 +292,9 @@ class HadoopFileSystem():
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
         self.localdir = root
         self.prefix = prefix
+    
+    def typename(self):
+        return "hdfs"
     
     def normalize_path(self, path):
         if self.prefix:
@@ -420,6 +503,9 @@ class GalaxyFileSystem():
         self.hdaprefix = 'Histories'
         self.client = GalaxyInstance(self.url, user)
     
+    def typename(self):
+        return "gfs"
+    
     def strip_prefix(self, path):
         return path[len(self.prefix):] if self.prefix and path.startswith(self.prefix) else path
     
@@ -428,31 +514,25 @@ class GalaxyFileSystem():
             path = self.strip_prefix(path)
             
         if self.url and path.startswith(self.url):
-            suffix = path[len(self.url):]
-            while suffix and suffix[0] == os.sep:
-                suffix = suffix[1:]
-            return os.path.join(self.url, suffix)
-        
-        if self.localdir and path.startswith(self.localdir):
             return path
+        
+        if not self.localdir or path.startswith(self.localdir):
+                return os.path.join(self.url, path)
  
         while path and path[0] == os.sep:
             path = path[1:]
-        return os.path.join(self.localdir, path)
+        return os.path.join(self.url, self.localdir, path)
 
     def normalize_fullpath(self, path):
         return self.normalize_path(path)
     
     def strip_root(self, path):
+        path = self.strip_prefix(path)
         if path.startswith(self.url):
             path = path[len(self.url):]
             if not path.startswith(self.localdir):
-                raise ValueError("Invalid hdfs path. It must start with the root directory")
-      
-        if not path.startswith(self.localdir):
-            return path
-        
-        return path[len(self.localdir):]
+                raise 'Invalid hdfs path. It must start with the root directory'
+        return path[len(self.localdir):] if path.startswith(self.localdir) else path
     
     def make_fullpath(self, path):
         path = self.normalize_path(path)

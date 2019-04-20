@@ -12,7 +12,7 @@ def build_bowtie2_index(ref):
     cmdargs = [ref, ref]
     return func_exec_run(bowtie2_build, *cmdargs)
     
-def run_bowtie2(*args, **kwargs):
+def run_bowtie2(context, *args, **kwargs):
     
     paramindex = 0
     ref = ''

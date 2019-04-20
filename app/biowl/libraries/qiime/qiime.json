@@ -11,7 +11,7 @@
 			"desc": "Demultiplex any number of single-end FASTA or a FASTQ files based on a list of barcodes.",
 			"returns": "file",
 			"example": "data = qiime.DemuxSingle(data, barcode, barcodeCol)",
-			"example2": "data = qiime.DemuxSingle(data=[data], barcode=, barcodeCol=, output='')",
+			"example2": "data = qiime.DemuxSingle(data, barcode='', barcodeCol='', output='')",
 			"params": [				
 				{
 					"name": "data",
@@ -38,7 +38,7 @@
 			"desc": "Generates a summary of the demultiplexing results.",
 			"returns": "file",
 			"example": "visual = qiime.DemuxSummarize(data)",
-			"example2": "visual = qiime.DemuxSummarize(data=data, output='')",
+			"example2": "visual = qiime.DemuxSummarize(data, output='')",
 			"params": [				
 				{
 					"name": "data",
@@ -57,7 +57,7 @@
 			"desc": "Detects and corrects Illumina amplicon sequence data.",
 			"returns": "file",
 			"example": "data = qiime.Dada2DenoiseSingle(data, trimleft=0, trunclen=120)",
-			"example2": "data = qiime.Dada2DenoiseSingle(data=data, trimleft=0, trunclen=120, repseqs='', table='', stats='')",
+			"example2": "data = qiime.Dada2DenoiseSingle(data, trimleft=0, trunclen=120, repseqs='', table='', stats='')",
 			"params": [				
 				{
 					"name": "data",
@@ -84,7 +84,7 @@
 			"desc": "Detects and corrects Illumina amplicon sequence data.",
 			"returns": "file[seqs,table,stats]",
 			"example": "dataList = qiime.DeblurDenoise16S(data, trimlen=120)",
-			"example2": "data = qiime.DeblurDenoise16S(data=data, trimlen=120, repseqs='', table='', stats='')",
+			"example2": "data = qiime.DeblurDenoise16S(data, trimlen=120, repseqs='', table='', stats='')",
 			"params": [				
 				{
 					"name": "data",
@@ -107,7 +107,7 @@
 			"desc": "Applies a quality filtering process based on quality score.",
 			"returns": "file[seqs, stats]",
 			"example": "dataList = qiime.FilterQScore(data)",
-			"example2": "dataList = qiime.FilterQScore(data=data, repseqs='', stats='')",
+			"example2": "dataList = qiime.FilterQScore(data, repseqs='', stats='')",
 			"params": [				
 				{
 					"name": "data",
@@ -126,7 +126,7 @@
 			"desc": "Generate visualization for summary statistics.",
 			"returns": "file",
 			"example": "visual = qiime.MetadataTabulate(data)",
-			"example2": "visual = qiime.MetadataTabulate(data=data)",
+			"example2": "visual = qiime.MetadataTabulate(data)",
 			"params": [				
 				{
 					"name": "data",
@@ -145,7 +145,7 @@
 			"desc": "Generate visualization for summary statistics.",
 			"returns": "file",
 			"example": "visual = qiime.DeblurVisualizeStats(data)",
-			"example2": "visual = qiime.DeblurVisualizeStats(data=data)",
+			"example2": "visual = qiime.DeblurVisualizeStats(data)",
 			"params": [				
 				{
 					"name": "data",
@@ -164,7 +164,7 @@
 			"desc": "Generate visual summaries of the data.",
 			"returns": "file",
 			"example": "visual = qiime.FeatureTableSummarize(data, metadata)",
-			"example2": "visual = qiime.FeatureTableSummarize(data=data, metadata)",
+			"example2": "visual = qiime.FeatureTableSummarize(data, metadata)",
 			"params": [
 				{
 					"name": "data",
@@ -187,7 +187,7 @@
 			"desc": "Generate visual summaries of the data.",
 			"returns": "file",
 			"example": "visual = qiime.FeatureTableTabulate(data)",
-			"example2": "visual = qiime.FeatureTableTabulate(data=data)",
+			"example2": "visual = qiime.FeatureTableTabulate(data)",
 			"params": [
 				{
 					"name": "data",
@@ -206,7 +206,7 @@
 			"desc": "Generate a phylogenetic tree of the data.",
 			"returns": "files[alignedSeqs, maskedAlignedSeqs, unrootedTree, rootedTree]",
 			"example": "dataList = qiime.PhylogenyTree(data)",
-			"example2": "dataList = qiime.PhylogenyTree(data=data)",
+			"example2": "dataList = qiime.PhylogenyTree(data)",
 			"params": [
 				{
 					"name": "data",
@@ -225,7 +225,7 @@
 			"desc": "Diversity core metrics analysis of phylogenetic tree.",
 			"returns": "folder",
 			"example": "outpath = qiime.DiversityCoreMetrics(data, table, metadata, sampling)",
-			"example2": "outpath = qiime.DiversityCoreMetrics(data=data, table='', metadata='', sampling, outpath='')",
+			"example2": "outpath = qiime.DiversityCoreMetrics(data, table='', metadata='', sampling=0, outpath='')",
 			"params": [
 				{
 					"name": "data",
@@ -242,12 +242,12 @@
 				{
 					"name": "sampling",
 					"type": "int",
-					"comment": "The sampling depth"
+					"desc": "The sampling depth"
 				},
 				{
 					"name": "output",
 					"type": "folder",
-					"remarks":"bray_curtis_distance_matrix.qza rarefied_table.qza bray_curtis_emperor.qzv shannon_vector.qza bray_curtis_pcoa_results.qza unweighted_unifrac_distance_matrix.qza evenness_vector.qza unweighted_unifrac_emperor.qzv faith_pd_vector.qza unweighted_unifrac_pcoa_results.qza jaccard_distance_matrix.qza weighted_unifrac_distance_matrix.qza jaccard_emperor.qzv weighted_unifrac_emperor.qzv jaccard_pcoa_results.qza weighted_unifrac_pcoa_results.qza observed_otus_vector.qza"
+					"desc":"bray_curtis_distance_matrix.qza rarefied_table.qza bray_curtis_emperor.qzv shannon_vector.qza bray_curtis_pcoa_results.qza unweighted_unifrac_distance_matrix.qza evenness_vector.qza unweighted_unifrac_emperor.qzv faith_pd_vector.qza unweighted_unifrac_pcoa_results.qza jaccard_distance_matrix.qza weighted_unifrac_distance_matrix.qza jaccard_emperor.qzv weighted_unifrac_emperor.qzv jaccard_pcoa_results.qza weighted_unifrac_pcoa_results.qza observed_otus_vector.qza"
 				}
 			]
 		},
@@ -262,7 +262,7 @@
 			"desc": "Diversity alpha group significance.",
 			"returns": "file",
 			"example": "visual = qiime.DiversityAlpha(data, metadata)",
-			"example2": "visual = qiime.DiversityAlpha(data=data, metadata='', output)",
+			"example2": "visual = qiime.DiversityAlpha(data, metadata='', output)",
 			"params": [
 				{
 					"name": "data",
@@ -289,7 +289,7 @@
 			"desc": "Diversity beta group significance.",
 			"returns": "file",
 			"example": "visual = qiime.DiversityBeta(data, metadata, metaDataCol)",
-			"example2": "visual = qiime.DiversityBeta(data=data, metadata='', metaDataCol='', output)",
+			"example2": "visual = qiime.DiversityBeta(data, metadata='', metaDataCol='', output)",
 			"params": [
 				{
 					"name": "data",
@@ -320,7 +320,7 @@
 			"desc": "Explore principal coordinates (PCoA) plots in the context of sample metadata.",
 			"returns": "file",
 			"example": "visual = qiime.EmperorPlot(data, metadata, customAxes)",
-			"example2": "visual = qiime.EmperorPlot(data=data, metadata, customAxes, output)",
+			"example2": "visual = qiime.EmperorPlot(data, metadata, customAxes, output)",
 			"params": [
 				{
 					"name": "data",
@@ -351,7 +351,7 @@
 			"desc": "Explore alpha diversity as a function of sampling depth.",
 			"returns": "file",
 			"example": "visual = qiime.DiversityRarefaction(data, table, metadata, maxDepth)",
-			"example2": "visual = qiime.DiversityRarefaction(data=data, table, metadata, minDepth = 1, maxDepth = 4000)",
+			"example2": "visual = qiime.DiversityRarefaction(data, table, metadata, minDepth = 1, maxDepth = 4000)",
 			"params": [
 				{
 					"name": "data",
@@ -382,7 +382,7 @@
 			"desc": "Generate taxonomy from sequence using a pre-trained Naive Bayes classifier.",
 			"returns": "file",
 			"example": "data = qiime.ClassifierSklearn(data, classifier)",
-			"example2": "data = qiime.ClassifierSklearn(data=data, classifier, output)",
+			"example2": "data = qiime.ClassifierSklearn(data, classifier, output)",
 			"params": [
 				{
 					"name": "data",
@@ -409,7 +409,7 @@
 			"desc": "Generate bar plots to view the taxonomic composition of samples interactively.",
 			"returns": "file",
 			"example": "visual = qiime.TaxaBarPlot(data, table, metadata)",
-			"example2": "visual = qiime.TaxaBarPlot(data=data, table, metadata)",
+			"example2": "visual = qiime.TaxaBarPlot(data, table, metadata)",
 			"params": [
 				{
 					"name": "data",
@@ -440,7 +440,7 @@
 			"desc": "Create a feature table that contains specific samples.",
 			"returns": "file",
 			"example": "data = qiime.FilterSamples(data, metadata, where)",
-			"example2": "data = qiime.FilterSamples(data=data, metadata, where)",
+			"example2": "data = qiime.FilterSamples(data, metadata, where)",
 			"params": [
 				{
 					"name": "data",
@@ -471,7 +471,7 @@
 			"desc": "Create a composition artifact which is based on frequencies of features on a per-sample basis.",
 			"returns": "file",
 			"example": "data = qiime.ComposeAddPseudocount(data)",
-			"example2": "data = qiime.ComposeAddPseudocount(data=data, output='')",
+			"example2": "data = qiime.ComposeAddPseudocount(data, output='')",
 			"params": [
 				{
 					"name": "data",
@@ -495,7 +495,7 @@
 			"desc": "Determine what features differ in abundance across the samples of the two subjects.",
 			"returns": "file",
 			"example": "visual = qiime.ComposeAncom(data, metadata, metaDataCol)",
-			"example2": "visual = qiime.ComposeAncom(data=data, metadata, metaDataCol, output='')",
+			"example2": "visual = qiime.ComposeAncom(data, metadata, metaDataCol, output='')",
 			"params": [
 				{
 					"name": "data",
@@ -526,7 +526,7 @@
 			"desc": "Collapse the features in feature table to perform a differential abundance test at a specific taxonomic level.",
 			"returns": "file",
 			"example": "data = qiime.TaxaCollapse(data, table, level)",
-			"example2": "data = qiime.TaxaCollapse(data=data, table, level, output='')",
+			"example2": "data = qiime.TaxaCollapse(data, table, level, output='')",
 			"params": [
 				{
 					"name": "data",
@@ -557,7 +557,7 @@
 			"desc": "Import data files into qiime repository type.",
 			"returns": "file",
 			"example": "data = qiime.Import(data, type='EMPSingleEndSequences') # data is the input path for data file(s) and barcode, if needed for the type",
-			"example2": "data = qiime.Import(data=data, type='EMPSingleEndSequences', output=sys.dir(data)+'/'+basename(data))",
+			"example2": "data = qiime.Import(data, type='EMPSingleEndSequences', output=sys.dir(data)+'/'+basename(data))",
 			"params": [
 				{
 					"name": "data",

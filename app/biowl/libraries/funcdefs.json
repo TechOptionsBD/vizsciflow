@@ -190,6 +190,22 @@
             }            
             ],           
            "example": "basename('/public/test.txt')"
+       },
+       {
+           "org": "SRLAB",
+           "package": "I/O",
+           "level": "0",
+           "group": "Convert",
+           "name":"GetDataType",
+           "internal":"getdatatype",
+           "desc": "Gets the datatype of a file",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"string"
+            }            
+            ],           
+           "example": "typename = GetDataType(data)"
        }
 	]
 }

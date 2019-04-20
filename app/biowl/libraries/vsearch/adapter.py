@@ -7,7 +7,7 @@ from ....util import Utility
 
 vsearch = 'vsearch' # vsearch must be in the path
 
-def run_usearch(*args):
+def run_usearch(context, *args, **kwargs):
     cmdargs = ["-" + args[0]]
     
     fs = PosixFileSystem(Utility.get_rootdir(2))

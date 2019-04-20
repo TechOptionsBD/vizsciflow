@@ -78,7 +78,7 @@ def get_output_path_from_args(paramindex, fs, data, keyname, default, *args, **k
     
     return paramindex, fs.normalize_path(repseqs)
 
-def run_qiime_demux_single(*args, **kwargs):
+def run_qiime_demux_single(context, *args, **kwargs):
     paramindex = 0
 
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
@@ -98,7 +98,7 @@ def run_qiime_demux_single(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime demux emp-single could not generate the file {0} due to error {1}")
 
-def run_qiime_demux_summarize(*args, **kwargs):
+def run_qiime_demux_summarize(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -113,7 +113,7 @@ def run_qiime_demux_summarize(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime demux summarize could not generate the file {0} due to error {1}")
 
-def run_qiime_metadata_tabulate(*args, **kwargs):
+def run_qiime_metadata_tabulate(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -128,7 +128,7 @@ def run_qiime_metadata_tabulate(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime metadata tabulate could not generate the file {0} due to error {1}")    
 
-def run_qiime_deblur_visualize_stats(*args, **kwargs):
+def run_qiime_deblur_visualize_stats(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -143,7 +143,7 @@ def run_qiime_deblur_visualize_stats(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime deblur visualize stats could not generate the file {0} due to error {1}")
 
-def run_qiime_feature_table_summarize(*args, **kwargs):
+def run_qiime_feature_table_summarize(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -161,7 +161,7 @@ def run_qiime_feature_table_summarize(*args, **kwargs):
         
     return check_output_file_exists(fs, output, cmdargs, "qiime feature-table summarize could not generate the file {0} due to error {1}")
 
-def run_qiime_feature_table_tabulate_seqs(*args, **kwargs):
+def run_qiime_feature_table_tabulate_seqs(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -176,7 +176,7 @@ def run_qiime_feature_table_tabulate_seqs(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime feature-table tabulate-seqs could not generate the file {0} due to error {1}")
 
-def run_qiime_phylogeny_tree(*args, **kwargs):
+def run_qiime_phylogeny_tree(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -194,7 +194,7 @@ def run_qiime_phylogeny_tree(*args, **kwargs):
     
     return check_output_file_exists(fs, [alignedSeqs, maskedAlignedSeqs, unrootedTree, rootedTree], cmdargs, "qiime phylogeny align-to-tree-mafft-fasttree could not generate the file {0} due to error {1}")
 
-def run_qiime_diversity_core_metrics(*args, **kwargs):
+def run_qiime_diversity_core_metrics(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -217,7 +217,7 @@ def run_qiime_diversity_core_metrics(*args, **kwargs):
         cmdargs.append(arg)
     return check_output_file_exists(fs, output, cmdargs, "qiime diversity core metrics could not generate the file {0} due to error {1}")
 
-def run_qiime_diversity_alpha_significance(*args, **kwargs):
+def run_qiime_diversity_alpha_significance(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -235,7 +235,7 @@ def run_qiime_diversity_alpha_significance(*args, **kwargs):
     return check_output_file_exists(fs, output, cmdargs, "qiime diversity alpha-group-significance could not generate the file {0} due to error {1}")
     
 
-def run_qiime_diversity_beta_significance(*args, **kwargs):
+def run_qiime_diversity_beta_significance(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -253,7 +253,7 @@ def run_qiime_diversity_beta_significance(*args, **kwargs):
         cmdargs.append(arg)
     return check_output_file_exists(fs, output, cmdargs, "qiime diversity beta-group-significance could not generate the file {0} due to error {1}")
 
-def run_qiime_emperor_plot(*args, **kwargs):
+def run_qiime_emperor_plot(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -272,7 +272,7 @@ def run_qiime_emperor_plot(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime emperor plot could not generate the file {0} due to error {1}")
 
-def run_qiime_diversity_alpha_rarefaction(*args, **kwargs):
+def run_qiime_diversity_alpha_rarefaction(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -297,7 +297,7 @@ def run_qiime_diversity_alpha_rarefaction(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime diversity alpha-rarefaction could not generate the file {0} due to error {1}")
 
-def run_qiime_feature_classifier_classify_sklearn(*args, **kwargs):
+def run_qiime_feature_classifier_classify_sklearn(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -315,7 +315,7 @@ def run_qiime_feature_classifier_classify_sklearn(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime feature-classifier classify-sklearn could not generate the file {0} due to error {1}")
 
-def run_qiime_taxa_barplot(*args, **kwargs):
+def run_qiime_taxa_barplot(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -335,7 +335,7 @@ def run_qiime_taxa_barplot(*args, **kwargs):
         
     return check_output_file_exists(fs, output, cmdargs, "qiime taxa barplot could not generate the file {0} due to error {1}")
 
-def run_qiime_taxa_collapse(*args, **kwargs):
+def run_qiime_taxa_collapse(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -353,7 +353,7 @@ def run_qiime_taxa_collapse(*args, **kwargs):
         cmdargs.append(arg)
     return check_output_file_exists(fs, output, cmdargs, "qiime taxa collapse could not generate the file {0} due to error {1}")
 
-def run_qiime_feature_table_filter_samples(*args, **kwargs):
+def run_qiime_feature_table_filter_samples(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -371,7 +371,7 @@ def run_qiime_feature_table_filter_samples(*args, **kwargs):
         cmdargs.append(arg)
     return check_output_file_exists(fs, output, cmdargs, "qiime feature-table filter-samples could not generate the file {0} due to error {1}")
 
-def run_qiime_composition_add_pseudocount(*args, **kwargs):
+def run_qiime_composition_add_pseudocount(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'table', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -386,7 +386,7 @@ def run_qiime_composition_add_pseudocount(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime composition add-pseudocount could not generate the file {0} due to error {1}")
 
-def run_qiime_composition_ancom(*args, **kwargs):
+def run_qiime_composition_ancom(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -405,7 +405,7 @@ def run_qiime_composition_ancom(*args, **kwargs):
     
     return check_output_file_exists(fs, output, cmdargs, "qiime composition ancom could not generate the file {0} due to error {1}")
 
-def run_qiime_dada2_denoise_single(*args, **kwargs):
+def run_qiime_dada2_denoise_single(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
@@ -424,7 +424,7 @@ def run_qiime_dada2_denoise_single(*args, **kwargs):
                 
     return check_output_file_exists(fs, [repseqs, table, stats], cmdargs, "qiime dada2 denoise-single could not generate the file {0} due to error {1}")
      
-def run_qiime_deblur_denoise_16s(*args, **kwargs):
+def run_qiime_deblur_denoise_16s(context, *args, **kwargs):
     paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
     data = fs.normalize_path(data)
@@ -444,7 +444,7 @@ def run_qiime_deblur_denoise_16s(*args, **kwargs):
 
     return check_output_file_exists(fs, [repseqs, table, stats], cmdargs, "qiime deblur denoise-16S could not generate the file {0} due to error {1}")    
 
-def run_qiime_quality_qscore(*args, **kwargs):
+def run_qiime_quality_qscore(context, *args, **kwargs):
     paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
     data = fs.normalize_path(data)
@@ -477,7 +477,7 @@ def check_output_file_exists(fs, output, cmdargs, msg):
             raise ValueError(msg.format(stripped_path, err))
         return stripped_path
 
-def run_qiime_import(*args, **kwargs):
+def run_qiime_import(context, *args, **kwargs):
     paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
     fs = Utility.fs_by_prefix_or_default(data)
     data = fs.normalize_path(data)
@@ -492,7 +492,7 @@ def run_qiime_import(*args, **kwargs):
     return check_output_file_exists(fs, output, cmdargs, "qiime import could not generate the file {0} due to error {1}")
     
 
-def run_qiime_import_types(*args, **kwargs):
+def run_qiime_import_types(context, *args, **kwargs):
     cmdargs = ['tools', 'import', '--show-importable-types']
     out,_ = func_exec_bash_stdout(qiime_runner, *cmdargs)
     return out

@@ -10,7 +10,7 @@
            "internal":"run_usearch",
            "runmode": "local",
            "desc": "Ultra-fast bioinformatics search.",
-           "returns": "string",
+           "returns": "file",
            "example":"Usearch(command, input, out_opt, output)",
            "params":[  
             {  
@@ -19,7 +19,7 @@
             },
             {  
                "name":"input",
-               "type":"string"
+               "type":"file"
             },
             {  
                "name":"out-opt",
@@ -27,7 +27,7 @@
             },
             {
                 "name": "output",
-                "type": "string"
+                "type": "file"
             }            
             ]
        }

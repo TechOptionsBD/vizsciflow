@@ -8,7 +8,7 @@ from ...fileop import PosixFileSystem
 from ....util import Utility
 from ....models import Runnable, User, Workflow
 from ...ssh import ssh_hadoop_command, scp_get, scp_put
-from app.biowl.libraries.qiime.adapter import get_input_from_args_optional
+from ...argshelper import get_input_from_args_optional
 
 # cluster = '206.12.102.75'
 # user = 'hadoop'
@@ -149,7 +149,9 @@ def get_output_path_from_args(paramindex, fs, data, keyname, default, *args, **k
     
     return paramindex, fs.normalize_path(repseqs)
 
-def run_beam_quality(*args, **kwargs):
+
+
+def run_beam_quality(context, *args, **kwargs):
     paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
     if not data.startswith('hdfs://'):
         raise ValueError("Apache beam service runs only on HDFS file system.")
@@ -178,7 +180,7 @@ def run_beam_quality(*args, **kwargs):
            
     return outpath
 
-def run_beam_align(*args, **kwargs):
+def run_beam_align(context, *args, **kwargs):
     paramindex, ref = get_input_from_args(0, 'ref', *args, **kwargs)
     if not ref.startswith('hdfs://'):
         raise ValueError("Apache beam service runs only on HDFS file system.")
@@ -215,7 +217,7 @@ def run_beam_align(*args, **kwargs):
     ssh_hadoop_command(cluster, user, keyfile, ssh_cmd)
     return output
 
-def run_beam_sam_to_bam(*args, **kwargs):
+def run_beam_sam_to_bam(context, *args, **kwargs):
     
     paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
     if not data.startswith('hdfs://'):
@@ -240,7 +242,7 @@ def run_beam_sam_to_bam(*args, **kwargs):
     ssh_hadoop_command(cluster, user, keyfile, ssh_cmd)
     return output
 
-def run_beam_pear(*args, **kwargs):
+def run_beam_pear(context, *args, **kwargs):
     
     paramindex, data1 = get_input_from_args(0, 'data', *args, **kwargs)
     if not data1.startswith('hdfs://'):
@@ -267,7 +269,7 @@ def run_beam_pear(*args, **kwargs):
     ssh_hadoop_command(cluster, user, keyfile, ssh_cmd)
     return assembled
 
-def run_beam_quality_big1(*args, **kwargs):
+def run_beam_quality_big1(context, *args, **kwargs):
     
     paramindex = 0
     if 'data' in kwargs.keys():
@@ -357,7 +359,7 @@ def run_beam_quality_big1(*args, **kwargs):
     return outpath
 
 
-def run_beam_align_big1(*args, **kwargs):
+def run_beam_align_big1(context, *args, **kwargs):
     
     paramindex = 0
     ref = ''
@@ -494,7 +496,7 @@ def run_beam_align_big1(*args, **kwargs):
     
     return stripped_path
 
-def run_beam_sam_to_bam_big1(*args, **kwargs):
+def run_beam_sam_to_bam_big1(context, *args, **kwargs):
     
     paramindex = 0
     data = ''
@@ -579,7 +581,7 @@ def run_beam_sam_to_bam_big1(*args, **kwargs):
     
     return stripped_path
 
-def run_beam_pear_big1(*args, **kwargs):
+def run_beam_pear_big1(context, *args, **kwargs):
     
     paramindex = 0
     data1 = ''

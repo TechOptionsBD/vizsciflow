@@ -11,7 +11,19 @@
            "desc": "Converts SAM data format to BAM binary data format.",
            "returns": "string",
            "example":"data = pysam.SamToBam(data)",
-           "example2":"data = pysam.SamToBam(data=, [output=])"
+           "example2":"data = pysam.SamToBam(data, output='')",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"file",
+               "desc":"sam file"
+            },
+            {
+               "name": "output",
+               "type": "file",
+               "desc":"[optional]. A .bam file."
+            }
+            ]
        }
    ]
 }

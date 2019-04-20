@@ -9,14 +9,21 @@
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css">
 
+<!-- jQuery Context Menu -->
+<link href="https://swisnl.github.io/jQuery-contextMenu/dist/jquery.contextMenu.css" rel="stylesheet" type="text/css" />
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.css" />
+
 <!-- <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script> -->
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
 <!-- <script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.min.js"></script> -->
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
 <!-- <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script> -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js"></script>
 <!-- <script src="http://ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script> -->
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ace.js') }}"></script>
 <!-- <script src="ace-builds/src-min-noconflict/ext-language_tools.js"></script> -->
@@ -27,6 +34,13 @@
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script> -->
 <script src="http://d3js.org/d3.v4.min.js" type="text/javascript"></script>
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script>
+
+<!-- jQuery Context Menu -->
+<script src="https://swisnl.github.io/jQuery-contextMenu/dist/jquery.contextMenu.js" type="text/javascript"></script>
+<script src="https://swisnl.github.io/jQuery-contextMenu/dist/jquery.ui.position.min.js" type="text/javascript"></script>
+<script src="https://swisnl.github.io/jQuery-contextMenu/js/main.js" type="text/javascript"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
 <style type="text/css" >
 
 .odd-row {
@@ -170,7 +184,7 @@ text {
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Reload"
-								data-bind="click: load.bind($data, false)">
+								data-bind="click: load.bind($data, true)">
 								<i class="glyphicon glyphicon-refresh"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
@@ -193,7 +207,7 @@ text {
 								<i class="glyphicon glyphicon-minus"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Add" data-bind="click: addFolder">
+								data-placement="top" title="Add" data-bind="click: addFolder, clickBubble: false">
 								<i class="glyphicon glyphicon-plus"></i>
 							</button>
 						</div>
@@ -415,7 +429,7 @@ text {
 					</div>
 					<div data-bind="foreach: filteredTasks">
 						<div class="row menu_button"
-							data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+							data-bind="event: {dblclick: $parent.copyToEditor}, qTip: name, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 							style="width: 100%; margin: 0">
 							<div class="col-md-auto draggable-func"
 								style="word-wrap: break-word" data-bind="text: name"></div>
@@ -701,14 +715,34 @@ text {
 
 {% block scripts %}
 
-    
 <script type="text/javascript">
     var refreshId = 0;
     var workflowId = 0;
     var isDirty = false;
-    
+    var username = "{{ username }}";
+
     $(window).on('load', function() {
-    	    	
+
+		$(function(){
+		    $('#tree').contextMenu({
+		        selector: 'li', 
+		        callback: function(key, options) {
+					
+					if (key == "copycode") {
+						customBusiness(dataSourceViewModel.selectedNode());
+					}
+					else if (key == "copyargs") {
+						typeInTextarea(document.getElementById("args"), "'" + dataSourceViewModel.selectedNode().path + "'");
+					}
+		        },
+		        items: {
+		            "copycode": {name: "Copy to editor", icon: "paste"},
+					"sep1": "---------",
+		            "copyargs": {name: "Copy to args", icon: "paste"}
+		        }
+		    });
+		});
+
     	$('#refresh').hide();
         $('.draggable-functions').each(function() {
             // inner scope
@@ -810,7 +844,7 @@ text {
                             "Basic " + btoa(self.username + ":" + self.password));
                     },
                     error: function(jqXHR) {
-                        console.log("ajax error " + jqXHR.status);
+                        showXHRText(jqXHR);
                     }
                 };
                 return $.ajax(request);
@@ -831,7 +865,7 @@ text {
 //                             "Basic " + btoa(self.username + ":" + self.password));
 //                     },
                     error: function(jqXHR) {
-                        console.log("ajax error " + jqXHR.status);
+                        showXHRText(jqXHR);
                     }
                 };
                 return $.ajax(request);
@@ -840,14 +874,6 @@ text {
     
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
     
-    var findExpandibleNodes = function(text) {
-    	var options = {
-    		    ignoreCase: true,
-    		    exactMatch: false,
-    		    revealResults: true,
-    		  };
-        return $('#tree').treeview('search', [ text, options ]);
-    };
     $('#tree').bind('mousewheel', function(e) {
     	  $(this).scrollTop($(this).scrollTop() - e.originalEvent.wheelDeltaY);
     	  return false;
@@ -861,9 +887,35 @@ text {
       self.dataSources = ko.observableArray();
       self.expandedNodes = [];
       self.searchDataSource = ko.observable();
-      
+      self.waittime = 5000; // for throttle
+
+	  function createTree(tree){
+
+	    var options = {
+	        bootstrap2: false, 
+	        showTags: true,
+	        levels: 0,
+	        data: tree
+	        /*expandIcon: 'fa fa-chevron-right',
+	        collapseIcon: 'fa fa-chevron-down',
+	        onNodeExpanded: nodeExpand,
+	        onNodeCollapsed: nodeCollapse,
+	        onNodeSelected: nodeSelect,
+	        onNodeUnselected: nodeUnselect*/
+	    }
+    	$('#treeview').treeview(options);
+     };      
+      self.findExpandibleNodes = function(text) {
+    	var options = {
+    		    ignoreCase: true,
+    		    exactMatch: false,
+    		    revealResults: true,
+    		  };
+        return $('#tree').treeview('search', [ text, options ]);
+      };
+    
       self.searchDataSource.subscribe(function () {
-    	  var expandibleNodes = findExpandibleNodes(self.searchDataSource());
+    	  var expandibleNodes = self.findExpandibleNodes(self.searchDataSource());
     	  filter = self.searchDataSource().toUpperCase();
     	  div = document.getElementById("tree");
     	  li = div.getElementsByTagName("li");
@@ -886,13 +938,13 @@ text {
       }
       
       self.load = function(recursive) {
-    	  if (self.init) {
+    	  /*if (self.init) {
 	    	  node = self.selectedNode();
 	          if (node !== undefined) {
 	        	  self.loadItem(node, recursive)
 	        	  return;
 	          }
-    	  }
+    	  }*/
 
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'recursive': recursive }).done(function(data) {
         	  self.dataSources(data.datasources);
@@ -900,7 +952,7 @@ text {
               ko.applyBindings(self, $("#dataSourcesPanel")[0]);
               //ko.mapping.fromJS($("#dataSourcesPanel")[0], self);
               
-              $('#tree').find('li.list-group-item').each(function() {
+              /*$('#tree').find('li.list-group-item').each(function() {
                   // cache jquery object
                   var current = $(this);
                   current.draggable({
@@ -909,11 +961,14 @@ text {
                       helper : 'clone',
                       zIndex:10000
                   });
-              });
+              });*/
               
+              for (node in self.expandedNodes) {
+              	$('#tree').treeview('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]);
+              }
+                        
           }).fail(function(jqXHR) {
-              if (jqXHR.status == 403)
-                  setTimeout(self.beginLogin, 500);
+              showXHRText(jqXHR);
           });
       }
       
@@ -933,7 +988,7 @@ text {
     	  return null;	
       }
       
-      self.loadItem = function(node, recursive = false) {
+      self.loadItem = function(node, recursive = true) {
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.path, 'recursive': recursive }).done(function(data) {
               
               var dataSources = self.dataSources();
@@ -946,18 +1001,17 @@ text {
                   	item.nodes = data.nodes;
                     item.loaded = data.loaded;
                     
+                    ko.cleanNode($("#dataSourcesPanel")[0]);
                     ko.applyBindings(self, $("#dataSourcesPanel")[0]);
                     
                     for (node in self.expandedNodes)
-                        $('#tree').treeview('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]); //, { levels: 0, silent: true }
+                        $('#tree').treeview('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]);
+                        
                   	break;
             	  }
               }
-              
-              
           }).fail(function(jqXHR) {
-              //if (jqXHR.status == 403)
-              //    setTimeout(self.beginLogin, 500);
+              showXHRText(jqXHR);
           });
       }
       
@@ -966,6 +1020,10 @@ text {
     	  nodes = $('#tree').treeview('getSelected')
           if (nodes !== undefined && nodes.length > 0)
         	    return nodes[0];
+      }
+      self.parentNode = function(node)
+      {
+    	  return $('#tree').treeview('getParent', node.nodeId);
       }
       
       self.upload = function() {
@@ -985,31 +1043,47 @@ text {
           });
        }
       
-      self.download = function() {
+      self.download = $.debounce(500, function() {
     	  
     	  node = self.selectedNode();
           if (node === undefined)
               return;
           $.redirect(self.dataSourcesURI, { 'download': node.path }, "POST", "_blank");
-      }
-      
-      self.addFolder = function() {
+      });
+            
+      self.addFolder = $.debounce(500, function() {
+      	  console.log("add folder");
     	  node = self.selectedNode();
           if (node === undefined)
               return;
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'addfolder': node.path }).done(function(data) {
         	  self.loadItem(node);
+        	  $('#tree').treeview('selectNode', node.nodeId);
           });
-      }
+      });
       
-      self.remove = function() {
+      self.remove = $.debounce(500, function() {
     	  node = self.selectedNode();
           if (node === undefined)
               return;
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'delete': node.path }).done(function(data) {
-        	  self.loadItem(node.getParent());
+          	  var parentNode = self.parentNode(node);
+          	  if (parentNode === undefined)
+          	  	return;
+          	  
+          	  var siblings = $('#tree').treeview('getSiblings', node.nodeId);
+          	  if (siblings !== undefined && siblings.length > 0)
+          	  	sibling = siblings[0].path;
+        	  self.loadItem(parentNode);
+        	  
+        	  if (sibling === undefined)
+        	  	$('#tree').treeview('selectNode', node.nodeId);
+        	  else {
+        	  	siblingNode = self.getItemByPath(parentNode, sibling);
+        	  	$('#tree').treeview('selectNode', siblingNode.nodeId);
+        	  }
           });
-      }
+      });
       
       self.rename = function() {
     	  $('#rename-filefolder-dialog').modal('hide');
@@ -1019,11 +1093,11 @@ text {
               return;
           
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'oldpath': node.path, 'rename': $('#rename-filefolder-text').val() }).done(function(data) {
-        	  self.loadItem(node.getParent());
+        	  self.loadItem(self.parentNode(node));
           });
       }
       
-      self.load(false);
+      self.load(true);
       self.init = true;
     }
    
@@ -1039,6 +1113,30 @@ text {
        editor.focus();
    }
 
+function typeInTextarea(el, newText) {
+  var start = el.selectionStart;
+  var end = el.selectionEnd;
+  var text = el.value;
+
+  var before = "";
+  var after = "";
+  if (text != null) {
+	if (start != null)
+		before =  text.substring(0, start);
+	else
+		start = text.length;
+		
+	if (end != null)
+		after = text.substring(end, text.length);
+  }
+  else
+	start = 0;
+  
+  el.value = (before + newText + after)
+  el.selectionStart = el.selectionEnd = start + newText.length
+  el.focus()
+}
+
    function clickNode(event, data) {
     if (lastSelectedNodeId && lastSelectTime) {
      var time = new Date().getTime();
@@ -1051,14 +1149,43 @@ text {
     lastSelectTime = new Date().getTime();
    }
     
+	ko.bindingHandlers.qTip = {
+	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	        $(element).qtip({
+				style: {
+                	classes: 'qtip-bootstrap'
+            	},
+	            content: {
+					title: viewModel.name(),
+					text: "<p>" + viewModel.desc() + "</p><p>" + viewModel.example() + "</p><p>Double click to insert into code editor.</p>"
+				},
+	            hide: {
+          			fixed: true,
+          			delay: 500
+     			},
+	            position: {
+	                my: 'left top',
+	                at: 'bottom left'
+	            }
+	        });
+	        //ko.applyBindingAccessorsToNode(element, {visible: valueAccessor()});
+	    },
+	    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	        /*var visible = ko.utils.unwrapObservable(valueAccessor());
+	        if(!visible) {
+	            $(element).qtip('hide');
+	        }*/
+	    }
+	};
+
     ko.bindingHandlers.treeview = {
        init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
            $(element).treeview({data: ko.toJS(valueAccessor())})
            .on('nodeSelected', function(event, data) {
-           	clickNode(event, data);
+           		clickNode(event, data);
            }).on('nodeUnselected', function(event, data) {
-           	clickNode(event, data);
-   		}).on('nodeExpanded', function(event, data) {
+           		clickNode(event, data);
+   		   }).on('nodeExpanded', function(event, data) {
    			
    			dataSourceViewModel.expandedNodes.push(data.nodeId);
    			if (data.loaded === undefined || !data.loaded) {
@@ -1115,7 +1242,7 @@ text {
         isDirty = !editor.session.getUndoManager().isClean();
     });
     
-    var staticWordCompleter = {
+    /*var staticWordCompleter = {
    	    getCompletions: function(editor, session, pos, prefix, callback) {
    	        var wordList = ["foo", "bar", "baz"];
    	        callback(null, wordList.map(function(word) {
@@ -1127,20 +1254,24 @@ text {
    	        }));
 
    	    }
-   	}
+   	}*/
 
-//     var staticWordCompleter = {
-//     	getCompletions: function(editor, session, pos, prefix, callback) {
-// 	    $.getJSON(jsonURL,
-// 	      function(tagList) {
-// 	        callback(null, tagList.map(function(qtag) {
-// 	          return {name: qtag.name, value: "#"+qtag.name+"() ", meta: "qtag"}
-// 	      }));
-// 	    })
-// 	   }
-//  	}
+   	
+   	if (localStorage[username.concat('_inputVals')] !== undefined)
+   		editor.session.setValue(JSON.parse(localStorage[username.concat('_inputVals')]));
+
+    var dynamicWordCompleter = {
+     	getCompletions: function(editor, session, pos, prefix, callback) {
+ 	    $.getJSON('/functions?codecompletion=' + prefix,
+ 	      function(tagList) {
+ 	        callback(null, tagList.functions.map(function(qtag) {
+ 	          return { caption: qtag.name + '(' + qtag.package_name + ')', value: qtag.example, meta: qtag.group}
+ 	      }));
+ 	    })
+ 	   }
+  	}
     
-   	langTools.setCompleters([staticWordCompleter])
+   	langTools.setCompleters([dynamicWordCompleter])
    	// or 
    	//editor.completers = [staticWordCompleter]
     
@@ -1222,7 +1353,17 @@ text {
     function activateTab(tab){
         $('.nav-tabs a[href="#' + tab + '"]').tab('show');
       };
-      
+     
+     function showXHRText(jqXHR) {
+     	if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON.err !== undefined) {
+     		$("#error").val(jqXHR.responseJSON.err);
+     	}
+     	else {
+     		$("#error").val(jqXHR.statusText);
+     	}
+     	activateTab(2);
+     }
+     
      function TasksViewModel() {
          var self = this;
          self.tasksURI = '/functions';
@@ -1321,7 +1462,7 @@ text {
          self.updateWorkflow = function() {
              var script = $.trim(editor.getSession().getValue());
              if ((!script && !workflowId) || editor.session.getUndoManager().isClean())
-           	  return; // if script emtpy and workflowId not set, it means (empty) workflow is not set yet.
+           	 	return; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
            	
            	var formdata = new FormData();
              
@@ -1338,6 +1479,11 @@ text {
          
          self.runBioWL = function(task) {
            self.updateWorkflow();
+           if (!workflowId) {
+               $("#error").val("Workflow is not updated. Change the code and run again.");
+               return;
+           }
+           
            var script = $.trim(editor.getSession().getValue());
            if (!script)
          	  return;
@@ -1376,8 +1522,7 @@ text {
                  runnablesViewModel.load();                    
              }).fail(function(jqXHR, textStatus) {
              	$('#refresh').hide();
-             	$("#error").val(jqXHR.statusText);
-             	activateTab(2);
+             	showXHRText(jqXHR);
              });
          }
          
@@ -1401,8 +1546,7 @@ text {
                	
               }).fail(function(jqXHR, textStatus) {
               	$('#refresh').hide();
-              	$("#error").val(jqXHR.statusText);
-              	activateTab(2);
+              	showXHRText(jqXHR);
              });
          }
          
@@ -1461,26 +1605,26 @@ text {
          self.login = function() {
          	self.load();
          }
-         self.load = function() {
+         self.load = $.debounce(500, function() {
            ajaxcalls.simple(self.tasksURI, 'GET', {'level': 1, 'access': self.selectedServiceAccessType().Id}).done(function(data) {
          	  self.tasks([]);
          	  $.each(data.functions, function(i, f) {
          		  self.tasks.push({
                        package_name: ko.observable(f.package_name),
                        name: ko.observable(f.name),
-                       internal: ko.observable(f.internal),
+                       //internal: ko.observable(f.internal),
                        example: ko.observable(f.example),
                        example2: ko.observable(f.example2),
-                       desc: ko.observable(f.desc + "\nReturns: " + f.returns + "\nExample:\n    " + (self.selectedCategory().Id == 0 ? f.example : f.example2) + "\nDouble click to insert into code editor."),
-                       runmode: ko.observable(f.runmode),
+                       desc: ko.observable(f.desc),
+                       //runmode: ko.observable(f.runmode),
                        group: ko.observable(f.group)
                    });
          	  });
              }).fail(function(jqXHR) {
-                 if (jqXHR.status == 403)
-                     setTimeout(self.beginLogin, 500);
+                 showXHRText(jqXHR);
              });
-         }
+         });
+         
          //self.beginLogin();
          
          self.copyToEditor = function(item) {
@@ -1548,7 +1692,7 @@ text {
                    workflowId = item.id();
             	   
                }).fail(function(jqXHR) {
-                   
+                   showXHRText(jqXHR);
                });
            }
            
@@ -1571,8 +1715,7 @@ text {
             	   });
             	   
                }).fail(function(jqXHR) {
-                   if (jqXHR.status == 403)
-                       setTimeout(self.beginLogin, 500);
+                   showXHRText(jqXHR);
                });
            }
        }
@@ -1819,8 +1962,7 @@ text {
 	            	$("#execstatus").text(data['status']);
             	}).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
-                	$("#error").val(jqXHR.statusText);
-                	activateTab(2);
+                	showXHRText(jqXHR);
                 });
             }
             
@@ -1903,8 +2045,7 @@ text {
                         });
                     });
                 }).fail(function(jqXHR) {
-                    if (jqXHR.status == 403)
-                        setTimeout(self.beginLogin, 500);
+                    showXHRText(jqXHR);
                 });
             }
         }
@@ -2174,6 +2315,11 @@ text {
 	    $(this).data("prevType", e.type);
 	})
 	
+	$(window).on('beforeunload', function(){
+		var script = $.trim(editor.getSession().getValue());
+    	localStorage.setItem(username.concat('_inputVals'), JSON.stringify(script) );
+	});
+
 	$(exTabBiowl).on('shown.bs.tab', function (e) {
 		var x = $(e.target).text();
 		if (x === "Graph") {

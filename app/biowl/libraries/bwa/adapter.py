@@ -3,126 +3,60 @@ from os import path
 from pathlib import Path
 
 from ...exechelper import func_exec_run
-from ....util import Utility
+from ...argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args, get_posix_output_folder_args
+from ....models import DataSourceAllocation, AccessRights
 
 bwa = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'bwa'))
+
+def prepare_args(fs, ref, data1, data2, output, *args):
+    
+    cmdargs = ['mem', ref, data1]
+    if data2:
+        cmdargs.append(data2)
+    
+    if fs.isdir(output):
+        data_path = Path(data1)
+        output = fs.join(output, data_path.stem) + ".sam"
+    cmdargs.append("-o {0}".format(output))
+    
+#     for arg in args[paramindex + 1:]:
+#         cmdargs.append(arg)
+        
+    return cmdargs, output
 
 def build_bwa_index(ref):
     cmdargs = ['index', ref]
     return func_exec_run(bwa, *cmdargs)
     
-def run_bwa(*args, **kwargs):
-    
-    paramindex = 0
-    ref = ''
-    if 'ref' in kwargs.keys():
-        ref = kwargs['ref']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument error")
-        ref = args[paramindex]
-        paramindex +=1
-        
-    fs = Utility.fs_by_prefix_or_default(ref)
-    ref = fs.normalize_path(ref)
-    
-    indexpath = Path(ref).stem + ".bwt"
-    indexpath = os.path.join(os.path.dirname(ref), os.path.basename(indexpath))
-    if not fs.exists(indexpath):
-        build_bwa_index(ref)
-    
-    data1 = ''
-    if 'data' in kwargs.keys():
-        data1 = kwargs['data']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument error")
-        data1 = args[paramindex]
-        paramindex +=1
-    
-    data1 = fs.normalize_path(data1)
+def run_bwa(context, *args, **kwargs):
+    paramindex, ref, fs = get_posix_data_args(0, 'ref', context, *args, **kwargs)
+    paramindex, data1, _ = get_posix_data_args(paramindex, 'data', context, *args, **kwargs)
+    paramindex, data2, _ = get_optional_posix_data_args(paramindex, 'data2', context, *args, **kwargs)
+    paramindex, indexpath, _ = get_optional_posix_data_args(paramindex, 'index', context, *args, **kwargs)
+    output = get_posix_output_args(paramindex, 'output', fs, data1, context, ".sam", *args, **kwargs) if fs.isfile(data1) else get_posix_output_folder_args(paramindex, 'output', fs, context, *args, **kwargs)
 
-    output = ''    
+    if not indexpath:
+        indexpath = Path(ref).stem + ".bwt"
+        indexpath = fs.join(fs.dirname(ref), indexpath)
+        
+        if not fs.exists(indexpath):
+            if not DataSourceAllocation.has_access_rights(context.user_id, fs.dirname(ref), AccessRights.Write):
+                ref = fs.copyfile(ref, fs.join(context.get_temp_dir(fs.typename()), fs.basename(ref)))
+                indexpath = Path(ref).stem + ".bwt"
+                indexpath = fs.join(fs.dirname(ref), indexpath)
+            build_bwa_index(ref)
+
     if fs.isfile(data1):
-        data2 = ''
-        if 'data2' in kwargs.keys():
-            data2 = kwargs['data2']
-        else:
-            if len(args) > paramindex:
-                data2 = args[paramindex]
-                paramindex +=1
-        
-        if data2:
-            data2 = fs.normalize_path(data2)
-        
-        if 'output' in kwargs.keys():
-            output = kwargs['output']
-        else:
-            if len(args) > paramindex:
-                output = args[paramindex]
-                paramindex +=1
-            
-        if not output:
-            output = Path(data1).stem + ".sam"
-            outdir = fs.make_unique_dir(path.dirname(data1))
-            output = os.path.join(outdir, os.path.basename(output))
-            
-        output = fs.normalize_path(output)
-        
-        if not fs.exists(path.dirname(output)):
-            fs.makedirs(path.dirname(output))
-            
-        if os.path.exists(output):
-            os.remove(output)
-    
-        cmdargs = ['mem', ref, data1]
-        if data2:
-            cmdargs.append(data2)
-            
-        cmdargs.append("-o {0}".format(output))
-        
-        for arg in args[paramindex + 1:]:
-            cmdargs.append(arg)
-        
+        cmdargs, output = prepare_args(fs, ref, data1, data2, output, *args)
         _,err = func_exec_run(bwa, *cmdargs)
     else:
-        if 'output' in kwargs.keys():
-            output = kwargs['output']
-        else:
-            if len(args) > paramindex:
-                output = args[paramindex]
-                paramindex +=1
-                
-        datafiles = []
         for r, _, f in os.walk(data1):
-            for file in f:
-                if file.endswith(".fastq") or file.endswith(".fq"):
-                    datafiles.append(os.path.join(r, file))
-                    
-        if not output:
-            output = fs.make_unique_dir(path.dirname(data1))
-        
-        output = fs.normalize_path(output)
-        if fs.isfile(output):
-            raise ValueError("File already exists: " + output)
-        
-        if not fs.exists(output):
-            fs.makedirs(output)       
-        
-        for datafile in datafiles:
-            try:
-                outfile = os.path.join(output, Path(datafile).stem + ".sam")
-                if os.path.exists(outfile):
-                    os.remove(outfile)
-                
-                cmdargs = ['mem', ref, datafile, "-o {0}".format(outfile)]
-                           
-                for arg in args[paramindex + 1:]:
-                    cmdargs.append(arg)
-        
-                _,err = func_exec_run(bwa, *cmdargs)
-            except:
-                pass # continue in case of exception
+            for datafile in [os.path.join(r, file) for file in f if file.endswith(".fastq") or file.endswith(".fq")]:
+                try:
+                    cmdargs, _ = prepare_args(fs, ref, datafile, None, output, *args)
+                    _,err = func_exec_run(bwa, *cmdargs)
+                except Exception as err:
+                    context.err.append(str(err))
     
     stripped_path = fs.strip_root(output)
     if not fs.exists(output):

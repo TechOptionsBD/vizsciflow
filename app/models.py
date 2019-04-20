@@ -99,7 +99,7 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     workflows = db.relationship('Workflow', backref='user', lazy='dynamic')
     services = db.relationship('Service', backref='user', lazy='dynamic')
-    datasource_allocation = db.relationship('DataSourceAllocation', backref='user', lazy='dynamic')
+    datasourceAllocations = db.relationship('DataSourceAllocation', backref='user', lazy='dynamic')
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
@@ -447,7 +447,8 @@ class AccessRights:
     NotSet = 0x00
     Read = 0x01
     Write = 0x02
-    Request = 0x4
+    Owner = 0x07
+    Request = 0x8
     
     @staticmethod
     def hasRight(rights, checkRight):
@@ -646,9 +647,46 @@ class DataSourceAllocation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'))
-    url = db.Column(db.Text)  # part added to the data source url
+    url = db.Column(db.Text, nullable=False)
+    rights = db.Column(db.Integer, default = 0)
 
-
+    def has_read_access(self):
+        return self.has_right(AccessRights.Read)
+    
+    def has_write_access(self):
+        return self.has_right(AccessRights.Write)
+    
+    @staticmethod
+    def add(user, ds, url, rights):
+        try:
+            data = DataSourceAllocation()
+            data.user_id = user.id
+            data.datasource_id = ds.id
+            data.url = url
+            data.rights = rights
+            db.session.add(data)
+            db.session.commit() 
+            return data
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    def has_right(self, checkRight):
+        return AccessRights.hasRight(self.rights, checkRight)
+    
+    @staticmethod
+    def has_access_rights(user_id, path, checkRights):
+        allocations = DataSourceAllocation.query.filter(DataSourceAllocation.user_id == user_id)
+        for allocation in allocations:
+            if path.startswith(allocation.url) and allocation.has_right(checkRights):
+                return True
+        return False
+    
+    @staticmethod
+    def check_access_rights(user_id, path, checkRights):
+        if not DataSourceAllocation.has_access_rights(user_id, path, checkRights):
+            raise DataAccessError(path)
+    
 class Data(db.Model):
     __tablename__ = 'data'
     id = db.Column(db.Integer, primary_key=True)
@@ -885,3 +923,13 @@ class Runnable(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+    
+    def get_user(self):
+        workflow = Workflow.query.get(self.workflow_id)
+        return User.query.get(workflow.user_id)
+    
+class DataAccessError(Exception):
+    def __init__(self, url):
+
+        # Call the base class constructor with the parameters it needs
+        super().__init__("You do not have access rights for this path: " + url)        

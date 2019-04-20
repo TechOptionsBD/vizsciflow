@@ -1,9 +1,10 @@
 from __future__ import print_function
 
 import os
-from os import path
-from .models import DataSource
 import sys
+from os import path
+from .models import DataSource, DataSourceAllocation
+
 from app.biowl.fileop import PosixFileSystem, HadoopFileSystem, GalaxyFileSystem
 from flask_login import current_user
 
@@ -46,7 +47,7 @@ class Utility:
         if ds.type == 'hdfs':
             return HadoopFileSystem(ds.url, ds.root, ds.user)
         elif ds.type == 'posix':
-            return PosixFileSystem(ds.url)
+            return PosixFileSystem(ds.url, ds.public, ds.name)
         elif ds.type == 'gfs':
             return GalaxyFileSystem(ds.url, ds.password)
     
@@ -72,8 +73,7 @@ class Utility:
     @staticmethod
     def fs_type_by_prefix(path):
         ds = Utility.ds_by_prefix(path)
-        if ds:
-            return ds.type
+        return ds.type if ds else "posix" if path.startswith(os.sep) else None
             
     @staticmethod
     def fs_by_prefix(path):
@@ -84,8 +84,11 @@ class Utility:
     @staticmethod
     def fs_by_prefix_or_default(path):
         ds = Utility.ds_by_prefix(path)
-        if not ds:
-            ds = DataSource.query.filter_by(type = 'posix').first()
+        return Utility.create_fs(ds) if ds else Utility.fs_by_typename("posix")
+    
+    @staticmethod
+    def fs_by_typename(typename):
+        ds = DataSource.query.filter_by(type = typename).first()
         return Utility.create_fs(ds)
     
     @staticmethod

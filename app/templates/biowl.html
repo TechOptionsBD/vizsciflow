@@ -41,6 +41,7 @@
 <script src="https://swisnl.github.io/jQuery-contextMenu/js/main.js" type="text/javascript"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
+
 <style type="text/css" >
 
 .odd-row {
@@ -466,9 +467,9 @@ text {
 									<i class="glyphicon glyphicon-refresh"></i>
 								</button>
 								<button style="margin-right: 10px;" class="btn btn-primary"
-									data-toggle="tooltip" data-placement="top" title="Add"
+									data-toggle="tooltip" data-placement="top" title="Save"
 									data-bind="click: beginAdd">
-									<i class="glyphicon glyphicon-plus"></i>
+									<i class="glyphicon glyphicon-floppy-save"></i>
 								</button>
 							</span> 
 							<input class="form-control" type="text" placeholder="Search…"
@@ -487,7 +488,7 @@ text {
 
 					<div data-bind="foreach: filteredWorkflows">
 						<div class="row menu_button"
-							data-bind="event: {dblclick: $parent.copyToEditor}, attr: { title: desc }, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+							data-bind="event: {dblclick: $parent.copyToEditor}, qTipWf: name, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 							style="width: 100%; margin: 0">
 							<div class="col-xm-6" style="float: left; margin: 0; width: 80%"
 								data-bind="text: name"></div>
@@ -502,7 +503,7 @@ text {
 	</div>
 </div>
 
-<div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 480px; height: 620px; background: #fff">
+<div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 480px; height: 620px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3 id="addDialogLabel">Add Library</h3>
@@ -1175,6 +1176,30 @@ function typeInTextarea(el, newText) {
 	        if(!visible) {
 	            $(element).qtip('hide');
 	        }*/
+	    }
+	};
+	
+	ko.bindingHandlers.qTipWf = {
+	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	        $(element).qtip({
+				style: {
+                	classes: 'qtip-bootstrap'
+            	},
+	            content: {
+					title: viewModel.name(),
+					text: "<p>" + viewModel.desc() + "</p><p>Double click to insert into code editor.</p>"
+				},
+	            hide: {
+          			fixed: true,
+          			delay: 500
+     			},
+	            position: {
+	                my: 'left top',
+	                at: 'bottom left'
+	            }
+	        });
+	    },
+	    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 	    }
 	};
 
@@ -2319,7 +2344,14 @@ function typeInTextarea(el, newText) {
 		var script = $.trim(editor.getSession().getValue());
     	localStorage.setItem(username.concat('_inputVals'), JSON.stringify(script) );
 	});
-
+	
+	$(window).on('keypress', function(event){
+		if(event.keyCode=='27'){
+          $("#add").modal('hide');
+		  $("#addSample").modal('hide');
+      }
+	});
+	
 	$(exTabBiowl).on('shown.bs.tab', function (e) {
 		var x = $(e.target).text();
 		if (x === "Graph") {

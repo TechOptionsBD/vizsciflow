@@ -10,7 +10,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css">
 
 <!-- jQuery Context Menu -->
-<link href="{{ url_for('static', filename='js/contextmenu/jquery.contextMenu.css') }}" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.css">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.css" />
 
@@ -36,9 +36,8 @@
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script>
 
 <!-- jQuery Context Menu -->
-<script type="text/javascript" src="{{ url_for('static', filename='js/contextmenu/jquery.contextMenu.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/contextmenu/jquery.ui.position.min.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/contextmenu/main.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
 
@@ -735,8 +734,8 @@ text {
     $(window).on('load', function() {
 
 		$(function(){
-		    $('#tree').contextMenu({
-		        selector: 'li', 
+		    $.contextMenu({
+		        selector: 'li.list-group-item', 
 		        callback: function(key, options) {
 					
 					if (key == "copycode") {

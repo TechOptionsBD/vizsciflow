@@ -167,9 +167,9 @@ def functions():
                             tar_ref.extractall(path)
                     else:
                         shutil.move(temppath, path)
-                else:
-                    pass
-                                        
+                elif request.form.get('script'):
+                    filename = unique_filename(path, pkg_or_default, 'py')
+                    
                 base = unique_filename(path, pkg_or_default, 'json')
                 with open(base, 'w') as mapper:
                     mapper.write(request.form.get('mapper'))
@@ -178,6 +178,10 @@ def functions():
                 pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
                 pkgpath = os.path.join(pkgpath, filename)
                 pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
+                
+                if request.form.get('script'):
+                    with open(filename, 'a+') as script:
+                        script.write(request.form.get('script'))
                 
                 access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2 
                 with open(base, 'r') as json_data:
@@ -201,7 +205,7 @@ def functions():
                             
                 os.remove(base)
                 with open(base, 'w') as f:
-                    json.dumps(data, f, indent=4)
+                    f.write(json.dumps(data, indent=4))
                 library.reload()
                 
                 result['out'].append("Library successfully added.")
@@ -230,6 +234,14 @@ def functions():
                     funcs.append(keyword)
                     
         return json.dumps({'functions':  funcs})
+    elif 'demoserviceadd' in request.args:
+        demoservice = {'script':'', 'mapper': ''}
+        base = os.path.join(os.path.dirname(basedir), 'biowl')
+        with open(os.path.join(base, 'demoservice.py'), 'r') as f:
+            demoservice['script'] = f.read()
+        with open(os.path.join(base, 'demoservice.json'), 'r') as f:
+            demoservice['mapper'] = f.read()
+        return jsonify(demoservice= demoservice)
     else:
         level = int(request.args.get('level')) if request.args.get('level') else 0
         access = int(request.args.get('access')) if request.args.get('access') else 0

@@ -192,6 +192,18 @@ class Library():
                 args.append(arg)
         return args, kwargs
     
+    @staticmethod
+    def GetDataTypeFromFunc(returns):
+        if returns:
+            returnsLower = returns.lower()
+            if returnsLower == 'File':
+                return DataType.File
+            elif returnsLower == 'Folder':
+                return DataType.Folder
+            elif returnsLower == 'File[]':
+                return DataType.FileList
+        return DataType.Custom
+
     def call_func(self, context, package, function, args):
         '''
         Call a function from a module.
@@ -293,12 +305,7 @@ class Library():
                 function = getattr(module_obj, func[0].internal)
                 
                 result = function(context, *arguments, **kwargs)
-                if result:
-                    datatype = DataType.Unknown
-                    output1 = result[0] if isinstance(result, list) else result
-                    fs = Utility.fs_by_prefix_or_default(output1)
-                    if fs and fs.isfile(output1):
-                        datatype = DataType.FileList if isinstance(result, list) else DataType.File
+                datatype = Library.GetDataTypeFromFunc(func[0].returns)
                 task.succeeded(datatype, result)
             return result
         except Exception as e:

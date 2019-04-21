@@ -178,11 +178,11 @@ text {
 
 					<div class="btn-group">
 						<div class="btn-group-sm">
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+							<!--<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Recursive Reload"
 								data-bind="click: load.bind($data, true)">
 								<i class="glyphicon glyphicon-unchecked"></i>
-							</button>
+							</button> -->
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Reload"
 								data-bind="click: load.bind($data, true)">
@@ -451,12 +451,9 @@ text {
 						</div>
 					</div>
 					<div class="row">
-						<label class="radio-inline"> <input type="radio"
-							name="access" value="0" data-bind="checked: access, click:click">Public
-						</label> <label class="radio-inline"> <input type="radio"
-							name="access" value="1" data-bind="checked: access, click:click">Shared
-						</label> <label class="radio-inline"> <input type="radio"
-							name="access" value="2" data-bind="checked: access, click:click">Private
+						<label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked>Public
+						</label> <label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click">Shared
+						</label> <label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click">Private
 						</label>
 
 						<div class="input-group" style="margin-top: 10px">
@@ -523,10 +520,23 @@ text {
 	                <label class="control-label" for="module">Module</label>
                     <input type="file" id="module">
              </div>
-             <label class="control-label" for="mapper">Module to JSON mapper:</label>
-             <div class="controls">
-                    <textarea rows="16" style="width: 460px;" id="mapper"></textarea>
-                </div>
+
+				<div id="exTabService" class="controls">
+					<ul class="nav nav-tabs">
+						<li class="active"><a href="#service1" data-toggle="tab">Script</a></li>
+						<li><a href="#service2" data-toggle="tab">JSON Mapper</a></li>
+					</ul>
+					<div class="tab-content ">
+						<div class="tab-pane fade in active" id="service1">
+							<textarea rows="10" style="width: 460px;" id="servicescript"></textarea>
+							<br>
+						</div>
+						<div class="tab-pane fade" id="service2">
+							<div style="width: 460px;" id="mapper"></div>
+							<br>
+						</div>
+					</div>
+				</div>
                 <div class="controls">
                  <label class="control-label" for="pippkgs">pip Install</label>
                  <input data-bind="value: pippkgs" type="text" id="pippkgs" placeholder="" style="width: 200px;">
@@ -1161,8 +1171,7 @@ function typeInTextarea(el, newText) {
 					text: "<p>" + viewModel.desc() + "</p><p>" + viewModel.example() + "</p><p>Double click to insert into code editor.</p>"
 				},
 	            hide: {
-          			fixed: true,
-          			delay: 500
+          			fixed: true
      			},
 	            position: {
 	                my: 'left top',
@@ -1190,8 +1199,7 @@ function typeInTextarea(el, newText) {
 					text: "<p>" + viewModel.desc() + "</p><p>Double click to insert into code editor.</p>"
 				},
 	            hide: {
-          			fixed: true,
-          			delay: 500
+          			fixed: true
      			},
 	            position: {
 	                my: 'left top',
@@ -1345,28 +1353,33 @@ function typeInTextarea(el, newText) {
            		.css('overflow', 'hidden')
            		.css('word-wrap', 'break-word');
             row.append(cell);
-            if (parseInt(value['datatype']) === 2 || parseInt(value['datatype']) === 1024) {
-            	cell = $('<td></td>');
-    			data = value['data'];
-            	if (!Array.isArray(data)) {
-        			data = [data];
-				}
-            	$.each(data, function (key, val) {
-		            var link =  $('<a />', {
-		                'href': 'javascript:void(0)',
-		                'text': val
-		            }).on('click', function() {
-		            	//window.open('data:text/plain;charset=utf-8,' + str);
+            
+        	cell = $('<td></td>');
+			data = value['data'];
+        	if (!Array.isArray(data)) {
+    			data = [data];
+			}
+			var added = false;
+        	$.each(data, function (key, val) {		
+	            var link =  $('<a />', {
+	                'href': 'javascript:void(0)',
+	                'text': val
+	            }).on('click', function() {
+					if (parseInt(value['datatype']) === 2 || parseInt(value['datatype']) === 1024) {
 		           		$.redirect('/datasources', { 'download': val }, "POST", "_blank");
-		            });
-		            	
-		            cell.append(link);
-		            cell.append('; ');
-            	});
-            }
-            else {
-            	cell = "<td>" + value['data'] + "</td>";
-            }
+					}
+					else {
+						var w = window.open();
+						$(w.document.body).text(val);
+					}
+	            });
+	            
+				if (added)
+					cell.append('; ');
+					
+	            cell.append(link);
+				added = true;
+        	});
             row.append(cell);
             
             cell = "<td>" + value['status'] + "</td>";
@@ -1477,11 +1490,16 @@ function typeInTextarea(el, newText) {
          }
          
          self.beginAddLibrary = function() {
-         	var obj = { "functions": [{ "name": "", "internal": "", "example": ""} ] };
+			$.getJSON('/functions?demoserviceadd', function(demoservice) {
+				/*demoservice = JSON.parse(demoservice)
+             	if ($.isEmptyObject(demoservice))
+             		return;*/
 
-         	addLibraryViewModel.getCodeEditor().setValue(JSON.stringify(obj, null, 4), 1);
-         	centerDialog($('#add'));
-             $('#add').modal('show');
+				addLibraryViewModel.getCodeEditor().setValue(demoservice.demoservice.script, 1);
+				addLibraryViewModel.getMapperEditor().setValue(demoservice.demoservice.mapper, 1);
+	         	centerDialog($('#add'));
+    	         $('#add').modal('show');
+ 	    	})
          }
          
          self.updateWorkflow = function() {
@@ -1766,23 +1784,15 @@ function typeInTextarea(el, newText) {
 	   	    }
    		});
        
-        function SampleViewModel() {
-            var self = this;
-            self.samplesURI = '/samples';
-            
-            self.name = ko.observable();
-            self.desc = ko.observable();
-            self.access = ko.observable();
-            self.users = ko.observable();
- 
-            // configure ace.js for code editor
-            var mapperArea = $("#sample");
+	function CreateAceEditor(editorId, mode, height) {
+	            // configure ace.js for code editor
+            var mapperArea = $(editorId);
             
             var mapperDiv = $('<div>', {
                 position: 'absolute',
                 id: 'aceeditor',
                 width: mapperArea.width(),
-                height: 300,//mapperArea.height(),
+                height: height,//mapperArea.height(),
                 'class': mapperArea.attr('class'),
                 'css': 'border:2px solid black'
             }).insertBefore(mapperArea);
@@ -1794,7 +1804,7 @@ function typeInTextarea(el, newText) {
             var mapperEditor = ace.edit(mapperDiv[0]);
             mapperEditor.renderer.setShowGutter(false);
             mapperEditor.getSession().setValue(mapperArea.val());
-            mapperEditor.getSession().setMode("ace/mode/python");
+            mapperEditor.getSession().setMode(mode);
             mapperEditor.setOptions({highlightSelectedWord: true, enableBasicAutocompletion: true});
             mapperEditor.renderer.setOptions({showGutter: true, displayIndentGuides: true});
             //editor.setKeyboardHandler("ace/keyboard/vim");
@@ -1805,11 +1815,24 @@ function typeInTextarea(el, newText) {
 //                 fontSize: "12pt"
 //               });
 
+return mapperEditor;
+}
+        function SampleViewModel() {
+            var self = this;
+            self.samplesURI = '/samples';
+            
+            self.name = ko.observable();
+            self.desc = ko.observable();
+            self.access = ko.observable();
+            self.users = ko.observable();
+
+			self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", 300);
+ 
             self.addSample = function(task) {
                 $('#addSample').modal('hide');
                 
                 var formdata = new FormData();
-                formdata.append('sample', mapperEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
+                formdata.append('sample', self.sampleEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
                 
                 if (self.name() === undefined)
                 	return;
@@ -1831,7 +1854,7 @@ function typeInTextarea(el, newText) {
                 });
             }
             
-            self.getCodeEditor = function() { return mapperEditor; }
+            self.getCodeEditor = function() { return self.sampleEditor; }
         }
         
         function AddLibraryViewModel() {
@@ -1842,44 +1865,18 @@ function typeInTextarea(el, newText) {
             self.org = ko.observable();
             self.access = ko.observable();
             self.pippkgs = ko.observable();
- 
-            // configure ace.js for code editor
-            var mapperArea = $("#mapper");
-            
-            var mapperDiv = $('<div>', {
-                position: 'absolute',
-                id: 'aceeditor',
-                width: mapperArea.width(),
-                height: 200,//mapperArea.height(),
-                'class': mapperArea.attr('class'),
-                'css': 'border:2px solid black'
-            }).insertBefore(mapperArea);
-                
-            mapperArea.css('visibility', 'hidden');
-            var offset = mapperDiv.offset();
-            mapperArea.attr('rows', 1);
-            
-            var mapperEditor = ace.edit(mapperDiv[0]);
-            mapperEditor.renderer.setShowGutter(false);
-            mapperEditor.getSession().setValue(mapperArea.val());
-            mapperEditor.getSession().setMode("ace/mode/json");
-            mapperEditor.setOptions({highlightSelectedWord: true, enableBasicAutocompletion: true});
-            mapperEditor.renderer.setOptions({showGutter: true, displayIndentGuides: true});
-            //editor.setKeyboardHandler("ace/keyboard/vim");
-            //editor.setTheme("ace/theme/idle_fingers");
-            //editor.setTheme("ace/theme/twilight");
-            mapperEditor.setTheme("ace/theme/iplastic");
-//             editor.setOptions({       
-//                 fontSize: "12pt"
-//               });
-
+ 			
+			self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 200);
+			self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 200);
+			
             self.addLibrary = function(task) {
             	$('#add').modal('hide');
             	
             	var files = $("#module").get(0).files;
             	var formdata = new FormData();
             	formdata.append('library', files[0]); //use get('files')[0]
-            	formdata.append('mapper', mapperEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
+            	formdata.append('mapper', self.mapperEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
+				formdata.append('script', self.codeEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
             	
             	if (self.name() !== undefined)
             		formdata.append('package', self.name());
@@ -1887,7 +1884,7 @@ function typeInTextarea(el, newText) {
             		formdata.append('org', self.org());
             	if (self.access() !== undefined)
             		formdata.append('access', self.access());
-            	if (self.access() !== undefined)
+            	if (self.pippkgs() !== undefined)
             		formdata.append('pippkgs', self.pippkgs());
 
                 ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
@@ -1909,7 +1906,8 @@ function typeInTextarea(el, newText) {
                 });
             }
             
-            self.getCodeEditor = function() { return mapperEditor; }
+            self.getMapperEditor = function() { return self.mapperEditor; }
+			self.getCodeEditor = function() { return self.codeEditor; }
         }
         
         function EditTaskViewModel() {

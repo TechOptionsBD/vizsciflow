@@ -1,0 +1,9 @@
+{
+    "functions": [
+        {
+            "name": "MyService",
+            "internal": "run_myservice",
+            "example": "data = MyService()"
+        }
+    ]
+}

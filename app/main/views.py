@@ -305,6 +305,8 @@ def load_data_sources_biowl(recursive):
             fs = Utility.create_fs(ds)
             if not fs:
                 continue
+            if not fs or fs.typename() != 'posix': # temporary code
+                continue
             datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'loaded': True}
             if current_user.is_authenticated:
                 if not fs.exists(current_user.username):

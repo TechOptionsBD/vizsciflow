@@ -10,7 +10,7 @@
            "internal":"run_bwa",
            "desc": "Map with BWA. Mapping low-divergent sequences against a large reference genome, such as the human genome and is designed for Illumina sequence reads up to 100bp.",
            "returns": "string",
-           "example":"data = bwa.Align(ref, data, index='') #single-read",
+           "example":"data = bwa.Align(ref, data, data2='', index='') #single-read. Give valid data2 value for pair-read.",
            "example2":"data = bwa.Align(ref, data, data2='', index='', output='') #pair-read",
 			"params": [
 				{

@@ -176,7 +176,7 @@ def functions():
                 
                 org = request.form.get('org')
                 pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
-                pkgpath = os.path.join(pkgpath, filename)
+                pkgpath = os.path.join(pkgpath, os.path.basename(filename))
                 pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
                 
                 if request.form.get('script'):

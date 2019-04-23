@@ -128,7 +128,7 @@ class Library():
             with open(library_def_file, 'r') as json_data:
                 d = json.load(json_data)
                 libraries = d["functions"]
-                libraries = sorted(libraries, key = lambda k : k['package'].lower() if k['package'] else '')
+                libraries = sorted(libraries, key = lambda k : k['package'].lower() if 'package' in k and k['package'] else '')
                 for f in libraries:
                     name = f["name"] if f.get("name") else f["internal"]
                     internal = f["internal"] if f.get("internal") else f["name"]
@@ -151,6 +151,8 @@ class Library():
                         funcs[name.lower()].extend([func])
                     else:
                         funcs[name.lower()] = [func]
+        except Exception as e:
+            s = str(e)
         finally:
             return funcs
     
@@ -220,71 +222,70 @@ class Library():
             task = Task.create_task(context.runnable, func[0].name)
             task.start()
         
-            if not package or package == "None":
-                if function.lower() == "print":
-                    result = context.write(*arguments)
-                elif function.lower() == "range":
-                    result = range(*arguments)
-                elif function.lower() == "read":
-                    if not arguments:
-                        raise ValueError("Read must have one argument.")
-                    
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    result = fs.read(arguments[0])
-                elif function.lower() == "write":
-                    if len(arguments) < 2:
-                        raise ValueError("Write must have two arguments.")
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.write(arguments[0], arguments[1])
-                elif function.lower() == "getfiles":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.get_files(arguments[0])
-                elif function.lower() == "getfolders":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.get_folders(arguments[0])
-                elif function.lower() == "createfolder":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.makedirs(arguments[0])
-                elif function.lower() == "remove":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.remove(arguments[0])
-                elif function.lower() == "makedirs":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.makedirs(arguments[0])
-                elif function.lower() == "getcwd":
-                    return getcwd()
-                elif function.lower() == "isfile":
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.isfile(arguments[0])
-                elif function.lower() == "dirname":
-                    return os.path.dirname(arguments[0])
-                elif function.lower() == "basename":
-                    return os.path.basename(arguments[0])
-                elif function.lower() == "getdatatype":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    extension = pathlib.Path(arguments[0]).suffix
-                    return extension[1:] if extension else extension
-                elif function.lower() == "len":
-                    return len(arguments[0])
-                elif function.lower() == "exec":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
-                    return func_exec_run(arguments[0], *arguments[1:])            
-                elif function.lower() == "copyfile":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[1], AccessRights.Write)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.copy(arguments[0], arguments[1])                        
-                elif function.lower() == "deletefile":
-                    DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
-                    fs = Utility.fs_by_prefix_or_default(arguments[0])
-                    return fs.remove(arguments[0])
+            if function.lower() == "print":
+                result = context.write(*arguments)
+            elif function.lower() == "range":
+                result = range(*arguments)
+            elif function.lower() == "read":
+                if not arguments:
+                    raise ValueError("Read must have one argument.")
+                
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.read(arguments[0])
+            elif function.lower() == "write":
+                if len(arguments) < 2:
+                    raise ValueError("Write must have two arguments.")
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.write(arguments[0], arguments[1])
+            elif function.lower() == "getfiles":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.get_files(arguments[0])
+            elif function.lower() == "getfolders":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.get_folders(arguments[0])
+            elif function.lower() == "createfolder":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.makedirs(arguments[0])
+            elif function.lower() == "remove":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.remove(arguments[0])
+            elif function.lower() == "makedirs":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.makedirs(arguments[0])
+            elif function.lower() == "getcwd":
+                result = getcwd()
+            elif function.lower() == "isfile":
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.isfile(arguments[0])
+            elif function.lower() == "dirname":
+                result = os.path.dirname(arguments[0])
+            elif function.lower() == "basename":
+                result = os.path.basename(arguments[0])
+            elif function.lower() == "getdatatype":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                extension = pathlib.Path(arguments[0]).suffix
+                result = extension[1:] if extension else extension
+            elif function.lower() == "len":
+                result = len(arguments[0])
+            elif function.lower() == "exec":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
+                result = func_exec_run(arguments[0], *arguments[1:])            
+            elif function.lower() == "copyfile":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[1], AccessRights.Write)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.copy(arguments[0], arguments[1])                        
+            elif function.lower() == "deletefile":
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                fs = Utility.fs_by_prefix_or_default(arguments[0])
+                result = fs.remove(arguments[0])
             #    return func_exec(arguments[0], *arguments[1:])
 #             else:
 #                 raise ValueError("{0} function not implemented".format(function))
@@ -305,8 +306,9 @@ class Library():
                 function = getattr(module_obj, func[0].internal)
                 
                 result = function(context, *arguments, **kwargs)
-                datatype = Library.GetDataTypeFromFunc(func[0].returns)
-                task.succeeded(datatype, result)
+                
+            datatype = Library.GetDataTypeFromFunc(func[0].returns)
+            task.succeeded(datatype, result)
             return result
         except Exception as e:
             if task:

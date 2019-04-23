@@ -2,7 +2,7 @@ import threading
 
 from .func_resolver import Library
 from ...util import Utility
-from flask_login import current_user
+from ...models import User
 
 class SymbolTable():
     '''
@@ -187,7 +187,7 @@ class Context:
         '''
         if not typename in self.tempdirs:
             fs = Utility.fs_by_typename(typename)
-            self.tempdirs[typename] = fs.make_unique_dir(current_user.username)
+            self.tempdirs[typename] = fs.make_unique_dir(User.query.get(self.user_id).username)
         return self.tempdirs[typename]
         
     def reload(self):

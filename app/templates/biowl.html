@@ -260,7 +260,7 @@ text {
 					style="max-height: 200px; width: 100%; overflow-y: scroll;"
 					data-bind="foreach: items">
 					<div class="row menu_button"
-						data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+						data-bind="qTipDs:name, event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 						style="width: 100%">
 						<div style="vertical-align: middle;">
 							<input type="checkbox" style="margin-left: 10px;"
@@ -1169,7 +1169,11 @@ function typeInTextarea(el, newText) {
 					title: viewModel.name(),
 					text: "<p>" + viewModel.desc() + "</p><p>" + viewModel.example() + "</p><p>Double click to insert into code editor.</p>"
 				},
+				show: {
+					delay: 500
+				},
 	            hide: {
+					delay: 0,
           			fixed: true
      			},
 	            position: {
@@ -1197,7 +1201,11 @@ function typeInTextarea(el, newText) {
 					title: viewModel.name(),
 					text: "<p>" + viewModel.desc() + "</p><p>Double click to insert into code editor.</p>"
 				},
+				show: {
+					delay: 500
+				},
 	            hide: {
+					delay: 0,
           			fixed: true
      			},
 	            position: {
@@ -1210,6 +1218,32 @@ function typeInTextarea(el, newText) {
 	    }
 	};
 
+	ko.bindingHandlers.qTipDs = {
+	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	        $(element).qtip({
+				style: {
+                	classes: 'qtip-bootstrap'
+            	},
+	            content: {
+					title: viewModel.name(),
+					text: "<p>" + viewModel.status() + "</p><p>Double click to show in report.</p><p>Check to pin job to report.</p>"
+				},
+				show: {
+					delay: 500
+				},
+	            hide: {
+					delay: 0,
+          			fixed: true
+     			},
+	            position: {
+	                my: 'left top',
+	                at: 'bottom left'
+	            }
+	        });
+	    },
+	    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+	    }
+	};
     ko.bindingHandlers.treeview = {
        init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
            $(element).treeview({data: ko.toJS(valueAccessor())})

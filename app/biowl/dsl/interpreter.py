@@ -310,7 +310,7 @@ class Interpreter(object):
                 for index, param in enumerate(params, start = 0):
                     if index >= len(arguments):
                         break
-                    self.context.add_or_update_var(k, v)
+                    self.context.add_or_update_var(param, arguments[index])
              
             if not local_symtab.var_exists('server'):
                 local_symtab.add_var('server', None)
@@ -397,6 +397,8 @@ class Interpreter(object):
             return self.eval(expr[2:])
         elif expr[0] == "NAMEDARG":
             return self.donamedarg(expr[1])
+        elif expr[0] == "RETURN":
+            return self.eval(expr[1])
         elif expr[0] == "TASK":
             return self.dotaskdefstmt(expr[1:])
         else:

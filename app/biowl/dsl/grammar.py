@@ -119,7 +119,7 @@ class BasicGrammar():
         # Definitions of rules for statements
         self.stmt = Forward()
         self.stmtlist = Forward()
-        self.retstmt = (Keyword("return") + self.expr("exp"))
+        self.retstmt = (Suppress(Keyword("return")) + self.expr("exp")).setParseAction(lambda t: ["RETURN"] + t.asList())
 #       
         self.listdecl << (Suppress("[") + Optional(delimitedList(Group(self.expr))) + Suppress("]")).setParseAction(lambda t: ["LISTEXPR"] + t.asList())
         self.dictdecl << (Suppress("{") + Optional(delimitedList(Group(self.expr + Suppress(Literal(":")) + Group(self.dictdecl | self.expr)))) + Suppress("}")).setParseAction(lambda t: ["DICTEXPR"] + t.asList())

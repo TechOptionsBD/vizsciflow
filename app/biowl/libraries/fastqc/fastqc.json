@@ -9,6 +9,7 @@
 			"internal": "run_fastqc",
 			"runmode": "local",
 			"desc": "Measure the quality of a fastq file using fastqc tool.",
+			"href": "services.html#fastqc-CheckQuality",
 			"returns": "string",
 			"example": "fq_html = fastqc.CheckQuality(data)",
 			"example2": "fq_html = fastqc.CheckQuality(data, outdir='')",

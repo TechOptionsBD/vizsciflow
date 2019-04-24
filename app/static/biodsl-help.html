@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>Bio-DSL Manual</title>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</head>
+<body>
+<h1>Bio-DSL</h1>
+
+Bio-DSL is a domain-specific language for Bioinformatics domain. It has a simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting. Biologists can write a workflow script using the visual elements offered in Bio-DSL web interface.  
+
+<h3><a name="keywords">Keywords:</a></h3>
+The keywords of Bio-DSL are listed below:
+
+<<table>
+  <tr>
+    <th>Construct</th>
+    <th>Keywords</th>
+    <th>Example</th>
+  </tr>
+  <tr>
+    <td>Conditional</td>
+    <td><font color="green">if</font></td>
+    <td><font color="green">if</font> condition:
+    </td>
+  </tr>
+  <tr>
+	  <td>Iteration</td>
+	  <td><font color="green">for ... in </font></td>
+	  <td><font color="green">for</font>v <font color="green">in</font> []:
+      </td>
+  </tr>
+  <tr>
+  	<td>Parallelization</td>
+  	<td><font color="green">parallel ... with</font></td>
+  	<td><font color="green">parallel</font>:<br>
+  	<font color="green">with</font>:<br>
+  	<font color="green">with</font>:
+  </tr>
+  <tr>
+  	<td>Subworkflow</td>
+  	<td><font color="green">task</font></td>
+  	<td><font color="green">task</font>[name]([param1[, param2 ...]]):<br>
+  	<span>An anonymous task without name is called at once. Named tasks are called from somewhere else.</span>
+  </tr>
+</table>
+
+
+<h3><a name="syntax">Syntax:</a></h3>
+Bio-DSL uses simple pythonic syntax and indenting. Advanced syntaxes like lambda, class, iterators, generators, annotation are not allowed. Here is a complete example of a Bio-DSL script:
+
+task AlignSequences(ref, data, data2):
+	CheckQuality(fseq)
+	CheckQuality(rseq)
+	
+	data = Merge(data, data2)
+	data = Align(ref, data)
+	if GetDataType(data) == 'sam':
+		data = SamToBam(data)
+	return data
+	
+parallel:
+	data1 = AlignSequence('/public/.', '', '')
+with:
+	data2 = AlignSequence('/public/.', '', '')
+with:
+	data3 = AlignSequence('/public/.', '', '')	
+
+<h3>The Bio-DSL <a name="webui">web interface</a></h3>
+The domain experts can use Bio-DSL web interface to quickly create a workflow. The IDE looks as below:
+<img alt>
+
+A typical set of events are:
+<o>
+	<il>Search the desired service from the Services panel to the right.</il>
+	<il>Double click the service to insert into the code editor.</il>
+	<il>Alternatively, you can also start typing the service name on code editor and press Ctrl+Space for code completion.</il>
+	<il>Search the data item from the DataSources panel to the left.</il>
+	<il>Replace the data argument on the code editor by double clicking the desired data source on this panel.</il>
+	<il>Run the workflow from command panel.</il>
+	<il>An item is added to the left-bottom panel for the execution job. Check it for automatic status update of each step or double click for instant load.</il>
+</o>
+
+<h3><a name="datasources">Data Sources Panel</a></h3>
+<p>
+This is the left-top panel of the user interface. It lists all the data items available from different file systems (posix, galaxy, hdfs). The public folder of each file system is available to all users for read access. Another folder named as username is available for read-write accesses. The generated files during workflow execution are usually found in this folder.
+</p>
+<p>To insert a data item into the code editor, first remove the argument name from the service call and then double click the data item.</p>
+
+<h4>Data Source Toolbar</h4>
+There is a small toolbar on top of data source panel.
+<ul>
+	<li>Add: Adds a folder at the selected item.</li>
+	<li>Remove: Removes the selected item.</li>
+	<li>Rename: Renames the selected item.</li>
+	<li>Upload: Uploads an item from the client machine to the selected folder.</li>
+	<li>Download: Downloads the selected file.</li>
+	<li>Reload: Reloads the tree from the file system.</li>
+	<li>About: Opens the help page.</li>
+</ul>
+
+<p>Sometimes, you may need to insert the selected data item in the arguments box. Right click on the selected item and press "Copy to args" item.</p>
+
+<h3><a name="services">Services Panel</a></h3>
+The services/tools for the workflows are listed on the right-top corner of the UI. There are 3 different access modes for the service.
+<ol>
+	<li>Public: Accessible by all users.</li>
+	<li>Shared: Accessible only by those users who are given accesses.</li>
+	<li>Private: Accessible only by this logged on user.</li>
+</ol>
+<p>There are two operation modes of the services shown by a dropdown list. If basic is selected, some advanced operations for experienced users are hidden from the service list.</p>
+
+<h4><a name="addservice">Add New Service</a></h4>
+<p>Experienced users can extend the capabilities of the system by adding new services to it. They can write a new python module or call external program using python code.</p>
+In the service pane, the "+" button opens the dialog for Service Mapping. There is a coding tab to write the service code and a JSON tab to map the python code with DSL vocabulary. Here is a lean and thin service code:
+
+<pre><code class="python">
+def run_myservice(context, *args, *kwargs):
+	return args[0] + args[1]
+</code>
+</pre>
+
+Here is a typical json mapper of the above service. Only one of name or internal is mandatory.
+<pre><code class="json">
+{
+	"functions": [
+		{
+			"org": "srlab",
+			"package": "mylib",
+			"module": "app.biowl.libraries.users.mainul.mylib",
+			"group": "Arithmetic",
+			"name": "MyService",
+			"internal": "run_myservice",
+			"desc": "Adds two numbers and returns the sum.",
+			"returns": "number",
+			"example": "data = mylib.MyService(x, y)",
+			"params": [
+				{
+					"name": "x",
+					"type": "number",
+				},
+				{
+					"name": "y",
+					"type": "number"
+				}
+			]
+		}
+	]
+}
+</code>
+</pre>
+
+The new service is by default private. If can be shared to specific users or to all.
+
+<h3><a name="workflows">Workflows Panel</a></h3>
+<p>The right-bottom panel lists the saved workflows of the system. Workflows can be public, private or shared. New workflows can be saved by clicking the "+" button.</p>
+
+<h3><a name="jobs">Job Histories Panel</a></h3>
+<p>The left-bottom panel lists all the workflow instances run by this user. You can stop currently running workflows. </p>
+<p>Double click an item to display the status information of workflow execution.</p>
+<p>If you check a single running job, the incremental execution status of each step is shown on the report viewer.</p>
+
+</body>

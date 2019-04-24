@@ -183,6 +183,11 @@ text {
 								<i class="glyphicon glyphicon-unchecked"></i>
 							</button> -->
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="About"
+								data-bind="click: about">
+								<i class="glyphicon glyphicon-info-sign"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Reload"
 								data-bind="click: load.bind($data, true)">
 								<i class="glyphicon glyphicon-refresh"></i>
@@ -229,6 +234,11 @@ text {
 					</div>
 					<div class="btn-group">
 						<div class="btn-group-sm">
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="About"
+								data-bind="click: about">
+								<i class="glyphicon glyphicon-info-sign"></i>
+							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Restart Execution"
 								data-bind="click: restart">
@@ -365,7 +375,12 @@ text {
 				<div class="panel-heading">
 					<div class="row">
 						<div class="col-sm-6">
-							<h5 class="">Services</h5>
+							<h5 class="pull-left">Services</h5>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="About"
+								data-bind="click: about">
+								<i class="glyphicon glyphicon-info-sign"></i>
+							</button>
 						</div>
 					</div>
 					<div class="row">
@@ -446,15 +461,17 @@ text {
 				<div class="panel-heading">
 					<div class="row">
 						<div class="col-sm-6">
-							<h5 class="">Workflows</h5>
+							<h5 class="pull-left">Workflows</h5>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About"	data-bind="click: about">
+								<i class="glyphicon glyphicon-info-sign"></i>
+							</button>
 						</div>
 					</div>
 					<div class="row">
-						<label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked>Public
-						</label> <label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click">Shared
-						</label> <label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click">Private
-						</label>
-
+						<label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked>Public</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click">Shared</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click">Private</label>
+						
 						<div class="input-group" style="margin-top: 10px">
 							<span class="input-group-btn">
 								<button style="margin-right: 10px;" class="btn btn-primary"
@@ -1053,6 +1070,11 @@ text {
           });
        }
       
+	  self.about = function() {
+
+		  window.open("static/biodsl-help.html#datasources", '_blank');
+      }
+      
       self.download = $.debounce(500, function() {
     	  
     	  node = self.selectedNode();
@@ -1159,6 +1181,14 @@ function typeInTextarea(el, newText) {
     lastSelectTime = new Date().getTime();
    }
     
+   function serviceHelpRef(href) {
+	   if (href) {
+		   return "<a href='static/" + href + "' target='_blank'>" + "More...</a>";
+	   }
+	   else {
+		   return "";
+	   }
+   }
 	ko.bindingHandlers.qTip = {
 	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 	        $(element).qtip({
@@ -1167,7 +1197,7 @@ function typeInTextarea(el, newText) {
             	},
 	            content: {
 					title: viewModel.name(),
-					text: "<p>" + viewModel.desc() + "</p><p>" + viewModel.example() + "</p><p>Double click to insert into code editor.</p>"
+					text: "<p>" + viewModel.desc() + "  " + serviceHelpRef(viewModel.href()) + "</p><p>" + viewModel.example() +  "</p><p>Double click to insert into code editor.</p>"
 				},
 				show: {
 					delay: 500
@@ -1518,8 +1548,9 @@ function typeInTextarea(el, newText) {
              self.tasks()[i].example(newTask.example);
              self.tasks()[i].example2(newTask.example2);
              self.tasks()[i].desc(newTask.desc);
-             self.tasks()[i].desc(newTask.runmode);
-             self.tasks()[i].desc(newTask.group);
+             self.tasks()[i].runmode(newTask.runmode);
+             self.tasks()[i].group(newTask.group);
+             self.tasks()[i].href(newTask.href);
          }
          
          self.beginAddLibrary = function() {
@@ -1533,6 +1564,10 @@ function typeInTextarea(el, newText) {
 	         	centerDialog($('#add'));
     	         $('#add').modal('show');
  	    	})
+         }
+         
+         self.about = function() {
+        	 window.open("static/biodsl-help.html#services", '_blank');
          }
          
          self.updateWorkflow = function() {
@@ -1693,7 +1728,8 @@ function typeInTextarea(el, newText) {
                        example2: ko.observable(f.example2),
                        desc: ko.observable(f.desc),
                        //runmode: ko.observable(f.runmode),
-                       group: ko.observable(f.group)
+                       group: ko.observable(f.group),
+                       href: ko.observable(f.href)
                    });
          	  });
              }).fail(function(jqXHR) {
@@ -1724,6 +1760,11 @@ function typeInTextarea(el, newText) {
 		       });
   			},this);
 			
+			  self.about = function() {
+		    	  
+				  window.open("static/biodsl-help.html#workflows", '_blank');
+		      }
+
            self.remove = function() {
         	   
         	   var item = self.firstSelectedItem();
@@ -2022,6 +2063,11 @@ return mapperEditor;
                 });
             }
             
+			self.about = function() {
+
+				  window.open("static/biodsl-help.html#jobs", '_blank');
+		      }
+			
             self.copyToEditor = function(item) {
             	self.loadHistory(item.id(), true);
             }

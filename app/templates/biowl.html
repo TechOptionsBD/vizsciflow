@@ -291,9 +291,12 @@ text {
 						<span class="text-light" style="margin: 4px">Write workflow
 							DSL. Double click services/workflows/data to insert into editor.</span><br>
 						<ul class="list-inline panel-actions">
-							<li><a href="#" id="panel-fullscreen" role="button"
-								title="Toggle fullscreen"><i
-									class="glyphicon glyphicon-resize-full"></i></a></li>
+							<li>
+								<a href="#" id="panel-about" role="button" title="About Bio-DSL Syntax"><i class="glyphicon glyphicon-info-sign"></i></a>
+							</li>
+							<li>
+								<a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a>
+							</li>
 						</ul>
 					</div>
 					<div class="panel-body" style="">
@@ -847,6 +850,11 @@ text {
                 }
                 $(this).closest('.panel').toggleClass('panel-fullscreen');
                 editor.resize();
+            });
+          
+            $("#panel-about").click(function (e) {
+                e.preventDefault();
+   				window.open("static/biodsl-help.html#syntax", '_blank');
             });
         });
         
@@ -2064,9 +2072,8 @@ return mapperEditor;
             }
             
 			self.about = function() {
-
-				  window.open("static/biodsl-help.html#jobs", '_blank');
-		      }
+				window.open("static/biodsl-help.html#jobs", '_blank');
+		    }
 			
             self.copyToEditor = function(item) {
             	self.loadHistory(item.id(), true);

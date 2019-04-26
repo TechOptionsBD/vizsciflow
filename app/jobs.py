@@ -154,7 +154,8 @@ def run_script(self, library, workflow_id, script, args):
             parser = BioDSLParser(PythonGrammar())   
             if args:
                 args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
-                machine.args_to_symtab(args_tokens) 
+                if args_tokens:
+                    machine.args_to_symtab(args_tokens) 
             prog = parser.parse(runnable.script)
             machine.run(prog)
                             

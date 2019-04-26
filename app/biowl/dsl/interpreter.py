@@ -93,7 +93,7 @@ class Interpreter(object):
         self.run_multstmt(lambda: self.eval(expr))
     
     def run_multstmt(self, f):
-        local_symtab = self.context.append_local_symtab()
+        self.context.append_local_symtab()
         try:
             f()
         finally:
@@ -266,15 +266,17 @@ class Interpreter(object):
     # if task has no name, it will be called at once.
     # if task has a name, it will be called like a function call afterwards
     #===========================================================================
-    def get_params(self, expr):
+    def eval_params(self, expr):
         params = []
         for e in expr:
-            param = self.eval(e)
-#             if not isinstance(param, tuple):
-#                 param = param, None
-            params.append(param)
+            if e[0] is "NAMEDARG":
+                param = self.donamedarg(e[1])
+                self.context.add_var(param[0], param[1])
+            else:
+                params.extend([ex for ex in e])
+                
         return params
-            
+                        
     def dotaskdefstmt(self, expr):
         if not expr[0]:
             #v = self.get_args(expr[1])
@@ -292,16 +294,12 @@ class Interpreter(object):
                 self.context.add_var(param[0], param[1])
                 
     def dotaskstmt(self, expr, args):
-
-        params, kwparams = Library.split_args(self.get_params(expr[0]))
         
-        symtab_added, dci_added = False, False
+        local_symtab = self.context.append_local_symtab()
+        params = self.eval_params(expr[0])
+        
+        dci_added = False
         try:
-            local_symtab = self.context.append_local_symtab()
-            symtab_added = True
-            for k,v in kwparams.items():
-                self.context.add_or_update_var(k, v)
-            
             if args:
                 arguments, kwargs = Library.split_args(args)
                 for k, v in kwargs.items():
@@ -334,8 +332,7 @@ class Interpreter(object):
         finally:
             if dci_added:
                 self.context.pop_dci()
-            if symtab_added:
-                self.context.pop_local_symtab()
+            self.context.pop_local_symtab()
                     
     
     def donamedarg(self, expr):
@@ -405,7 +402,8 @@ class Interpreter(object):
             val = []
             for subexpr in expr:
                 val.append(self.eval(subexpr))
-            return val
+            if val:
+                return val[-1]
 
     # Run it
     def run(self, prog):

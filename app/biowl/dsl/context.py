@@ -253,7 +253,9 @@ class Context:
         '''
         if threading.get_ident() in self.symtab_stack:
             if self.symtab_stack[threading.get_ident()]:
-                self.symtab_stack[threading.get_ident()].pop() 
+                self.symtab_stack[threading.get_ident()].pop()
+                if not self.symtab_stack[threading.get_ident()]: # no symbol table, remove the entry
+                    del self.symtab_stack[threading.get_ident()]
         
     def load_library(self, library_def_dir_or_file):
         self.library = Library.load(library_def_dir_or_file)

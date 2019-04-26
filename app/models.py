@@ -640,7 +640,7 @@ class DataType:
     Custom = 0x100
     Root = 0x200
     FileList = 0x400
-
+    FolderList = 0x800
     
 class DataSourceAllocation(db.Model):
     __tablename__ = 'datasource_allocations'  

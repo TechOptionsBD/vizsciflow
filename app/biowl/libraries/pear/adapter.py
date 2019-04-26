@@ -8,6 +8,13 @@ pear = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'pear'))
 
 def prepare_args(fs, data1, data2, output, *args):
     cmdargs = []
+    
+    if fs.exists(output):
+        separator_index = output.index('.')
+        stem = output[:separator_index]
+        extensions = output[separator_index + 1:]
+        output = fs.unique_filename(os.path.dirname(output), os.path.basename(stem), extensions)
+        
     cmdargs.append("-o {0}".format(output))
     
 #     for arg in args[3:]:

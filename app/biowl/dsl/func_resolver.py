@@ -197,16 +197,31 @@ class Library():
         return args, kwargs
     
     @staticmethod
-    def GetDataTypeFromFunc(returns):
-        if returns:
-            returnsLower = returns.lower()
-            if returnsLower == 'File':
-                return DataType.File
-            elif returnsLower == 'Folder':
-                return DataType.Folder
-            elif returnsLower == 'File[]':
-                return DataType.FileList
-        return DataType.Custom
+    def GetDataTypeFromFunc(returns, result = None):
+        if not returns:
+            return DataType.Custom
+        
+        datatype = DataType.Unknown
+        returnsLower = returns.lower().split('|')
+        if 'file' in returnsLower:
+            fs = Utility.fs_by_prefix_or_default(result)
+            if fs.isfile(result):
+                datatype = datatype | DataType.File
+        elif 'folder' in returnsLower:
+            fs = Utility.fs_by_prefix_or_default(result)
+            if fs.isdir(result):
+                datatype = datatype | DataType.Folder
+        elif 'file[]' in returnsLower:
+            fs = Utility.fs_by_prefix_or_default(result)
+            if type(result) == 'list':
+                datatype = datatype | DataType.FileList
+        elif 'folder[]' in returnsLower:
+            fs = Utility.fs_by_prefix_or_default(result)
+            if type(result) == 'list':
+                datatype = datatype | DataType.FolderList
+        else:
+            datatype = DataType.Custom
+        return datatype
 
     def call_func(self, context, package, function, args):
         '''
@@ -288,29 +303,14 @@ class Library():
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.remove(arguments[0])
-            #    return func_exec(arguments[0], *arguments[1:])
-#             else:
-#                 raise ValueError("{0} function not implemented".format(function))
-    #             possibles = globals().copy()
-    #             possibles.update(locals())
-    #             function = possibles.get(function)
-    #             return function(*arguments)
-        
-#             if not 'history_id' in kwargs and context.var_exists('history_id'):
-# #                     create_history_function = getattr(module_obj, "create_history") # history not running, create one
-# #                     history_id = create_history_function(context.get_activedci())
-# #                     context.add_var('history_id', history_id)
-#                 fullargspec = inspect.getfullargspec(function)
-#                 if fullargspec.varkw:
-#                     kwargs['history_id'] = context.get_var('history_id')
             else:
                 module_obj = load_module(func[0].module)
                 function = getattr(module_obj, func[0].internal)
                 
                 result = function(context, *arguments, **kwargs)
                 
-            datatype = Library.GetDataTypeFromFunc(func[0].returns)
-            task.succeeded(datatype, result)
+            datatype = Library.GetDataTypeFromFunc(func[0].returns, result)
+            task.succeeded(datatype, str(result) if result else '')
             return result
         except Exception as e:
             if task:

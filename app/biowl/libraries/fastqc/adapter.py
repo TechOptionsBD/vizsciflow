@@ -7,17 +7,18 @@ from ...argshelper import get_posix_data_args, get_posix_output_folder_args
 
 fastqc = path.join(path.abspath(path.dirname(__file__)), path.join('lib', 'fastqc'))
 
-def prepare_args(fs, data, outdir, paramindex, *args):
+def prepare_args(fs, data, outdir, paramindex, *args):   
+    outname = Path(data).stem + "_fastqc.html"
+    outpath = fs.join(outdir, outname)
+    if fs.exists(outpath):
+        outdir = fs.make_unique_dir(outdir) # create a subdirectory
+        outpath = fs.join(outdir, outname)
+    
     cmdargs = [data, "--outdir=" + outdir]
                            
     for arg in args[paramindex:]:
         cmdargs.append(arg)
-    
-    outpath = Path(data).stem + "_fastqc.html"
-    outpath = os.path.join(outdir, os.path.basename(outpath))
-    if fs.exists(outpath):
-        outpath = fs.unique_filename(outdir, Path(outpath).stem, Path(outpath).suffix)
-        
+
     return cmdargs, outpath
             
 def run_fastqc(context, *args, **kwargs):

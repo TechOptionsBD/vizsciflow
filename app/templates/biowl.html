@@ -1428,7 +1428,7 @@ function typeInTextarea(el, newText) {
 	                'href': 'javascript:void(0)',
 	                'text': val
 	            }).on('click', function() {
-					if (parseInt(value['datatype']) === 2 || parseInt(value['datatype']) === 1024) {
+					if ((parseInt(value['datatype']) & 0x02) != 0 || (parseInt(value['datatype']) & 0x400) != 0) {
 		           		$.redirect('/datasources', { 'download': val }, "POST", "_blank");
 					}
 					else {
@@ -1572,7 +1572,7 @@ function typeInTextarea(el, newText) {
          
          self.updateWorkflow = function() {
              var script = $.trim(editor.getSession().getValue());
-             if ((!script && !workflowId) || editor.session.getUndoManager().isClean())
+             if (!script && !workflowId) // || editor.session.getUndoManager().isClean())
            	 	return; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
            	
            	var formdata = new FormData();

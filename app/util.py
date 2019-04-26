@@ -53,17 +53,18 @@ class Utility:
     
     @staticmethod
     def ds_by_prefix(path):
-        if path:
-            #path = os.path.normpath(path)
-            datasources = DataSource.query.all()
-            for ds in datasources:
-                if ds.prefix:
-                    if path.startswith(ds.prefix):
-                        return ds
-                    
-                if ds.url:
-                    if path.startswith(ds.url):
-                        return ds
+        if not path:
+            return None
+        #path = os.path.normpath(path)
+        datasources = DataSource.query.all()
+        for ds in datasources:
+            if ds.prefix:
+                if path.startswith(ds.prefix):
+                    return ds
+                
+            if ds.url:
+                if path.startswith(ds.url):
+                    return ds
     
     @staticmethod
     def fs_type_by_prefix_or_default(path):
@@ -81,6 +82,12 @@ class Utility:
         if ds:
             return Utility.create_fs(ds)
     
+    @staticmethod
+    def fs_by_prefix_or_none(path):
+        ds = Utility.ds_by_prefix(path)
+        if ds:
+            return Utility.create_fs(ds)
+        
     @staticmethod
     def fs_by_prefix_or_default(path):
         ds = Utility.ds_by_prefix(path)

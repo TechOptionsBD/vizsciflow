@@ -189,10 +189,10 @@ def functions():
                     libraries = data["functions"]
                     for f in libraries:
                         if 'internal' in f and f['internal']:
-                            if 'name' not in f:
+                            if not 'name' in f:
                                 f['name'] = f['internal']
                         elif 'name' in f and f['name']:
-                            if 'internal' not in f:
+                            if not 'internal' in f:
                                 f['internal'] = f['name']
                         if not f['internal'] and not f['name']:
                             continue

@@ -96,7 +96,7 @@ def get_posix_output_args(paramindex, keyname, fs, data, context, ext, *args, **
     if keyname in kwargs.keys():
         output = kwargs[keyname]
     else:
-        if len(args) > paramindex:
+        if paramindex >= 0 and len(args) > paramindex:
             output = args[paramindex]
             paramindex +=1
     

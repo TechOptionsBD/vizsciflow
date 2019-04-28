@@ -303,12 +303,12 @@ class Interpreter(object):
             if args:
                 arguments, kwargs = Library.split_args(args)
                 for k, v in kwargs.items():
-                    self.context.add_or_update_var(k, v)
+                    local_symtab.add_var(k, v)
                 
                 for index, param in enumerate(params, start = 0):
                     if index >= len(arguments):
                         break
-                    self.context.add_or_update_var(param, arguments[index])
+                    local_symtab.add_var(param, arguments[index])
              
             if not local_symtab.var_exists('server'):
                 local_symtab.add_var('server', None)

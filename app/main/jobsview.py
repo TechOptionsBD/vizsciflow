@@ -217,7 +217,7 @@ def functions():
             mime = mimetypes.guess_type(fullpath)[0]
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
     elif 'codecompletion' in request.args:
-        keywords = [{"package_name": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package_name": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package_name": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"}]
+        keywords = [{"package_name": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package_name": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package_name": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package_name": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
         funcs = []
         codecompletion = request.args.get('codecompletion')
         for func in library.funcs:

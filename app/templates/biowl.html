@@ -2039,7 +2039,8 @@ return mapperEditor;
             var self = this;
             self.runnablesURI = '/runnables';
             self.items = ko.observableArray();
-        
+        	self.historyLoading = false;
+        	
 			self.loadHistory = function(id, switchTab = false) {
             	
 				ajaxcalls.simple(self.runnablesURI, 'GET', { 'id':  id}).done(function(data) {
@@ -2138,6 +2139,10 @@ return mapperEditor;
             }
             
             self.load = function() {
+            	if (self.historyLoading)
+            		return;
+            	
+            	self.historyLoading = true;
                 ajaxcalls.simple(self.runnablesURI, 'GET').done(function(data) {
                 	if (data == undefined)
                 		return;
@@ -2155,6 +2160,8 @@ return mapperEditor;
                     });
                 }).fail(function(jqXHR) {
                     showXHRText(jqXHR);
+                }).always(function(x, textStatus, jqXHR){
+                	self.historyLoading = false;
                 });
             }
         }

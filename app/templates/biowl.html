@@ -1826,7 +1826,7 @@ function typeInTextarea(el, newText) {
            self.samplesURI = '/samples';
            self.items = ko.observableArray();
            self.sampleViewModel = sampleViewModel;
-           self.access = ko.observable("2");
+           self.access = ko.observable("0");
            self.workflowFilter = ko.observable("");
 			this.filteredWorkflows = ko.computed(function(){
 		       return this.items().filter(function(item){
@@ -1971,7 +1971,7 @@ return mapperEditor;
             
             self.name = ko.observable();
             self.desc = ko.observable();
-            self.access = ko.observable("0");
+            self.access = ko.observable("2");
             self.users = ko.observable();
 
 			self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", 300);

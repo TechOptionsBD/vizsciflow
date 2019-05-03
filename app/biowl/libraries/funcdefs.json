@@ -189,7 +189,7 @@
                "type":"string"
             }            
             ],           
-           "example": "basename('/public/test.txt')"
+           "example": "dirname('/public/test.txt')"
        },
        {
            "org": "SRLAB",

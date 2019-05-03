@@ -572,7 +572,7 @@ text {
         <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
     </div>
 </div>
-<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 560px; height: 720px; background: #fff">
+<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 480px; height: 620px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3 id="addSampleDialogLabel">Add Workflow</h3>
@@ -1203,10 +1203,36 @@ function typeInTextarea(el, newText) {
 				style: {
                 	classes: 'qtip-bootstrap'
             	},
-	            content: {
-					title: viewModel.name(),
-					text: "<p>" + viewModel.desc() + "  " + serviceHelpRef(viewModel.href()) + "</p><p>" + viewModel.example() +  "</p><p>Double click to insert into code editor.</p>"
-				},
+// 	            content: {
+// 					title: viewModel.name(),
+// 					text: "<p>" + viewModel.desc() + "  " + serviceHelpRef(viewModel.href()) + "</p><p>" + viewModel.example() +  "</p><p>Double click to insert into code editor.</p>"
+// 				},
+				content: {
+	                text: function(event, api) {
+	                    $.ajax({
+	                        url: "/functions?tooltip&name=" + viewModel.name() + "&package=" + viewModel.package_name()
+	                    })
+	                    .then(function(content) {
+	                        // Set the tooltip content upon successful retrieval
+	                        if (!content) {
+	                        	content = "";
+	                        }
+	                        else {
+		                        content = JSON.parse(content);
+		                        content = "<p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
+		                        +"<p>Example: " + content.example + (content.example2.length ? "<br>Example2: " + content.example2 : '') + (content.returns.length ? "<br>Returns: " + content.returns : '') + "</p>"
+		                        +"<p>Desc: " + content.desc + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : "") + "</p>"
+		                        + "<p>Double click to insert into code editor</p>";
+	                        }
+	                        api.set('content.text', content);
+	                    }, function(xhr, status, error) {
+	                        // Upon failure... set the tooltip content to error
+	                        api.set('content.text', status + ': ' + error);
+	                    });
+	        
+	                    return 'Loading...'; // Set some initial text
+	                }
+	            },
 				show: {
 					delay: 500
 				},

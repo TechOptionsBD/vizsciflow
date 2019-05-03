@@ -42,7 +42,7 @@ class LibraryHelper():
         for f in funclist:
             example = f.example if f.example else f.example2 if f.example2 else ""
             example2 = f.example2 if f.example2 else example
-            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": example2, "desc": f.desc if f.desc else "", "runmode": f.runmode if f.runmode else "", "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0", "returns": f.returns if f.returns else "", "href": f.href if f.href else ""}) 
+            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": example2, "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"}) 
 
 library = LibraryHelper()
 
@@ -221,6 +221,12 @@ def functions():
             fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
             mime = mimetypes.guess_type(fullpath)[0]
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
+    elif 'tooltip' in request.args:
+        if library.library.check_function(request.args.get('name'), request.args.get('package')):
+            func = library.library.get_function(request.args.get('name'), request.args.get('package'))
+            if func:
+                return json.dumps(func[0].to_json())
+        return json.dumps("")
     elif 'codecompletion' in request.args:
         keywords = [{"package_name": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package_name": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package_name": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package_name": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
         funcs = []

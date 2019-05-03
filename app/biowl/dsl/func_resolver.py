@@ -62,6 +62,24 @@ class Function():
         self.example2 = example2
         self.returns = returns
         self.href = href
+    
+    def to_json(self):
+        access = "public"
+        if self.access == 1:
+            access = "shared"
+        elif self.access == 2:
+            access = "private"
+            
+        return {
+            'name': self.name,
+            'package_name': self.package if self.package else '',
+            'example': self.example if self.example else '',
+            'example2': self.example2 if self.example2 else '',
+            'desc': self.desc if self.desc else '',
+            'returns': self.returns if self.returns else '',
+            'href': self.href if self.href else '',
+            'access': access
+        }
         
 class Library():
     def __init__(self, funcs = {}):

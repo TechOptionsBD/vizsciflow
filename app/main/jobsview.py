@@ -183,6 +183,11 @@ def functions():
                     with open(filename, 'a+') as script:
                         script.write(request.form.get('script'))
                 
+                initpath = os.path.join(path, "__init__.py")
+                if not os.path.exists(initpath):
+                    with open(initpath, 'a'):
+                        pass
+                    
                 access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2 
                 with open(base, 'r') as json_data:
                     data = json.load(json_data)

@@ -1262,10 +1262,26 @@ function typeInTextarea(el, newText) {
 				style: {
                 	classes: 'qtip-bootstrap'
             	},
-	            content: {
-					title: viewModel.name(),
-					text: "<p>" + viewModel.status() + "</p><p>Double click to show in report.</p><p>Check to pin job to report.</p>"
-				},
+				content: {
+	                text: function(event, api) {
+	                    $.ajax({
+	                        url: "/runnables?tooltip=" + viewModel.id() //api.elements.target.attr('href') // Use href attribute as URL
+	                    })
+	                    .then(function(content) {
+	                        // Set the tooltip content upon successful retrieval
+	                        content = JSON.parse(content);
+	                        content = "<p>Name: " + content.name + "</p><p>Created: " + content.created_on + "<br>Modified: " + content.modified_on + "<br>Duration: " + content.duration + 
+	                        	"(s)</p><p>Status: " + content.status + (content.err && content.err.length > 0 ? "<br>Error: " + content.err : "") + "</p><p>Double click to show in report.<br>Check to pin job to report.</p>";
+
+	                        api.set('content.text', content);
+	                    }, function(xhr, status, error) {
+	                        // Upon failure... set the tooltip content to error
+	                        api.set('content.text', status + ': ' + error);
+	                    });
+	        
+	                    return 'Loading...'; // Set some initial text
+	                }
+	            },
 				show: {
 					delay: 500
 				},
@@ -2134,6 +2150,8 @@ return mapperEditor;
             		return "{{ url_for('static', filename='spinner.gif') }}";
             	else if (status == "RECEIVED")
             		return "{{ url_for('static', filename='spinner.gif') }}";
+            	else if (status == "FAILURE")
+                	return "{{ url_for('static', filename='cancel.gif') }}";
             	else
             		return "{{ url_for('static', filename='completed.gif') }}";
             }

@@ -834,9 +834,9 @@ class Runnable(db.Model):
     #name = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
     script = db.Column(db.Text, nullable=False)
-    arguments = db.Column(db.Text)
-    out = db.Column(db.Text)
-    err = db.Column(db.Text)
+    arguments = db.Column(db.Text, default='')
+    out = db.Column(db.Text, default='')
+    err = db.Column(db.Text, default='')
     duration = db.Column(db.Integer, default = 0)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
@@ -885,6 +885,18 @@ class Runnable(db.Model):
             'modified_on': str(self.modified_on)
         }
     
+    def to_json_tooltip(self):
+        
+        return {
+            'id': self.id,
+            'name': self.workflow.name,
+            'status': self.status,
+            'err': (self.err[:60] + '...') if len(self.err) > 60 else self.err,
+            'duration': self.duration,
+            'created_on': self.created_on.strftime("%Y-%m-%d %H:%M:%S") if self.created_on else '',
+            'modified_on': self.modified_on.strftime("%Y-%m-%d %H:%M:%S") if self.modified_on else ''
+        }
+        
     def to_json_log(self):
         log = []
 

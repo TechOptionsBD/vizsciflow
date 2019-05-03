@@ -270,12 +270,18 @@ def get_user_status(user_id):
 def get_task_status(task_id):
     runnable = Runnable.query.get(task_id)
     return json.dumps(runnable.to_json_log())
+
+def get_task_full_status(task_id):
+    runnable = Runnable.query.get(task_id)
+    return json.dumps(runnable.to_json_tooltip())
     
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
 def runnables():
     try:
-        if request.args.get('id'):
+        if request.args.get('tooltip'):
+            return get_task_full_status(int(request.args.get('tooltip')))
+        elif request.args.get('id'):
             return get_task_status(int(request.args.get('id')))
         elif request.args.get('stop'):
             ids = request.args.get('stop')

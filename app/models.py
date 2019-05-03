@@ -545,12 +545,22 @@ class Workflow(db.Model):
         }
         return json_post
     
-    def to_json_info(self):
+    def to_json_tooltip(self):
         json_post = {
             'id': self.id,
             'user': self.user.username,
             'name': self.name,
-            'desc': self.desc
+            'public': str(self.public),
+            'desc': self.desc,
+            'script': (self.script[:100] + '...') if len(self.script) > 100 else self.script
+        }
+        return json_post
+    
+    def to_json_info(self):
+        json_post = {
+            'id': self.id,
+            'user': self.user.username,
+            'name': self.name
         }
         return json_post
     
@@ -886,12 +896,14 @@ class Runnable(db.Model):
         }
     
     def to_json_tooltip(self):
-        
+        err = ""
+        if err:
+            err = (self.err[:60] + '...') if len(self.err) > 60 else self.err
         return {
             'id': self.id,
             'name': self.workflow.name,
             'status': self.status,
-            'err': (self.err[:60] + '...') if len(self.err) > 60 else self.err,
+            'err': err,
             'duration': self.duration,
             'created_on': self.created_on.strftime("%Y-%m-%d %H:%M:%S") if self.created_on else '',
             'modified_on': self.modified_on.strftime("%Y-%m-%d %H:%M:%S") if self.modified_on else ''

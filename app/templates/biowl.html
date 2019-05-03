@@ -471,9 +471,9 @@ text {
 						</div>
 					</div>
 					<div class="row">
-						<label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked>Public</label>
-						<label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click">Shared</label>
-						<label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click">Private</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked="checked" autocomplete="off">Public</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click" autocomplete="off">Shared</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click" autocomplete="off">Private</label>
 						
 						<div class="input-group" style="margin-top: 10px">
 							<span class="input-group-btn">
@@ -1261,10 +1261,35 @@ function typeInTextarea(el, newText) {
 				style: {
                 	classes: 'qtip-bootstrap'
             	},
-	            content: {
-					title: viewModel.name(),
-					text: "<p>" + viewModel.desc() + "</p><p>Double click to insert into code editor.</p>"
-				},
+// 	            content: {
+// 					title: viewModel.name(),
+// 					text: "<p>" + viewModel.desc() + "</p><p>Double click to insert into code editor.</p>"
+// 				},
+				content: {
+	                text: function(event, api) {
+	                    $.ajax({
+	                        url: "/samples?tooltip=" + viewModel.id()
+	                    })
+	                    .then(function(content) {
+	                        // Set the tooltip content upon successful retrieval
+	                        if (!content) {
+	                        	content = "";
+	                        }
+	                        else {
+		                        content = JSON.parse(content);
+		                        content = "<p>Name: " + content.name + "<br>Owner: " + content.user + "<br>Public: " + content.public + "</p>"
+		                        +"<p>Desc: " + content.desc + "</p>"
+		                        + "<p>Double click to insert into code editor</p>";
+	                        }
+	                        api.set('content.text', content);
+	                    }, function(xhr, status, error) {
+	                        // Upon failure... set the tooltip content to error
+	                        api.set('content.text', status + ': ' + error);
+	                    });
+	        
+	                    return 'Loading...'; // Set some initial text
+	                }
+	            },
 				show: {
 					delay: 500
 				},
@@ -1801,7 +1826,7 @@ function typeInTextarea(el, newText) {
            self.samplesURI = '/samples';
            self.items = ko.observableArray();
            self.sampleViewModel = sampleViewModel;
-           self.access = 0;
+           self.access = ko.observable("2");
            self.workflowFilter = ko.observable("");
 			this.filteredWorkflows = ko.computed(function(){
 		       return this.items().filter(function(item){
@@ -1869,14 +1894,13 @@ function typeInTextarea(el, newText) {
            }
            
            self.load = function() {
-               ajaxcalls.simple(self.samplesURI, 'GET', {'access': self.access}).done(function(data) {
+               ajaxcalls.simple(self.samplesURI, 'GET', {'access': self.access()}).done(function(data) {
             	   self.items([]);
             	   $.each(data.samples, function(i, s){
             		   self.items.push({
             			   id: ko.observable(s.id),
             			   user:ko.observable(s.user),
                            name: ko.observable(s.name),
-                           desc: ko.observable(s.desc + "\nDouble click to insert into code editor."),
                            selected: ko.observable(false)
                        });
             	   });
@@ -1947,7 +1971,7 @@ return mapperEditor;
             
             self.name = ko.observable();
             self.desc = ko.observable();
-            self.access = ko.observable();
+            self.access = ko.observable("0");
             self.users = ko.observable();
 
 			self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", 300);
@@ -2219,6 +2243,8 @@ return mapperEditor;
         
         var samplesViewModel = new SamplesViewModel(sampleViewModel);
         samplesViewModel.load();
+//         $("[name='access']").removeAttr('checked');
+//         $("input[name='access'][value='0']").prop('checked', true);
         
         var runnablesViewModel = new RunnablesViewModel();        
         runnablesViewModel.load();

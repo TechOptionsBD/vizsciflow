@@ -284,19 +284,24 @@ text {
 			</div>
 		</div>
 		<div class="col-md-6 box-two" id="main">
-				<div class="panel panel-primary" style="margin: 2px">
+				<div class="panel panel-primary" id="codeeditor" style="margin: 2px">
 				
 					<div class="panel-heading text-center">
 					<h3 class="panel-title">Bioinformatics Domain Specific Language (Bio-DSL)</h3>
 					<div class="btn-group">
 						<div class="btn-group-sm">
-							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About Bio-DSL Syntax" id="panel-about">
-								<i class="glyphicon glyphicon-info-sign"></i>
-							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="panel-fullscreen">
 								<i class="glyphicon glyphicon-resize-full"></i>
 							</button>
-							
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About Bio-DSL Syntax" id="panel-about">
+								<i class="glyphicon glyphicon-info-sign"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" onclick="samplesViewModel.beginAdd()">
+								<i class="glyphicon glyphicon-floppy-save"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="New Workflow" id="newwf" onclick="samplesViewModel.newwf()">
+								<i class="glyphicon glyphicon-asterisk"></i>
+							</button>					
 						</div>
 					</div>
 				</div>
@@ -1608,10 +1613,10 @@ function typeInTextarea(el, newText) {
          
         	self.clearResults = function() {
         		$("#output").val("");
-             $("#error").val("");
-             $("#log tbody").empty();
-             $("#duration").text("0s");
-             $("#execstatus").text("");
+	             $("#error").val("");
+	             $("#log tbody").empty();
+	             $("#duration").text("0s");
+	             $("#execstatus").text("");
         	}
          self.clearEditor = function() {
              editor.session.setValue("");
@@ -1838,10 +1843,10 @@ function typeInTextarea(el, newText) {
 		       });
   			},this);
 			
-			  self.about = function() {
-		    	  
-				  window.open("static/biodsl-help.html#workflows", '_blank');
-		      }
+		  self.about = function() {
+	    	  
+			  window.open("static/biodsl-help.html#workflows", '_blank');
+	      }
 
            self.remove = function() {
         	   
@@ -1852,6 +1857,11 @@ function typeInTextarea(el, newText) {
                ajaxcalls.simple(self.samplesURI, 'POST', { 'delete': item.name }).done(function(data) {
                    self.load();
                });
+           }
+           
+           self.newwf = function() {
+        	   workflowId = 0;
+        	   editor.session.setValue("");
            }
            
            self.beginAdd = function() {
@@ -2303,8 +2313,6 @@ return mapperEditor;
         
         var samplesViewModel = new SamplesViewModel(sampleViewModel);
         samplesViewModel.load();
-//         $("[name='access']").removeAttr('checked');
-//         $("input[name='access'][value='0']").prop('checked', true);
         
         var runnablesViewModel = new RunnablesViewModel();        
         runnablesViewModel.load();

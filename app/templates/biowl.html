@@ -285,20 +285,21 @@ text {
 		</div>
 		<div class="col-md-6 box-two" id="main">
 				<div class="panel panel-primary" style="margin: 2px">
+				
 					<div class="panel-heading text-center">
-						<h3 class="panel-title">Bioinformatics Domain Specific Language
-							(Bio-DSL)</h3>
-						<span class="text-light" style="margin: 4px">Write workflow
-							DSL. Double click services/workflows/data to insert into editor.</span><br>
-						<ul class="list-inline panel-actions">
-							<li>
-								<a href="#" id="panel-about" role="button" title="About Bio-DSL Syntax"><i class="glyphicon glyphicon-info-sign"></i></a>
-							</li>
-							<li>
-								<a href="#" id="panel-fullscreen" role="button" title="Toggle fullscreen"><i class="glyphicon glyphicon-resize-full"></i></a>
-							</li>
-						</ul>
+					<h3 class="panel-title">Bioinformatics Domain Specific Language (Bio-DSL)</h3>
+					<div class="btn-group">
+						<div class="btn-group-sm">
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About Bio-DSL Syntax" id="panel-about">
+								<i class="glyphicon glyphicon-info-sign"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="panel-fullscreen">
+								<i class="glyphicon glyphicon-resize-full"></i>
+							</button>
+							
+						</div>
 					</div>
+				</div>
 					<div class="panel-body" style="">
 						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px">
 							<ul class="nav nav-tabs">
@@ -529,7 +530,7 @@ text {
             <div class="control-group">
                 <div class="controls">
                  <label class="control-label" for="package">Package</label>
-                    <input data-bind="value: name" type="text" id="package" placeholder="Package" style="width: 150px;">
+                    <input data-bind="value: name" type="text" id="package" placeholder="{{username}}" style="width: 150px;">
                 </div>
                 <div class="controls">                    
                 	<label class="control-label" for="organization">Organization</label>
@@ -570,7 +571,9 @@ text {
     <div class="modal-footer">
         <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
         <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        <div><span class="label label-default" id="add-library-info"></span></div>
     </div>
+    
 </div>
 <div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 480px; height: 620px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
     <div class="modal-header">
@@ -2005,11 +2008,23 @@ return mapperEditor;
             self.getCodeEditor = function() { return self.sampleEditor; }
         }
         
+        function isJson(item) {
+            item = typeof item !== "string" ? JSON.stringify(item) : item;
+
+            try {
+                item = JSON.parse(item);
+            } catch (e) {
+                return false;
+            }
+
+            return (typeof item === "object" && item !== null);
+        }
+        
         function AddLibraryViewModel() {
             var self = this;
             self.tasksURI = '/functions';
             
-            self.name = ko.observable();
+            self.name = ko.observable("{{username}}");
             self.org = ko.observable();
             self.access = ko.observable();
             self.pippkgs = ko.observable();
@@ -2017,7 +2032,52 @@ return mapperEditor;
 			self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 200);
 			self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 200);
 			
+			self.checkFunction = function() {
+				var formdata = new FormData();
+				
+				var json = self.mapperEditor.getSession().getValue();
+				if (!isJson(json)) {
+					$("#add-library-info").text("Not a valid JSON mapper.");
+					return false;
+				}
+				
+				var mapper = JSON.parse(json);
+				if (!mapper || !mapper.functions || !mapper.functions.length) {
+					$("#add-library-info").text("No valid service is defined for mapping in JSON.");
+					return false;
+				}
+				mapper = mapper.functions[0];
+				var func = (mapper.name && mapper.name.length ? mapper.name : mapper.internal);
+				if (!func || !func.length) {
+					$("#add-library-info").text("No valid service name is given.");
+					return false;
+				}
+				
+				var package_name = (self.name() && self.name().length ? self.name() : "");
+				
+				var success = false;
+				ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package_name, 'name': func}, false).done(function(data) {
+            		
+					if (data === undefined) {
+						$("#add-library-info").text("Can't retrieve service information. Check your internet connection.");
+						return;
+					}
+					
+					success = data['check_funtion'] == 'False';
+					if (!success)
+						$("#add-library-info").text("The service already exists. Please change the package name or service name.");
+				});
+				
+				return success;
+			}
+			
             self.addLibrary = function(task) {
+            	
+            	if (!self.checkFunction()) {            		
+            		return;
+            	}
+            	
+            	$("#add-library-info").text("");
             	$('#add').modal('hide');
             	
             	var files = $("#module").get(0).files;
@@ -2045,7 +2105,7 @@ return mapperEditor;
                     	tasksViewModel.load();
                     }
                     if (data.err.length != 0) {
-                    	$("#execstatus").text("FAILED");
+                    	$("#execstatus").text("Service cannot be added.");
                     	activateTab(2);
                     }
                     else {

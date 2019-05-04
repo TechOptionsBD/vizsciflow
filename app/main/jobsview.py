@@ -221,6 +221,9 @@ def functions():
             fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
             mime = mimetypes.guess_type(fullpath)[0]
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
+    elif 'check_function' in request.args:
+        success = library.library.check_function(request.args.get('name'), request.args.get('package'))
+        return json.dumps({'check_funtion': str(success)})
     elif 'tooltip' in request.args:
         if library.library.check_function(request.args.get('name'), request.args.get('package')):
             func = library.library.get_function(request.args.get('name'), request.args.get('package'))

@@ -190,7 +190,7 @@ class Library():
             return self.funcs[name.lower()]
     
     def check_function(self, name, package = None):
-        if package:
+        if package and name.lower() in self.funcs:
             func = next((x for x in self.funcs[name.lower()] if x.package == package), None)
             return func != None
         else:

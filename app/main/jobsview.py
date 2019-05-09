@@ -34,16 +34,18 @@ class LibraryHelper():
     def reload(self):
         self.funcs.clear()
         self.library = Library.load(LibraryHelper.librariesdir)
+        self.refresh()
+                 
+    def refresh(self):
         funclist = []
         for f in self.library.funcs.values():
             funclist.extend(f)
-        
         funclist.sort(key=lambda x: (x.group, x.name))
         for f in funclist:
             example = f.example if f.example else f.example2 if f.example2 else ""
             example2 = f.example2 if f.example2 else example
-            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": example2, "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"}) 
-
+            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": example2, "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"})
+        
 library = LibraryHelper()
 
 def update_workflow(user_id, workflow_id, script):
@@ -211,7 +213,9 @@ def functions():
                 os.remove(base)
                 with open(base, 'w') as f:
                     f.write(json.dumps(data, indent=4))
-                library.reload()
+                
+                library.library.load_new_funcs(path, current_user.username)
+                library.refresh()
                 
                 result['out'].append("Library successfully added.")
             except Exception as e:

@@ -83,7 +83,7 @@ class Function():
         
 class Library():
     def __init__(self, funcs = {}):
-        self.funcs = funcs
+        self.funcs = funcs # dictionary of <func_name, Function> 
         self.tasks = {}
         self.localdir = path.join(path.abspath(path.dirname(__file__)), 'storage')
     
@@ -118,7 +118,11 @@ class Library():
         library.funcs = all_funcs
         return library
     
-    
+    # only new functions (unique package.function name) are added
+    def load_new_funcs(self, library_def_file, user):
+        funcs = Library.load_funcs_recursive(library_def_file, user)
+        self.append_new_funcs(self.funcs, funcs)
+        
     @staticmethod
     def merge_funcs(all_funcs, funcs):
         for k,v in funcs.items():
@@ -127,6 +131,16 @@ class Library():
             else:
                 all_funcs[k] = v if isinstance(v, list) else [v]
         
+    @staticmethod
+    def append_new_funcs(all_funcs, funcs):
+        for k,v in funcs.items():
+            if Library.check_library_functions(all_funcs, v):
+                continue
+            if k in all_funcs:
+                all_funcs[k].extend(v)
+            else:
+                all_funcs[k] = v if isinstance(v, list) else [v]
+                        
     @staticmethod
     def load_funcs_recursive(library_def_file, user):
         if os.path.isfile(library_def_file):
@@ -190,11 +204,23 @@ class Library():
             return self.funcs[name.lower()]
     
     def check_function(self, name, package = None):
-        if package and name.lower() in self.funcs:
-            func = next((x for x in self.funcs[name.lower()] if x.package == package), None)
+        return Library.check_library_function(self.funcs, name, package)
+
+    @staticmethod
+    def check_library_function(funcs, name, package = None):
+        if package and name.lower() in funcs:
+            func = next((x for x in funcs[name.lower()] if x.package == package), None)
             return func != None
         else:
-            return name.lower() in self.funcs
+            return name.lower() in funcs
+    
+    @staticmethod
+    def check_library_functions(funcs, v): # v is a list of Function here
+        for f in v:
+            if Library.check_library_function(funcs, f.name, f.package):
+                return True
+        return False
+            
         
     def funcs_flat(self):
         funcs = []

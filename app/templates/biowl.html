@@ -429,7 +429,7 @@ text {
 							<span class="input-group-btn">
 								<button style="margin-right: 10px;" class="btn btn-primary"
 									data-toggle="tooltip" data-placement="top" title="Reload"
-									data-bind="click: load">
+									data-bind="click: reload">
 									<i class="glyphicon glyphicon-refresh"></i>
 								</button>
 								<button style="margin-right: 10px;" class="btn btn-primary"
@@ -1229,8 +1229,12 @@ function typeInTextarea(el, newText) {
 		                        content = JSON.parse(content);
 		                        content = "<p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
 		                        +"<p>Example: " + content.example + (content.example2.length ? "<br>Example2: " + content.example2 : '') + (content.returns.length ? "<br>Returns: " + content.returns : '') + "</p>"
-		                        +"<p>Desc: " + content.desc + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : "") + "</p>"
-		                        + "<p>Double click to insert into code editor</p>";
+		                        
+		                        var descHref = (content.desc && content.desc.length ? "Desc: " + content.desc : "") + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : "") 
+		                        if (descHref !== undefined && descHref.length) {
+		                        	content += "<p>" + descHref + "</p>";
+		                        }
+		                        content += "<p>Double click to insert into code editor</p>";
 	                        }
 	                        api.set('content.text', content);
 	                    }, function(xhr, status, error) {
@@ -1238,7 +1242,7 @@ function typeInTextarea(el, newText) {
 	                        api.set('content.text', status + ': ' + error);
 	                    });
 	        
-	                    return 'Loading...'; // Set some initial text
+	                    return ''; // Set some initial text
 	                }
 	            },
 				show: {
@@ -1295,7 +1299,7 @@ function typeInTextarea(el, newText) {
 	                        api.set('content.text', status + ': ' + error);
 	                    });
 	        
-	                    return 'Loading...'; // Set some initial text
+	                    return ''; // Set some initial text
 	                }
 	            },
 				show: {
@@ -1338,7 +1342,7 @@ function typeInTextarea(el, newText) {
 	                        api.set('content.text', status + ': ' + error);
 	                    });
 	        
-	                    return 'Loading...'; // Set some initial text
+	                    return ''; // Set some initial text
 	                }
 	            },
 				show: {
@@ -1821,7 +1825,13 @@ function typeInTextarea(el, newText) {
              });
          });
          
-         //self.beginLogin();
+         self.reload = $.debounce(500, function() {
+             ajaxcalls.simple(self.tasksURI, 'GET', {'reload': 1}).done(function(data) {
+            	 self.load(); // now load the data
+             }).fail(function(jqXHR) {
+                   showXHRText(jqXHR);
+             });
+           });
          
          self.copyToEditor = function(item) {
             var pos = editor.selection.getCursor();             
@@ -2067,16 +2077,17 @@ return mapperEditor;
 				var package_name = (self.name() && self.name().length ? self.name() : "");
 				
 				var success = false;
-				ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package_name, 'name': func}, false).done(function(data) {
+				ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package_name, 'name': func, 'script': self.codeEditor.getSession().getValue(), 'mapper': self.mapperEditor.getSession().getValue()}, false).done(function(data) {
             		
 					if (data === undefined) {
 						$("#add-library-info").text("Can't retrieve service information. Check your internet connection.");
 						return;
 					}
 					
-					success = data['check_funtion'] == 'False';
-					if (!success)
-						$("#add-library-info").text("The service already exists. Please change the package name or service name.");
+					success = data['error'] === undefined;
+					if (!success) {
+						$("#add-library-info").text(data['error']);
+					}
 				});
 				
 				return success;
@@ -2108,14 +2119,15 @@ return mapperEditor;
 
                 ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                                    	
-                    $("#output").val(data.out);
-                    $("#error").val(data.err);
+                    $("#output").val(data.out !== undefined ? data.out : "");
+                    $("#error").val(data.err !== undefined ? data.err : "");
                     $("#log tbody").empty();
                     
                     if (tasksViewModel !== undefined) {
                     	tasksViewModel.load();
                     }
-                    if (data.err.length != 0) {
+                    
+                    if (data.err !== undefined && data.err.length != 0) {
                     	$("#execstatus").text("Service cannot be added.");
                     	activateTab(2);
                     }

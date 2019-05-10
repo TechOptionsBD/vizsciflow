@@ -2,9 +2,8 @@
     "functions": [
         {
             "name": "MyService",
-            "internal": "run_myservice",
-            "example": "data = MyService()",
-			"returns": ""
+            "example": "data = MyService(data)",
+			"returns": "file"
         }
     ]
 }

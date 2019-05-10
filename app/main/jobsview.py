@@ -8,6 +8,7 @@ import shutil
 import pathlib
 import mimetypes
 import pip
+import ast
 import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
@@ -38,9 +39,12 @@ class LibraryHelper():
                  
     def refresh(self):
         funclist = []
-        for f in self.library.funcs.values():
-            funclist.extend(f)
+        functions = self.library.funcs.values()
+        for func in functions:
+            funclist.extend(func)
+        #
         funclist.sort(key=lambda x: (x.group, x.name))
+        self.funcs = []
         for f in funclist:
             example = f.example if f.example else f.example2 if f.example2 else ""
             example2 = f.example2 if f.example2 else example
@@ -190,11 +194,22 @@ def functions():
                     with open(initpath, 'a'):
                         pass
                     
-                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2 
+                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
+                
                 with open(base, 'r') as json_data:
                     data = json.load(json_data)
                     libraries = data["functions"]
                     for f in libraries:
+                        try:
+                            if not 'internal' in f:
+                                with open(filename, 'r') as r:
+                                    tree = ast.parse(r.read())
+                                    funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
+                                    if funcDefs:
+                                        f['internal'] = funcDefs[0]
+                        except:
+                            pass
+                                
                         if 'internal' in f and f['internal']:
                             if not 'name' in f:
                                 f['name'] = f['internal']
@@ -227,7 +242,23 @@ def functions():
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
     elif 'check_function' in request.args:
         success = library.library.check_function(request.args.get('name'), request.args.get('package'))
-        return json.dumps({'check_funtion': str(success)})
+        if success:
+            return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
+        if 'script' in request.args and request.args.get('script') and 'mapper' in request.args and request.args.get('mapper'):
+            try:
+                mapper = json.loads(request.args.get('mapper'))
+                if mapper['functions'] and 'internal' in mapper['functions'][0]:
+                    tree = ast.parse(request.args.get('script'))
+                    funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
+                    internal = mapper['functions'][0]['internal'].lower()
+                    if not any(s.lower() == internal for s in funcDefs):
+                        return json.dumps({'error': str(e)})
+            except json.decoder.JSONDecodeError as e:
+                return json.dumps({'error': str(e)})
+            except Exception as e:
+                return json.dumps({'error': str(e)})
+        return json.dumps("")
+    
     elif 'tooltip' in request.args:
         if library.library.check_function(request.args.get('name'), request.args.get('package')):
             func = library.library.get_function(request.args.get('name'), request.args.get('package'))
@@ -260,6 +291,9 @@ def functions():
         with open(os.path.join(base, 'demoservice.json'), 'r') as f:
             demoservice['mapper'] = f.read()
         return jsonify(demoservice= demoservice)
+    elif 'reload' in request.args:
+        library.reload()
+        return json.dumps("")
     else:
         level = int(request.args.get('level')) if request.args.get('level') else 0
         access = int(request.args.get('access')) if request.args.get('access') else 0

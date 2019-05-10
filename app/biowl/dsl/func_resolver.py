@@ -245,25 +245,26 @@ class Library():
             return DataType.Custom
         
         datatype = DataType.Unknown
-        returnsLower = returns.lower().split('|')
-        if 'file' in returnsLower:
-            fs = Utility.fs_by_prefix_or_default(result)
-            if fs.isfile(result):
-                datatype = datatype | DataType.File
-        elif 'folder' in returnsLower:
-            fs = Utility.fs_by_prefix_or_default(result)
-            if fs.isdir(result):
-                datatype = datatype | DataType.Folder
-        elif 'file[]' in returnsLower:
-            fs = Utility.fs_by_prefix_or_default(result)
-            if type(result) == 'list':
-                datatype = datatype | DataType.FileList
-        elif 'folder[]' in returnsLower:
-            fs = Utility.fs_by_prefix_or_default(result)
-            if type(result) == 'list':
-                datatype = datatype | DataType.FolderList
-        else:
-            datatype = DataType.Custom
+        try:
+            returnsLower = returns.lower().split('|')
+            if 'file' in returnsLower:
+                fs = Utility.fs_by_prefix_or_default(str(result))
+                if fs.isfile(result):
+                    datatype = datatype | DataType.File
+            elif 'folder' in returnsLower:
+                fs = Utility.fs_by_prefix_or_default(str(result))
+                if fs.isdir(result):
+                    datatype = datatype | DataType.Folder
+            elif 'file[]' in returnsLower:
+                if type(result) == 'list':
+                    datatype = datatype | DataType.FileList
+            elif 'folder[]' in returnsLower:
+                if type(result) == 'list':
+                    datatype = datatype | DataType.FolderList
+            else:
+                datatype = DataType.Custom
+        except:
+            pass # don't propagate the exceptions
         return datatype
 
     def call_func(self, context, package, function, args):

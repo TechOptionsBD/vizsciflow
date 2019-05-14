@@ -745,14 +745,10 @@ text {
 
     $(window).on('load', function() {
 
-		$(function(){
-	    
 		 $('#tree').on("dblclick.jstree", function (e) {
 		 	  var tree = $(this).jstree();
 		 	  var node = tree.get_node(event.target);
 		 	  copyDataPathToEditor(node.original);
-		 });
-
 		});
 
     	$('#refresh').hide();

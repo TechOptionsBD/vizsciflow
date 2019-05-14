@@ -7,37 +7,21 @@
 {% block head %}
 {{ super() }}
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.css">
-
-<!-- jQuery Context Menu -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jstree/3.3.8/themes/default/style.min.css" />
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.css" />
 
-<!-- <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script> -->
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
-<!-- <script src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.min.js"></script> -->
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-treeview/1.2.0/bootstrap-treeview.min.js"></script>
-<!-- <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script> -->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/2.2.1/knockout-min.js"></script> -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/jstree/3.3.8/jstree.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js"></script>
-<!-- <script src="http://ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script> -->
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ace.js') }}"></script>
-<!-- <script src="ace-builds/src-min-noconflict/ext-language_tools.js"></script> -->
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ext-language_tools.js') }}"></script>
-<!-- <script src="ace-builds/src-min-noconflict/ext-language_tools.js"></script> -->
 <script src="https://cdn.rawgit.com/mgalante/jquery.redirect/master/jquery.redirect.js"></script>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.0/d3.min.js"></script> -->
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script> -->
 <script src="http://d3js.org/d3.v4.min.js" type="text/javascript"></script>
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script>
-
-<!-- jQuery Context Menu -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
 
@@ -208,11 +192,11 @@ text {
 								<i class="glyphicon glyphicon-edit"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Delete" data-bind="click: remove">
+								data-placement="top" title="Delete Folder/File" data-bind="click: remove">
 								<i class="glyphicon glyphicon-minus"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Add" data-bind="click: addFolder, clickBubble: false">
+								data-placement="top" title="Add Folder" data-bind="click: addFolder, clickBubble: false">
 								<i class="glyphicon glyphicon-plus"></i>
 							</button>
 						</div>
@@ -222,7 +206,7 @@ text {
 				</div>
 				<div class="panel-body draggable-datasources"
 					style="height: 416px; overflow-y: scroll; padding: 0">
-					<div id="tree" data-bind="treeview: dataSources"></div>
+					<div id="tree" data-bind="jstree: { data: dataSources }"></div>
 				</div>
 			</div>
 			<div id="runnableWorkflowsPanel" class="panel panel-primary">
@@ -762,23 +746,13 @@ text {
     $(window).on('load', function() {
 
 		$(function(){
-		    $.contextMenu({
-		        selector: 'li.list-group-item', 
-		        callback: function(key, options) {
-					
-					if (key == "copycode") {
-						customBusiness(dataSourceViewModel.selectedNode());
-					}
-					else if (key == "copyargs") {
-						typeInTextarea(document.getElementById("args"), "'" + dataSourceViewModel.selectedNode().path + "'");
-					}
-		        },
-		        items: {
-		            "copycode": {name: "Copy to editor", icon: "paste"},
-					"sep1": "---------",
-		            "copyargs": {name: "Copy to args", icon: "paste"}
-		        }
-		    });
+	    
+		 $('#tree').on("dblclick.jstree", function (e) {
+		 	  var tree = $(this).jstree();
+		 	  var node = tree.get_node(event.target);
+		 	  copyDataPathToEditor(node.original);
+		 });
+
 		});
 
     	$('#refresh').hide();
@@ -917,10 +891,10 @@ text {
     
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
     
-    $('#tree').bind('mousewheel', function(e) {
-    	  $(this).scrollTop($(this).scrollTop() - e.originalEvent.wheelDeltaY);
-    	  return false;
-    	});
+//     $('#tree').bind('mousewheel', function(e) {
+//     	  $(this).scrollTop($(this).scrollTop() - e.originalEvent.wheelDeltaY);
+//     	  return false;
+//     	});
     
     // Create the View Model.
     var DataSourceViewModel = function() {
@@ -931,23 +905,8 @@ text {
       self.expandedNodes = [];
       self.searchDataSource = ko.observable();
       self.waittime = 5000; // for throttle
-
-	  function createTree(tree){
-
-	    var options = {
-	        bootstrap2: false, 
-	        showTags: true,
-	        levels: 0,
-	        data: tree
-	        /*expandIcon: 'fa fa-chevron-right',
-	        collapseIcon: 'fa fa-chevron-down',
-	        onNodeExpanded: nodeExpand,
-	        onNodeCollapsed: nodeCollapse,
-	        onNodeSelected: nodeSelect,
-	        onNodeUnselected: nodeUnselect*/
-	    }
-    	$('#treeview').treeview(options);
-     };      
+      self.tree = $('#tree');
+      
       self.findExpandibleNodes = function(text) {
     	var options = {
     		    ignoreCase: true,
@@ -958,16 +917,7 @@ text {
       };
     
       self.searchDataSource.subscribe(function () {
-    	  var expandibleNodes = self.findExpandibleNodes(self.searchDataSource());
-    	  filter = self.searchDataSource().toUpperCase();
-    	  div = document.getElementById("tree");
-    	  li = div.getElementsByTagName("li");
-    	  for (i = 0; i < li.length; i++) {
-    	    a = li[i];
-    	    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
-    	      li[i].scrollIntoView(false)[0];
-    	    }
-    	  }
+    	  self.tree.jstree('search', self.searchDataSource());
       });
            
       self.beginFileUpload = function() {
@@ -991,6 +941,10 @@ text {
 
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'recursive': recursive }).done(function(data) {
         	  self.dataSources(data.datasources);
+        	  
+        	 /*  self.tree.jstree(true).settings.core.data = self.dataSources();
+        	  self.tree.jstree(true).refresh(); */
+        	  
               ko.cleanNode($("#dataSourcesPanel")[0]);
               ko.applyBindings(self, $("#dataSourcesPanel")[0]);
               //ko.mapping.fromJS($("#dataSourcesPanel")[0], self);
@@ -1006,9 +960,9 @@ text {
                   });
               });*/
               
-              for (node in self.expandedNodes) {
-              	$('#tree').treeview('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]);
-              }
+//               for (node in self.expandedNodes) {
+//               	$('#tree').treeview('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]);
+//               }
                         
           }).fail(function(jqXHR) {
               showXHRText(jqXHR);
@@ -1019,8 +973,8 @@ text {
     	  if (source.path === path)
     		  return source;
     	  
-    	  if (source.nodes !== undefined || source.nodes != null) {
-	    	  for(var i =0; i < source.nodes.length; ++i){
+    	  if (source.children !== undefined || source.children != null) {
+	    	  for(var i =0; i < source.children.length; ++i){
 	    		  
 	    		  var subNode = self.getItemByPath(source.nodes[i], path);
 	    		  if (subNode)
@@ -1032,7 +986,7 @@ text {
       }
       
       self.loadItem = function(node, recursive = true) {
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.path, 'recursive': recursive }).done(function(data) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.original.path, 'recursive': recursive }).done(function(data) {
               
               var dataSources = self.dataSources();
               
@@ -1047,8 +1001,8 @@ text {
                     ko.cleanNode($("#dataSourcesPanel")[0]);
                     ko.applyBindings(self, $("#dataSourcesPanel")[0]);
                     
-                    for (node in self.expandedNodes)
-                        $('#tree').treeview('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]);
+//                     for (node in self.expandedNodes)
+//                         $('#tree').jstree(true). ('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]);
                         
                   	break;
             	  }
@@ -1060,13 +1014,13 @@ text {
       
       self.selectedNode = function()
       {
-    	  nodes = $('#tree').treeview('getSelected')
-          if (nodes !== undefined && nodes.length > 0)
-        	    return nodes[0];
+    	  node = $('#tree').jstree("get_selected")
+    	  return $('#tree').jstree().get_selected(true)[0];
       }
+      
       self.parentNode = function(node)
       {
-    	  return $('#tree').treeview('getParent', node.nodeId);
+    	  return node.parentNode;
       }
       
       self.upload = function() {
@@ -1100,13 +1054,12 @@ text {
       });
             
       self.addFolder = $.debounce(500, function() {
-      	  console.log("add folder");
     	  node = self.selectedNode();
           if (node === undefined)
               return;
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'addfolder': node.path }).done(function(data) {
-        	  self.loadItem(node);
-        	  $('#tree').treeview('selectNode', node.nodeId);
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'addfolder': node.original.path }).done(function(data) {
+        	  self.load();
+        	  $('#tree').jstree(true).select_node(node.id);
           });
       });
       
@@ -1114,18 +1067,18 @@ text {
     	  node = self.selectedNode();
           if (node === undefined)
               return;
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'delete': node.path }).done(function(data) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'delete': node.original.path }).done(function(data) {
           	  var parentNode = self.parentNode(node);
           	  if (parentNode === undefined)
           	  	return;
           	  
-          	  var siblings = $('#tree').treeview('getSiblings', node.nodeId);
+          	  var siblings = parentNode.children;
           	  if (siblings !== undefined && siblings.length > 0)
           	  	sibling = siblings[0].path;
         	  self.loadItem(parentNode);
         	  
         	  if (sibling === undefined)
-        	  	$('#tree').treeview('selectNode', node.nodeId);
+        	  	$('#tree').jstree(true).select_node(node.nodeId);
         	  else {
         	  	siblingNode = self.getItemByPath(parentNode, sibling);
         	  	$('#tree').treeview('selectNode', siblingNode.nodeId);
@@ -1155,7 +1108,7 @@ text {
    var lastSelectTime = null;
    
    // Custom business method 
-   function customBusiness(data){
+   function copyDataPathToEditor(data){
        var pos = editor.selection.getCursor();             
        editor.session.insert(pos,  "'" + data.path + "'");
        editor.focus();
@@ -1184,19 +1137,7 @@ function typeInTextarea(el, newText) {
   el.selectionStart = el.selectionEnd = start + newText.length
   el.focus()
 }
-
-   function clickNode(event, data) {
-    if (lastSelectedNodeId && lastSelectTime) {
-     var time = new Date().getTime();
-     var t = time - lastSelectTime;
-     if (lastSelectedNodeId == data.nodeId && t < 600) {
-      customBusiness(data);
-     }
-    }
-    lastSelectedNodeId = data.nodeId;
-    lastSelectTime = new Date().getTime();
-   }
-    
+   
    function serviceHelpRef(href) {
 	   if (href) {
 		   return "<a href='static/" + href + "' target='_blank'>" + "More...</a>";
@@ -1361,30 +1302,76 @@ function typeInTextarea(el, newText) {
 	    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 	    }
 	};
-    ko.bindingHandlers.treeview = {
-       init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-           $(element).treeview({data: ko.toJS(valueAccessor())})
-           .on('nodeSelected', function(event, data) {
-           		clickNode(event, data);
-           }).on('nodeUnselected', function(event, data) {
-           		clickNode(event, data);
-   		   }).on('nodeExpanded', function(event, data) {
-   			
-   			dataSourceViewModel.expandedNodes.push(data.nodeId);
-   			if (data.loaded === undefined || !data.loaded) {
-   				dataSourceViewModel.loadItem(data)
-   			}
-   		}).on('nodeCollapsed', function(event, data) {
-   			
-   			var index = dataSourceViewModel.expandedNodes.indexOf(data.nodeId);
-   		    if (index > -1) 
-   		    	dataSourceViewModel.expandedNodes.splice(index, 1);
-   		});
-       },
-       update: function(element, valueAccessor, allBindings) {
+  
+   function customMenu(node)
+   {
+       var items = {
+           'item1' : {
+        	   'label': 'To editor',
+        	   'icon': 'glyphicon glyphicon-paste',
+        	   'separator_after': true,
+               'action' : function(data) {
+            	   var inst = $.jstree.reference(data.reference);
+            	   var node = inst.get_node(data.reference);
+            	   	copyDataPathToEditor(node.original);
+            	   }
+           },
+           'item2' : {
+               'label' : 'To args',
+               'icon': 'glyphicon glyphicon-paste',
+               'action' : function(data) {
+            	   var inst = $.jstree.reference(data.reference);
+            	   var node = inst.get_node(data.reference);
+            	   	typeInTextarea(document.getElementById("args"), "'" + node.original.path + "'");
+            	   }
+           }
        }
-   };
-    
+
+       if (node.type === 'level_1') {
+           delete items.item2;
+       } else if (node.type === 'level_2') {
+           delete items.item1;
+       }
+
+       return items;
+   }
+   
+   ko.bindingHandlers.jstree = {
+	    buildTree: function (element, treeData) {
+	        $(element).jstree('destroy');
+	        $(element).jstree({
+	            'core': {
+	                'animation': 0,
+	                'check_callback': true,
+	                'multiple': false,
+	                'data': treeData
+	            },
+	            'contextmenu': {
+	            	'items': customMenu
+	            },
+	            'types': {
+	                'folder': {
+	                	'valid_children': ['folder','file']
+	                },
+	                'file': {
+	                	'icon': 'glyphicon glyphicon-file',
+	                	'max_depth': 0
+	                }
+	            },
+	            "search": {
+	    			"case_insensitive": true,
+	    			"show_only_matches" : true
+	    		},
+                'plugins': ['search', 'state', 'types', 'wholerow', 'contextmenu']
+	        });
+	    },
+	    update: function (element, valueAccessor) {
+	        var treeData = ko.unwrap(valueAccessor());
+	        ko.bindingHandlers.jstree.buildTree(element, treeData.data());
+	    }
+	};
+   
+   
     // Create the View Model and initialise with initial data 
     var dataSourceViewModel = new DataSourceViewModel();
     ko.applyBindings(dataSourceViewModel, $("#dataSourcesPanel")[0]);

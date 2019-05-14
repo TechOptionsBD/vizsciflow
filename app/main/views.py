@@ -307,16 +307,16 @@ def load_data_sources_biowl(recursive):
                 continue
             if not fs or fs.typename() != 'posix': # temporary code
                 continue
-            datasource = { 'path': ds.url, 'text': ds.name, 'nodes': [], 'loaded': True}
+            datasource = { 'path': ds.url, 'text': ds.name, 'type': 'folder', 'children': [], 'loaded': True}
             if current_user.is_authenticated:
                 if not fs.exists(current_user.username):
                     fs.makedirs(current_user.username)
                     
                 if fs.exists(current_user.username):
-                    datasource['nodes'].append(fs.make_json_r(os.sep + current_user.username) if recursive else fs.make_json(os.sep + current_user.username))
+                    datasource['children'].append(fs.make_json_r(os.sep + current_user.username) if recursive else fs.make_json(os.sep + current_user.username))
                         
             if ds.public and fs.exists(ds.public):
-                datasource['nodes'].append(fs.make_json_r(ds.public) if recursive else fs.make_json(ds.public))
+                datasource['children'].append(fs.make_json_r(ds.public) if recursive else fs.make_json(ds.public))
 
             datasource_tree.append(datasource)
         except:
@@ -355,9 +355,10 @@ def datasources():
     elif request.args.get('addfolder'):
         path = request.args['addfolder']
         fileSystem = Utility.fs_by_prefix_or_default(path)
-        parent = path if fileSystem.isdir(path) else os.path.dirname(path)
+        parent = path if fileSystem.isdir(path) else fileSystem.dirname(path)
         unique_filename = fileSystem.unique_fs_name(parent, 'newfolder', '')
-        return json.dumps({'path' : fileSystem.makedirs(unique_filename) })
+        dirpath = fileSystem.strip_root(fileSystem.makedirs(unique_filename))
+        return json.dumps({'text': fileSystem.basename(unique_filename), 'path' : dirpath, 'type': 'folder'})
     elif request.args.get('delete'):
         path = request.args['delete']
         fileSystem = Utility.fs_by_prefix_or_default(path)

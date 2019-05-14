@@ -236,21 +236,24 @@ class PosixFileSystem(BaseFileSystem):
     def make_json_item(self, path):
         data_json =  { 'path': self.make_url(path), 'text': os.path.basename(path) }
         if self.isdir(path):
-            data_json['nodes'] = []
+            data_json['children'] = []
+            data_json['type'] = 'folder'
+        else:
+            data_json['type'] = 'file'
         return data_json
         
     def make_json(self, path):
         data_json = self.make_json_item(path)
         
-        if 'nodes' in data_json: # folder
-            data_json['nodes'] = [self.make_json_item(self.join(path, fn)) for fn in self.listdir(path)]
+        if 'children' in data_json: # folder
+            data_json['children'] = [self.make_json_item(self.join(path, fn)) for fn in self.listdir(path)]
             data_json['loaded'] = True
         return data_json
     
     def make_json_r(self, path):
         data_json = self.make_json_item(path)  
-        if 'nodes' in data_json: # folder 
-            data_json['nodes'] = [self.make_json_r(self.join(path, fn)) for fn in self.listdir(path)]
+        if 'children' in data_json: # folder 
+            data_json['children'] = [self.make_json_r(self.join(path, fn)) for fn in self.listdir(path)]
             data_json['loaded'] = True
         return data_json
 

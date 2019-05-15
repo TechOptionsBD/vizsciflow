@@ -72,13 +72,12 @@ def allocate_storage(user):
         try:
             fs = Utility.fs_by_prefix(ds.url)
             if fs:
-                if current_user.is_authenticated:
-                    userpath = 'Libraries/' + user.username if ds.type == 'gfs' else user.username
-                    if not fs.exists(userpath):
-                        fs.makedirs(userpath)
-                    DataSourceAllocation.add(user, ds, userpath, AccessRights.Owner)
-                    if ds.public:
-                        DataSourceAllocation.add(user, ds, 'Libraries/' + 'public' if ds.type == 'gfs' else 'public', AccessRights.Read)
+                userpath = 'Libraries/' + user.username if ds.type == 'gfs' else user.username
+                if not fs.exists(userpath):
+                    fs.makedirs(userpath)
+                DataSourceAllocation.add(user, ds, userpath, AccessRights.Owner)
+                if ds.public:
+                    DataSourceAllocation.add(user, ds, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
         except:
             flash('Storage allocation on {0} has failed.'.format(ds.name))
 

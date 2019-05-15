@@ -9,7 +9,7 @@ def exec_sam_to_bam(fs, data, output):
         fs.makedirs(fs.dirname(output))
 
     if fs.exists(output):
-        output = fs.unique_filename(fs.dir(output), Path(output).stem, Path(output).suffix)
+        output = fs.unique_filename(fs.dirname(output), Path(output).stem, Path(output).suffix)
            
     infile = pysam.AlignmentFile(data, "r")
     outfile = pysam.AlignmentFile(output, "wb", template=infile)

@@ -272,20 +272,40 @@ text {
 				
 					<div class="panel-heading text-center">
 					<h3 class="panel-title" style="margin-bottom:10px">Bioinformatics Domain Specific Language (Bio-DSL)</h3>
+					
 					<div class="btn-group">
 						<div class="btn-group-sm">
-							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="panel-fullscreen">
-								<i class="glyphicon glyphicon-resize-full" style="font-size:20px;"></i>
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="New Workflow" id="newwf" onclick="samplesViewModel.newwf()">
+								<i class="glyphicon glyphicon-asterisk" style="font-size:20px;"></i>
 							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About Bio-DSL Syntax" id="panel-about">
-								<i class="glyphicon glyphicon-info-sign" style="font-size:20px;"></i>
-							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" onclick="samplesViewModel.beginAdd()">
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" onclick="samplesViewModel.beginAdd()">
 								<i class="glyphicon glyphicon-floppy-save" style="font-size:20px;"></i>
 							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="New Workflow" id="newwf" onclick="samplesViewModel.newwf()">
-								<i class="glyphicon glyphicon-asterisk" style="font-size:20px;"></i>
-							</button>					
+							
+							<div class="btn-group" role="group">
+							    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							      <span class="glyphicon glyphicon-text-size" aria-hidden="true"></span>
+					                <span class="caret"></span>
+					                <span class="sr-only">Split button!</span>
+							    </button>
+							    <ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupDrop1" id="panel-fontsize">
+							      <li><a class="dropdown-item" href="#">10</a></li>
+							      <li><a class="dropdown-item" href="#">11</a></li>
+							      <li><a class="dropdown-item" href="#">12</a></li>
+							      <li><a class="dropdown-item" href="#">14</a></li>
+							      <li><a class="dropdown-item" href="#">16</a></li>
+							      <li><a class="dropdown-item" href="#">18</a></li>
+							      <li><a class="dropdown-item" href="#">20</a></li>
+							      <li><a class="dropdown-item" href="#">24</a></li>							      
+							    </ul>
+							</div>
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="About Bio-DSL Syntax" id="panel-about">
+								<i class="glyphicon glyphicon-info-sign" style="font-size:20px;"></i>
+							</button>
+							
+  							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="panel-fullscreen">
+								<i class="glyphicon glyphicon-resize-full" style="font-size:20px;"></i>
+							</button>
 						</div>
 					</div>
 				</div>
@@ -834,6 +854,14 @@ text {
                 e.preventDefault();
    				window.open("static/biodsl-help.html#syntax", '_blank');
             });
+            
+            $("#panel-fontsize a").on('click', function (e) {
+                e.preventDefault();
+   				
+   				editor.setFontSize($(e.target).text() + 'pt');
+            });
+            
+            
         });
         
     });
@@ -2261,11 +2289,7 @@ return mapperEditor;
             }
             
             self.statusIcon = function(status){
-            	if (status == "STARTED")
-            		return "{{ url_for('static', filename='spinner.gif') }}";
-            	else if (status == "PENDING")
-            		return "{{ url_for('static', filename='spinner.gif') }}";
-            	else if (status == "RECEIVED")
+            	if (status == "STARTED" || status == "PENDING" || status == "RECEIVED")
             		return "{{ url_for('static', filename='spinner.gif') }}";
             	else if (status == "FAILURE")
                 	return "{{ url_for('static', filename='cancel.gif') }}";

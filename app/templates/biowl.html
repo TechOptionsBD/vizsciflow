@@ -256,13 +256,17 @@ text {
 					<div class="row menu_button"
 						data-bind="qTipDs:name, event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 						style="width: 100%">
-						<div style="vertical-align: middle;">
+						<div class="col-md-auto" style="vertical-align: middle;">
 							<input type="checkbox" style="margin-left: 10px;"
 								data-bind="checked: selected" /> <img
 								style="vertical-align: middle" width="16px" height="16px"
 								data-bind="attr:{src: statusImg}" /> <span
 								data-bind="text: name" style="width: 100%; margin: 0"></span>
 						</div>
+						
+							<div class="col" style="float: right;">
+								<span data-bind="text: modified" style="text-align: right"></span>
+							</div>
 					</div>
 				</div>
 			</div>
@@ -286,7 +290,7 @@ text {
 							    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							      <span class="glyphicon glyphicon-text-size" aria-hidden="true"></span>
 					                <span class="caret"></span>
-					                <span class="sr-only">Split button!</span>
+					                <span class="sr-only">Text size</span>
 							    </button>
 							    <ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupDrop1" id="panel-fontsize">
 							      <li><a class="dropdown-item" href="#">10</a></li>
@@ -2312,6 +2316,7 @@ return mapperEditor;
                         self.items.push({
                         	id: ko.observable(s.id),
                             name: ko.observable(s.name),
+                            modified:ko.observable(s.modified),
                             status: ko.observable(s.status),
                             statusImg: ko.observable(self.statusIcon(s.status)),
                             selected: ko.observable($.inArray(s.id, selectedIds) !== -1)

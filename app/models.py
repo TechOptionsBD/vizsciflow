@@ -905,8 +905,8 @@ class Runnable(db.Model):
             'status': self.status,
             'err': err,
             'duration': self.duration,
-            'created_on': self.created_on.strftime("%Y-%m-%d %H:%M:%S") if self.created_on else '',
-            'modified_on': self.modified_on.strftime("%Y-%m-%d %H:%M:%S") if self.modified_on else ''
+            'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '',
+            'modified_on': self.modified_on.strftime("%d-%m-%Y %H:%M:%S") if self.modified_on else ''
         }
         
     def to_json_log(self):
@@ -929,6 +929,7 @@ class Runnable(db.Model):
         return {
             'id': self.id,
             'name': self.workflow.name,
+            'modified': self.modified_on.strftime("%d-%m-%Y %H:%M:%S") if self.modified_on else '',
             'status': self.status
         }
         

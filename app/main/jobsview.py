@@ -9,6 +9,9 @@ import pathlib
 import mimetypes
 import pip
 import ast
+from datetime import timedelta
+from datetime import datetime
+
 import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
@@ -312,7 +315,15 @@ def graphs():
     return json.dumps({})
 
 def get_user_status(user_id):
-    return jsonify(runnables =[i.to_json_info() for i in Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.id.desc())])
+    logs = []
+    runnables = Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.id.desc())
+    for r in runnables:
+        log = r.to_json_info()
+        if (r.created_on + timedelta(minutes=5) > datetime.utcnow()):
+            log['recent'] = 'true'
+        logs.append(log)
+        
+    return jsonify(runnables = logs)
 
 def get_task_status(task_id):
     runnable = Runnable.query.get(task_id)

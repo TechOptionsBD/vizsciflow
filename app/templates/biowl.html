@@ -254,7 +254,7 @@ text {
 					style="max-height: 200px; width: 100%; overflow-y: scroll;"
 					data-bind="foreach: items">
 					<div class="row menu_button"
-						data-bind="qTipDs:name, event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+						data-bind="qTipDs:name, event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
 						style="width: 100%">
 						<div class="col-md-auto" style="vertical-align: middle;">
 							<input type="checkbox" style="margin-left: 10px;"
@@ -1223,7 +1223,9 @@ function typeInTextarea(el, newText) {
      			},
 	            position: {
 	                my: 'left top',
-	                at: 'bottom left'
+	                at: 'bottom left',
+	                viewport: $(window),
+	                effect: false
 	            }
 	        });
 	        //ko.applyBindingAccessorsToNode(element, {visible: valueAccessor()});
@@ -1280,7 +1282,9 @@ function typeInTextarea(el, newText) {
      			},
 	            position: {
 	                my: 'left top',
-	                at: 'bottom left'
+	                at: 'bottom left',
+	                viewport: $(window),
+	                effect: false
 	            }
 	        });
 	    },
@@ -1323,7 +1327,9 @@ function typeInTextarea(el, newText) {
      			},
 	            position: {
 	                my: 'left top',
-	                at: 'bottom left'
+	                at: 'bottom left',
+	                viewport: $(window),
+	                effect: false
 	            }
 	        });
 	    },
@@ -2318,6 +2324,7 @@ return mapperEditor;
                             name: ko.observable(s.name),
                             modified:ko.observable(s.modified),
                             status: ko.observable(s.status),
+                            recent: ko.observable(s.recent !== undefined),
                             statusImg: ko.observable(self.statusIcon(s.status)),
                             selected: ko.observable($.inArray(s.id, selectedIds) !== -1)
                         });

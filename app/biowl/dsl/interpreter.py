@@ -205,14 +205,14 @@ class Interpreter(object):
         try:
             t = ast.literal_eval(str_value)
             if type(t) in [int, float, bool, complex]:
-                if t in set((True, False)):
-                    return bool(str_value)
                 if type(t) is int:
                     return int(str_value)
                 if type(t) is float:
                     return float(t)
                 if type(t) is complex:
                     return complex(t)
+                if t in set((True, False)):
+                    return bool(str_value)
             else:
                 if len(str_value) > 1:
                     if (str_value.startswith("'") and str_value.endswith("'")) or (str_value.startswith('"') and str_value.endswith('"')):

@@ -588,10 +588,10 @@ text {
     </div>
     
 </div>
-<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 480px; height: 620px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
+<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 480px; height: 700px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3 id="addSampleDialogLabel">Add Workflow</h3>
+        <h4 id="addSampleDialogLabel">Add Workflow</h4>
     </div>
     <div class="modal-body">
         <form class="form-horizontal">
@@ -757,6 +757,32 @@ text {
         <button data-bind="click: login" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Sign In</button>
     </div>
 </div>
+
+<div class="modal fade" id="save-needed" tabindex="-1" role="dialog" aria-labelledby="saveNeededModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                       <span aria-hidden="true">&times;</span>
+                       <span class="sr-only">Close</span>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <h4 class="modal-title" id="saveNeededModalLabel">
+                    You must save the workflow before running it. Do you want to save it now?
+                </h4>
+            </div>
+            <div class="modal-footer">
+                 <button type="button" class="btn btn-default" data-dismiss="modal" id="save-needed-yes" data-dismiss="modal">Yes</button>
+                 <button type="button" class="btn" data-dismiss="modal">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -1180,10 +1206,6 @@ function typeInTextarea(el, newText) {
 				style: {
                 	classes: 'qtip-bootstrap'
             	},
-// 	            content: {
-// 					title: viewModel.name(),
-// 					text: "<p>" + viewModel.desc() + "  " + serviceHelpRef(viewModel.href()) + "</p><p>" + viewModel.example() +  "</p><p>Double click to insert into code editor.</p>"
-// 				},
 				content: {
 	                text: function(event, api) {
 	                    $.ajax({
@@ -1196,22 +1218,22 @@ function typeInTextarea(el, newText) {
 	                        }
 	                        else {
 		                        content = JSON.parse(content);
-		                        content = "<p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
+		                        tooltip = "<p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
 		                        +"<p>Example: " + content.example + (content.example2.length ? "<br>Example2: " + content.example2 : '') + (content.returns.length ? "<br>Returns: " + content.returns : '') + "</p>"
 		                        
-		                        var descHref = (content.desc && content.desc.length ? "Desc: " + content.desc : "") + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : "") 
+		                        var descHref = (content.desc && content.desc.length ? "Desc: " + content.desc : "") + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : ""); 
 		                        if (descHref !== undefined && descHref.length) {
-		                        	content += "<p>" + descHref + "</p>";
+		                        	tooltip += "<p>" + descHref + "</p>";
 		                        }
-		                        content += "<p>Double click to insert into code editor</p>";
+		                        //tooltip += '<p>Double click item to <a href="#" onclick="return tasksViewModel.copyToEditor(\\' + viewModel);">insert into code editor</a>.</p>';
 	                        }
-	                        api.set('content.text', content);
+	                        api.set('content.text', tooltip);
 	                    }, function(xhr, status, error) {
 	                        // Upon failure... set the tooltip content to error
 	                        api.set('content.text', status + ': ' + error);
 	                    });
 	        
-	                    return ''; // Set some initial text
+	                    //return ''; // Set some initial text
 	                }
 	            },
 				show: {
@@ -1244,10 +1266,6 @@ function typeInTextarea(el, newText) {
 				style: {
                 	classes: 'qtip-bootstrap'
             	},
-// 	            content: {
-// 					title: viewModel.name(),
-// 					text: "<p>" + viewModel.desc() + "</p><p>Double click to insert into code editor.</p>"
-// 				},
 				content: {
 	                text: function(event, api) {
 	                    $.ajax({
@@ -1260,11 +1278,11 @@ function typeInTextarea(el, newText) {
 	                        }
 	                        else {
 		                        content = JSON.parse(content);
-		                        content = "<p>Name: " + content.name + "<br>Owner: " + content.user + "<br>Public: " + content.public + "</p>"
+		                        tooltip = "<p>Name: " + content.name + "<br>Owner: " + content.user + "<br>Public: " + content.public + "</p>"
 		                        +"<p>Desc: " + content.desc + "</p>"
 		                        + "<p>Double click to insert into code editor</p>";
 	                        }
-	                        api.set('content.text', content);
+	                        api.set('content.text', tooltip);
 	                    }, function(xhr, status, error) {
 	                        // Upon failure... set the tooltip content to error
 	                        api.set('content.text', status + ': ' + error);
@@ -1684,6 +1702,15 @@ function typeInTextarea(el, newText) {
              if (!script && !workflowId) // || editor.session.getUndoManager().isClean())
            	 	return; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
            	
+           	if (!workflowId){
+           		centerDialog($('#save-needed'));
+                $('#save-needed').modal('show')
+                .on('click', '#save-needed-yes', function(e) {
+           			samplesViewModel.beginAdd();
+           	    });
+       		  return;
+           	}
+           	
            	var formdata = new FormData();
              
              formdata.append('workflowId', parseInt(workflowId));
@@ -2015,8 +2042,8 @@ return mapperEditor;
             var self = this;
             self.samplesURI = '/samples';
             
-            self.name = ko.observable();
-            self.desc = ko.observable();
+            self.name = ko.observable("No Name");
+            self.desc = ko.observable("No Description");
             self.access = ko.observable("2");
             self.users = ko.observable();
 
@@ -2044,6 +2071,12 @@ return mapperEditor;
                 }
 
                 ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
+                	if (!$.isEmptyObject(data)) {
+                		data = JSON.parse(data);
+                 		workflowId = data.id;
+                 		editor.session.getUndoManager().markClean();
+                 	}
+                	
                 	samplesViewModel.load();
                 });
             }

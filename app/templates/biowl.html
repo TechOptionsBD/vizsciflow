@@ -1225,7 +1225,7 @@ function typeInTextarea(el, newText) {
 		                        if (descHref !== undefined && descHref.length) {
 		                        	tooltip += "<p>" + descHref + "</p>";
 		                        }
-		                        //tooltip += '<p>Double click item to <a href="#" onclick="return tasksViewModel.copyToEditor(\\' + viewModel);">insert into code editor</a>.</p>';
+		                        tooltip += "<p>Double click item to insert into code editor.</p>";
 	                        }
 	                        api.set('content.text', tooltip);
 	                    }, function(xhr, status, error) {

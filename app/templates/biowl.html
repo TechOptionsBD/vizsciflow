@@ -282,7 +282,10 @@ text {
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="New Workflow" id="newwf" onclick="samplesViewModel.newwf()">
 								<i class="glyphicon glyphicon-asterisk" style="font-size:20px;"></i>
 							</button>
-							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" onclick="samplesViewModel.beginAdd()">
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" data-bind="click: updateWorkflow.bind(true)">
+								<i class="glyphicon glyphicon-floppy-disk" style="font-size:20px;"></i>
+							</button>
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save As Workflow..." id="saveaswf" onclick="samplesViewModel.beginAdd()">
 								<i class="glyphicon glyphicon-floppy-save" style="font-size:20px;"></i>
 							</button>
 							
@@ -311,7 +314,9 @@ text {
 								<i class="glyphicon glyphicon-resize-full" style="font-size:20px;"></i>
 							</button>
 						</div>
+						<h5 id='script-name'></h5>
 					</div>
+					
 				</div>
 					<div class="panel-body" style="">
 						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px">
@@ -339,7 +344,7 @@ text {
 						<button class="btn pull-left btn-primary"
 							style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
 						<button class="btn pull-left btn-primary"
-							style="margin-right: 5px;" data-bind="click: clearEditor">Clear</button>
+							style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
 						<button class="btn pull-left btn-primary"
 							style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
 						<label class="checkbox-inline"><input type="checkbox"
@@ -588,7 +593,7 @@ text {
     </div>
     
 </div>
-<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 480px; height: 700px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
+<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 580px; height: 700px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 id="addSampleDialogLabel">Add Workflow</h4>
@@ -1226,6 +1231,7 @@ function typeInTextarea(el, newText) {
 		                        	tooltip += "<p>" + descHref + "</p>";
 		                        }
 		                        tooltip += "<p>Double click item to insert into code editor.</p>";
+		                        //tooltip += '<p>Double click item to <a href="#" onclick="return tasksViewModel.copyToEditor(' + viewModel + ');">insert into code editor</a>.</p>';
 	                        }
 	                        api.set('content.text', tooltip);
 	                    }, function(xhr, status, error) {
@@ -1288,7 +1294,7 @@ function typeInTextarea(el, newText) {
 	                        api.set('content.text', status + ': ' + error);
 	                    });
 	        
-	                    return ''; // Set some initial text
+	                    //return ''; // Set some initial text
 	                }
 	            },
 				show: {
@@ -1332,8 +1338,7 @@ function typeInTextarea(el, newText) {
 	                        // Upon failure... set the tooltip content to error
 	                        api.set('content.text', status + ': ' + error);
 	                    });
-	        
-	                    return ''; // Set some initial text
+	                    //return ''; // Set some initial text
 	                }
 	            },
 				show: {
@@ -1661,10 +1666,6 @@ function typeInTextarea(el, newText) {
 	             $("#duration").text("0s");
 	             $("#execstatus").text("");
         	}
-         self.clearEditor = function() {
-             editor.session.setValue("");
-             self.clearResults();
-         }
 
          self.updateTask = function(task, newTask) {
              var i = self.tasks.indexOf(task);
@@ -1697,18 +1698,24 @@ function typeInTextarea(el, newText) {
         	 window.open("static/biodsl-help.html#services", '_blank');
          }
          
-         self.updateWorkflow = function() {
+         self.updateWorkflow = function(save) {
              var script = $.trim(editor.getSession().getValue());
              if (!script && !workflowId) // || editor.session.getUndoManager().isClean())
            	 	return; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
            	
            	if (!workflowId){
-           		centerDialog($('#save-needed'));
-                $('#save-needed').modal('show')
-                .on('click', '#save-needed-yes', function(e) {
+           		
+           		if (save) {
            			samplesViewModel.beginAdd();
-           	    });
-       		  return;
+           		}
+           		else {
+	           		centerDialog($('#save-needed'));
+	                $('#save-needed').modal('show')
+	                .on('click', '#save-needed-yes', function(e) {
+	           			samplesViewModel.beginAdd();
+	           	    });
+           		}
+           		return;
            	}
            	
            	var formdata = new FormData();
@@ -1719,6 +1726,7 @@ function typeInTextarea(el, newText) {
              ajaxcalls.form(self.tasksURI, 'POST', formdata, false).done(function(data) {
              	if (!$.isEmptyObject(data)) {
              		workflowId = parseInt(data['workflowId']);
+             		$('#script-name').text(data['name']);
              		editor.session.getUndoManager().markClean();
              	}
              });
@@ -1920,16 +1928,20 @@ function typeInTextarea(el, newText) {
            
            self.newwf = function() {
         	   workflowId = 0;
+        	   $('#script-name').text('New script*');
         	   editor.session.setValue("");
         	   $('#args').val('');
            }
            
            self.beginAdd = function() {
-               script = editor.getSession().getValue();
-               if (script.length > 0)
-               {
-                   self.sampleViewModel.getCodeEditor().setValue(script, 1);
-               }
+        	   var script = editor.getSession().getValue();
+        	   if (script.length > 0) {
+        		   self.sampleViewModel.getCodeEditor().setValue(script, 1);
+        		}
+        	   var scriptname = $('#script-name').text();
+        	   if (scriptname.length > 0) {
+        		   self.sampleViewModel.name(scriptname);
+        	   }
                centerDialog($('#addSample'));
                $('#addSample').modal('show');
            }
@@ -1955,7 +1967,8 @@ function typeInTextarea(el, newText) {
                    editor.session.insert(pos, data['script']);//.join('\r\n'));
                    editor.focus();
                    workflowId = item.id();
-            	   
+                   $('#script-name').text(item.name());
+                   
                }).fail(function(jqXHR) {
                    showXHRText(jqXHR);
                });
@@ -2074,6 +2087,7 @@ return mapperEditor;
                 	if (!$.isEmptyObject(data)) {
                 		data = JSON.parse(data);
                  		workflowId = data.id;
+                 		$('#script-name').text(data.name);
                  		editor.session.getUndoManager().markClean();
                  	}
                 	

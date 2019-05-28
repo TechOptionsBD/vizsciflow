@@ -90,7 +90,9 @@ class Interpreter(object):
         Execute a for expression.
         :param expr:
         '''
-        self.run_multstmt(lambda: self.eval(expr))
+        from app import app
+        with app.app_context():
+            self.run_multstmt(lambda: self.eval(expr))
     
     def run_multstmt(self, f):
         self.context.append_local_symtab()

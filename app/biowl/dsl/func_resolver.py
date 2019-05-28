@@ -185,8 +185,6 @@ class Library():
                         funcs[name.lower()].extend([func])
                     else:
                         funcs[name.lower()] = [func]
-        except Exception as e:
-            s = str(e)
         finally:
             return funcs
     
@@ -209,8 +207,10 @@ class Library():
     @staticmethod
     def check_library_function(funcs, name, package = None):
         if package and name.lower() in funcs:
-            func = next((x for x in funcs[name.lower()] if x.package == package), None)
-            return func != None
+            for func in funcs[name.lower()]:
+                if func.package == package:
+                    return True
+            return False
         else:
             return name.lower() in funcs
     
@@ -330,7 +330,7 @@ class Library():
             elif function.lower() == "basename":
                 result = os.path.basename(arguments[0])
             elif function.lower() == "getdatatype":
-                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
+                DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 extension = pathlib.Path(arguments[0]).suffix
                 result = extension[1:] if extension else extension

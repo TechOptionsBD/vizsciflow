@@ -181,7 +181,7 @@ class PosixFileSystem(BaseFileSystem):
     
     def get_files(self, path):
         path = self.normalize_path(path)
-        return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        return [self.strip_root(os.path.join(path, f)) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
     
     def get_folders(self, path):
         path = self.normalize_path(path)

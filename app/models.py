@@ -851,7 +851,7 @@ class Runnable(db.Model):
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
     
-    tasks = db.relationship('Task', backref='runnable', order_by="asc(Task.id)", lazy=True, cascade="all,delete-orphan") 
+    tasks = db.relationship('Task', backref='runnable', order_by="asc(Task.id)", lazy='subquery', cascade="all,delete-orphan") 
     
     def updateTime(self):
         try:

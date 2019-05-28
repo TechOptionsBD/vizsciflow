@@ -23,61 +23,71 @@ The keywords of Bio-DSL are listed below:
     <th>Example</th>
   </tr>
   <tr>
-    <td>Conditional</td>
-    <td><font color="green">if</font></td>
-    <td><font color="green">if</font> condition:
-    </td>
+    <td>Conditional</td><td><font color="green">if</font></td><td><pre><code class="python">
+for f in GetFiles('/public/MiSeq_SOP'):
+    if GetDataType(f) == 'fastq':
+        fq_html = fastqc.CheckQuality(f)
+</code></pre></td>
   </tr>
+
   <tr>
-	  <td>Iteration</td>
-	  <td><font color="green">for ... in </font></td>
-	  <td><font color="green">for</font>v <font color="green">in</font> []:
-      </td>
+     <td>Iteration</td> <td><font color="green">for ... in </font></td> <td><pre><code class="python">
+for f in GetFiles('/public/MiSeq_SOP'):
+    if GetDataType(f) == 'fastq':
+        fq_html = fastqc.CheckQuality(f)
+</code></pre>
+</td>
   </tr>
   <tr>
   	<td>Parallelization</td>
-  	<td><font color="green">parallel ... with</font></td>
-  	<td><font color="green">parallel</font>:<br>
-  	<font color="green">with</font>:<br>
-  	<font color="green">with</font>:
+  	<td><font color="green">parallel ... with</font></td><td><pre><code class="python">
+datas = ['/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq']
+parallel:
+    fq_html = fastqc.CheckQuality(datas[0])
+with:
+    fq_html = fastqc.CheckQuality(datas[1])</code></pre></td>
   </tr>
   <tr>
-  	<td>Subworkflow</td>
-  	<td><font color="green">task</font></td>
-  	<td><font color="green">task</font>[name]([param1[, param2 ...]]):<br>
-  	<span>An anonymous task without name is called at once. Named tasks are called from somewhere else.</span>
+  	<td>Subworkflow</td><td><font color="green">task</font></td><td><pre><code class="python">
+task AlignSequences(ref, data, data2):
+    CheckQuality(data)
+    CheckQuality(data2)
+
+    data = pear.Merge(data, data2)
+    data = bwa.Align(ref, data)
+    data = SamToBam(data)
+    return data
+
+AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq')
+</code></pre></td>
   </tr>
+  <tr>
+        <td/><td/><td>An anonymous task without name is called at once. Named tasks are called from somewhere else.</td>
+    </tr>
 </table>
 
 
 <h3><a name="syntax">Syntax:</a></h3>
 Bio-DSL uses simple pythonic syntax and indenting. Advanced syntaxes like lambda, class, iterators, generators, annotation are not allowed. Here is a complete example of a Bio-DSL script:
 <p>Like Python, Bio-DSL is structured with <a href="">indentation</a> i.e. the statements within a block line up vertically. The block ends at a line less indented or the end of the file. If a block has to be more deeply nested, it is simply indented further to the right.</p>
-Here is an Bio-DSL indenting example:
+Here is a Bio-DSL indenting example:
 <pre><code class="python">
-
 task AlignSequences(ref, data, data2):
-	CheckQuality(fseq)
-	CheckQuality(rseq)
-	
-	data = Merge(data, data2)
-	data = Align(ref, data)
-	if GetDataType(data) == 'sam':
-		data = SamToBam(data)
-	return data
-	
-parallel:
-	data1 = AlignSequence('/public/.', '', '')
-with:
-	data2 = AlignSequence('/public/.', '', '')
-with:
-	data3 = AlignSequence('/public/.', '', '')
+    CheckQuality(data)
+    CheckQuality(data2)
+
+    data = pear.Merge(data, data2)
+    data = bwa.Align(ref, data)
+    data = SamToBam(data)
+    return data
+
+AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq')
 </code></pre>
 
 <p>Bio-DSL is a dynamic language. The type of a literal is inferred from the value. For example:</p>
 <table>
 <tr>
-<td>Integer</td>
+<td>Integer </td>
 <td>i = 10</td>
 </tr>
 <tr>
@@ -94,8 +104,7 @@ with:
 <h3>The Bio-DSL <a name="webui">web interface</a></h3>
 The domain experts can use Bio-DSL web interface to quickly create a workflow. The IDE looks as below:
 <img alt>
-
-
+<p>
 A typical set of events are:
 <ul>
 	<li>Search the desired service from the Services panel to the right.</li>
@@ -106,12 +115,13 @@ A typical set of events are:
 	<li>Run the workflow from command panel.</li>
 	<li>An item is added to the left-bottom panel for the execution job. Check it for automatic status update of each step or double click for instant load.</li>
 </ul>
+</p>
 
 <h3><a name="datasources">Data Sources Panel</a></h3>
 <p>
 This is the left-top panel of the user interface. It lists all the data items available from different file systems (posix, galaxy, hdfs). The public folder of each file system is available to all users for read access. Another folder named as username is available for read-write accesses. The generated files during workflow execution are usually found in this folder.
 </p>
-<p>To insert a data item into the code editor, first remove the argument name from the service call and then double click the data item.</p>
+<p>To insert a data item into the code editor, first remove the argument name from the service call and then click right button on the item and select "To Editor".</p>
 
 <h4>Data Source Toolbar</h4>
 There is a small toolbar on top of data source panel.
@@ -125,7 +135,7 @@ There is a small toolbar on top of data source panel.
 	<li>About: Opens the help page.</li>
 </ul>
 
-<p>Sometimes, you may need to insert the selected data item in the arguments box. Right click on the selected item and press "Copy to args" item.</p>
+<p>Sometimes, you may need to insert the selected data item in the arguments box. Right click on the selected item and press "To args" context menu item.</p>
 
 <h3><a name="services">Services Panel</a></h3>
 The services/tools for the workflows are listed on the right-top corner of the UI. There are 3 different access modes for the service.

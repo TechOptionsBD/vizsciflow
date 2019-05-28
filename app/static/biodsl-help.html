@@ -121,6 +121,7 @@ A typical set of events are:
 <p>
 This is the left-top panel of the user interface. It lists all the data items available from different file systems (posix, galaxy, hdfs). The public folder of each file system is available to all users for read access. Another folder named as username is available for read-write accesses. The generated files during workflow execution are usually found in this folder.
 </p>
+<img alt="Data Sources" src="biodsl-datasources.png" />
 <p>To insert a data item into the code editor, first remove the argument name from the service call and then click right button on the item and select "To Editor".</p>
 
 <h4>Data Source Toolbar</h4>
@@ -138,6 +139,7 @@ There is a small toolbar on top of data source panel.
 <p>Sometimes, you may need to insert the selected data item in the arguments box. Right click on the selected item and press "To args" context menu item.</p>
 
 <h3><a name="services">Services Panel</a></h3>
+<img alt="Services" src="biodsl-services.png" />
 The services/tools for the workflows are listed on the right-top corner of the UI. There are 3 different access modes for the service.
 <ol>
 	<li>Public: Accessible by all users.</li>
@@ -148,6 +150,7 @@ The services/tools for the workflows are listed on the right-top corner of the U
 
 <h4><a name="addservice">Add New Service</a></h4>
 <p>Experienced users can extend the capabilities of the system by adding new services to it. They can write a new python module or call external program from python code.</p>
+<img alt="Add New Service" src="biodsl-addservice.png" />
 In the service pane, the "+" button opens the dialog for Service Mapping. There is a coding tab to write the service code and a JSON tab to map the python code with DSL vocabulary. Here is a lean and thin service code:
 
 <pre><code class="python">
@@ -186,13 +189,16 @@ Here is a typical json mapper of the above service. Only one of name or internal
 </code>
 </pre>
 
-The new service is by default private. If can be shared to specific users or to all.
+The new service is by default private. It can be shared to specific users or to all.
 
 <h3><a name="workflows">Workflows Panel</a></h3>
 <p>The right-bottom panel lists the saved workflows of the system. Workflows can be public, private or shared. New workflows can be saved by clicking the "+" button.</p>
+<img alt="Workflows" src="biodsl-workflows.png">
 
 <h3><a name="jobs">Job Histories Panel</a></h3>
-<p>The left-bottom panel lists all the workflow instances run by this user. You can stop currently running workflows. </p>
+<p>The left-bottom panel lists all the workflow instances run by this user. You can stop currently running workflows.</p>
+<img alt="Job Histories" src="biodsl-jobhistories.png">
+<p>Newer jobs are shown on the top. Jobs which were modified in the last 5 minutes are shown red colored.</p> 
 <p>Double click an item to display the status information of workflow execution.</p>
 <p>If you check a single running job, the incremental execution status of each step is shown on the report viewer.</p>
 

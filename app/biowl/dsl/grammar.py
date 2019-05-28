@@ -153,7 +153,7 @@ class PythonGrammar(BasicGrammar):
         self.compoundstmt = Group(myIndentedBlock(self.stmt, self.indentStack, True).setParseAction(self.parseCompoundStmt))
         self.ifstmt = Group(Suppress("if") + self.logexpr  + Suppress(":") + self.compoundstmt + Optional((Suppress("else") + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['ELSE'] + t.asList()))).setParseAction(lambda t : ['IF'] + t.asList())
         self.forstmt = Group(Suppress("for") + self.identifier("var") + Suppress("in") + Group(self.expr("range"))  + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['FOR'] + t.asList())
-        self.parstmt = Group(Suppress("parallel") + Suppress(":") + self.compoundstmt + ZeroOrMore(Suppress("with:") + self.compoundstmt)).setParseAction(lambda t : ['PAR'] + t.asList())
+        self.parstmt = Group(Suppress("parallel") + Suppress(":") + self.compoundstmt + OneOrMore(Suppress("with:") + self.compoundstmt)).setParseAction(lambda t : ['PAR'] + t.asList())
         self.lockstmt = (Suppress("lock") + Suppress(self.lpar) + self.identifier + Suppress(self.rpar) + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['LOCK'] + t.asList())
         self.taskdefstmt = (Suppress("task") + Optional(self.identifier, None) + Suppress("(")  + Group(Optional(self.params)) + Suppress(")") + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['TASK'] + t.asList())         
         super().build_program()                                 

@@ -87,27 +87,6 @@ class SymbolTable():
         '''
         return [{k:v} for k,v in self.funcs.items() if k.split(',')[0] == module_name]     
     
-    def get_modbyinternalname(self, internal_name):
-        '''
-        Get a module name by internal_name
-        :param internal_name:
-        '''
-        for k, v in self.funcs.items():
-            mod_func = split(k)
-            if mod_func[1] == funcname:
-                return mod_func[0]
-            
-    def get_module_by_funcname(self, func_name):
-        '''
-        Get module name by the function name.
-        :param func_name:
-        '''
-        for k, v in self.funcs.items():
-            if v[0] == func_name:
-                mod_func = k.split(',')
-                return mod_func[0]
-        raise ValueError("Function {0} does not exist.".format(func_name))
-        
     def __str__(self):
         '''
         A string representation of this table.
@@ -199,6 +178,8 @@ class Context:
         self.err = []
         self.dci = []
         self.globals = {}
+        self.ident = threading.get_ident()
+        self.symtabs = [SymbolTable()]
         
     def get_var(self, name):
         '''
@@ -209,8 +190,14 @@ class Context:
             for s in reversed(self.symtab_stack[threading.get_ident()]):
                 if s.var_exists(name):
                     return s.get_var(name)
+        for s in reversed(self.symtabs):
+            if s.var_exists(name):
+                return s.get_var(name)
     
     def add_var(self, name, value):
+        if threading.get_ident() == self.ident:
+            return self.symtabs[-1].add_var(name, value)
+             
         if not threading.get_ident() in self.symtab_stack:
             self.symtab_stack[threading.get_ident()] = [SymbolTable()]
         return self.symtab_stack[threading.get_ident()][-1].add_var(name, value)
@@ -218,6 +205,10 @@ class Context:
     def update_var(self, name, value):
         if threading.get_ident() in self.symtab_stack:
             for s in reversed(self.symtab_stack[threading.get_ident()]):
+                if s.var_exists(name):
+                    return s.update_var(name, value)
+        if threading.get_ident() == self.ident:
+            for s in reversed(self.symtabs):
                 if s.var_exists(name):
                     return s.update_var(name, value)
     
@@ -236,11 +227,19 @@ class Context:
             for s in reversed(self.symtab_stack[threading.get_ident()]):
                 if s.var_exists(name):
                     return True
+                
+        for s in reversed(self.symtabs):
+            if s.var_exists(name):
+                return True
     
     def append_local_symtab(self):
         '''
         Appends a new symbol table to the symbol table stack.
         '''
+        if self.ident == threading.get_ident():
+            self.symtabs.append(SymbolTable())
+            return self.symtabs[-1]
+            
         if threading.get_ident() in self.symtab_stack:
             self.symtab_stack[threading.get_ident()].append(SymbolTable())
         else:
@@ -256,6 +255,9 @@ class Context:
                 self.symtab_stack[threading.get_ident()].pop()
                 if not self.symtab_stack[threading.get_ident()]: # no symbol table, remove the entry
                     del self.symtab_stack[threading.get_ident()]
+        
+        if self.ident == threading.get_ident():
+            self.symtabs.pop()
         
     def load_library(self, library_def_dir_or_file):
         self.library = Library.load(library_def_dir_or_file)

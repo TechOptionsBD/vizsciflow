@@ -142,7 +142,27 @@ text {
     bottom: 0;
     left: 0;
 }
-    
+
+.toolbar-icon {
+	font-size:20px;
+}
+
+.radio-inline {
+  font-size: 20px;
+}
+
+.checkbox-inline {
+  font-size: 20px;
+}
+
+.nav-tabs li a {font-size:20px;}
+
+.report-header {
+	font-size:20px
+}
+/* input[type=radio] {
+	transform:scale(1.5);
+} */
 </style>
 
 {% endblock %}
@@ -155,7 +175,7 @@ text {
 				<div class="panel-heading">
 					<div class="row">
 						<div>
-							<h5 class="col-sm-6">Data Sources</h5>
+							<h4 class="col-sm-6">Data Sources</h4>
 						</div>
 					</div>
 
@@ -169,35 +189,35 @@ text {
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="About"
 								data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign"></i>
+								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Reload"
 								data-bind="click: load.bind($data, true)">
-								<i class="glyphicon glyphicon-refresh"></i>
+								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Download"
 								data-bind="click: download">
-								<i class="glyphicon glyphicon-download"></i>
+								<i class="glyphicon glyphicon-download toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="modal"
 								data-placement="top" title="Upload"
 								data-bind="click: beginFileUpload">
-								<i class="glyphicon glyphicon-upload"></i>
+								<i class="glyphicon glyphicon-upload toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="modal"
 								data-placement="top" title="Rename"
 								data-bind="click: beginRename">
-								<i class="glyphicon glyphicon-edit"></i>
+								<i class="glyphicon glyphicon-edit toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Delete Folder/File" data-bind="click: remove">
-								<i class="glyphicon glyphicon-minus"></i>
+								<i class="glyphicon glyphicon-minus toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Add Folder" data-bind="click: addFolder, clickBubble: false">
-								<i class="glyphicon glyphicon-plus"></i>
+								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 							</button>
 						</div>
 						<input class="form-control" type="text" placeholder="Search…"
@@ -213,7 +233,7 @@ text {
 				<div class="panel-heading">
 					<div class="row">
 						<div>
-							<h5 class="col-sm-6">Job Histories</h5>
+							<h4 class="col-sm-6">Job Histories</h4>
 						</div>
 					</div>
 					<div class="btn-group">
@@ -221,31 +241,31 @@ text {
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="About"
 								data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign"></i>
+								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Restart Execution"
 								data-bind="click: restart">
-								<i class="glyphicon glyphicon-repeat"></i>
+								<i class="glyphicon glyphicon-repeat toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Stop Execution"
 								data-bind="click: stop">
-								<i class="glyphicon glyphicon-stop"></i>
+								<i class="glyphicon glyphicon-stop toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Reload" data-bind="click: load">
-								<i class="glyphicon glyphicon-refresh"></i>
+								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Deselect All"
 								data-bind="click: deselectAll">
-								<i class="glyphicon glyphicon-unchecked"></i>
+								<i class="glyphicon glyphicon-unchecked toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Select All"
 								data-bind="click: selectAll">
-								<i class="glyphicon glyphicon-check"></i>
+								<i class="glyphicon glyphicon-check toolbar-icon"></i>
 							</button>
 						</div>
 					</div>
@@ -275,23 +295,23 @@ text {
 				<div class="panel panel-primary" id="codeeditor" style="margin: 2px">
 				
 					<div class="panel-heading text-center">
-					<h3 class="panel-title" style="margin-bottom:10px">Bioinformatics Domain Specific Language (Bio-DSL)</h3>
+					<h4 style="margin-bottom:10px">Bioinformatics Domain Specific Language (Bio-DSL)</h4>
 					
 					<div class="btn-group">
 						<div class="btn-group-sm">
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="New Workflow" id="newwf" onclick="samplesViewModel.newwf()">
-								<i class="glyphicon glyphicon-asterisk" style="font-size:20px;"></i>
+								<i class="glyphicon glyphicon-asterisk toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" data-bind="click: updateWorkflow.bind(true)">
-								<i class="glyphicon glyphicon-floppy-disk" style="font-size:20px;"></i>
+								<i class="glyphicon glyphicon-floppy-disk toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save As Workflow..." id="saveaswf" onclick="samplesViewModel.beginAdd()">
-								<i class="glyphicon glyphicon-floppy-save" style="font-size:20px;"></i>
+								<i class="glyphicon glyphicon-floppy-save toolbar-icon"></i>
 							</button>
 							
 							<div class="btn-group" role="group">
 							    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							      <span class="glyphicon glyphicon-text-size" aria-hidden="true"></span>
+							      <span class="glyphicon glyphicon-text-size toolbar-icon" aria-hidden="true"></span>
 					                <span class="caret"></span>
 					                <span class="sr-only">Text size</span>
 							    </button>
@@ -307,11 +327,11 @@ text {
 							    </ul>
 							</div>
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="About Bio-DSL Syntax" id="panel-about">
-								<i class="glyphicon glyphicon-info-sign" style="font-size:20px;"></i>
+								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
 							
   							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="panel-fullscreen">
-								<i class="glyphicon glyphicon-resize-full" style="font-size:20px;"></i>
+								<i class="glyphicon glyphicon-resize-full toolbar-icon"></i>
 							</button>
 						</div>
 						<h5 id='script-name'></h5>
@@ -341,12 +361,12 @@ text {
 				<div class="panel panel-primary"
 					style="padding: 0px; border: 0; margin: 4px">
 					<div class="panel-body" style="padding: 0">
-						<button class="btn pull-left btn-primary"
+						<button class="btn pull-left btn-primary btn-lg"
 							style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
-						<button class="btn pull-left btn-primary"
+						<button class="btn pull-left btn-primary btn-lg"
 							style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
-						<button class="btn pull-left btn-primary"
-							style="margin-right: 5px;" data-bind="click: provenance">Provenance</button>
+						<!-- <button class="btn pull-left btn-primary"
+							style="margin-right: 5px;" data-bind="click: provenance">Provenance</button> -->
 						<label class="checkbox-inline"><input type="checkbox"
 							id="immediate">Immediate</label> <span
 							class="badge badge-primary">Time: <span id="duration"
@@ -362,8 +382,7 @@ text {
 						<li><a href="#2" data-toggle="tab">Error</a></li>
 						<li><a href="#3" data-toggle="tab">Output</a></li>
 					</ul>
-					<span class="badge badge-pill badge-primary" style="float: right"
-						id="execstatus"></span>
+					<span class="badge badge-pill badge-primary" style="float: right" id="execstatus"></span>
 					<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
 					<div class="tab-content ">
 						<div class="tab-pane fade in active" id="1">
@@ -380,9 +399,9 @@ text {
 								style="table-layout: fixed; width: 100%">
 								<thead>
 									<tr>
-										<th scope="col" align="center" width="15%">Task</th>
-										<th scope="col" align="center" width="70%">Data</th>
-										<th scope="col" align="center" width="15%">Status</th>
+										<th class="report-header" scope="col" align="center" width="15%">Task</th>
+										<th class="report-header" scope="col" align="center" width="70%" style="text-align:center;">Data</th>
+										<th class="report-header" scope="col" align="center" width="15%" style="text-align:center;">Status</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -397,11 +416,11 @@ text {
 				<div class="panel-heading">
 					<div class="row">
 						<div class="col-sm-6">
-							<h5 class="pull-left">Services</h5>
+							<h4 class="pull-left">Services</h4>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="About"
 								data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign"></i>
+								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
 						</div>
 					</div>
@@ -413,7 +432,7 @@ text {
 									class="btn btn-primary dropdown-toggle" type="button"
 									id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
 									<span
-										data-bind="text: selectedServiceAccessType() ? selectedServiceAccessType().Name : 'Access Type'"></span>
+										data-bind="text: selectedServiceAccessType() ? selectedServiceAccessType().Name : 'Access Type'" style="font-size:20px;"></span>
 									<span class="caret"></span>
 								</button>
 								<ul class="dropdown-menu" role="menu"
@@ -428,7 +447,7 @@ text {
 								<button class="btn btn-primary dropdown-toggle" type="button"
 									id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
 									<span
-										data-bind="text: selectedCategory() ? selectedCategory().Name : 'Level'"></span>
+										data-bind="text: selectedCategory() ? selectedCategory().Name : 'Level'" style="font-size:20px;"></span>
 									<span class="caret"></span>
 								</button>
 								<ul class="dropdown-menu" role="menu"
@@ -443,12 +462,12 @@ text {
 								<button style="margin-right: 10px;" class="btn btn-primary"
 									data-toggle="tooltip" data-placement="top" title="Reload"
 									data-bind="click: reload">
-									<i class="glyphicon glyphicon-refresh"></i>
+									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
 								</button>
 								<button style="margin-right: 10px;" class="btn btn-primary"
 									data-toggle="tooltip" data-placement="top" title="Add"
 									data-bind="click: beginAddLibrary">
-									<i class="glyphicon glyphicon-plus"></i>
+									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 								</button>
 							</span>
 							<input class="form-control" type="text" placeholder="Search…"
@@ -483,9 +502,9 @@ text {
 				<div class="panel-heading">
 					<div class="row">
 						<div class="col-sm-6">
-							<h5 class="pull-left">Workflows</h5>
+							<h4 class="pull-left">Workflows</h4>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About"	data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign"></i>
+								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
 						</div>
 					</div>
@@ -499,12 +518,12 @@ text {
 								<button style="margin-right: 10px;" class="btn btn-primary"
 									data-toggle="tooltip" data-placement="top" title="Reload"
 									data-bind="click: load">
-									<i class="glyphicon glyphicon-refresh"></i>
+									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
 								</button>
 								<button style="margin-right: 10px;" class="btn btn-primary"
 									data-toggle="tooltip" data-placement="top" title="Save"
 									data-bind="click: beginAdd">
-									<i class="glyphicon glyphicon-floppy-save"></i>
+									<i class="glyphicon glyphicon-floppy-save toolbar-icon"></i>
 								</button>
 							</span> 
 							<input class="form-control" type="text" placeholder="Search…"
@@ -798,6 +817,27 @@ text {
     var isDirty = false;
     var username = "{{ username }}";
 
+    function printExecStatus(status) {
+    	
+    	var statusCtrl = $('#execstatus');
+    	if (status === 'FAILURE') {
+    		statusCtrl.removeClass('badge-primary')
+    				.removeClass('badge-secondary')
+    				.addClass('badge-danger');
+    	}
+    	else if (status === 'SUCCESS') {
+    		statusCtrl.removeClass('badge-primary')
+    			.removeClass('badge-danger')
+			    .addClass('badge-secondary');
+		}
+    	else {
+    		statusCtrl.removeClass('badge-secondary')
+			.removeClass('badge-danger')
+		    .addClass('badge-primary');
+    	}
+    	statusCtrl.text(status);
+    }
+    
     $(window).on('load', function() {
 
 		 $('#tree').on("dblclick.jstree", function (e) {
@@ -1538,11 +1578,8 @@ function typeInTextarea(el, newText) {
     
     jsonArray2Table = function(table, jsonArr) {
     	$.each(jsonArr, function (index, value) {
-            /* $.each(value, function (key, val) {
-                TableRow += "<td>" + val + "</td>";
-            }) */;
-            
             var row = $('<tr></tr>');
+            
             var cell = $("<td>" + value['name'] + "</td>")
            		.css('overflow', 'hidden')
            		.css('word-wrap', 'break-word');
@@ -1576,7 +1613,16 @@ function typeInTextarea(el, newText) {
         	});
             row.append(cell);
             
-            cell = "<td>" + value['status'] + "</td>";
+            cell = $("<td>" + value['status'] + "</td>");
+            cell.css('text-align', 'center');
+            if (value['status'] === 'SUCCESS') {
+            	cell.css('background-color', 'green')
+            		.css('color', 'white');
+            }
+            else if (value['status'] === 'FAILURE') {
+            	cell.css('background-color', 'red')
+        			.css('color', 'white');
+            }
             row.append(cell);
             table.append(row);
         });
@@ -1659,13 +1705,13 @@ function typeInTextarea(el, newText) {
         	    return true;
          }
          
-        	self.clearResults = function() {
-        		$("#output").val("");
-	             $("#error").val("");
-	             $("#log tbody").empty();
-	             $("#duration").text("0s");
-	             $("#execstatus").text("");
-        	}
+       	self.clearResults = function() {
+       		$("#output").val("");
+       		$("#error").val("");
+       		$("#log tbody").empty();
+       		$("#duration").text("0s");
+       		printExecStatus("");
+       	}
 
          self.updateTask = function(task, newTask) {
              var i = self.tasks.indexOf(task);
@@ -1773,7 +1819,8 @@ function typeInTextarea(el, newText) {
                  $("#log tbody").empty();
                  jsonArray2Table($("#log"), data['log']);
                  $("#duration").text(data['duration'] + 's');
-                 $("#execstatus").text(data['status']);
+                 printExecStatus(data['status']);
+                 
                  runnablesViewModel.load();                    
              }).fail(function(jqXHR, textStatus) {
              	$('#refresh').hide();
@@ -1826,7 +1873,7 @@ function typeInTextarea(el, newText) {
                  $("#error").val(data.err);
                  $("#log tbody").empty();
                  jsonArray2Table($("#log"), data['log']);
-                 $("#execstatus").text(data['status']);
+                 printExecStatus(data['status']);
                  $("#duration").text(data.duration + 's');
              });
          }
@@ -2197,7 +2244,7 @@ return mapperEditor;
                     }
                     
                     if (data.err !== undefined && data.err.length != 0) {
-                    	$("#execstatus").text("Service cannot be added.");
+                    	printExecStatus("Service cannot be added.");
                     	activateTab(2);
                     }
                     else {
@@ -2283,7 +2330,7 @@ return mapperEditor;
 	            	$("#log tbody").empty();
 	            	jsonArray2Table($("#log"), data['log']);
 	            	$("#duration").html(data['duration'] + 's');
-	            	$("#execstatus").text(data['status']);
+	            	printExecStatus(data['status']);
             	}).fail(function(jqXHR, textStatus) {
                 	$('#refresh').hide();
                 	showXHRText(jqXHR);

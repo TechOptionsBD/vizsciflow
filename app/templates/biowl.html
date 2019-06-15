@@ -557,7 +557,7 @@ text {
 	</div>
 </div>
 
-<div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 480px; height: 640px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
+<div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 560px; height: 640px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3 id="addDialogLabel">Add Service</h3>
@@ -574,9 +574,8 @@ text {
                     <input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 200px;">
                 </div>
             	<div class="controls">
-	                <label class="control-label" for="module">Module</label>
-                    <input type="file" id="module">
-             </div>
+	                <label class="control-label" for="module">Module</label><input type="file" id="module">
+             	</div>
 
 				<div id="exTabService" class="controls">
 					<ul class="nav nav-tabs">
@@ -585,11 +584,11 @@ text {
 					</ul>
 					<div class="tab-content ">
 						<div class="tab-pane fade in active" id="service1">
-							<textarea rows="10" style="width: 460px;" id="servicescript"></textarea>
+							<textarea rows="10" style="width: 540px;" id="servicescript"></textarea>
 							<br>
 						</div>
 						<div class="tab-pane fade" id="service2">
-							<div style="width: 460px;" id="mapper"></div>
+							<div style="width: 540px;" id="mapper"></div>
 							<br>
 						</div>
 					</div>

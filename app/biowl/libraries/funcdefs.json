@@ -10,12 +10,12 @@
            "desc": "Prints one or more things.",
            "params":[  
             {  
-               "name":"expression",
+               "name":"data",
                "type":"any"
             }            
             ],
             "returns": "string[]",
-            "example": "print('Hello World!')"
+            "example": "print(data)"
        },
        {
            "org": "Python",
@@ -25,9 +25,15 @@
            "group": "System",
            "name":"len",
            "internal":"len",
-           "desc": "Gets lenght of a list or string.",
-            "returns": "integer",
-            "example": "len([])"
+           "desc": "Gets length of a list or string.",
+           "returns": "int",
+           "example": "len(data)",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"string|list"
+            }            
+            ]
        },
        {
            "org": "Python",
@@ -36,8 +42,18 @@
            "group": "System",
            "name":"range",
            "internal":"range",
-           "returns": "[]",
+           "returns": "int[]",
            "desc": "Generates a range of numbers.",
+           "params":[  
+            {  
+               "name":"start",
+               "type":"int"
+            },
+            {  
+               "name":"end",
+               "type":"int"
+            }
+            ],
            "example": "range(1, 10)"
        },
        {
@@ -50,12 +66,12 @@
            "desc": "Reads a file as bytes.",
            "params":[  
             {  
-               "name":"filename",
-               "type":"string"
+               "name":"data",
+               "type":"file"
             }            
             ],           
            "returns": "byte[]",
-           "example": "Read('/texts/test.txt')"
+           "example": "Read(data)"
        },
        {
            "org": "SRLAB",
@@ -67,15 +83,15 @@
            "desc": "Writes text data to a file.",
            "params":[  
             {  
-               "name":"filename",
-               "type":"string"
+               "name":"data",
+               "type":"file"
             },
             {  
                "name":"content",
                "type":"any"
             }              
             ],           
-           "example": "Write('/texts/test.txt', 'Text to write')"
+           "example": "Write(data, 'Text to write')"
        },
        {
            "org": "SRLAB",
@@ -87,12 +103,12 @@
            "desc": "Gets the names of files in a directory.",
            "params":[  
             {  
-               "name":"path",
-               "type":"string"
+               "name":"data",
+               "type":"folder"
             }            
             ],           
-           "returns": "string[]",
-           "example": "GetFiles('/texts')"
+           "returns": "file[]",
+           "example": "GetFiles(data)"
        },
        {
            "org": "SRLAB",
@@ -104,12 +120,12 @@
            "desc": "Gets the names of folders in a directory.",
            "params":[  
             {  
-               "name":"path",
-               "type":"string"
+               "name":"data",
+               "type":"folder"
             }            
             ],           
-           "returns": "string[]",
-           "example": "GetFolders('/')"
+           "returns": "folder[]",
+           "example": "GetFolders(data)"
        },
        {
            "org": "SRLAB",
@@ -121,11 +137,11 @@
            "desc": "Removes a file or directory.",
            "params":[  
             {  
-               "name":"path",
-               "type":"string"
+               "name":"data",
+               "type":"file|folder"
             }            
             ],           
-           "example": "Remove('/texts/test.txt')"
+           "example": "Remove(data)"
        },
        {
            "org": "SRLAB",
@@ -137,11 +153,11 @@
            "desc": "Creates a directory.",
            "params":[  
             {  
-               "name":"path",
-               "type":"string"
+               "name":"data",
+               "type":"folder"
             }            
             ],           
-           "example": "CreateFolder('/testfolder')"
+           "example": "CreateFolder(data)"
        },
        {
            "org": "SRLAB",
@@ -153,11 +169,11 @@
            "desc": "Returns true if a specified path is a file; false if it's a directory.",
            "params":[  
             {  
-               "name":"path",
-               "type":"string"
+               "name":"data",
+               "type":"file|folder"
             }            
             ],           
-           "example": "isfile('/test.txt')"
+           "example": "isfile(data)"
        },
        {
            "org": "SRLAB",
@@ -169,11 +185,11 @@
            "desc": "Truncates the path and returns only the filename.",
            "params":[  
             {  
-               "name":"path",
-               "type":"string"
+               "name":"data",
+               "type":"file"
             }            
             ],           
-           "example": "basename('/public/test.txt')"
+           "example": "basename(data)"
        },
        {
            "org": "SRLAB",
@@ -185,11 +201,11 @@
            "desc": "Truncates the file name and returns only the directory name.",
            "params":[  
             {  
-               "name":"path",
-               "type":"string"
+               "name":"data",
+               "type":"file"
             }            
             ],           
-           "example": "dirname('/public/test.txt')"
+           "example": "dirname(data)"
        },
        {
            "org": "SRLAB",
@@ -205,7 +221,7 @@
                "type":"string"
             }            
             ],           
-           "example": "typename = GetDataType(data)"
+           "example": "GetDataType(data)"
        }
 	]
 }

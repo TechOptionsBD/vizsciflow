@@ -198,3 +198,8 @@ html,body {
 .modal-body .form-horizontal .col-sm-offset-2 {
     margin-left: 15px;
 }
+
+div.navhref ul  li  a {
+	font-size: 20px; 
+	text-decoration: none;
+}

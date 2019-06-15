@@ -837,8 +837,28 @@ text {
     	statusCtrl.text(status);
     }
     
+    function copy2Editor(text, type) {
+    	 $.ajax({
+             url: text
+         })
+         .then(function(content) {
+             // Set the tooltip content upon successful retrieval
+             if (!content) {
+             	content = "";
+             }
+             else {
+                 content = JSON.parse(content);
+                 
+                 var pos = editor.selection.getCursor();             
+                 editor.session.insert(pos, type == 0 ? content.example + "\r\n": content.example2 + "\r\n");
+                 editor.focus();
+             }
+         });
+    }
+    
     $(window).on('load', function() {
 
+    	 
 		 $('#tree').on("dblclick.jstree", function (e) {
 		 	  var tree = $(this).jstree();
 		 	  var node = tree.get_node(event.target);
@@ -1244,6 +1264,7 @@ function typeInTextarea(el, newText) {
 		   return "";
 	   }
    }
+   
 	ko.bindingHandlers.qTip = {
 	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 	        $(element).qtip({
@@ -1252,8 +1273,9 @@ function typeInTextarea(el, newText) {
             	},
 				content: {
 	                text: function(event, api) {
+	                	var url = "/functions?tooltip&name=" + viewModel.name() + "&package=" + viewModel.package_name();
 	                    $.ajax({
-	                        url: "/functions?tooltip&name=" + viewModel.name() + "&package=" + viewModel.package_name()
+	                        url: url
 	                    })
 	                    .then(function(content) {
 	                        // Set the tooltip content upon successful retrieval
@@ -1263,14 +1285,22 @@ function typeInTextarea(el, newText) {
 	                        else {
 		                        content = JSON.parse(content);
 		                        tooltip = "<p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
-		                        +"<p>Example: " + content.example + (content.example2.length ? "<br>Example2: " + content.example2 : '') + (content.returns.length ? "<br>Returns: " + content.returns : '') + "</p>"
-		                        
+		                        if (content.example) {
+		                        	tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 0); return false;">Add: </a>' + content.example;	
+		                        }
+		                        if (content.example2 && content.example !== content.example2) {
+		                        	tooltip += '<br><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 1); return false;">Add: </a>' + content.example2;	
+		                        }
+		                        if (content.returns) {
+		                        	tooltip += "<br>Returns: " + content.returns;
+		                        }
+		                        tooltip += "</p>";
+		                        	
 		                        var descHref = (content.desc && content.desc.length ? "Desc: " + content.desc : "") + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : ""); 
 		                        if (descHref !== undefined && descHref.length) {
 		                        	tooltip += "<p>" + descHref + "</p>";
 		                        }
 		                        tooltip += "<p>Double click item to insert into code editor.</p>";
-		                        //tooltip += '<p>Double click item to <a href="#" onclick="return tasksViewModel.copyToEditor(' + viewModel + ');">insert into code editor</a>.</p>';
 	                        }
 	                        api.set('content.text', tooltip);
 	                    }, function(xhr, status, error) {
@@ -1282,7 +1312,7 @@ function typeInTextarea(el, newText) {
 	                }
 	            },
 				show: {
-					delay: 500
+					delay: 1000
 				},
 	            hide: {
 					delay: 0,
@@ -1337,7 +1367,7 @@ function typeInTextarea(el, newText) {
 	                }
 	            },
 				show: {
-					delay: 500
+					delay: 1000
 				},
 	            hide: {
 					delay: 0,
@@ -1381,7 +1411,7 @@ function typeInTextarea(el, newText) {
 	                }
 	            },
 				show: {
-					delay: 500
+					delay: 1000
 				},
 	            hide: {
 					delay: 0,

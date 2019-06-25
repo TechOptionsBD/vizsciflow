@@ -1782,15 +1782,16 @@ function typeInTextarea(el, newText) {
            		
            		if (save) {
            			samplesViewModel.beginAdd();
+           			return;
            		}
-           		else {
-	           		centerDialog($('#save-needed'));
-	                $('#save-needed').modal('show')
-	                .on('click', '#save-needed-yes', function(e) {
-	           			samplesViewModel.beginAdd();
-	           	    });
-           		}
-           		return;
+//            		else {
+// 	           		centerDialog($('#save-needed'));
+// 	                $('#save-needed').modal('show')
+// 	                .on('click', '#save-needed-yes', function(e) {
+// 	           			samplesViewModel.beginAdd();
+// 	           	    });
+//            		}
+           		
            	}
            	
            	var formdata = new FormData();
@@ -2004,7 +2005,7 @@ function typeInTextarea(el, newText) {
            
            self.newwf = function() {
         	   workflowId = 0;
-        	   $('#script-name').text('New script*');
+        	   $('#script-name').text('New script');
         	   editor.session.setValue("");
         	   $('#args').val('');
            }
@@ -2015,9 +2016,10 @@ function typeInTextarea(el, newText) {
         		   self.sampleViewModel.getCodeEditor().setValue(script, 1);
         		}
         	   var scriptname = $('#script-name').text();
-        	   if (scriptname.length > 0) {
-        		   self.sampleViewModel.name(scriptname);
+        	   if (scriptname.length <= 0) {
+        		   scriptname = "No Name";
         	   }
+        	   self.sampleViewModel.name(scriptname);
                centerDialog($('#addSample'));
                $('#addSample').modal('show');
            }

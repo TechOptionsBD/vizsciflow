@@ -50,6 +50,9 @@ class Interpreter(object):
         :param expr:
         '''
         left = self.eval(expr[0])
+        if len(expr) == 1:
+            return bool(left)
+        
         right = self.eval(expr[2])
         operator = expr[1]
         if operator == '<':

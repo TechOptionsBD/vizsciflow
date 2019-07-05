@@ -217,7 +217,7 @@ class Interpreter(object):
                 if type(t) is complex:
                     return complex(t)
                 if t in set((True, False)):
-                    return bool(str_value)
+                    return bool(t)
             else:
                 if len(str_value) > 1:
                     if (str_value.startswith("'") and str_value.endswith("'")) or (str_value.startswith('"') and str_value.endswith('"')):

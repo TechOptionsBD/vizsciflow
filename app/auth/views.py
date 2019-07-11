@@ -72,7 +72,7 @@ def allocate_storage(user):
         try:
             fs = Utility.fs_by_prefix(ds.url)
             if fs:
-                userpath = 'Libraries/' + user.username if ds.type == 'gfs' else user.username
+                userpath = 'Libraries/' + user.username if ds.type == 'gfs' else '/' + user.username
                 if not fs.exists(userpath):
                     fs.makedirs(userpath)
                 DataSourceAllocation.add(user, ds, userpath, AccessRights.Owner)

@@ -131,10 +131,11 @@ class RequestContextTask(AbortableTask):
         kwargs[self.GLOBALS_ARG_NAME] = d
              
 @celery.task(bind=True, base=RequestContextTask)#, base = AbortableTask
-def run_script(self, library, workflow_id, script, args):
+def run_script(self, library, runnable_id, args):
     
-    workflow = Workflow.query.get(workflow_id)
-    runnable = Runnable.create(workflow_id, script if script else workflow.script, args)
+    runnable = Runnable.query.get(runnable_id)
+    workflow = Workflow.query.get(runnable.workflow_id)
+    
     machine = Interpreter()
     
     parserdir = Config.BIOWL

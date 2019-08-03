@@ -25,6 +25,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
 
+<script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
+
 <style type="text/css" >
 
 .odd-row {
@@ -274,9 +276,9 @@ text {
 					style="max-height: 200px; width: 100%; overflow-y: scroll;"
 					data-bind="foreach: items">
 					<div class="row menu_button"
-						data-bind="qTipDs:name, event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
+						data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
 						style="width: 100%">
-						<div class="col-md-auto" style="vertical-align: middle;">
+						<div class="col-md-auto" style="vertical-align: middle;" data-bind="event: {click: $parent.toggleExpand}">
 							<input type="checkbox" style="margin-left: 10px;"
 								data-bind="checked: selected" /> <img
 								style="vertical-align: middle" width="16px" height="16px"
@@ -284,9 +286,10 @@ text {
 								data-bind="text: name" style="width: 100%; margin: 0"></span>
 						</div>
 						
-							<div class="col" style="float: right;">
-								<span data-bind="text: modified" style="text-align: right"></span>
-							</div>
+						<div class="col" style="float: right;">
+							<span data-bind="text: modified" style="text-align: right"></span>
+						</div>
+						<div style="clear: both" ></div>
 					</div>
 				</div>
 			</div>
@@ -382,6 +385,7 @@ text {
 						<li><a href="#2" data-toggle="tab">Error</a></li>
 						<li><a href="#3" data-toggle="tab">Output</a></li>
 					</ul>
+					<span class="badge badge-pill badge-primary" style="float: left" id="reportid"></span>
 					<span class="badge badge-pill badge-primary" style="float: right" id="execstatus"></span>
 					<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
 					<div class="tab-content ">
@@ -484,15 +488,14 @@ text {
 							style="float: right; padding-left: 4px; text-align: center; width: 40%">Group(Package)</div>
 					</div>
 					<div data-bind="foreach: filteredTasks">
-						<div class="row menu_button"
-							data-bind="event: {dblclick: $parent.copyToEditor}, qTip: name, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+						<div class="row"
+							data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 							style="width: 100%; margin: 0">
-							<div class="col-md-auto draggable-func"
-								style="word-wrap: break-word" data-bind="text: name"></div>
+							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false"></div>
 							<div class="col" style="float: right;">
-								<span data-bind="text: group" style="text-align: right"></span>(<span
-									data-bind="text: package_name" style="text-align: left"></span>)
+								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package_name" style="text-align: left"></span>)
 							</div>
+							<div style="clear:both"></div>
 						</div>
 					</div>
 				</div>
@@ -813,6 +816,7 @@ text {
 <script type="text/javascript">
     var refreshId = 0;
     var workflowId = 0;
+    var reportId = 0;
     var isDirty = false;
     var username = "{{ username }}";
 
@@ -835,6 +839,8 @@ text {
 		    .addClass('badge-primary');
     	}
     	statusCtrl.text(status);
+    	
+    	$('#reportid').text("Runnable Id: " + reportId.toString());
     }
     
     function copy2Editor(text, type) {
@@ -1265,7 +1271,7 @@ function typeInTextarea(el, newText) {
 	   }
    }
    
-	ko.bindingHandlers.qTip = {
+/* 	ko.bindingHandlers.qTip = {
 	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 	        $(element).qtip({
 				style: {
@@ -1328,13 +1334,13 @@ function typeInTextarea(el, newText) {
 	        //ko.applyBindingAccessorsToNode(element, {visible: valueAccessor()});
 	    },
 	    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-	        /*var visible = ko.utils.unwrapObservable(valueAccessor());
-	        if(!visible) {
-	            $(element).qtip('hide');
-	        }*/
+// 	        var visible = ko.utils.unwrapObservable(valueAccessor());
+// 	        if(!visible) {
+// 	            $(element).qtip('hide');
+// 	        }
 	    }
 	};
-	
+ */	
 	ko.bindingHandlers.qTipWf = {
 	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 	        $(element).qtip({
@@ -1603,73 +1609,6 @@ function typeInTextarea(el, newText) {
 //         }
 //       });
 
-    
-    
-    jsonArray2Table = function(table, jsonArr) {
-    	$.each(jsonArr, function (index, value) {
-            var row = $('<tr></tr>');
-            
-            var cell = $("<td>" + value['name'] + "</td>")
-           		.css('overflow', 'hidden')
-           		.css('word-wrap', 'break-word');
-            row.append(cell);
-            
-        	cell = $('<td></td>');
-			data = value['data'];
-        	if (!Array.isArray(data)) {
-    			data = [data];
-			}
-			var added = false;
-        	$.each(data, function (key, val) {		
-	            var link =  $('<a />', {
-	                'href': 'javascript:void(0)',
-	                'text': val
-	            }).on('click', function() {
-					if ((parseInt(value['datatype']) & 0x02) != 0 || (parseInt(value['datatype']) & 0x400) != 0) {
-		           		$.redirect('/datasources', { 'download': val }, "POST", "_blank");
-					}
-					else {
-						var w = window.open();
-						$(w.document.body).text(val);
-					}
-	            });
-	            
-				if (added)
-					cell.append('; ');
-					
-	            cell.append(link);
-				added = true;
-        	});
-            row.append(cell);
-            
-            cell = $("<td>" + value['status'] + "</td>");
-            cell.css('text-align', 'center');
-            if (value['status'] === 'SUCCESS') {
-            	cell.css('background-color', 'green')
-            		.css('color', 'white');
-            }
-            else if (value['status'] === 'FAILURE') {
-            	cell.css('background-color', 'red')
-        			.css('color', 'white');
-            }
-            row.append(cell);
-            table.append(row);
-        });
-    }
-    
-    function activateTab(tab){
-        $('.nav-tabs a[href="#' + tab + '"]').tab('show');
-      };
-     
-     function showXHRText(jqXHR) {
-     	if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON.err !== undefined) {
-     		$("#error").val(jqXHR.responseJSON.err);
-     	}
-     	else {
-     		$("#error").val(jqXHR.statusText);
-     	}
-     	activateTab(2);
-     }
      
      function TasksViewModel() {
          var self = this;
@@ -1758,10 +1697,6 @@ function typeInTextarea(el, newText) {
          self.beginAddLibrary = function() {
         	$("#add-library-info").text("");
 			$.getJSON('/functions?demoserviceadd', function(demoservice) {
-				/*demoservice = JSON.parse(demoservice)
-             	if ($.isEmptyObject(demoservice))
-             		return;*/
-
 				addLibraryViewModel.getCodeEditor().setValue(demoservice.demoservice.script, 1);
 				addLibraryViewModel.getMapperEditor().setValue(demoservice.demoservice.mapper, 1);
 	         	centerDialog($('#add'));
@@ -1831,27 +1766,12 @@ function typeInTextarea(el, newText) {
              	
              	if (data === undefined)
              		return;
-             	data = JSON.parse(data)
-             	if ($.isEmptyObject(data))
-             		return;
              	
-             	if (data['err'] && data['status'] !== 'SUCCESS')
-                 	activateTab(2);
-                 else {
-                 	if (!$.isEmptyObject(data['log']))
-                 		activateTab(3);
-                 	else
-                 		activateTab(1);
-                 }
-             	
-                 $("#output").val(data['out']);
-                 $("#error").val(data['err']);
-                 $("#log tbody").empty();
-                 jsonArray2Table($("#log"), data['log']);
-                 $("#duration").text(data['duration'] + 's');
-                 printExecStatus(data['status']);
+             	reportId = parseInt(data.runnableId);
                  
-                 runnablesViewModel.load();                    
+                runnablesViewModel.load();
+                runnablesViewModel.loadHistory(reportId, true);
+                 
              }).fail(function(jqXHR, textStatus) {
              	$('#refresh').hide();
              	showXHRText(jqXHR);
@@ -1950,7 +1870,8 @@ function typeInTextarea(el, newText) {
                        desc: ko.observable(f.desc),
                        //runmode: ko.observable(f.runmode),
                        group: ko.observable(f.group),
-                       href: ko.observable(f.href)
+                       href: ko.observable(f.href),
+                       expanded: ko.observable(false)
                    });
          	  });
              }).fail(function(jqXHR) {
@@ -1971,6 +1892,74 @@ function typeInTextarea(el, newText) {
             editor.session.insert(pos, self.selectedCategory().Id == 0 ? item.example() + "\r\n": item.example2() + "\r\n");
             editor.focus();
         }
+         
+         self.clicks = 0;
+         self.timer = null;
+         
+         self.copyToEditorDblClick = function(itme, event) {
+        	 event.preventDefault();
+         }
+         self.toggleExpand = function(item, event) {
+        	 event.stopPropagation();
+        	 
+        	 self.clicks++;
+        	 if (self.clicks !== 1) {
+        		 clearTimeout(self.timer);
+        		 self.copyToEditor(item);
+        		 self.clicks = 0;
+				 return;        		 
+        	 }
+        	 
+        	 self.timer = setTimeout(function(){
+        		 self.clicks = 0;
+        		 event.preventDefault();
+        	 var domItem = $(event.target);
+        	 if (item.expanded()) {
+        		 item.expanded(false);
+        		 $(".expandedtask").remove();
+       	    } else {
+       	    	$(".expandedtask").remove();
+       	      self.tasks().forEach(function(candidateSample) {
+       	        candidateSample.expanded(item === candidateSample);
+       	        if (item === candidateSample){
+       	        	
+       	        	var url = "/functions?tooltip&name=" + item.name() + "&package=" + item.package_name();
+                   $.ajax({
+                       url: url
+                   })
+                   .then(function(content) {
+                       // Set the tooltip content upon successful retrieval
+                       if (content){
+                        content = JSON.parse(content);
+                        
+                        tooltip = "<div class=\'expandedtask\' style=\'border:2px solid black;background-color:lightblue\'> <p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
+                        if (content.example) {
+                        	tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 0); return false;">Add: </a>' + content.example;	
+                        }
+                        if (content.example2 && content.example !== content.example2) {
+                        	tooltip += '<br><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 1); return false;">Add: </a>' + content.example2;	
+                        }
+                        if (content.returns) {
+                        	tooltip += "<br>Returns: " + content.returns;
+                        }
+                        tooltip += "</p>";
+                        	
+                        var descHref = (content.desc && content.desc.length ? "Desc: " + content.desc : "") + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : ""); 
+                        if (descHref !== undefined && descHref.length) {
+                        	tooltip += "<p>" + descHref + "</p>";
+                        }
+                        tooltip += "<p>Double click item to insert into code editor.</p></div>";
+                        
+                        domItem.parent().append(tooltip);
+                       }
+                   }, function(xhr, status, error) {
+                       // Upon failure... set the tooltip content to error
+                   });
+       	      };
+       	    });
+       	    }
+        	 }, 300);
+     	}
      }
         
        function SamplesViewModel(sampleViewModel) {
@@ -2127,8 +2116,8 @@ function typeInTextarea(el, newText) {
 //                 fontSize: "12pt"
 //               });
 
-return mapperEditor;
-}
+		return mapperEditor;
+		}
         function SampleViewModel() {
             var self = this;
             self.samplesURI = '/samples';
@@ -2336,7 +2325,55 @@ return mapperEditor;
             self.runnablesURI = '/runnables';
             self.items = ko.observableArray();
         	self.historyLoading = false;
-        	
+        	self.clicks = 0;
+            self.timer = null;
+            
+            self.copyToEditorDblClick = function(itme, event) {
+           	 event.preventDefault();
+            }
+            self.toggleExpand = function(item, event) {
+           	 event.stopPropagation();
+           	 
+           	 self.clicks++;
+           	 if (self.clicks !== 1) {
+           		 clearTimeout(self.timer);
+           		 self.copyToEditor(item);
+           		 self.clicks = 0;
+   				 return;        		 
+           	 }
+           	 
+           	 self.timer = setTimeout(function(){
+           		 self.clicks = 0;
+           		 event.preventDefault();
+           	 var domItem = $(event.target);
+       		 $(".expandedhistory").remove();           	 
+           	 if (item.expanded()) {
+           		 item.expanded(false);
+          	    } else {
+          	      self.items().forEach(function(candidateSample) {
+          	        candidateSample.expanded(item === candidateSample);
+          	        if (item === candidateSample){
+          	        	
+          	        	$.ajax({
+	                        url: "/runnables?tooltip=" + item.id()
+	                    })
+	                    .then(function(content) {
+	                        // Set the tooltip content upon successful retrieval
+	                        content = JSON.parse(content);
+	                        content = "<div class=\'expandedhistory\' style=\'border:2px solid black;background-color:lightblue\'> <p>Name: " + content.name + "</p><p>Created: " + content.created_on + "<br>Modified: " + content.modified_on + "<br>Duration: " + content.duration + 
+	                        	"(s)</p><p>Status: " + content.status + (content.err && content.err.length > 0 ? "<br>Error: " + content.err : "") + "</p><p>Double click to show in report.<br>Check to pin job to report.</p></div>";
+	                        	
+                        	domItem.parent().append(content);
+
+	                    }, function(xhr, status, error) {
+	                        // Upon failure... set the tooltip content to error
+	                    });
+          	      }
+          	    });
+          	    }
+           	 }, 300);
+        	}
+            
 			self.loadHistory = function(id, switchTab = false) {
             	
 				ajaxcalls.simple(self.runnablesURI, 'GET', { 'id':  id}).done(function(data) {
@@ -2373,7 +2410,8 @@ return mapperEditor;
 		    }
 			
             self.copyToEditor = function(item) {
-            	self.loadHistory(item.id(), true);
+            	reportId = item.id();
+            	self.loadHistory(reportId, true);
             }
             
             self.selectedIds = function() {
@@ -2451,7 +2489,8 @@ return mapperEditor;
                             status: ko.observable(s.status),
                             recent: ko.observable(s.recent !== undefined),
                             statusImg: ko.observable(self.statusIcon(s.status)),
-                            selected: ko.observable($.inArray(s.id, selectedIds) !== -1)
+                            selected: ko.observable($.inArray(s.id, selectedIds) !== -1),
+                            expanded: ko.observable(false)
                         });
                     });
                 }).fail(function(jqXHR) {
@@ -2714,10 +2753,13 @@ return mapperEditor;
 	            		refreshId = setInterval(function() {
 	            			if (runnablesViewModel !== undefined)
 	            				runnablesViewModel.load();
-	           				ids = runnablesViewModel.selectedIds();
+	            			if (reportId > 0) {
+	            				runnablesViewModel.loadHistory(reportId, false);
+	            			}
+	           				/* ids = runnablesViewModel.selectedIds();
 	                        if (ids.length == 1) {
 	                        	runnablesViewModel.loadHistory(ids[0], false);
-	            			}
+	            			} */
 	                    }, 10000); //  refresh the executables once in 10 seconds
 	            	}
 	                break;

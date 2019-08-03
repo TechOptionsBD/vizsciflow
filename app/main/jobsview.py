@@ -73,12 +73,14 @@ def update_workflow(user_id, workflow_id, script):
 def run_biowl(workflow_id, script, args, immediate = True):
     try:
         workflow = Workflow.query.get(workflow_id)
+        runnable = Runnable.create(workflow_id, script if script else workflow.script, args)
                 
         if immediate:
-            return json.dumps(run_script(library.library, workflow.id, script, args))
+            run_script(library.library, runnable.id, args)
         else:
-            run_script.delay(library.library, workflow.id, script, args)
-            return json.dumps({})
+            run_script.delay(library.library, runnable.id, args)
+            
+        return jsonify(runnableId = runnable.id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
 
@@ -362,7 +364,7 @@ def runnables():
                     if not runnable.completed():
                         stop_script(runnable.celery_id)
                         sync_task_status_with_db(runnable)
-                    run_biowl(current_user.id, runnable.workflow_id, runnable.script, runnable.arguments, False, False)    
+                    run_biowl(runnable.workflow_id, runnable.script, runnable.arguments, False, False)    
             return jsonify(runnables =[i.to_json_log() for i in new_status])
         
         sync_task_status_with_db_for_user(current_user.id)

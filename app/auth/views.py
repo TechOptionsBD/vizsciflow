@@ -75,9 +75,9 @@ def allocate_storage(user):
                 userpath = 'Libraries/' + user.username if ds.type == 'gfs' else '/' + user.username
                 if not fs.exists(userpath):
                     fs.makedirs(userpath)
-                DataSourceAllocation.add(user, ds, userpath, AccessRights.Owner)
+                DataSourceAllocation.add(user.id, ds.id, userpath, AccessRights.Owner)
                 if ds.public:
-                    DataSourceAllocation.add(user, ds, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
+                    DataSourceAllocation.add(user.id, ds.id, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
         except:
             flash('Storage allocation on {0} has failed.'.format(ds.name))
 

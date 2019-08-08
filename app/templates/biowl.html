@@ -8,8 +8,11 @@
 {{ super() }}
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jstree/3.3.8/themes/default/style.min.css" />
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.css" />
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round|Open+Sans">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
@@ -26,147 +29,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/ko.observableDictionary.js') }}"></script>
+<!-- <script type='text/javascript' src="https://raw.github.com/jamesfoster/knockout.observableDictionary/master/ko.observableDictionary.js"></script> -->
 
-<style type="text/css" >
-
-.odd-row {
-background-color: LightGray;
-}
-.even-row {
-background-color: White;
-}
-
-.panel-actions {
-  margin-top: -20px;
-  margin-bottom: 0;
-  text-align: right;
-}
-.panel-actions a {
-  color:#333;
-}
-.panel-fullscreen {
-    display: block;
-    z-index: 9999;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    overflow: auto;
-}
-
- .marginRow{
-     margin:4px !important; 
-   }
-   
- input[type="text"]{
-	background-color:white !important
-}
-
-.menu_button {
-    color: #666;
-    
-    cursor: pointer;
-}
-
-.menu_button:hover {
-    color: #f26d7d;
-}
-
-.menu_button:active {
-    color: #ccc;
-}
-
-.menu_button.selected {
-    background-color: #ccc;
-}
-
-/* .main-wrapper { */
-/*   height: 100vh;   */
-/* } */
-
-.row-flex {
-  display: flex;
-/*   height: 100%; */
-}
-
-.col-md-6 {
-  flex-grow: 1;
-}
-
-.box-one {
-/*  background-color: red; */
-  max-width: 400px;
-/*   min-width: 200px; */
-}
-
-.box-two {
-/*  background-color: green; */
-}
-
-.box-three {
-/*  background-color: red; */
-  max-width: 400px;
-/*   min-width: 200px;   */
-}
- 
-.link {
-  fill: none;
-  stroke: #666;
-  stroke-width: 1.5px;
-}
-
-/* .link { stroke: #999; stroke-opacity: .6; stroke-width: 1px; } */
-
-.node circle {
-   fill: #ccc;
-   stroke: #fff;
-   stroke-width: 1.5px;
-}
-
-text {
-  font: 10px sans-serif;
-  pointer-events: none;
-}
-#scripttab
-{
-    width:100%;
-    height: 600px;
-    display:inline-block;
-    position:relative;
-}
-#editor {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-}
-
-.toolbar-icon {
-	font-size:20px;
-}
-
-.radio-inline {
-  font-size: 20px;
-}
-
-.checkbox-inline {
-  font-size: 20px;
-}
-
-.nav-tabs li a {font-size:20px;}
-
-.report-header {
-	font-size:20px
-}
-/* input[type=radio] {
-	transform:scale(1.5);
-} */
-</style>
-
+<link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 {% endblock %}
 {% block page_content %}
 
@@ -209,8 +75,8 @@ text {
 								<i class="glyphicon glyphicon-upload toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="modal"
-								data-placement="top" title="Rename"
-								data-bind="click: beginRename">
+								data-placement="top" title="Update Metadata"
+								data-bind="click: beginUpdateMetadata">
 								<i class="glyphicon glyphicon-edit toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
@@ -343,16 +209,21 @@ text {
 				</div>
 					<div class="panel-body" style="">
 						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px">
-							<ul class="nav nav-tabs">
-								<li class="active"><a href="#scripttab" data-toggle="tab">Script</a></li>
+							<ul class="nav nav-tabs marginBottom">
+								<li class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
 								<li><a href="#graphtab" data-toggle="tab">Graph</a></li>
+								<li><a href="#metatab" data-toggle="tab">Metadata</a></li>
+<!-- 								<li><a href="#graphtab" data-toggle="tab"><button class="close closeTab" type="button" >×</button>Graph</a></li> -->
+<!-- 								<li><a href="#metatab" data-toggle="tab"><button class="close closeTab" type="button" >×</button>Metadata</a></li> -->
 							</ul>
-						<div class="tab-content ">
-							<div class="tab-pane fade in active" id="scripttab">
-								<div id="editor" class="editor"></div>
+						<div class="tab-content">
+							<div class="tab-pane fade in active scriptstyle" id="scripttab">
+								<div id="editor" class="editorstyle"></div>
 							</div>
 							<div class="tab-pane fade" id="graphtab" style="height: 400px">
 								<div style="width: 100%; height: 100%" id="graph"></div>
+							</div>
+							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="metatab">
 							</div>
 						</div>
 						</div>
@@ -657,45 +528,247 @@ text {
         <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
     </div>
 </div>
-    
-<div class="modal fade" id="file-upload-dialog" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <!-- Modal Header -->
-           <div class="modal-header">
-               <button type="button" class="close" data-dismiss="modal">
-                      <span aria-hidden="true">&times;</span>
-                      <span class="sr-only">Close</span>
-               </button>
-               <h4 class="modal-title" id="uploadModalLabel">
-                   File Upload
-               </h4>
-           </div>
-           
-           <!-- Modal Body -->
-            <div class="modal-body">
-                <form id="upload-file" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
-                  <div class="form-group">
-                    <div class="col-sm-offset-2 col-sm-10">
-                        <input type="file" name="file" id="upload" multiple>
-                    </div>
-                  </div>
-                  
-                  <div class="form-group">
-                    <div class="col-sm-offset-2 col-sm-10">
-                      <button data-bind="click: upload" type="button" class="btn btn-default" id="upload-file-btn" data-dismiss="modal">Upload</button>
-                    </div>
-                  </div>
-                </form>
-            </div>
-        </div>
-    </div>
+
+<div class="modal fade" id="file-upload-dialog" tabindex="-1"
+	role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<!-- Modal Header -->
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">
+					<span aria-hidden="true">&times;</span> <span class="sr-only">Close</span>
+				</button>
+				<h4 class="modal-title" id="uploadModalLabel">File Upload</h4>
+			</div>
+
+			<!-- Modal Body -->
+			<div class="modal-body">
+				<form id="upload-file" class="form-horizontal" role="form"
+					method=POST enctype=multipart/form-data>
+
+					<div class="form-group row">
+						<div class="col-sm-offset-2 col-sm-10">
+						 <label for="upload">Choose file(s)</label>
+						<input type="file" class="form-control-file" id="upload" multiple>
+						</div>
+					</div>
+					<hr />
+
+					<div class="form-group row">
+						<label for="filename" class="col-sm-2 col-form-label">File Name</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" id="inputFilename">
+						</div>
+					</div>
+					
+					<div class="form-group row input-group mb-3">
+					  <div class="input-group-prepend col-sm-2">
+					    <label class="col-form-label" for="inputVisualizer">Visualizers</label>
+					  </div>
+					  <div class="custom-select col-sm-10">
+					  <select class="custom-select" data-bind="options: visualizers, optionsCaption: 'Choose visualizer...'" id="inputVisualizer"></select>
+					  </div>
+					</div>
+					
+					<div class="form-group row">
+						<label for="inputAnnotations" class="col-sm-2 col-form-label">Annotations</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" id="inputAnnotations">
+						</div>
+					</div>
+					
+					<div class="form-group row input-group mb-3">
+					  <div class="input-group-prepend col-sm-2">
+					    <label class="input-group-text" for="inputMimeType">Mime Types</label>
+					  </div>
+					  <div class="custom-select col-sm-10">
+					  <select class="custom-select" data-bind="options: mimetypes, optionsCaption: 'Choose MIME Type...'" id="inputMimeType"></select>
+					  </div>
+					</div>
+
+					<div class="form-group row">
+						<div class="col-sm-offset-2 col-sm-10">
+							<button data-bind="click: upload" type="button"
+								class="btn btn-primary" id="upload-file-btn"
+								data-dismiss="modal">Upload</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 </div>
 
-<div class="modal fade" id="rename-filefolder-dialog" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+<div id="update-metadata-dialog" class="modal fade" tabindex="=1"
+	role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true"
+	style="width: 50%; height: 50%; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal"
+			aria-hidden="true">&times;</button>
+		<h3 id="addDialogLabel">Update Metadata</h3>
+	</div>
+	<div class="modal-body">
+		<form class="form-horizontal">
+			<div class="control-group">
+				<div class="controls">
+					<ul class="nav nav-tabs">
+						<li class="active"><a href="#generaltab" data-toggle="tab">General</a></li>
+						<li><a href="#visualizertab" data-toggle="tab">Visualizers</a></li>
+						<li><a href="#annotationtab" data-toggle="tab">Annotations</a></li>
+						<li><a href="#mimetypestab" data-toggle="tab">MIME Types</a></li>
+						<li><a href="#propertiestab" data-toggle="tab">Properties</a></li>
+					</ul>
+					<div class="tab-content ">
+						<div class="tab-pane fade in active" id="generaltab">
+							<div class="container">
+								<!-- Default input -->
+								<label for="filename">Filename</label>
+								<input type="text" id="filename" class="form-control" data-bind="value: filename">
+								<div class="table-wrapper">
+									<table class="table table-bordered"
+										data-bind="foreach: systemProperties.items">
+										<thead>
+											<tr>
+												<th>Key</th>
+												<th>Value</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<th class="justify-content-right" scope="row"
+													data-bind="text: key"></th>
+												<td class="justify-content-left" data-bind="text: value"></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="tab-pane fade" id="visualizertab"></div>
+						<div class="container">
+								<div class="table-wrapper">
+									<div class="table-title">
+										<div class="row justify-content-end">
+											<div class="col-sm-12">
+												<button type="button" class="btn btn-info add-new">
+													<i class="fa fa-plus"></i> Add New
+												</button>
+											</div>
+										</div>
+									</div>
+									<table class="table table-bordered"
+										data-bind="foreach: visualizers.items">
+										<thead>
+											<tr>
+												<th>Key</th>
+												<th>Value</th>
+												<th>Actions</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td scope="row" data-bind="text: key"></td>
+												<td data-bind="text: value"></td>
+												<td>
+													<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
+													<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+													<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						<div class="tab-pane fade" id="annotationtab"></div>
+						<div class="tab-pane fade" id="mimetypestab"></div>
+						<div class="container">
+								<div class="table-wrapper">
+									<div class="table-title">
+										<div class="row justify-content-end">
+											<div class="col-sm-12">
+												<button type="button" class="btn btn-info add-new">
+													<i class="fa fa-plus"></i> Add New
+												</button>
+											</div>
+										</div>
+									</div>
+									<table class="table table-bordered"
+										data-bind="foreach: visualizers.items">
+										<thead>
+											<tr>
+												<th>Key</th>
+												<th>Value</th>
+												<th>Actions</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td scope="row" data-bind="text: key"></td>
+												<td data-bind="text: value"></td>
+												<td>
+													<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
+													<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+													<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						<div class="tab-pane fade" id="propertiestab">
+							<div class="container">
+								<div class="table-wrapper">
+									<div class="table-title">
+										<div class="row justify-content-end">
+											<div class="col-sm-12">
+												<button type="button" class="btn btn-info add-new">
+													<i class="fa fa-plus"></i> Add New
+												</button>
+											</div>
+										</div>
+									</div>
+									<table class="table table-bordered"
+										data-bind="foreach: properties.items">
+										<thead>
+											<tr>
+												<th>Key</th>
+												<th>Value</th>
+												<th>Actions</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td scope="row" data-bind="text: key"></td>
+												<td data-bind="text: value"></td>
+												<td>
+													<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
+													<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+													<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="modal-footer">
+		<!--         <button data-bind="click: update" class="btn btn-primary">Save</button> -->
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+		<div>
+			<span class="label label-default" id="add-metadata-info"></span>
+		</div>
+	</div>
+</div>
+
+<!-- <div class="modal fade" id="rename-filefolder-dialog" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <!-- Modal Header -->
+            Modal Header
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">
                        <span aria-hidden="true">&times;</span>
@@ -706,7 +779,7 @@ text {
                 </h4>
             </div>
             
-            <!-- Modal Body -->
+            Modal Body
             <div class="modal-body">
                 <form id="rename-filefolder" class="form-horizontal" role="form" method=POST enctype=multipart/form-data>
                   <div class="form-group">
@@ -724,7 +797,7 @@ text {
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <div id="edit" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true" style="background: #fff">
     <div class="modal-header">
@@ -759,31 +832,174 @@ text {
         <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
     </div>
 </div>
-<div id="login" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
-    <div class="modal-header">
-        <h3 id="loginLabel">Sign In</h3>
-    </div>
-    <div class="modal-body">
-        <form class="form-horizontal">
-            <div class="control-group">
-                <label class="control-label" for="inputUsername">Username</label>
-                <div class="controls">
-                    <input data-bind="value: username" type="text" id="inputUsername" placeholder="Username">
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="inputPassword">Password</label>
-                <div class="controls">
-                    <input data-bind="value: password" type="password" id="inputPassword" placeholder="Password">
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button data-bind="click: login" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Sign In</button>
-    </div>
+		
+<!-- <div id="metadataView" class="container-fluid" aria-hidden="true"> -->
+<!-- 	<h4>Metadata information</h4> -->
+<!-- 	<div class="row-fluid mb-3"> -->
+<!-- 		<div class="col-6 themed-grid-col"> -->
+<!-- 			<div class="row-fluid mb-3"> -->
+<!-- 				<span>System Properties</span> -->
+				
+<!-- 				<div data-bind="foreach: systemProperties.items"> -->
+<!-- 					<div class="row-fluid" data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"> -->
+<!-- 						<div class="col-6 themed-grid-col"> -->
+<!-- 							<span data-bind="text: key"></span>  -->
+<!-- 						</div> -->
+<!-- 						<div class="col-6 themed-grid-col"> -->
+<!-- 							<span data-bind="text: value"></span>  -->
+<!-- 						</div> -->
+<!-- 					</div> -->
+<!-- 				</div> -->
+<!-- 			</div> -->
+<!-- 			<div class="row-fluid mb-3"> -->
+<!-- 				<span>Visualizers</span> -->
+<!-- 			</div> -->
+<!-- 			<div class="row-fluid"> -->
+<!-- 				<span>Visualizers</span> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+<!-- 		<div class="col-6 themed-grid-col"> -->
+<!-- 			<div class="row-fluid"> -->
+<!-- 				<span>Visualizers</span> -->
+<!-- 			</div> -->
+<!-- 			<div class="row-fluid"> -->
+<!-- 				<span>Visualizers</span> -->
+<!-- 			</div> -->
+<!-- 			<div class="row-fluid"> -->
+<!-- 				<span>Visualizers</span> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+<!-- 	</div> -->
+<!-- </div> -->
+
+<div id="metadataView" class="container-fluid" aria-hidden="true">
+	<h3 class="text-info mx-auto">Metadata Information</h3>
+	
+	<h4 class="text-info">System Properties</h4>
+	<table class="table" data-bind="foreach: systemProperties.items">
+		<tbody>
+			<tr>
+				<th scope="row" data-bind="text: key"></th>
+				<td data-bind="text: value"></td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<h4 class="text-info">Visualizers</h4>
+	<table class="table" data-bind="foreach: visualizers.items">
+		<tbody>
+			<tr>
+				<th scope="row" data-bind="text: key"></th>
+				<td data-bind="text: value"></td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<h4 class="text-info">Annotations</h4>
+	<table class="table" data-bind="foreach: annotations.items">
+		<tbody>
+			<tr>
+				<th scope="row" data-bind="text: value"></th>
+			</tr>
+		</tbody>
+	</table>
+	
+	<h4 class="text-info">MIME Types</h4>
+	<table class="table" data-bind="foreach: mimetypes.items">
+		<tbody>
+			<tr>
+				<th scope="row" data-bind="text: key"></th>
+				<td data-bind="text: value"></td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<h4 class="text-info">Properties</h4>
+	<table class="table" data-bind="foreach: properties.items">
+		<tbody>
+			<tr>
+				<th scope="row" data-bind="text: key"></th>
+				<td data-bind="text: value"></td>
+			</tr>
+		</tbody>
+	</table>
 </div>
 
+<!-- 
+<div id="metadataView" class="container-fluid" aria-hidden="true">
+	<h3>Metadata information</h3>
+	<div class="row-fluid mb-3">
+    <div class="col-md-6 themed-grid-col">
+	   	<div class="row-fluid mb-3">
+			<span>System Properties</span>
+		
+			<div data-bind="foreach: systemProperties.items">
+				<div class="row-fluid mb-3" data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col-md-6 themed-grid-col">
+						<span data-bind="text: key"></span> 
+					</div>
+					<div class="col-md-6 themed-grid-col">
+						<span data-bind="text: value"></span> 
+					</div>
+				</div>
+			</div>
+	   </div>
+			
+		<div class="row-fluid mb-3">
+			<span>Visualizers</span>
+			<div data-bind="foreach: visualizers.items">
+				<div class="row-fluid mb-3" data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col-md-6 themed-grid-col">
+						<span data-bind="text: key"></span> 
+					</div>
+					<div class="col-md-6 themed-grid-col">
+						<span data-bind="text: value"></span> 
+					</div>
+				</div>
+			</div>
+		</div>
+			
+		<div class="row-fluid mb-3">
+			<span>Annotations</span>
+			<div data-bind="foreach: annotations">
+				<div class="row-fluid mb-3" data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col themed-grid-col">
+						<span data-bind="text: $data"></span> 
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+    <div class="col-md-6 themed-grid-col">
+    	<div class="row-fluid">
+			<span>Mime Types</span>
+			<div data-bind="foreach: mimetypes">
+				<div class="row-fluid mb-3" data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col themed-grid-col">
+						<span data-bind="text: $rawData"></span> 
+					</div>
+				</div>
+			</div>
+		</div>
+			
+    	<div class="row-fluid mb-3">
+			<span>Properties</span>
+			
+			<div data-bind="foreach: properties.items">
+				<div class="row-fluid mb-3" data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col-md-6 themed-grid-col">
+						<span data-bind="text: key"></span> 
+					</div>
+					<div class="col-md-6 themed-grid-col">
+						<span data-bind="text: value"></span> 
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+  </div>
+</div>
+ -->
 <div class="modal fade" id="save-needed" tabindex="-1" role="dialog" aria-labelledby="saveNeededModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -819,30 +1035,8 @@ text {
     var reportId = 0;
     var isDirty = false;
     var username = "{{ username }}";
-
-    function printExecStatus(status) {
-    	
-    	var statusCtrl = $('#execstatus');
-    	if (status === 'FAILURE') {
-    		statusCtrl.removeClass('badge-primary')
-    				.removeClass('badge-secondary')
-    				.addClass('badge-danger');
-    	}
-    	else if (status === 'SUCCESS') {
-    		statusCtrl.removeClass('badge-primary')
-    			.removeClass('badge-danger')
-			    .addClass('badge-secondary');
-		}
-    	else {
-    		statusCtrl.removeClass('badge-secondary')
-			.removeClass('badge-danger')
-		    .addClass('badge-primary');
-    	}
-    	statusCtrl.text(status);
-    	
-    	$('#reportid').text("Runnable Id: " + reportId.toString());
-    }
-    
+	var currentBiowlTab;
+	   
     function copy2Editor(text, type) {
     	 $.ajax({
              url: text
@@ -863,14 +1057,28 @@ text {
     }
     
     $(window).on('load', function() {
-
     	 
-		 $('#tree').on("dblclick.jstree", function (e) {
+    	centerDialog = function(dlg) {
+            var windowHeight = $(window).height();
+            var windowWidth = $(window).width();
+            var boxHeight = dlg.height();
+            var boxWidth = dlg.width();
+            dlg.css({'margin-left' : ((windowWidth - boxWidth )/2), 'margin-top' : ((windowHeight - boxHeight)/2)});
+        }
+    	
+		$('#tree').on("dblclick.jstree", function (e) {
 		 	  var tree = $(this).jstree();
 		 	  var node = tree.get_node(event.target);
 		 	  copyDataPathToEditor(node.original);
 		});
-
+		
+		$('#tree').on("select_node.jstree", function (e, data) {
+			
+			if ($("#metatab").length == 0)
+				return;
+			showMetadata(data.node.original.path);
+		});
+		
     	$('#refresh').hide();
         $('.draggable-functions').each(function() {
             // inner scope
@@ -913,15 +1121,6 @@ text {
                 });
             });
         });
-        
-        centerDialog = function(dlg) {
-            var windowHeight = $(window).height();
-            var windowWidth = $(window).width();
-            var boxHeight = dlg.height();
-            var boxWidth = dlg.width();
-            dlg.css({'margin-left' : ((windowWidth - boxWidth )/2), 'margin-top' : ((windowHeight - boxHeight)/2)});
-        }
-        
         
         $(document).ready(function() {
             //$('[data-toggle="tooltip"]').tooltip();
@@ -1031,6 +1230,9 @@ text {
       self.waittime = 5000; // for throttle
       self.tree = $('#tree');
       
+      self.visualizers = ko.observableArray();
+      self.mimetypes = ko.observableArray(["xx-pp", "yy-qq"]);
+                  
       self.findExpandibleNodes = function(text) {
     	var options = {
     		    ignoreCase: true,
@@ -1046,13 +1248,37 @@ text {
            
       self.beginFileUpload = function() {
           centerDialog($('#file-upload-dialog'));
+          self.loadMetadataProperties();
+          ko.cleanNode($("#file-upload-dialog")[0]);
+          ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
           $('#file-upload-dialog').modal('show');
       }
       
-      self.beginRename= function() {
-          centerDialog($('#rename-filefolder-dialog'));
-          $('#rename-filefolder-dialog').modal('show');
+      self.beginUpdateMetadata= function() {
+    	  centerDialog($('#update-metadata-dialog'));
+    	  var node = dataSourceViewModel.selectedNode().original;
+    	  if (node === undefined)
+    		  return;
+    	  
+    	  metadataViewModel.load(node.path);
+    	  $('#update-metadata-dialog').modal('show');
       }
+      
+      self.loadMetadataProperties = function() {
+
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'metadataproperties': true }).done(function(data) {
+			
+        	  self.visualizers = ko.observableArray(data['visualizers']);
+        	  self.mimetypes = ko.observableArray();
+        	  $.each(data['mimetypes'], function(key, value){
+        		  self.mimetypes.push(ko.observable(key + ", " + value))
+        	  });
+                        
+          }).fail(function(jqXHR) {
+              showXHRText(jqXHR);
+          });
+      }
+
       
       self.load = function(recursive) {
     	  /*if (self.init) {
@@ -1100,7 +1326,7 @@ text {
     	  if (source.children !== undefined || source.children != null) {
 	    	  for(var i =0; i < source.children.length; ++i){
 	    		  
-	    		  var subNode = self.getItemByPath(source.nodes[i], path);
+	    		  var subNode = self.getItemByPath(source.children[i], path);
 	    		  if (subNode)
 	    			  return subNode;
 	    	  }
@@ -1157,8 +1383,12 @@ text {
           node = self.selectedNode();
           if (node === undefined)
         	  return;
-          formdata.append('path', node.path);//you can append it to formdata with a proper parameter name
-
+          formdata.append('path', node.original.path);//you can append it to formdata with a proper parameter name
+          formdata.append('filename', $("#inputFilename").val());
+          formdata.append('visualizer', $("#inputVisualizer").val());
+		  formdata.append('annotations', $("#inputAnnotations")[0].value);
+		  formdata.append('mimetype', $("#inputMimeType").val());
+		  
           ajaxcalls.form(self.dataSourcesURI, 'POST', formdata).done(function(data) {
         	  self.loadItem(node);
           });
@@ -1210,7 +1440,7 @@ text {
           });
       });
       
-      self.rename = function() {
+      /* self.rename = function() {
     	  $('#rename-filefolder-dialog').modal('hide');
     	  
           node = self.selectedNode();
@@ -1220,7 +1450,7 @@ text {
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'oldpath': node.path, 'rename': $('#rename-filefolder-text').val() }).done(function(data) {
         	  self.loadItem(self.parentNode(node));
           });
-      }
+      } */
       
       self.load(true);
       self.init = true;
@@ -1237,7 +1467,23 @@ text {
        editor.session.insert(pos,  "'" + data.path + "'");
        editor.focus();
    }
-
+   
+   function loadMetaData(path){
+	   metadataViewModel.load(path);
+		if ($("#metatab").length == 0) {
+			createNewTab("metatab", "Metadata",  "fade in scriptstyle");
+		}
+   }
+   
+	function showMetadata(path) {
+		loadMetaData(path);
+		if ($("#metadataView").parent('div#metatab').length == 0)
+		{
+			$('#metatab').append($("#metadataView"));
+			$("#metadataView").show();
+		}
+	}
+	
 function typeInTextarea(el, newText) {
   var start = el.selectionStart;
   var end = el.selectionEnd;
@@ -1456,6 +1702,16 @@ function typeInTextarea(el, newText) {
             	   var node = inst.get_node(data.reference);
             	   	typeInTextarea(document.getElementById("args"), "'" + node.original.path + "'");
             	   }
+           },
+           'item3' : {
+               'label' : 'Show Metadata',
+               'icon': 'glyphicon glyphicon-th',
+               'action' : function(data) {
+            	   var inst = $.jstree.reference(data.reference);
+            	   var node = inst.get_node(data.reference);
+            	   showMetadata(node.original.path);
+            	   showTab("metatab");
+            	}
            }
        }
 
@@ -1508,17 +1764,14 @@ function typeInTextarea(el, newText) {
     var dataSourceViewModel = new DataSourceViewModel();
     ko.applyBindings(dataSourceViewModel, $("#dataSourcesPanel")[0]);
     
-    ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
-    ko.applyBindings(dataSourceViewModel, $("#rename-filefolder-dialog")[0]);
-
-    $('#rename-filefolder-dialog').on('shown.bs.modal', function () {
-    	var node = dataSourceViewModel.selectedNode();
-    	if (node === undefined)
-    		return;
-    	var filename = node.path.replace(/^.*[\\\/]/, '')
-        $('#rename-filefolder-text').val(filename);
-        $('#rename-filefolder-text').focus();
-    });
+//     $('#rename-filefolder-dialog').on('shown.bs.modal', function () {
+//     	var node = dataSourceViewModel.selectedNode();
+//     	if (node === undefined)
+//     		return;
+//     	var filename = node.path.replace(/^.*[\\\/]/, '')
+//         $('#rename-filefolder-text').val(filename);
+//         $('#rename-filefolder-text').focus();
+//     });
     
     // configure ace.js for code editor
     var langTools = ace.require("ace/ext/language_tools");
@@ -1667,11 +1920,6 @@ function typeInTextarea(el, newText) {
              self.selectedServiceAccessType(serviceAccessType);
              self.load();
            }
-         
-        	self.click = function(model){
-        		self.login();
-        	    return true;
-         }
          
        	self.clearResults = function() {
        		$("#output").val("");
@@ -1851,12 +2099,7 @@ function typeInTextarea(el, newText) {
                  self.updateTask(task, res.task);
              });
          }
-         self.beginLogin = function() {
-             $('#login').modal('show');
-         }
-         self.login = function() {
-         	self.load();
-         }
+         
          self.load = $.debounce(500, function() {
            ajaxcalls.simple(self.tasksURI, 'GET', {'level': 1, 'access': self.selectedServiceAccessType().Id}).done(function(data) {
          	  self.tasks([]);
@@ -2306,17 +2549,60 @@ function typeInTextarea(el, newText) {
                 });
             }
         }
-        
-        function LoginViewModel() {
+       
+       function MetaDataViewModel() {
             var self = this;
-            self.username = ko.observable();
-            self.password = ko.observable();
-//             tasksViewModel.login('mainulhossain@gmail.com', 'mainul');
-//             tasksViewModel.loadSamples()
             
-            self.login = function() {
-                $('#login').modal('hide');
-                tasksViewModel.login(self.username(), self.password());
+            self.metadataURI = '/datasources';
+            self.filename = new ko.observable();
+            self.systemProperties = new ko.observableDictionary();
+            self.visualizers = new ko.observableDictionary();
+            self.annotations = new ko.observableDictionary(); // list of strings
+            self.properties = new ko.observableDictionary(); // keyvalue
+            self.mimetypes = new ko.observableDictionary();
+           
+            self.load = function(path) {
+
+            	self.filename(path.replace(/^.*[\\\/]/, ''));
+            	ajaxcalls.simple(self.metadataURI, 'GET', {'path': path}).done(function(data) {
+                	if (data == undefined)
+                		return;
+                	
+                	self.systemProperties.removeAll();
+                    $.each(data['sysprops'], function(key, value){
+                       	self.systemProperties.push(key, value);
+                    });
+                    
+                    self.visualizers.removeAll();
+                    $.each(data['visualizers'], function(key, value){
+                        self.visualizers.push(key, value);
+                    });
+                    
+                    self.annotations.removeAll();
+                    $.each(data['annotations'], function(index, value){
+                        self.annotations.push(index.toString(), value);
+                    })
+                    
+                    /* var observableAnnotations = ko.utils.arrayMap(data['annotations'], function(annotation) {
+                        return { name: ko.observable(annotation) }; 
+                    });
+                    self.annotations = ko.observableArray(observableAnnotations); */
+                    
+                    self.properties.removeAll();
+                    $.each(data['properties'], function(key, value){
+                        self.properties.push(key, value);
+                    });
+                    
+                    self.mimetypes.removeAll();
+                    $.each(data['mimetypes'], function(key, value){
+                        self.mimetypes.push(key, value);
+                    })
+                    
+                }).fail(function(jqXHR) {
+                    showXHRText(jqXHR);
+                }).always(function(x, textStatus, jqXHR){
+                	self.historyLoading = false;
+                });
             }
         }
         
@@ -2504,9 +2790,9 @@ function typeInTextarea(el, newText) {
         var addLibraryViewModel = new AddLibraryViewModel();
         var sampleViewModel = new SampleViewModel();
         var editTaskViewModel = new EditTaskViewModel();
-        var loginViewModel = new LoginViewModel();
+//         var loginViewModel = new LoginViewModel();
         var tasksViewModel = new TasksViewModel();
-        tasksViewModel.login();
+        tasksViewModel.load();
         
         var samplesViewModel = new SamplesViewModel(sampleViewModel);
         samplesViewModel.load();
@@ -2514,16 +2800,22 @@ function typeInTextarea(el, newText) {
         var runnablesViewModel = new RunnablesViewModel();        
         runnablesViewModel.load();
         
+        var metadataViewModel = new MetaDataViewModel();
+        
         ko.applyBindings(tasksViewModel, $('#main')[0]);
         ko.applyBindings(tasksViewModel, $('#functions')[0]);
         ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
         ko.applyBindings(sampleViewModel, $('#addSample')[0]);
         ko.applyBindings(editTaskViewModel, $('#edit')[0]);
-        ko.applyBindings(loginViewModel, $('#login')[0]);
-        
+        ko.applyBindings(metadataViewModel, $('#metadataView')[0]);
+        ko.applyBindings(metadataViewModel, $('#update-metadata-dialog')[0]);
+                
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
     
+        dataSourceViewModel.loadMetadataProperties();
+        ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
+
     function D3Graph()
     {
     	var self = this;
@@ -2781,12 +3073,103 @@ function typeInTextarea(el, newText) {
       }
 	});
 	
-	$(exTabBiowl).on('shown.bs.tab', function (e) {
+	// Add row on add button click
+	$(document).on("click", ".add", function(){
+		var empty = false;
+		var input = $(this).parents("tr").find('input[type="text"]');
+        input.each(function(){
+			if(!$(this).val()){
+				$(this).addClass("error");
+				empty = true;
+			} else{
+                $(this).removeClass("error");
+            }
+		});
+		$(this).parents("tr").find(".error").first().focus();
+		if(!empty){
+			input.each(function(){
+				$(this).parent("td").html($(this).val());
+			});			
+			$(this).parents("tr").find(".add, .edit").toggle();
+			$(".add-new").removeAttr("disabled");
+		}		
+    });
+	
+	// Edit row on edit button click
+	$(document).on("click", ".edit", function(){		
+        $(this).parents("tr").find("td:not(:last-child)").each(function(){
+			$(this).html('<input type="text" class="form-control" value="' + $(this).text() + '">');
+		});		
+		$(this).parents("tr").find(".add, .edit").toggle();
+		$(".add-new").attr("disabled", "disabled");
+    });
+	// Delete row on delete button click
+	$(document).on("click", ".delete", function(){
+        $(this).parents("tr").remove();
+		$(".add-new").removeAttr("disabled");
+    });
+	
+	
+	$("#exTabBiowl").on("click", "a", function (e) {
+        e.preventDefault();
+
+        $(this).tab('show');
+        $currentBiowlTab = $(this);
+    });
+	
+	$("#exTabBiowl").on('shown.bs.tab', function (e) {
 		var x = $(e.target).text();
 		if (x === "Graph") {
 			tasksViewModel.buildGraph();
 		}
 	})
+
+	//this method will register event on close icon on the tab..
+    function registerCloseEvent() {
+
+        $(".closeTab").click(function () {
+
+            //there are multiple elements which has .closeTab icon so close the tab whose close icon is clicked
+            var tabContentId = $(this).parent().attr("href");
+            $(this).parent().parent().remove(); //remove li of tab
+            $(tabContentId).remove(); //remove respective tab content
+            $('#exTabBiowl a:first').tab('show'); // Select first tab
+
+        });
+    }
+	
+    function showTab(tabId) {
+        $('#exTabBiowl a[href="#' + tabId + '"]').tab('show');
+    }
+    
+    //This function will create a new tab here and it will load the url content in tab content div.
+    function createNewTabAndLoadUrl(parms, url, loadDivSelector) {
+
+        $("" + loadDivSelector).load(url, function (response, status, xhr) {
+            if (status == "error") {
+                var msg = "Sorry but there was an error getting details ! ";
+                $("" + loadDivSelector).html(msg + xhr.status + " " + xhr.statusText);
+                $("" + loadDivSelector).html("Load Ajax Content Here...");
+            }
+        });
+    }
+
+    
+  function createNewTab(tabId, tabHeader, style) {
+	  
+	  $('#exTabBiowl .nav-tabs').append('<li><a href="#' + tabId + '"><button class="close closeTab" type="button" >×</button>' + tabHeader + '</a></li>');
+	  $('#exTabBiowl .tab-content').append('<div class="tab-pane '+ style + '" id="' + tabId + '" style="overflow-y: scroll"></div>');
+	  	
+	  //createNewTabAndLoadUrl("", "./SamplePage.html", "#" + tabId);
+	  
+	  //$(this).tab('show');
+	  showTab(tabId);
+	  registerCloseEvent();
+// 	  ko.cleanNode($("#metadataView")[0]);
+ 	  ko.applyBindings(metadataViewModel, $('#metadataView')[0]);
+  }
+  
+  registerCloseEvent();
         
 </script>
 {{ pagedown.include_pagedown() }}

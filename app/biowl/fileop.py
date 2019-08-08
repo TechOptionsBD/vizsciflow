@@ -177,7 +177,7 @@ class PosixFileSystem(BaseFileSystem):
         oldpath = self.normalize_path(oldpath)
         newpath = self.normalize_path(newpath)
         os.rename(oldpath, newpath)
-        return self.make_prefix(newpath)
+        return self.strip_root(newpath)
     
     def get_files(self, path):
         path = self.normalize_path(path)
@@ -263,8 +263,9 @@ class PosixFileSystem(BaseFileSystem):
             path = os.path.dirname(path)
         elif not os.path.exists(path):
             os.makedirs(path)
-        file.save(os.path.join(path, file.filename))
-        return self.make_prefix(os.path.join(path, file.filename))
+        path = os.path.join(path, file.filename)
+        file.save(path)
+        return self.strip_root(path)
     
     def download(self, path):
         path = self.normalize_path(path)
@@ -361,6 +362,7 @@ class HadoopFileSystem():
             oldpath = self.normalize_path(oldpath)
             newpath = self.normalize_path(newpath)
             self.client.rename(oldpath, newpath)
+            return self.strip_root(newpath)
         except Exception as e:
             print(e)
     
@@ -586,6 +588,7 @@ class GalaxyFileSystem():
             oldpath = self.normalize_path(oldpath)
             newpath = self.normalize_path(newpath)
             self.client.rename(oldpath, newpath)
+            return self.strip_root(newpath)
         except Exception as e:
             print(e)
     

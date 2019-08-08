@@ -52,6 +52,27 @@ class Utility:
             return GalaxyFileSystem(ds.url, ds.password)
     
     @staticmethod
+    def ds_by_prefix_or_default(path):
+        if not path:
+            return None
+        #path = os.path.normpath(path)
+        dsdb = None
+        datasources = DataSource.query.all()
+        for ds in datasources:
+            if ds.prefix:
+                if path.startswith(ds.prefix):
+                    dsdb = ds
+                    break
+                
+            if ds.url:
+                if path.startswith(ds.url):
+                    dsdb = ds
+                    break
+        if not dsdb:
+            dsdb = DataSource.query.filter_by(type = "posix").first()
+        return dsdb
+                
+    @staticmethod
     def ds_by_prefix(path):
         if not path:
             return None

@@ -467,6 +467,22 @@ class AccessRights:
     @staticmethod
     def writeRequested(rights):
         return AccessRights.Requested(rights) and AccessRights.Requested(rights, AccessRights.Write)
+    
+    @staticmethod
+    def rights_to_string(checkRights):
+        if checkRights & AccessRights.Owner:
+            return "Owner"
+        
+        rightStr = ""
+        if checkRights & AccessRights.Request:
+            rightStr = "Request"
+        else:
+            if checkRights & AccessRights.Read:
+                rightStr = "Read"
+            if checkRights & AccessRights.Write:
+                rightStr += "Write"
+            
+        return rightStr
 
 class AccessType:
     PUBLIC = 0
@@ -659,7 +675,12 @@ class DataSourceAllocation(db.Model):
     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'))
     url = db.Column(db.Text, nullable=False)
     rights = db.Column(db.Integer, default = 0)
-
+    
+    visualizers = db.relationship('Visualizer', secondary = "data_visualizers")
+    mimetypes = db.relationship('MimeType', secondary='data_mimetypes', lazy='dynamic')
+    annotations = db.relationship('DataAnnotation', backref='datasource_allocation', lazy='dynamic')
+    properties = db.relationship('DataProperty', backref='datasource_allocation', lazy='dynamic', cascade='all, delete-orphan')
+    
     def has_read_access(self):
         return self.has_right(AccessRights.Read)
     
@@ -667,11 +688,11 @@ class DataSourceAllocation(db.Model):
         return self.has_right(AccessRights.Write)
     
     @staticmethod
-    def add(user, ds, url, rights):
+    def add(user_id, ds_id, url, rights):
         try:
             data = DataSourceAllocation()
-            data.user_id = user.id
-            data.datasource_id = ds.id
+            data.user_id = user_id
+            data.datasource_id = ds_id
             data.url = url
             data.rights = rights
             db.session.add(data)
@@ -696,6 +717,14 @@ class DataSourceAllocation(db.Model):
     def check_access_rights(user_id, path, checkRights):
         if not DataSourceAllocation.has_access_rights(user_id, path, checkRights):
             raise DataAccessError(path)
+    
+    @staticmethod
+    def access_rights_to_string(user_id, path):
+        allocations = DataSourceAllocation.query.filter(DataSourceAllocation.user_id == user_id)
+        for allocation in allocations:
+            if path.startswith(allocation.url):
+                return AccessRights.rights_to_string(allocation.rights)
+        return ""
     
 class Data(db.Model):
     __tablename__ = 'data'
@@ -951,10 +980,146 @@ class Runnable(db.Model):
     
     def get_user(self):
         workflow = Workflow.query.get(self.workflow_id)
-        return User.query.get(workflow.user_id)
+        return User.query.get(workflowfa.user_id)
+
+class DataAnnotation(db.Model):
+    __tablename__ = 'data_annotations'
+    id = db.Column(db.Integer, primary_key=True)
+    data_id  = db.Column(db.Integer, db.ForeignKey('datasource_allocations.id'), nullable=True)
+    type = db.Column(db.Integer, nullable = True)
+    tag = db.Column(db.Text, nullable = False)
     
+    @staticmethod
+    def add(data_id, tag, datatype = DataType.Text):
+        try:
+            annotation = DataAnnotation()
+            annotation.data_id = data_id
+            annotation.tag = tag
+            annotation.type = datatype
+            
+            db.session.add(annotation)
+            db.session.commit()
+            return annotation
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+class DataProperty(db.Model):
+    __tablename__ = 'data_properties'
+    id = db.Column(db.Integer, primary_key=True)
+    data_id  = db.Column(db.Integer, db.ForeignKey('datasource_allocations.id'), nullable=True)
+    type = db.Column(db.Integer, default = DataType.Text, nullable = False)
+    keyvalue = db.Column(JSON, nullable = False)
+    
+    @staticmethod
+    def add(data_id, keyvalue, datatype = DataType.Text):
+        try:
+            dataproperty = DataProperty()
+            dataproperty.data_id = data_id
+            dataproperty.keyvalue = keyvalue
+            dataproperty.type = datatype
+            
+            db.session.add(dataproperty)
+            db.session.commit()
+            return dataproperty
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    @staticmethod
+    def add_key_value(data_id, key, value, datatype = DataType.Text):
+        return DataProperty.add(data_id, {key: value}, datatype)      
+                    
+class Visualizer(db.Model):
+    __tablename__ = 'visualizers'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable = False)
+    desc = db.Column(db.Text, nullable = True)
+    
+    dataAllocations = db.relationship("DataSourceAllocation", secondary="data_visualizers")
+    
+    @staticmethod
+    def add(name):
+        try:
+            visualizer = Visualizer()
+            visualizer.name = name
+            
+            db.session.add(visualizer)
+            db.session.commit()
+            return visualizer
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+class DataVisualizer(db.Model):
+    __tablename__ = 'data_visualizers'
+    id = db.Column(db.Integer, primary_key=True)
+    data_id  = db.Column(db.Integer, db.ForeignKey('datasource_allocations.id'), nullable=False)
+    visualizer_id  = db.Column(db.Integer, db.ForeignKey('visualizers.id'), nullable=False)
+    
+    dataAllocation = db.relationship(DataSourceAllocation, backref=backref("data_visualizers", cascade="all, delete-orphan"))
+    visualizer = db.relationship(Visualizer, backref=backref("data_visualizers", cascade="all, delete-orphan"))
+    
+    @staticmethod
+    def add(data_id, visualizer_id):
+        try:
+            dataVisualizer = DataVisualizer()
+            dataVisualizer.data_id = data_id
+            dataVisualizer.visualizer_id = visualizer_id
+            
+            db.session.add(dataVisualizer)
+            db.session.commit()
+            return dataVisualizer
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
+class MimeType(db.Model):
+    __tablename__ = 'mimetypes'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable = False)
+    desc = db.Column(db.Text, nullable = True)
+    
+    dataAllocations = db.relationship("DataSourceAllocation", secondary="data_mimetypes")
+    
+    @staticmethod
+    def add(name):
+        try:
+            mimetype = MimeType()
+            mimetype.name = name
+
+            db.session.add(mimetype)
+            db.session.commit()
+            return mimetype
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+class DataMimeType(db.Model):
+    __tablename__ = 'data_mimetypes'
+    id = db.Column(db.Integer, primary_key=True)
+    data_id  = db.Column(db.Integer, db.ForeignKey('datasource_allocations.id'), nullable=False)
+    mimetype_id  = db.Column(db.Integer, db.ForeignKey('mimetypes.id'), nullable=False)
+    
+    dataAllocation = db.relationship(DataSourceAllocation, backref=backref("data_mimetypes", cascade="all, delete-orphan"))
+    mimetype = db.relationship(MimeType, backref=backref("data_mimetypes", cascade="all, delete-orphan"))
+    
+    @staticmethod
+    def add(data_id, mimetype_id):
+        try:
+            dataMimeType = DataMimeType()
+            dataMimeType.data_id = data_id
+            dataMimeType.mimetype_id = mimetype_id
+            
+            db.session.add(dataMimeType)
+            db.session.commit()
+            return dataMimeType
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
 class DataAccessError(Exception):
     def __init__(self, url):
 
         # Call the base class constructor with the parameters it needs
-        super().__init__("You do not have access rights for this path: " + url)        
+        super().__init__("You do not have access rights for this path: " + url)

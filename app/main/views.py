@@ -5,6 +5,8 @@ import sys
 from os import path
 import json
 import mimetypes
+import math
+import time
 
 from flask import Flask, render_template, redirect, url_for, abort, flash, request, \
     current_app, make_response
@@ -17,7 +19,8 @@ from sqlalchemy import and_
 from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType
+
 from ..util import Utility
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 
@@ -333,25 +336,149 @@ def download_biowl(path):
     mime = mimetypes.guess_type(fullpath)[0]
     return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
-def upload_biowl(file, fullpath):
+def upload_biowl(file, request):
+    
+    fullpath = request.form['path'] 
     fs = Utility.fs_by_prefix_or_default(fullpath)
-    return fs.save_upload(file, fullpath)
-                
+    saved_path = fs.save_upload(file, fullpath)
+    if not fs.isfile(saved_path):
+        return saved_path
+    
+    if request.form.get('filename'):
+        newpath = fs.join(fs.dirname(saved_path), request.form['filename'])
+        saved_path = fs.rename(saved_path, newpath)
 
+    ds = Utility.ds_by_prefix_or_default(saved_path)
+    if not ds:
+        return saved_path
+       
+    data_alloc = DataSourceAllocation.query.filter(and_(DataSourceAllocation.url == saved_path, DataSourceAllocation.datasource_id == ds.id)).first()
+    if not data_alloc:
+        data_alloc = DataSourceAllocation.add(current_user.id, ds.id, saved_path, AccessRights.Owner)
+        
+    if request.form.get('visualizer'):
+        visualizer = request.form['visualizer']
+        dbvis = Visualizer.query.filter_by(name = visualizer).first()
+        if not dbvis:
+            dbvis = Visualizer.add(visualizer)
+        
+        dv = DataVisualizer.query.filter(and_(DataVisualizer.data_id == data_alloc.id, DataVisualizer.visualizer_id == dbvis.id)).first()
+        if not dv:
+            DataVisualizer.add(data_alloc.id, dbvis.id)
+        
+    if request.form.get('annotations'):
+        annotations = request.form['annotations']
+        annotations = annotations.split(',')
+        for annotation in annotations:
+            dann = DataAnnotation.query.filter(and_(DataAnnotation.data_id == data_alloc.id, DataAnnotation.tag == annotation)).first()
+            if not dann:
+                DataAnnotation.add(data_alloc.id, annotation, DataType.Text)
+            
+    if request.form.get('mimetype'):
+        mimetype = request.form['mimetype']
+        dbmime = MimeType.query.filter_by(name = mimetype).first()
+        if not dbmime:
+            dbmime = MimeType.add(mimetype)
+        
+        datamime = DataMimeType.query.filter(and_(DataMimeType.data_id == data_alloc.id, DataMimeType.mimetype_id == dbmime.id)).first()
+        if not datamime:
+            DataMimeType.add(data_alloc.id, dbmime.id)
+    
+    return saved_path
     
 @main.route('/biowl', methods=['GET', 'POST'])
 @main.route('/', methods = ['GET', 'POST'])
 #@login_required
 def index():
     return render_template('biowl.html', username= current_user.username if current_user.is_authenticated else "")
- 
+
+def sizeof_fmt(num, suffix='B'):
+    magnitude = int(math.floor(math.log(num, 1024)))
+    val = num / math.pow(1024, magnitude)
+    if magnitude > 7:
+        return '{:.1f}{}{}'.format(val, 'Yi', suffix)
+    return '{:3.1f}{}{}'.format(val, ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi'][magnitude], suffix)
+
+def load_metadataproperties():
+    metadata = {}
+    metadata['mimetypes'] = mimetypes.types_map    
+    metadata['visualizers'] = ["browsers"]
+    
+    return metadata
+
+def load_metadata(path):
+    metadata = {}
+    # sysprops
+    fs = Utility.fs_by_prefix_or_default(path)
+    if not fs:
+        return None
+    
+    datatype = "DataType.File" if fs.isfile(path) else "DataType.Folder"
+    if not path.startswith('/'):
+        path = '/' + path
+    
+    ds = None
+    data_alloc = None
+      
+    accessRights = DataSourceAllocation.access_rights_to_string(current_user.id, path)
+    
+    if not accessRights:
+        ds = Utility.ds_by_prefix(path)
+        if not ds:
+            rights = AccessRights.NotSet
+            if path.startswith('/' + current_user.username):
+                rights = AccessRights.Owner
+                ds = Utility.ds_by_prefix_or_default(path)
+                data_alloc = DataSourceAllocation.add(current_user.id, ds.id, path, rights)
+            elif path.startswith(ds.public):
+                user = User.query.get(current_user.id)
+                if user.is_administrator():
+                    rights = AccessRights.Write
+                else:
+                    rights = AccessRights.Read
+                    
+    statinfo = os.stat(fs.normalize_path(path))
+        
+    metadata['sysprops'] = {'Name': fs.basename(path), 'Path': fs.dirname(path), 'Type': datatype, 'Size': sizeof_fmt(statinfo.st_size), 'Accessed on': time.ctime(statinfo.st_atime), 'Modified on': time.ctime(statinfo.st_mtime), 'Created on': time.ctime(statinfo.st_ctime), 'Permissions': accessRights}
+    
+    if not data_alloc:
+        if not ds:
+            ds = Utility.ds_by_prefix_or_default(path)
+            data_alloc = DataSourceAllocation.query.filter(and_(DataSourceAllocation.user_id == current_user.id, DataSourceAllocation.datasource_id == ds.id, DataSourceAllocation.url == path)).first()
+            
+    metadata['mimetypes'] = {}
+    if data_alloc:
+        metadatadb = data_alloc.visualizers
+        visualizers = {}
+        for m in metadatadb:
+            visualizers.update({ m.name: m.desc })
+        metadata['visualizers'] = visualizers
+        
+        metadatadb = data_alloc.annotations
+        annotations = []
+        for m in metadatadb:
+            annotations.append(m.tag)
+        metadata['annotations'] = annotations
+        
+        metadatadb = data_alloc.mimetypes
+        dbmimetypes = []
+        for m in metadatadb:
+            dbmimetypes.append(m.name)
+            
+        metadata['mimetypes'] = { 'user': ",".join(dbmimetypes) }
+        metadata['properties'] = {}
+    
+    metadata['mimetypes'].update( { 'system' : mimetypes.guess_type(path)[0]})
+       
+    return metadata
+     
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
     if request.form.get('download'):
         return download_biowl(request.form['download'])
     elif request.files and request.files['upload']:
-        upload_biowl(request.files['upload'], request.form['path'])
+        upload_biowl(request.files['upload'], request)
     elif request.args.get('addfolder'):
         path = request.args['addfolder']
         fileSystem = Utility.fs_by_prefix_or_default(path)
@@ -371,7 +498,11 @@ def datasources():
     elif request.args.get('load'):
         fs = Utility.fs_by_prefix_or_default(request.args['load'])
         return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
-            
+    elif request.args.get('path'):
+        return json.dumps(load_metadata(request.args.get('path')))
+    elif request.args.get('metadataproperties'):
+        return json.dumps(load_metadataproperties())
+        
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 
 class Samples():

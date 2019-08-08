@@ -361,8 +361,9 @@ class Library():
                 if not data_alloc:
                     data_alloc = DataSourceAllocation.add(context.user_id, ds.id, result, AccessRights.Owner)
                 
-                workflow_id = Runnable.query.get(context.runnable).workflow_id
-                DataProperty.add(data_alloc.id, { 'task_id': context.runnable}, DataType.Value)
+                DataProperty.add(data_alloc.id, { 'task_id': task.id}, DataType.Value)
+                DataProperty.add(data_alloc.id, { 'job_id': task.runnable_id}, DataType.Value)
+                workflow_id = Runnable.query.get(task.runnable_id).workflow_id
                 DataProperty.add(data_alloc.id, { 'workflow_id': workflow_id}, DataType.Value)
             return result
         except Exception as e:

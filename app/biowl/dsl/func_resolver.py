@@ -6,8 +6,7 @@ import pathlib
 
 from ...util import Utility
 from ..exechelper import func_exec_run
-from flask_login import current_user
-from ...models import Task, Status, DataType, AccessRights, DataSourceAllocation
+from ...models import Task, Status, DataType, AccessRights, DataSourceAllocation, DataProperty, Runnable
 
 # import_module can't load the following modules in the NGINX server
 # while running in 'immediate' mode. The early imports here are needed.
@@ -355,6 +354,16 @@ class Library():
                 
             datatype = Library.GetDataTypeFromFunc(func[0].returns, result)
             task.succeeded(datatype, str(result) if result else '')
+            
+            if (datatype and DataType.File) or (datatype and DataType.Folder):
+                ds = Utility.ds_by_prefix_or_default(result)
+                data_alloc = DataSourceAllocation.get(context.user_id, ds.id, result)
+                if not data_alloc:
+                    data_alloc = DataSourceAllocation.add(context.user_id, ds.id, result, AccessRights.Owner)
+                
+                workflow_id = Runnable.query.get(context.runnable).workflow_id
+                DataProperty.add(data_alloc.id, { 'task_id': context.runnable}, DataType.Value)
+                DataProperty.add(data_alloc.id, { 'workflow_id': workflow_id}, DataType.Value)
             return result
         except Exception as e:
             if task:

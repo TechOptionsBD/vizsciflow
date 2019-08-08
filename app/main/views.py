@@ -466,9 +466,15 @@ def load_metadata(path):
             dbmimetypes.append(m.name)
             
         metadata['mimetypes'] = { 'user': ",".join(dbmimetypes) }
-        metadata['properties'] = {}
+        
+        metadatadb = data_alloc.properties
+        properties = {}
+        for m in metadatadb:
+            properties.update(m.keyvalue)
+        metadata['properties'] = properties
     
-    metadata['mimetypes'].update( { 'system' : mimetypes.guess_type(path)[0]})
+    if 'system' not in metadata['mimetypes']:
+        metadata['mimetypes'].update( { 'system' : mimetypes.guess_type(path)[0]})
        
     return metadata
      

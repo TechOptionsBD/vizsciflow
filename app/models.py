@@ -16,6 +16,7 @@ from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import and_
 
 from app.exceptions import ValidationError
 
@@ -666,7 +667,8 @@ class DataType:
     Custom = 0x100
     Root = 0x200
     FileList = 0x400
-    FolderList = 0x800
+    FolderList = 0x800,
+    Value = 0x1000
     
 class DataSourceAllocation(db.Model):
     __tablename__ = 'datasource_allocations'  
@@ -701,6 +703,10 @@ class DataSourceAllocation(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+    
+    @staticmethod
+    def get(user_id, ds_id, url):
+        return DataSourceAllocation.query.filter(and_(DataSourceAllocation.user_id == user_id, DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
     
     def has_right(self, checkRight):
         return AccessRights.hasRight(self.rights, checkRight)
@@ -980,7 +986,7 @@ class Runnable(db.Model):
     
     def get_user(self):
         workflow = Workflow.query.get(self.workflow_id)
-        return User.query.get(workflowfa.user_id)
+        return User.query.get(workflow.user_id)
 
 class DataAnnotation(db.Model):
     __tablename__ = 'data_annotations'

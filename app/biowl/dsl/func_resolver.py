@@ -355,16 +355,18 @@ class Library():
             datatype = Library.GetDataTypeFromFunc(func[0].returns, result)
             task.succeeded(datatype, str(result) if result else '')
             
-            if (datatype and DataType.File) or (datatype and DataType.Folder):
+            if (datatype & DataType.File) == DataType.File  or (datatype & DataType.Folder) ==  DataType.Folder:
                 ds = Utility.ds_by_prefix_or_default(result)
                 data_alloc = DataSourceAllocation.get(context.user_id, ds.id, result)
                 if not data_alloc:
                     data_alloc = DataSourceAllocation.add(context.user_id, ds.id, result, AccessRights.Owner)
                 
-                DataProperty.add(data_alloc.id, { 'task_id': task.id}, DataType.Value)
-                DataProperty.add(data_alloc.id, { 'job_id': task.runnable_id}, DataType.Value)
                 workflow_id = Runnable.query.get(task.runnable_id).workflow_id
-                DataProperty.add(data_alloc.id, { 'workflow_id': workflow_id}, DataType.Value)
+                DataProperty.add(data_alloc.id, { 'workflow': { 'task_id': task.id, 'job_id': task.runnable_id, 'workflow_id': workflow_id, 'direction': 'output'} }, DataType.Value)
+                
+#                 DataProperty.add(data_alloc.id, { 'job_id': task.runnable_id}, DataType.Value)
+#                 workflow_id = Runnable.query.get(task.runnable_id).workflow_id
+#                 DataProperty.add(data_alloc.id, { 'workflow_id': workflow_id}, DataType.Value)
             return result
         except Exception as e:
             if task:

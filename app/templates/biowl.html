@@ -142,14 +142,14 @@
 					style="max-height: 200px; width: 100%; overflow-y: scroll;"
 					data-bind="foreach: items">
 					<div class="row menu_button"
-						data-bind="event: {dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
+						data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
 						style="width: 100%">
-						<div class="col-md-auto" style="vertical-align: middle;" data-bind="event: {click: $parent.toggleExpand}">
-							<input type="checkbox" style="margin-left: 10px;"
+						<div class="col-md-auto" style="vertical-align: middle;" >
+							<input type="checkbox" class="form-check-input" style="margin-left: 10px;"
 								data-bind="checked: selected" /> <img
 								style="vertical-align: middle" width="16px" height="16px"
-								data-bind="attr:{src: statusImg}" /> <span
-								data-bind="text: name" style="width: 100%; margin: 0"></span>
+								data-bind="attr:{src: statusImg}" />
+							<label data-bind="text: name" class="form-check-label label-checkbox"></label>
 						</div>
 						
 						<div class="col" style="float: right;">
@@ -169,7 +169,7 @@
 					<div class="btn-group">
 						<div class="btn-group-sm">
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="New Workflow" id="newwf" onclick="samplesViewModel.newwf()">
-								<i class="glyphicon glyphicon-asterisk toolbar-icon"></i>
+								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" data-bind="click: updateWorkflow.bind(true)">
 								<i class="glyphicon glyphicon-floppy-disk toolbar-icon"></i>
@@ -241,7 +241,7 @@
 							style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
 						<!-- <button class="btn pull-left btn-primary"
 							style="margin-right: 5px;" data-bind="click: provenance">Provenance</button> -->
-						<label class="checkbox-inline"><input type="checkbox"
+						<label class="checkbox-inline label-checkbox"><input type="checkbox"
 							id="immediate">Immediate</label> <span
 							class="badge badge-primary">Time: <span id="duration"
 							class="badge badge-light">0s</span>
@@ -416,7 +416,7 @@
 
 					<div data-bind="foreach: filteredWorkflows">
 						<div class="row menu_button"
-							data-bind="event: {dblclick: $parent.copyToEditor}, qTipWf: name, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+							data-bind="event: {dblclick: $parent.saveCurrentLoadintoEditor}, qTipWf: name, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 							style="width: 100%; margin: 0">
 							<div class="col-xm-6" style="float: left; margin: 0; width: 80%"
 								data-bind="text: name"></div>
@@ -1014,12 +1014,12 @@
             <!-- Modal Body -->
             <div class="modal-body">
                 <h4 class="modal-title" id="saveNeededModalLabel">
-                    You must save the workflow before running it. Do you want to save it now?
+                    Do you want to save the changes of the current workflow?
                 </h4>
             </div>
             <div class="modal-footer">
                  <button type="button" class="btn btn-default" data-dismiss="modal" id="save-needed-yes" data-dismiss="modal">Yes</button>
-                 <button type="button" class="btn" data-dismiss="modal">No</button>
+                 <button type="button" class="btn" id="save-needed-no" data-dismiss="modal">No</button>
             </div>
         </div>
     </div>
@@ -1961,20 +1961,15 @@ function typeInTextarea(el, newText) {
              if (!script && !workflowId) // || editor.session.getUndoManager().isClean())
            	 	return; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
            	
+           	// workflow not saved yet
            	if (!workflowId){
            		
+           		// Show save dialog if user explicitely clicked save/saveas button
            		if (save) {
-           			samplesViewModel.beginAdd();
-           			return;
+           			return samplesViewModel.beginAdd();
            		}
-//            		else {
-// 	           		centerDialog($('#save-needed'));
-// 	                $('#save-needed').modal('show')
-// 	                .on('click', '#save-needed-yes', function(e) {
-// 	           			samplesViewModel.beginAdd();
-// 	           	    });
-//            		}
            		
+           		// save with default name and private access.
            	}
            	
            	var formdata = new FormData();
@@ -1991,43 +1986,58 @@ function typeInTextarea(el, newText) {
              });
          }
          
+         self.runBioWLInternal = function(task) {
+        	 if (!workflowId) {
+                 $("#error").val("Workflow is not updated. Change the code and run again.");
+                 return;
+             }
+             
+             var script = $.trim(editor.getSession().getValue());
+             if (!script)
+           	  return;
+             
+             $('#refresh').show();
+             var formdata = new FormData();
+             
+             formdata.append('workflowId', parseInt(workflowId));
+             formdata.append('args', $('#args').val());
+             formdata.append('immediate', $('#immediate').prop('checked'));
+             self.clearResults();
+             ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
+           	  $('#refresh').hide();
+               	
+               	if (data === undefined)
+               		return;
+               	
+               	reportId = parseInt(data.runnableId);
+                   
+                  runnablesViewModel.load();
+                  runnablesViewModel.loadHistory(reportId, true);
+                   
+               }).fail(function(jqXHR, textStatus) {
+               	$('#refresh').hide();
+               	showXHRText(jqXHR);
+               }); 
+         }
+         
          self.runBioWL = function(task) {
-           self.updateWorkflow();
-           if (!workflowId) {
-               $("#error").val("Workflow is not updated. Change the code and run again.");
-               return;
+           var updateDlg = self.updateWorkflow();
+           if (updateDlg) {
+        	   updateDlg.on('hidden.bs.modal', function() { self.runBioWLInternal(task); });
            }
-           
-           var script = $.trim(editor.getSession().getValue());
-           if (!script)
-         	  return;
-           
-           $('#refresh').show();
-           var formdata = new FormData();
-           
-           formdata.append('workflowId', parseInt(workflowId));
-           formdata.append('args', $('#args').val());
-           formdata.append('immediate', $('#immediate').prop('checked'));
-           self.clearResults();
-           ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
-         	  $('#refresh').hide();
-             	
-             	if (data === undefined)
-             		return;
-             	
-             	reportId = parseInt(data.runnableId);
-                 
-                runnablesViewModel.load();
-                runnablesViewModel.loadHistory(reportId, true);
-                 
-             }).fail(function(jqXHR, textStatus) {
-             	$('#refresh').hide();
-             	showXHRText(jqXHR);
-             });
+           else
+        	   self.runBioWLInternal(task);
          }
          
          self.buildGraph = function(task) {
-         	self.updateWorkflow();
+        	 var updateDlg = self.updateWorkflow();
+             if (updateDlg) {
+          	   updateDlg.on('hidden.bs.modal', function() { self.buildGraphInternal(task); });
+             }
+             else
+          	   self.buildGraphInternal(task);
+         }
+         self.buildGraphInternal = function(task) {
              if (!$.trim(editor.getSession().getValue()))
            	  return;
              
@@ -2236,10 +2246,7 @@ function typeInTextarea(el, newText) {
            }
            
            self.newwf = function() {
-        	   workflowId = 0;
-        	   $('#script-name').text('New script');
-        	   editor.session.setValue("");
-        	   $('#args').val('');
+        	   self.saveCurrentLoadintoEditor(null);
            }
            
            self.beginAdd = function() {
@@ -2253,7 +2260,7 @@ function typeInTextarea(el, newText) {
         	   }
         	   self.sampleViewModel.name(scriptname);
                centerDialog($('#addSample'));
-               $('#addSample').modal('show');
+               return $('#addSample').modal('show');
            }
            
            self.firstSelectedItem = function() {
@@ -2266,22 +2273,65 @@ function typeInTextarea(el, newText) {
                return null;
            }
            
-           self.copyToEditor = function(item) {
+           self.saveNeeded = function() {
+          	 var script = $.trim(editor.getSession().getValue());
+          	 if (script)
+          		 script = script.trim();
+              if (!script && !workflowId) // || editor.session.getUndoManager().isClean())
+            	 	return false; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
+            	 
+              return isDirty;
+           }
+           
+           self.loadIntoEditor = function(item) {
         	   
-        	   ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item.id}).done(function(data) {
+        	   if (!item) {
+        		   workflowId = 0;
+            	   $('#script-name').text('New script');
+            	   editor.session.setValue("");
+            	   $('#args').val('');
+            	   return;
+        	   }
+        	   
+				ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item.id}).done(function(data) {
         		   
                	   if ($.isEmptyObject(data))
                		   return;
         		   
-        		   var pos = editor.selection.getCursor();        	   
-                   editor.session.insert(pos, data['script']);//.join('\r\n'));
+         	   
+	         	   editor.session.setValue(data['script']);
                    editor.focus();
                    workflowId = item.id();
                    $('#script-name').text(item.name());
+                   $('#args').val('');
                    
                }).fail(function(jqXHR) {
                    showXHRText(jqXHR);
                });
+           }
+           
+           self.saveCurrentLoadintoEditor = function(item) {
+	           if (self.saveNeeded()) {
+	          	   centerDialog($('#save-needed'));
+	               $('#save-needed').modal('show')
+	               	.on('click', '#save-needed-yes', function(e) {
+	               		var updateDlg = tasksViewModel.updateWorkflow(true);
+	                    if (updateDlg) {
+	                 	   updateDlg.on('hidden.bs.modal', function() 
+	                 			   { 
+	                 		   			self.loadIntoEditor(item); 
+	                 		   		}.bind(this));
+	                    }
+	                    else
+	                 	   self.loadIntoEditor(item);
+	                    
+	          	    }).on('click', '#save-needed-no', function(e) {
+	          	    	self.loadIntoEditor(item);
+	          	    });
+	      		}
+	           else {
+	        	   self.loadIntoEditor(item);
+	           }
            }
            
            self.click = function(model){

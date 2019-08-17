@@ -232,3 +232,24 @@ table.table .form-control.error {
 table.table td .add {
 	display: none;
 }
+
+input[type=radio] {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+input[type=checkbox]  {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    vertical-align: middle;
+}
+
+label-checkbox {
+	width: 20px;
+    height: 20px;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+}

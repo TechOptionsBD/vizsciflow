@@ -88,8 +88,11 @@
 								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 							</button>
 						</div>
-						<input class="form-control" type="text" placeholder="Search…"
-							data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
+						<input class="form-control col-md-9" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
+						<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Filter" data-bind="click: openFilterDialog">
+								<i class="glyphicon glyphicon-filter"></i>
+						</button>
 					</div>
 				</div>
 				<div class="panel-body draggable-datasources"
@@ -833,6 +836,8 @@
 		      </td>
 		      <td>
 		        <button data-bind="disable: $index() === 0, click: $parent.moveUp">Up</button>
+		      </td>
+		      <td>  
 		        <button data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown">Down</button>
 		      </td>
 		    </tr>
@@ -1536,6 +1541,9 @@
           });
       });
       
+      self.openFilterDialog = function() {
+    	  $('#filter-dialog').modal('show');
+      }
       /* self.rename = function() {
     	  $('#rename-filefolder-dialog').modal('hide');
     	  
@@ -2951,7 +2959,90 @@ function typeInTextarea(el, newText) {
                 });
             }
         }
-        
+       
+       function FilterViewModel() {
+          var self = this;
+          self.sortOrders = ko.observableArray([
+        	{
+        		name: "None",
+        		id: 0
+        	},
+        	{
+        		name: "ASC",
+        		id: 1
+        	},
+        	{
+        		name: "DESC",
+        		id: 2
+        	}
+          ]);
+          
+       	  self.filters = ko.observableArray([
+       	  {
+       		  selected: false,
+       		  name: "Name",
+       		  value: "",
+       		  sort: 0,
+       		  tip: "Name of the data or file"
+       	  }, {
+       		  selected: false,
+       		  name: "Size",
+       		  value: "",
+       		  sort: 0,
+       		  tip: "Size in bytes, use KB, MB, GB etc for large sizes." 
+       	  }, {
+       		  selected: false,
+       		  name: "Permission",
+       		  value: "",
+       		  sort: 0,
+       		  tip: "Access rights of the file/data" 
+       	  }, {
+       		  selected: false,
+       		  name: "Created",
+       		  value: "",
+       		  sort: 0,
+       		  tip: "Creation date" 
+       	  }, {
+       		  selected: false,
+       		  name: "Modified",
+       		  value: "",
+       		  sort: 0,
+       		  tip: "Modified date" 
+       	  }, {
+       		  selected: false,
+       		  name: "Accessed",
+       		  value: "",
+       		  sort: 0,
+       		  tip: "Accessed date" 
+       	  }, {
+       		  selected: false,
+       		  name: "key:value",
+       		  value: "",
+       		  sort: 0,
+       	  }
+       	  ]);
+       	  
+       	self.moveUp = function(data) {
+       	    var idx = self.filters.indexOf(data),
+       	      tmp = self.filters.splice(idx, 1);
+
+       	    self.filters.splice(idx - 1, 0, tmp[0]);
+       	  };
+       	  
+       	self.moveDown = function(data) {
+       	    var idx = self.filters.indexOf(data),
+       	      tmp = self.filters.splice(idx, 1);
+
+       	    self.filters.splice(idx + 1, 0, tmp[0]);
+       	  };
+       	  
+       	self.filter = function(){
+			self.filters.forEach(function(f){
+				
+			});       		  
+       		};
+       	}
+
         var addLibraryViewModel = new AddLibraryViewModel();
         var sampleViewModel = new SampleViewModel();
         var editTaskViewModel = new EditTaskViewModel();
@@ -2981,6 +3072,8 @@ function typeInTextarea(el, newText) {
         dataSourceViewModel.loadMetadataProperties();
         ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
 
+       	ko.applyBindings(new FilterViewModel(), $('#filter-dialog')[0]);
+    	
     function D3Graph()
     {
     	var self = this;

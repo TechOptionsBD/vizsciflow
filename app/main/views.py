@@ -19,7 +19,7 @@ from sqlalchemy import and_
 from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType, DataProperty
 
 from ..util import Utility
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -352,37 +352,31 @@ def upload_biowl(file, request):
     if not ds:
         return saved_path
        
-    data_alloc = DataSourceAllocation.query.filter(and_(DataSourceAllocation.url == saved_path, DataSourceAllocation.datasource_id == ds.id)).first()
-    if not data_alloc:
-        data_alloc = DataSourceAllocation.add(current_user.id, ds.id, saved_path, AccessRights.Owner)
+    data_alloc = DataSourceAllocation.add(current_user.id, ds.id, saved_path, AccessRights.Owner)
         
     if request.form.get('visualizer'):
-        visualizer = request.form['visualizer']
-        dbvis = Visualizer.query.filter_by(name = visualizer).first()
-        if not dbvis:
-            dbvis = Visualizer.add(visualizer)
-        
-        dv = DataVisualizer.query.filter(and_(DataVisualizer.data_id == data_alloc.id, DataVisualizer.visualizer_id == dbvis.id)).first()
-        if not dv:
-            DataVisualizer.add(data_alloc.id, dbvis.id)
+        dbvisualizer = None
+        if request.form.get('visualizer'):
+            visualizer = json.loads(request.form['visualizer'])
+            for k,v in visualizer.items():
+                dbvisualizer = Visualizer.add(k, v)
+                if dbvisualizer:
+                    DataVisualizer.add(data_alloc.id, dbvisualizer.id)
         
     if request.form.get('annotations'):
         annotations = request.form['annotations']
         annotations = annotations.split(',')
         for annotation in annotations:
-            dann = DataAnnotation.query.filter(and_(DataAnnotation.data_id == data_alloc.id, DataAnnotation.tag == annotation)).first()
-            if not dann:
-                DataAnnotation.add(data_alloc.id, annotation, DataType.Text)
+            DataAnnotation.add(data_alloc.id, annotation)
             
     if request.form.get('mimetype'):
-        mimetype = request.form['mimetype']
-        dbmime = MimeType.query.filter_by(name = mimetype).first()
-        if not dbmime:
-            dbmime = MimeType.add(mimetype)
-        
-        datamime = DataMimeType.query.filter(and_(DataMimeType.data_id == data_alloc.id, DataMimeType.mimetype_id == dbmime.id)).first()
-        if not datamime:
-            DataMimeType.add(data_alloc.id, dbmime.id)
+        dbmimetype = None
+        if request.form.get('mimetype'):
+            mimetype = json.loads(request.form['mimetype'])
+            for k,v in mimetype.items():
+                dbmimetype = MimeType.add(k, v)
+                if dbmimetype:
+                    DataMimeType.add(data_alloc.id, dbmimetype.id)
     
     return saved_path
     
@@ -400,16 +394,26 @@ def sizeof_fmt(num, suffix='B'):
     return '{:3.1f}{}{}'.format(val, ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi'][magnitude], suffix)
 
 def load_metadataproperties():
-    metadata = {}
-    metadata['mimetypes'] = mimetypes.types_map    
-    metadata['visualizers'] = ["browsers"]
+    visualizers = {'browsers': 'all'}
     
-    return metadata
+    datamimetypes = {}
+    for m in mimetypes.types_map.items():
+        datamimetypes[m[0]] = m[1]
+    
+    return { 'visualizers': visualizers, 'mimetypes': datamimetypes}
 
 def load_metadata(path):
     metadata = {}
+    
+    ds = Utility.ds_by_prefix_or_default(path)
+    if not ds:
+        return None # data source not added to the system
+    
+    # user must have at least read access
+    DataSourceAllocation.check_access_rights(current_user.id, path, AccessRights.Read)
+
     # sysprops
-    fs = Utility.fs_by_prefix_or_default(path)
+    fs = Utility.create_fs(ds)
     if not fs:
         return None
     
@@ -417,34 +421,33 @@ def load_metadata(path):
     if not path.startswith('/'):
         path = '/' + path
     
-    ds = None
     data_alloc = None
-      
-    accessRights = DataSourceAllocation.access_rights_to_string(current_user.id, path)
     
+    # access rights in string
+    accessRights = DataSourceAllocation.access_rights_to_string(current_user.id, path)
+
     if not accessRights:
-        ds = Utility.ds_by_prefix(path)
-        if not ds:
-            rights = AccessRights.NotSet
-            if path.startswith('/' + current_user.username):
-                rights = AccessRights.Owner
-                ds = Utility.ds_by_prefix_or_default(path)
-                data_alloc = DataSourceAllocation.add(current_user.id, ds.id, path, rights)
-            elif path.startswith(ds.public):
-                user = User.query.get(current_user.id)
-                if user.is_administrator():
-                    rights = AccessRights.Write
-                else:
-                    rights = AccessRights.Read
-                    
+#         if path.startswith('/' + current_user.username):
+#             rights = AccessRights.Owner
+#             ds = Utility.ds_by_prefix_or_default(path)
+#             data_alloc = DataSourceAllocation.add(current_user.id, ds.id, path, rights)
+#         elif
+        if path.startswith(ds.public):
+            user = User.query.get(current_user.id)
+            if user.is_administrator():
+                rights = AccessRights.Write
+            else:
+                rights = AccessRights.Read
+    
+        if rights == AccessRights.NotSet:
+            return None
+    
     statinfo = os.stat(fs.normalize_path(path))
         
     metadata['sysprops'] = {'Name': fs.basename(path), 'Path': fs.dirname(path), 'Type': datatype, 'Size': sizeof_fmt(statinfo.st_size), 'Accessed on': time.ctime(statinfo.st_atime), 'Modified on': time.ctime(statinfo.st_mtime), 'Created on': time.ctime(statinfo.st_ctime), 'Permissions': accessRights}
     
-    if not data_alloc:
-        if not ds:
-            ds = Utility.ds_by_prefix_or_default(path)
-            data_alloc = DataSourceAllocation.query.filter(and_(DataSourceAllocation.user_id == current_user.id, DataSourceAllocation.datasource_id == ds.id, DataSourceAllocation.url == path)).first()
+    #data_alloc = DataSourceAllocation.query.filter(and_(DataSourceAllocation.user_id == current_user.id, DataSourceAllocation.datasource_id == ds.id, DataSourceAllocation.url == path)).first()
+    data_alloc = DataSourceAllocation.add(current_user.id, ds.id, path, AccessRights.Read)
             
     metadata['mimetypes'] = {}
     if data_alloc:
@@ -455,17 +458,23 @@ def load_metadata(path):
         metadata['visualizers'] = visualizers
         
         metadatadb = data_alloc.annotations
-        annotations = []
+        annotations = {}
+        index = 1
         for m in metadatadb:
-            annotations.append(m.tag)
+            annotations.update({ str(index): m.tag})
+            index += 1
         metadata['annotations'] = annotations
         
         metadatadb = data_alloc.mimetypes
-        dbmimetypes = []
+        dbmimetypes = {}
         for m in metadatadb:
-            dbmimetypes.append(m.name)
-            
-        metadata['mimetypes'] = { 'user': ",".join(dbmimetypes) }
+            dbmimetypes.update({ m.name: m.desc })
+        
+        if not dbmimetypes:
+            for g in mimetypes.guess_type(path):
+                dbmimetypes.update({ g: g })
+                          
+        metadata['mimetypes'] = dbmimetypes
         
         metadatadb = data_alloc.properties
         properties = {}
@@ -473,11 +482,45 @@ def load_metadata(path):
             properties.update(m.keyvalue)
         metadata['properties'] = properties
     
-    if 'system' not in metadata['mimetypes']:
-        metadata['mimetypes'].update( { 'system' : mimetypes.guess_type(path)[0]})
-       
     return metadata
-     
+    
+def save_metadata(request):
+    path = request.form.get('metadatasave')
+    newname = request.form.get('filename')
+    
+    fs = Utility.fs_by_prefix_or_default(path)
+    if fs.basename(path) != newname:
+        fs.rename(path, newname)
+
+    DataSourceAllocation.check_access_rights(current_user.id, path, AccessRights.Read)
+    
+    ds = Utility.ds_by_prefix_or_default(path)
+    data = DataSourceAllocation.get_by_url(ds.id, path)
+    
+    if request.form.get('visualizers'):    
+        visualizers = json.loads(request.form.get('visualizers'))
+        for name, desc in visualizers.items():
+            visualizer = Visualizer.add(name, desc)
+            if visualizer:
+                DataVisualizer.add(data.id, visualizer.id)
+    
+    if request.form.get('annotations'):    
+        annotations = json.loads(request.form.get('annotations'))
+        for name, desc in annotations.items():
+            DataAnnotation.add(data.id, desc)
+    
+    if request.form.get('mimetypes'):    
+        mimetypes = json.loads(request.form.get('mimetypes'))
+        for name, desc in mimetypes.items():
+            mimetype = MimeType.add(name, desc)
+            if mimetype:
+                DataMimeType.add(data.id, mimetype.id)
+                
+    if request.form.get('properties'):    
+        properties = json.loads(request.form.get('properties'))
+        for name, desc in properties.items():
+            DataProperty.add(data.id, name, desc)
+
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
@@ -504,10 +547,12 @@ def datasources():
     elif request.args.get('load'):
         fs = Utility.fs_by_prefix_or_default(request.args['load'])
         return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
-    elif request.args.get('path'):
-        return json.dumps(load_metadata(request.args.get('path')))
+    elif request.args.get('metadataload'):
+        return json.dumps(load_metadata(request.args.get('metadataload')))
     elif request.args.get('metadataproperties'):
         return json.dumps(load_metadataproperties())
+    elif request.form.get('metadatasave'):        
+        return json.dumps(save_metadata(request))                
         
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 

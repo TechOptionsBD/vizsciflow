@@ -607,7 +607,7 @@
 			aria-hidden="true">&times;</button>
 		<h3 id="addDialogLabel">Update Metadata</h3>
 	</div>
-	<div class="modal-body">
+	<div class="modal-body" style="overflow-x: auto;">
 		<form class="form-horizontal">
 			<div class="control-group">
 				<div class="controls">
@@ -625,27 +625,27 @@
 								<label for="filename">Filename</label>
 								<input type="text" id="filename" class="form-control" data-bind="value: filename">
 								<div class="table-wrapper">
-									<table class="table table-bordered"
-										data-bind="foreach: systemProperties.items">
+									<table class="table table-bordered">
 										<thead>
 											<tr>
 												<th>Key</th>
 												<th>Value</th>
+												<th></th>
 											</tr>
 										</thead>
-										<tbody>
+										<tbody data-bind="foreach: systemProperties.items">
 											<tr>
-												<th class="justify-content-right" scope="row"
-													data-bind="text: key"></th>
-												<td class="justify-content-left" data-bind="text: value"></td>
+												<td scope="row" data-bind="text: key"></td>
+												<td data-bind="text: value"></td>
+												
 											</tr>
 										</tbody>
 									</table>
 								</div>
 							</div>
 						</div>
-						<div class="tab-pane fade" id="visualizertab"></div>
-						<div class="container">
+						<div class="tab-pane fade" id="visualizertab">
+							<div class="container">
 								<div class="table-wrapper">
 									<div class="table-title">
 										<div class="row justify-content-end">
@@ -656,8 +656,7 @@
 											</div>
 										</div>
 									</div>
-									<table class="table table-bordered"
-										data-bind="foreach: visualizers.items">
+									<table class="table table-bordered">
 										<thead>
 											<tr>
 												<th>Key</th>
@@ -665,7 +664,7 @@
 												<th>Actions</th>
 											</tr>
 										</thead>
-										<tbody>
+										<tbody data-bind="foreach: visualizers.items">
 											<tr>
 												<td scope="row" data-bind="text: key"></td>
 												<td data-bind="text: value"></td>
@@ -679,9 +678,9 @@
 									</table>
 								</div>
 							</div>
-						<div class="tab-pane fade" id="annotationtab"></div>
-						<div class="tab-pane fade" id="mimetypestab"></div>
-						<div class="container">
+						</div>
+						<div class="tab-pane fade" id="annotationtab">
+							<div class="container">
 								<div class="table-wrapper">
 									<div class="table-title">
 										<div class="row justify-content-end">
@@ -692,8 +691,7 @@
 											</div>
 										</div>
 									</div>
-									<table class="table table-bordered"
-										data-bind="foreach: visualizers.items">
+									<table class="table table-bordered">
 										<thead>
 											<tr>
 												<th>Key</th>
@@ -701,7 +699,7 @@
 												<th>Actions</th>
 											</tr>
 										</thead>
-										<tbody>
+										<tbody data-bind="foreach: annotations.items">
 											<tr>
 												<td scope="row" data-bind="text: key"></td>
 												<td data-bind="text: value"></td>
@@ -715,6 +713,42 @@
 									</table>
 								</div>
 							</div>
+						</div>
+						<div class="tab-pane fade" id="mimetypestab">
+							<div class="container">
+								<div class="table-wrapper">
+									<div class="table-title">
+										<div class="row justify-content-end">
+											<div class="col-sm-12">
+												<button type="button" class="btn btn-info add-new">
+													<i class="fa fa-plus"></i> Add New
+												</button>
+											</div>
+										</div>
+									</div>
+									<table class="table table-bordered">
+										<thead>
+											<tr>
+												<th>Key</th>
+												<th>Value</th>
+												<th>Actions</th>
+											</tr>
+										</thead>
+										<tbody data-bind="foreach: mimetypes.items">
+											<tr>
+												<td scope="row" data-bind="text: key"></td>
+												<td data-bind="text: value"></td>
+												<td>
+													<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
+													<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+													<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
 						<div class="tab-pane fade" id="propertiestab">
 							<div class="container">
 								<div class="table-wrapper">
@@ -727,8 +761,7 @@
 											</div>
 										</div>
 									</div>
-									<table class="table table-bordered"
-										data-bind="foreach: properties.items">
+									<table class="table table-bordered">
 										<thead>
 											<tr>
 												<th>Key</th>
@@ -736,7 +769,7 @@
 												<th>Actions</th>
 											</tr>
 										</thead>
-										<tbody>
+										<tbody	data-bind="foreach: properties.items">
 											<tr>
 												<td scope="row" data-bind="text: key"></td>
 												<td data-bind="text: value"></td>
@@ -758,10 +791,58 @@
 	</div>
 	<div class="modal-footer">
 		<!--         <button data-bind="click: update" class="btn btn-primary">Save</button> -->
+		<button class="btn" data-dismiss="modal" data-bind="event: {click: save}" aria-hidden="true">OK</button>
 		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		<div>
 			<span class="label label-default" id="add-metadata-info"></span>
 		</div>
+	</div>
+</div>
+
+<div id="filter-dialog" class="modal fade bs-modal-sm" tabindex="=1"
+	role="dialog" aria-labelledby="filterDialogLabel" aria-hidden="true"
+	style="position:absolute; width: 50%; height: 50%; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal"
+			aria-hidden="true">&times;</button>
+		<h5 id="filterDialogLabel">Update Metadata</h5>
+	</div>
+	<div class="modal-body" style="overflow-x: auto;">
+		<table class="table static-table table-bordered table-hover no-bottom-margin">
+		  <thead>
+		    <tr>
+		      <th>Selected</th>
+		      <th>Name</th>
+		      <th>Search</th>
+		      <th>Sort</th>
+		      <th>Up</th>
+		      <th>Down</th>
+		    </tr>
+		  </thead>
+		  <tbody data-bind="foreach: filters">
+		    <tr>
+		      <td>
+		        <input type="checkbox" data-bind="checked: selected" />
+		      </td>
+		      <td data-bind="text: name"></td>
+		      <td>
+		      	<input type="text" class="form-control" data-bind="text: value">
+		      </td>
+		      <td>
+		      	<select data-bind="options: $parent.sortOrders, optionsText: 'name', optionsValue: 'id', value: sort, optionsCaption: 'Sort...'"></select>
+		      </td>
+		      <td>
+		        <button data-bind="disable: $index() === 0, click: $parent.moveUp">Up</button>
+		        <button data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown">Down</button>
+		      </td>
+		    </tr>
+		  </tbody>
+		</table>
+	</div>
+	<div class="modal-footer">
+		<!--         <button data-bind="click: update" class="btn btn-primary">Save</button> -->
+		<button class="btn" data-dismiss="modal" data-bind="click: filter" aria-hidden="true">Search</button>
+		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 	</div>
 </div>
 
@@ -1268,10 +1349,14 @@
 
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'metadataproperties': true }).done(function(data) {
 			
-        	  self.visualizers = ko.observableArray(data['visualizers']);
+        	  self.visualizers = ko.observableArray();
+        	  $.each(data['visualizers'], function(key, value){
+        		  self.visualizers.push(ko.observable(key + ": " + value))
+        	  });
+        	  
         	  self.mimetypes = ko.observableArray();
         	  $.each(data['mimetypes'], function(key, value){
-        		  self.mimetypes.push(ko.observable(key + ", " + value))
+        		  self.mimetypes.push(ko.observable(key + ": " + value))
         	  });
                         
           }).fail(function(jqXHR) {
@@ -1385,9 +1470,20 @@
         	  return;
           formdata.append('path', node.original.path);//you can append it to formdata with a proper parameter name
           formdata.append('filename', $("#inputFilename").val());
-          formdata.append('visualizer', $("#inputVisualizer").val());
+          var visualizer = $("#inputVisualizer").val();
+          if (visualizer) {
+          	visualizer = visualizer.split(": ");
+          	visualizer = {
+          			[visualizer[0]]: visualizer[1]
+          	};
+          	formdata.append('visualizer', JSON.stringify(visualizer));
+          }
 		  formdata.append('annotations', $("#inputAnnotations")[0].value);
-		  formdata.append('mimetype', $("#inputMimeType").val());
+		  mimetype = $("#inputMimeType").val();
+		  if (mimetype) {
+			  mimetype = mimetype.split(": ");
+			  formdata.append('mimetype', JSON.stringify({ [mimetype[0].trim()]: mimetype[1].trim() }));
+		  }
 		  
           ajaxcalls.form(self.dataSourcesURI, 'POST', formdata).done(function(data) {
         	  self.loadItem(node);
@@ -1899,13 +1995,15 @@ function typeInTextarea(el, newText) {
    	  		Name: "Public"
    		});
          
-         self.categories = ko.observableArray([{
+         self.categories = ko.observableArray([
+        	 {
          	  Id: 0,
          	  Name: "Basic"
-         	}, {
+         	 }, {
          	  Id: 1,
          	  Name: "Advanced"
-         	}]);
+         	 }
+         	 ]);
          
          self.selectedCategory = ko.observable({
        	  Id: 0,
@@ -2222,7 +2320,7 @@ function typeInTextarea(el, newText) {
            self.sampleViewModel = sampleViewModel;
            self.access = ko.observable("0");
            self.workflowFilter = ko.observable("");
-			this.filteredWorkflows = ko.computed(function(){
+			self.filteredWorkflows = ko.computed(function(){
 		       return this.items().filter(function(item){
 		           if(!self.workflowFilter() || item.name().toLowerCase().indexOf(self.workflowFilter().toLowerCase()) !== -1)
 		             return item;
@@ -2604,17 +2702,34 @@ function typeInTextarea(el, newText) {
             var self = this;
             
             self.metadataURI = '/datasources';
+            self.path =  new ko.observable();
             self.filename = new ko.observable();
             self.systemProperties = new ko.observableDictionary();
             self.visualizers = new ko.observableDictionary();
             self.annotations = new ko.observableDictionary(); // list of strings
             self.properties = new ko.observableDictionary(); // keyvalue
             self.mimetypes = new ko.observableDictionary();
-           
+            
+            self.save = function() {
+            	
+            	var formdata = new FormData();
+            	
+				formdata.append('metadatasave', self.path());
+				formdata.append('filename', self.filename());
+				formdata.append('visualizers', ko.toJSON(self.visualizers));
+				formdata.append('annotations', ko.toJSON(self.annotations));
+				formdata.append('mimetypes', ko.toJSON(self.mimetypes));
+				formdata.append('properties', ko.toJSON(self.properties));
+      		  
+                ajaxcalls.form(self.metadataURI, 'POST', formdata).done(function(data) {
+                });
+            } 
+            
             self.load = function(path) {
-
+            	
+            	self.path(path);
             	self.filename(path.replace(/^.*[\\\/]/, ''));
-            	ajaxcalls.simple(self.metadataURI, 'GET', {'path': path}).done(function(data) {
+            	ajaxcalls.simple(self.metadataURI, 'GET', {'metadataload': path}).done(function(data) {
                 	if (data == undefined)
                 		return;
                 	
@@ -2629,8 +2744,8 @@ function typeInTextarea(el, newText) {
                     });
                     
                     self.annotations.removeAll();
-                    $.each(data['annotations'], function(index, value){
-                        self.annotations.push(index.toString(), value);
+                    $.each(data['annotations'], function(key, value){
+                        self.annotations.push(key, value);
                     })
                     
                     /* var observableAnnotations = ko.utils.arrayMap(data['annotations'], function(annotation) {
@@ -3122,9 +3237,38 @@ function typeInTextarea(el, newText) {
 		  $("#addSample").modal('hide');
       }
 	});
+
+	
+	$("#exTabBiowl").on("click", "a", function (e) {
+        e.preventDefault();
+
+        $(this).tab('show');
+        $currentBiowlTab = $(this);
+    });
+	
+	function getMetaDataCollection(jtbody) {
+		var type = jtbody.data('bind');
+		
+		//var type = $(this).data("type");
+		//metadataviewmodel = ko.dataFor($(this).parents("table")[0]);
+		var metadataCollection;
+		if (type.includes("mimetypes")){
+			metadataCollection = metadataViewModel.mimetypes;
+		}
+		
+		return metadataCollection;
+	}
+	
+	$(".add-new").click(function(){
+		$(this).attr("disabled", "disabled");
+		
+		metadataCollection = getMetaDataCollection($(this).closest('div.table-wrapper').find('table tbody'));
+		metadataCollection.push("new key", "new value");
+    });
 	
 	// Add row on add button click
 	$(document).on("click", ".add", function(){
+		
 		var empty = false;
 		var input = $(this).parents("tr").find('input[type="text"]');
         input.each(function(){
@@ -3139,10 +3283,14 @@ function typeInTextarea(el, newText) {
 		if(!empty){
 			input.each(function(){
 				$(this).parent("td").html($(this).val());
-			});			
+			});
+			
+			metadata = ko.dataFor($(this).parents("tr")[0]);
+			metadata.value(input[1].value);
+			
 			$(this).parents("tr").find(".add, .edit").toggle();
 			$(".add-new").removeAttr("disabled");
-		}		
+		}
     });
 	
 	// Edit row on edit button click
@@ -3153,19 +3301,20 @@ function typeInTextarea(el, newText) {
 		$(this).parents("tr").find(".add, .edit").toggle();
 		$(".add-new").attr("disabled", "disabled");
     });
+	
 	// Delete row on delete button click
 	$(document).on("click", ".delete", function(){
+		
+		metadataCollection = getMetaDataCollection($(this).parents('table tbody'));
+		
+		metadata = ko.dataFor($(this).parents("tr")[0]);
+		metadataCollection.remove(metadata);
+		
         $(this).parents("tr").remove();
 		$(".add-new").removeAttr("disabled");
     });
 	
 	
-	$("#exTabBiowl").on("click", "a", function (e) {
-        e.preventDefault();
-
-        $(this).tab('show');
-        $currentBiowlTab = $(this);
-    });
 	
 	$("#exTabBiowl").on('shown.bs.tab', function (e) {
 		var x = $(e.target).text();

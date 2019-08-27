@@ -362,7 +362,7 @@ class Library():
                     data_alloc = DataSourceAllocation.add(context.user_id, ds.id, result, AccessRights.Owner)
                 
                 workflow_id = Runnable.query.get(task.runnable_id).workflow_id
-                DataProperty.add(data_alloc.id, { 'workflow': { 'task_id': task.id, 'job_id': task.runnable_id, 'workflow_id': workflow_id, 'direction': 'output'} }, DataType.Value)
+                DataProperty.add(data_alloc.id, "execution {0}".format(task.id), { 'workflow': { 'task_id': task.id, 'job_id': task.runnable_id, 'workflow_id': workflow_id, 'inout': 'out'} })
                 
 #                 DataProperty.add(data_alloc.id, { 'job_id': task.runnable_id}, DataType.Value)
 #                 workflow_id = Runnable.query.get(task.runnable_id).workflow_id

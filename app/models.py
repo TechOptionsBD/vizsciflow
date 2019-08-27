@@ -100,7 +100,7 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     workflows = db.relationship('Workflow', backref='user', lazy='dynamic')
     services = db.relationship('Service', backref='user', lazy='dynamic')
-    datasourceAllocations = db.relationship('DataSourceAllocation', backref='user', lazy='dynamic')
+    data_permissions = db.relationship('DataPermission', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
@@ -673,15 +673,14 @@ class DataType:
 class DataSourceAllocation(db.Model):
     __tablename__ = 'datasource_allocations'  
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'))
     url = db.Column(db.Text, nullable=False)
-    rights = db.Column(db.Integer, default = 0)
     
     visualizers = db.relationship('Visualizer', secondary = "data_visualizers")
     mimetypes = db.relationship('MimeType', secondary='data_mimetypes', lazy='dynamic')
     annotations = db.relationship('DataAnnotation', backref='datasource_allocation', lazy='dynamic')
     properties = db.relationship('DataProperty', backref='datasource_allocation', lazy='dynamic', cascade='all, delete-orphan')
+    permissions = db.relationship('DataPermission', backref='datasource_allocation', lazy='dynamic', cascade='all, delete-orphan')
     
     def has_read_access(self):
         return self.has_right(AccessRights.Read)
@@ -692,13 +691,15 @@ class DataSourceAllocation(db.Model):
     @staticmethod
     def add(user_id, ds_id, url, rights):
         try:
-            data = DataSourceAllocation()
-            data.user_id = user_id
-            data.datasource_id = ds_id
-            data.url = url
-            data.rights = rights
-            db.session.add(data)
-            db.session.commit() 
+            data = DataSourceAllocation.query.filter(and_(DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
+            if not data:
+                data = DataSourceAllocation()
+                data.datasource_id = ds_id
+                data.url = url
+                db.session.add(data)
+                db.session.commit()
+            
+            DataPermission.add(user_id, data.id, rights)
             return data
         except SQLAlchemyError:
             db.session.rollback()
@@ -706,18 +707,34 @@ class DataSourceAllocation(db.Model):
     
     @staticmethod
     def get(user_id, ds_id, url):
-        return DataSourceAllocation.query.filter(and_(DataSourceAllocation.user_id == user_id, DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
-    
-    def has_right(self, checkRight):
-        return AccessRights.hasRight(self.rights, checkRight)
+        return DataSourceAllocation.query.join(DataPermission, DataPermission.data_id == DataSourceAllocation.id).filter(and_(DataPermission.user_id == user_id, DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
+
+    @staticmethod
+    def get_by_url(ds_id, url):
+        return DataSourceAllocation.query.filter(and_(DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
+        
+    def has_right(self, user_id, checkRight):
+        dataPermission = DataPermission.query.filter(and_(DataPermission.user_id == user_id, DataPermission.data_id == self.id)).first()
+        return AccessRights.hasRight(dataPermission.rights, checkRight)
     
     @staticmethod
     def has_access_rights(user_id, path, checkRights):
-        allocations = DataSourceAllocation.query.filter(DataSourceAllocation.user_id == user_id)
+        allocations = DataSourceAllocation.query.join(DataPermission, DataPermission.data_id == DataSourceAllocation.id).filter(DataPermission.user_id == user_id)
         for allocation in allocations:
-            if path.startswith(allocation.url) and allocation.has_right(checkRights):
-                return True
+            if path.startswith(allocation.url):
+                for permission in allocation.permissions: 
+                    if AccessRights.hasRight(permission.rights, checkRights):
+                        return True
         return False
+
+    @staticmethod
+    def get_access_rights(user_id, path):
+        allocations = DataSourceAllocation.query.join(DataPermission, DataPermission.data_id == DataSourceAllocation.id).filter(DataPermission.user_id == user_id)
+        for allocation in allocations:
+            if path.startswith(allocation.url):
+                for permission in allocation.permissions:
+                    return permission.rights 
+        return AccessRights.NotSet
     
     @staticmethod
     def check_access_rights(user_id, path, checkRights):
@@ -726,11 +743,7 @@ class DataSourceAllocation(db.Model):
     
     @staticmethod
     def access_rights_to_string(user_id, path):
-        allocations = DataSourceAllocation.query.filter(DataSourceAllocation.user_id == user_id)
-        for allocation in allocations:
-            if path.startswith(allocation.url):
-                return AccessRights.rights_to_string(allocation.rights)
-        return ""
+        return AccessRights.rights_to_string(DataSourceAllocation.get_access_rights(user_id, path))
     
 class Data(db.Model):
     __tablename__ = 'data'
@@ -988,22 +1001,52 @@ class Runnable(db.Model):
         workflow = Workflow.query.get(self.workflow_id)
         return User.query.get(workflow.user_id)
 
+class DataPermission(db.Model):
+    __tablename__ = 'data_permissions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    data_id  = db.Column(db.Integer, db.ForeignKey('datasource_allocations.id'))
+    rights = db.Column(db.Integer, default = 0)
+    
+    @staticmethod
+    def add(user_id, data_id, rights):
+        try:
+            permission = DataPermission.query.filter(and_(DataPermission.user_id == user_id, DataPermission.data_id == data_id)).first()
+            if not permission:
+                permission = DataPermission()
+                permission.user_id = user_id
+                permission.data_id = data_id
+                db.session.add(permission)
+            elif permission.rights == rights:
+                return permission
+                
+            permission.rights = rights
+
+            db.session.commit()
+            return permission
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
 class DataAnnotation(db.Model):
     __tablename__ = 'data_annotations'
     id = db.Column(db.Integer, primary_key=True)
     data_id  = db.Column(db.Integer, db.ForeignKey('datasource_allocations.id'), nullable=True)
-    type = db.Column(db.Integer, nullable = True)
     tag = db.Column(db.Text, nullable = False)
     
     @staticmethod
-    def add(data_id, tag, datatype = DataType.Text):
+    def add(data_id, tag):
         try:
-            annotation = DataAnnotation()
-            annotation.data_id = data_id
+            annotation = DataAnnotation.query.filter_by(data_id = data_id).first()
+            if not annotation:            
+                annotation = DataAnnotation()
+                annotation.data_id = data_id
+                db.session.add(annotation)
+            elif annotation.tag == tag:
+                return annotation
+                
             annotation.tag = tag
-            annotation.type = datatype
             
-            db.session.add(annotation)
             db.session.commit()
             return annotation
         except SQLAlchemyError:
@@ -1014,18 +1057,23 @@ class DataProperty(db.Model):
     __tablename__ = 'data_properties'
     id = db.Column(db.Integer, primary_key=True)
     data_id  = db.Column(db.Integer, db.ForeignKey('datasource_allocations.id'), nullable=True)
-    type = db.Column(db.Integer, default = DataType.Text, nullable = False)
-    keyvalue = db.Column(JSON, nullable = False)
+    key = db.Column(db.Text, nullable = False)
+    value = db.Column(JSON, nullable = False)
     
     @staticmethod
-    def add(data_id, keyvalue, datatype = DataType.Text):
+    def add(data_id, key, value):
         try:
-            dataproperty = DataProperty()
-            dataproperty.data_id = data_id
-            dataproperty.keyvalue = keyvalue
-            dataproperty.type = datatype
+            dataproperty = DataProperty.query.filter(and_(DataProperty.data_id == data_id, DataProperty.key == key)).first()
+            if not dataproperty:            
+                dataproperty = DataProperty()
+                dataproperty.data_id = data_id
+                dataproperty.key = key
+                db.session.add(dataproperty)
+            elif dataproperty.value == value:
+                return property
             
-            db.session.add(dataproperty)
+            dataproperty.value = value
+            
             db.session.commit()
             return dataproperty
         except SQLAlchemyError:
@@ -1045,17 +1093,24 @@ class Visualizer(db.Model):
     dataAllocations = db.relationship("DataSourceAllocation", secondary="data_visualizers")
     
     @staticmethod
-    def add(name):
+    def add(name, desc):
         try:
-            visualizer = Visualizer()
-            visualizer.name = name
+            visualizer = Visualizer.query.filter_by(name = name).first()
+            if not visualizer:            
+                visualizer = Visualizer()
+                visualizer.name = name
+                db.session.add(visualizer)
+            elif visualizer.desc == desc:
+                    return visualizer
             
-            db.session.add(visualizer)
+            visualizer.desc = desc
+            
             db.session.commit()
             return visualizer
         except SQLAlchemyError:
             db.session.rollback()
             raise
+    
     
 class DataVisualizer(db.Model):
     __tablename__ = 'data_visualizers'
@@ -1069,6 +1124,10 @@ class DataVisualizer(db.Model):
     @staticmethod
     def add(data_id, visualizer_id):
         try:
+            dataVisualizer = DataVisualizer.query.filter(and_(DataVisualizer.data_id == data_id, DataVisualizer.visualizer_id == visualizer_id)).first() 
+            if dataVisualizer:
+                return dataVisualizer
+            
             dataVisualizer = DataVisualizer()
             dataVisualizer.data_id = data_id
             dataVisualizer.visualizer_id = visualizer_id
@@ -1089,12 +1148,18 @@ class MimeType(db.Model):
     dataAllocations = db.relationship("DataSourceAllocation", secondary="data_mimetypes")
     
     @staticmethod
-    def add(name):
+    def add(name, desc):
         try:
-            mimetype = MimeType()
-            mimetype.name = name
+            mimetype = MimeType.query.filter_by(name = name).first()
+            if not mimetype:            
+                mimetype = MimeType()
+                mimetype.name = name
+                db.session.add(mimetype)                
+            elif mimetype.desc == desc:
+                return mimetype
+            
+            mimetype.desc = desc
 
-            db.session.add(mimetype)
             db.session.commit()
             return mimetype
         except SQLAlchemyError:
@@ -1113,6 +1178,10 @@ class DataMimeType(db.Model):
     @staticmethod
     def add(data_id, mimetype_id):
         try:
+            dataMimeType = DataMimeType.query.filter(and_(DataMimeType.data_id == data_id, DataMimeType.mimetype_id == mimetype_id)).first() 
+            if dataMimeType:
+                return dataMimeType
+            
             dataMimeType = DataMimeType()
             dataMimeType.data_id = data_id
             dataMimeType.mimetype_id = mimetype_id

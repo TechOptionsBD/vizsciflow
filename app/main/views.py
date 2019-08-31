@@ -10,7 +10,7 @@ import time
 
 from flask import Flask, render_template, redirect, url_for, abort, flash, request, \
     current_app, make_response
-from flask import send_from_directory
+from flask import send_from_directory, jsonify
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -19,9 +19,10 @@ from sqlalchemy import and_
 from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType, DataProperty
 
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType, DataProperty, Filter
 from ..util import Utility
+from ..biowl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 
 app = Flask(__name__)
@@ -421,8 +422,6 @@ def load_metadata(path):
     if not path.startswith('/'):
         path = '/' + path
     
-    data_alloc = None
-    
     # access rights in string
     accessRights = DataSourceAllocation.access_rights_to_string(current_user.id, path)
 
@@ -521,6 +520,36 @@ def save_metadata(request):
         for name, desc in properties.items():
             DataProperty.add(data.id, name, desc)
 
+def search_and_filter(path, filters):
+    filters = json.loads(filters)
+    filters = filters if not filters or type(filters) is list else [filters]
+    selected_filters = []
+    for f in filters:
+        if f["selected"]:
+            selected_filters.append(f)
+    
+    Filter.add(current_user.id, json.dumps(selected_filters))
+    
+    fs = Utility.fs_by_prefix_or_default(path)
+    return FilterManager.listdirR(fs, path, filters);
+
+def load_filter_history():
+    filters = Filter.query.filter(Filter.user_id == current_user.id)
+    histories = []
+    for f in filters:
+        histories.append(f.to_json_info())
+        
+    return jsonify(histories = histories)
+
+def load_filter_tip(filter_id):
+    return Filter.query.get(filter_id).to_json_tooltip()
+
+def load_script_from_filter(path, filter_id):
+    filterjson = json.loads(Filter.query.get(filter_id).value)
+    filterjson = [f for f in filterjson if f["selected"] ]
+    script = "data = GetFiles('{0}', {1})".format(path, filterjson)
+    return script
+     
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
@@ -551,8 +580,17 @@ def datasources():
         return json.dumps(load_metadata(request.args.get('metadataload')))
     elif request.args.get('metadataproperties'):
         return json.dumps(load_metadataproperties())
-    elif request.form.get('metadatasave'):        
+    elif request.form.get('metadatasave'):
         return json.dumps(save_metadata(request))                
+    elif request.args.get('filters'):
+        return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('filters')) })
+    elif request.args.get('filterhistory'):
+        return load_filter_history()
+    elif request.args.get('filtertip'):
+        return json.dumps(load_filter_tip(request.args.get('filtertip')))
+    elif request.args.get('filtertforscript'):
+        return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filtertforscript')))
+    
         
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 

@@ -7,6 +7,7 @@ import pathlib
 from ...util import Utility
 from ..exechelper import func_exec_run
 from ...models import Task, Status, DataType, AccessRights, DataSourceAllocation, DataProperty, Runnable
+from ..fileop import FilterManager
 
 # import_module can't load the following modules in the NGINX server
 # while running in 'immediate' mode. The early imports here are needed.
@@ -302,7 +303,10 @@ class Library():
             elif function.lower() == "getfiles":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
-                result = fs.get_files(arguments[0])
+                if len(arguments) == 2:
+                    result = FilterManager.listdirR(fs, arguments[0], arguments[1], True)
+                else:
+                    result = fs.get_files(arguments[0], arguments[1])
             elif function.lower() == "getfolders":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])

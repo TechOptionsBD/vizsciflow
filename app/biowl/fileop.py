@@ -9,6 +9,7 @@ import tempfile
 from urllib.parse import urlparse, urlunparse, urlsplit, urljoin
 import uuid
 import urllib
+import re
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
@@ -26,6 +27,82 @@ try:
 except:
     pass
 
+class FilterManager:
+    @staticmethod
+    def Filter(fs, path, filename, filters):
+        for fil in filters:
+            if fil['selected']:
+                name = fil['name'].lower()
+                if name == "name" and re.search(fil['value'], filename, re.RegexFlag.IGNORECASE):
+                    return filename
+#                 statinfo = os.stat(fs.normalize_path(fs.join(path, filename)))
+#                 if name == "size" and fil['value']:
+#                    if fil['value'].startswith('')
+    
+    @staticmethod
+    def Sort(fs, filenames, filters):
+        for fil in filters:
+            if fil['selected'] and fil['sort']:
+                name = fil['name'].lower()
+                if name == "name":
+                    filenames = sorted(filenames, reverse = (int(fil['sort'])==2))
+        return filenames
+    
+    @staticmethod
+    def listdirR(fs, path, filters, flatfiles = False):
+        
+        ancestors = FilterManager.listdirRInternal(fs, path, filters, flatfiles)
+        if not ancestors:
+            return None
+        
+        if flatfiles:
+            return ancestors
+        
+        ancestorPath = path
+        while fs.dirname(ancestorPath) and fs.strip_root(ancestorPath) != os.sep:
+            ancestorPath = fs.dirname(ancestorPath) 
+            ancestor = fs.make_json_item(ancestorPath)
+            if fs.strip_root(ancestorPath) == os.sep:
+                ancestor['text'] = fs.prefix
+            ancestor['children'].append(ancestors)
+            ancestors = ancestor
+                
+        return ancestors
+            
+    @staticmethod
+    def listdirRInternal(fs, path, filters, flatfiles = False):
+        if fs.isfile(path):
+            return fs.make_json_item(path) if filter(path, filters) else None
+
+        fsitems = []
+        for fd in fs.get_folders(path):
+            fditem = FilterManager.listdirRInternal(fs, fs.join(path, fd), filters, flatfiles)
+            if fditem:
+                fsitems.append(fditem)
+        
+        filter_active = any(f['selected'] for f in filters)
+        fitems = []
+        for f in fs.get_files(path):
+            filename = fs.basename(f)
+            if not filter_active or FilterManager.Filter(fs, path, filename, filters):
+                fitems.append(filename)
+                
+        if fitems:
+            fitems = FilterManager.Sort(fs, fitems, filters)
+            for fitem in fitems:
+                if flatfiles:
+                    fsitems.append(fs.join(path, fitem))
+                else:
+                    fsitems.append(fs.make_json_item(fs.join(path, fitem)))
+        
+        if fsitems and not flatfiles:
+            data_json = fs.make_json_item(path)
+            data_json['children'] = fsitems
+            data_json['loaded'] = True
+            fsitems = data_json
+            
+        return fsitems
+        
 class BaseFileSystem(object):
     def __init__(self, root, public, prefix):
         self.localdir = root
@@ -57,6 +134,9 @@ class BaseFileSystem(object):
         raise ValueError("Not implemented error.")
     
     def listdir(self, path):
+        raise ValueError("Not implemented error.")
+    
+    def listdirR(self, path, filters):
         raise ValueError("Not implemented error.")
     
     def copyfile(self, src, dst):
@@ -191,6 +271,10 @@ class PosixFileSystem(BaseFileSystem):
         path = self.normalize_path(path)
         return os.listdir(path)
     
+    def listdirR(self, path, filters):
+        filters = filters if not filters or type(filters) is list else [filters]
+        return FilterManager.listdirR(self, path, filters)
+       
     def copyfile(self, src, dst):
         return shutil.copy2(self.normalize_path(src), self.normalize_path(dst))
                 
@@ -231,7 +315,7 @@ class PosixFileSystem(BaseFileSystem):
     
     def join(self, path1, path2):
         path1 = self.normalize_path(path1)
-        return os.path.join(path1, path2)
+        return self.make_url(os.path.join(path1, path2))
     
     def make_json_item(self, path):
         data_json =  { 'path': self.make_url(path), 'text': os.path.basename(path) }

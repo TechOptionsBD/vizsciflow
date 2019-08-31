@@ -9,6 +9,7 @@
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jstree/3.3.8/themes/default/style.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/knockout.contextmenu@1.0.0/dist/css/knockout.contextmenu.min.css">
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round|Open+Sans">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -27,6 +28,7 @@
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/knockout.contextmenu@1.0.0/src/knockout.contextmenu.min.js"></script>
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/ko.observableDictionary.js') }}"></script>
@@ -98,6 +100,20 @@
 				<div class="panel-body draggable-datasources"
 					style="height: 416px; overflow-y: scroll; padding: 0">
 					<div id="tree" data-bind="jstree: { data: dataSources }"></div>
+				</div>
+			</div>
+			<div id="searchHistoryPanel" class="panel panel-primary">
+				<div class="panel-heading">
+					<div class="row">
+						<div>
+							<h4 class="col-sm-6">Search History</h4>
+						</div>
+					</div>
+				</div>
+				<div class="panel-body" style="max-height: 200px; overflow-y: scroll;" data-bind="foreach: histories">
+					<div class="col" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openFilterDialog, 'To Editor': $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+						<span data-bind="text: name"></span>
+					</div>
 				</div>
 			</div>
 			<div id="runnableWorkflowsPanel" class="panel panel-primary">
@@ -816,7 +832,7 @@
 		    <tr>
 		      <th>Selected</th>
 		      <th>Name</th>
-		      <th>Search</th>
+		      <th>Filter Value</th>
 		      <th>Sort</th>
 		      <th>Up</th>
 		      <th>Down</th>
@@ -829,7 +845,7 @@
 		      </td>
 		      <td data-bind="text: name"></td>
 		      <td>
-		      	<input type="text" class="form-control" data-bind="text: value">
+		      	<input type="text" class="form-control" data-bind="value: value">
 		      </td>
 		      <td>
 		      	<select data-bind="options: $parent.sortOrders, optionsText: 'name', optionsValue: 'id', value: sort, optionsCaption: 'Sort...'"></select>
@@ -1369,6 +1385,12 @@
           });
       }
 
+      self.loadFromJSON = function(datasources) {
+    	  self.dataSources(datasources);
+    	  
+    	  ko.cleanNode($("#dataSourcesPanel")[0]);
+    	  ko.applyBindings(self, $("#dataSourcesPanel")[0]);    	  
+      }
       
       self.load = function(recursive) {
     	  /*if (self.init) {
@@ -1380,13 +1402,12 @@
     	  }*/
 
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'recursive': recursive }).done(function(data) {
-        	  self.dataSources(data.datasources);
+        	  
+        	  self.loadFromJSON(data.datasources);
         	  
         	 /*  self.tree.jstree(true).settings.core.data = self.dataSources();
         	  self.tree.jstree(true).refresh(); */
         	  
-              ko.cleanNode($("#dataSourcesPanel")[0]);
-              ko.applyBindings(self, $("#dataSourcesPanel")[0]);
               //ko.mapping.fromJS($("#dataSourcesPanel")[0], self);
               
               /*$('#tree').find('li.list-group-item').each(function() {
@@ -2218,6 +2239,10 @@ function typeInTextarea(el, newText) {
          
          self.load = $.debounce(500, function() {
            ajaxcalls.simple(self.tasksURI, 'GET', {'level': 1, 'access': self.selectedServiceAccessType().Id}).done(function(data) {
+        	   
+        	  if (!data || !data.functions)
+        		  return;
+        	  
          	  self.tasks([]);
          	  $.each(data.functions, function(i, f) {
          		  self.tasks.push({
@@ -2962,6 +2987,10 @@ function typeInTextarea(el, newText) {
        
        function FilterViewModel() {
           var self = this;
+          self.clicks = 0;
+          self.timer = null;
+          
+          self.histories = ko.observableArray();
           self.sortOrders = ko.observableArray([
         	{
         		name: "None",
@@ -2983,42 +3012,43 @@ function typeInTextarea(el, newText) {
        		  name: "Name",
        		  value: "",
        		  sort: 0,
-       		  tip: "Name of the data or file"
+       		  //tip: "Name of the data or file"
        	  }, {
        		  selected: false,
        		  name: "Size",
        		  value: "",
        		  sort: 0,
-       		  tip: "Size in bytes, use KB, MB, GB etc for large sizes." 
+       		  //tip: "Size in bytes, use KB, MB, GB etc for large sizes." 
        	  }, {
        		  selected: false,
        		  name: "Permission",
        		  value: "",
        		  sort: 0,
-       		  tip: "Access rights of the file/data" 
+       		  //tip: "Access rights of the file/data" 
        	  }, {
        		  selected: false,
        		  name: "Created",
        		  value: "",
        		  sort: 0,
-       		  tip: "Creation date" 
+       		  //tip: "Creation date" 
        	  }, {
        		  selected: false,
        		  name: "Modified",
        		  value: "",
        		  sort: 0,
-       		  tip: "Modified date" 
+       		  //tip: "Modified date" 
        	  }, {
        		  selected: false,
        		  name: "Accessed",
        		  value: "",
        		  sort: 0,
-       		  tip: "Accessed date" 
+       		  //tip: "Accessed date" 
        	  }, {
        		  selected: false,
        		  name: "key:value",
        		  value: "",
        		  sort: 0,
+       		//tip: "key:value pair of metadata"
        	  }
        	  ]);
        	  
@@ -3035,13 +3065,142 @@ function typeInTextarea(el, newText) {
 
        	    self.filters.splice(idx + 1, 0, tmp[0]);
        	  };
-       	  
-       	self.filter = function(){
-			self.filters.forEach(function(f){
-				
-			});       		  
-       		};
-       	}
+
+    		 self.filterInternal = function(node, jsonFilters) {
+
+    	            ajaxcalls.simple(dataSourceViewModel.dataSourcesURI, 'GET', { 'root': node, 'filters': jsonFilters }).done(function(data) {
+    	            	
+    	            	dataSourceViewModel.loadFromJSON(data.datasources);
+    	            	self.loadHistory();
+    	                          
+    	            }).fail(function(jqXHR) {
+    	                showXHRText(jqXHR);
+    	            });
+    	   		 }
+    	
+          self.copyToEditor = function(item) {
+              
+        	  if (!dataSourceViewModel.selectedNode())
+        		  return;
+        	  
+        	  path = dataSourceViewModel.selectedNode().original.path;
+        	  var pos = editor.selection.getCursor();
+              
+              $.ajax({
+            	  url: dataSourceViewModel.dataSourcesURI + "?filtertforscript=" + item.id() + "&path=" + path
+              })
+              .then(function(content) {
+            	  editor.session.insert(pos, content["script"] + "\r\n");
+              	  editor.focus();
+              }, function(xhr, status, error) {
+                     // Upon failure... set the tooltip content to error
+              });
+          }
+
+   		 self.filter = function() {
+   			 if (!dataSourceViewModel.selectedNode())
+   				 return;
+   			 self.filterInternal(dataSourceViewModel.selectedNode().original.path, ko.toJSON(self.filters));
+   		 }
+   		 
+   		 self.openFilterDialog = function(item) {
+
+   			 self.filters().forEach(function(filter){
+   				 
+   				 historyFilters = JSON.parse(item.value());
+   				historyFilter = historyFilters.find(x => x.name === filter.name)
+   				 if (filter.name == historyFilter.name) {
+   					filter.selected = historyFilter.selected;
+   					filter.value = historyFilter.value;
+   					filter.sort = historyFilter.sort;
+   				 }
+   			 });
+   			dataSourceViewModel.openFilterDialog();
+   		 }
+   		 
+   		self.toggleExpand = function() {
+   			
+   			self.toggleExpand = function(item, event) {
+              	 event.stopPropagation();
+              	 
+              	 self.clicks++;
+              	 if (self.clicks !== 1) {
+              		 clearTimeout(self.timer);
+              		 self.filterByHistory(item);
+              		 self.clicks = 0;
+      				 return;        		 
+              	 }
+              	 
+              	 self.timer = setTimeout(function(){
+              		 self.clicks = 0;
+              		 event.preventDefault();
+	              	 var domItem = $(event.target);
+	          		 $(".expandedfilter").remove();
+	              	 if (item.expanded()) {
+	              		 item.expanded(false);
+	             	    } else {
+	             	      self.histories().forEach(function(candidateSample) {
+	             	        candidateSample.expanded(item === candidateSample);
+	             	        if (item === candidateSample){
+	             	        	
+	             	        	$.ajax({
+	   	                        url: dataSourceViewModel.dataSourcesURI + "?filtertip=" + item.id()
+	   	                    })
+	   	                    .then(function(content) {
+	   	                        // Set the tooltip content upon successful retrieval
+	   	                        content = JSON.parse(content);
+	   	                        content = "<div class=\'expandedfilter\' style=\'border:2px solid black;background-color:lightblue\'> <p>Name: " + content.name + "</p><p>Created: " + content.created_on + "<p>Filter: " + content.value  
+	   	                        	 + "</p><p>Double click to filter data sources with this.</p></div>";
+	   	                        	
+	                           	domItem.parent().append(content);
+	
+	   	                    }, function(xhr, status, error) {
+	   	                        // Upon failure... set the tooltip content to error
+	   	                    });
+	             	      }
+	             	    });
+             	    }
+              	 }, 300);
+           	}
+
+            ajaxcalls.simple(dataSourceViewModel.dataSourcesURI, 'GET', { 'fullfilter': 98 }).done(function(data) {
+                          
+            }).fail(function(jqXHR) {
+                showXHRText(jqXHR);
+            });
+   		 }
+
+   		self.filterByHistory = function(item) {
+   			if (!dataSourceViewModel.selectedNode())
+  				 return;
+   			
+           	self.filterInternal(dataSourceViewModel.selectedNode().original.path, item.value());
+   		 }
+   		
+   		self.loadHistory = function() {
+            
+   			ajaxcalls.simple(dataSourceViewModel.dataSourcesURI, 'GET', { 'filterhistory': true }).done(function(data) {
+            	
+   				if (data === undefined)
+					return;
+   				
+   				self.histories([]);
+                $.each(data['histories'], function(i, s){
+                    self.histories.push({
+                    	id: ko.observable(s.id),
+                    	name: ko.observable(s.name),
+                    	value: ko.observable(s.value),
+                    	created_on: ko.observable(s.created_on),
+                        expanded: ko.observable(false),
+                    });
+                });
+                
+            }).fail(function(jqXHR) {
+                showXHRText(jqXHR);
+            });
+  		 }
+   		
+      }
 
         var addLibraryViewModel = new AddLibraryViewModel();
         var sampleViewModel = new SampleViewModel();
@@ -3072,7 +3231,10 @@ function typeInTextarea(el, newText) {
         dataSourceViewModel.loadMetadataProperties();
         ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
 
-       	ko.applyBindings(new FilterViewModel(), $('#filter-dialog')[0]);
+        filterViewModel = new FilterViewModel();
+       	ko.applyBindings(filterViewModel, $('#filter-dialog')[0]);
+       	ko.applyBindings(filterViewModel, $('#searchHistoryPanel')[0]);
+       	filterViewModel.loadHistory();
     	
     function D3Graph()
     {

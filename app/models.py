@@ -1046,6 +1046,53 @@ class Filter(db.Model):
             'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '', 
         }
         
+class FilterHistory(db.Model):
+    __tablename__ = 'filter_history'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id  = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    value = db.Column(JSON, nullable = False)
+    created_on = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    
+    @staticmethod
+    def add(user_id, value):
+        try:
+            filterobj = FilterHistory()
+            filterobj.user_id = user_id
+            filterobj.value = value
+            filterobj.created_on = datetime.utcnow()
+            
+            db.session.add(filterobj)
+            db.session.commit()
+            return filterobj
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    def name_from_value(self):
+        name = ""
+        for v in json.loads(self.value):
+            name += v["name"] + "-"
+        if name:
+            name = name[:-1]
+        return name
+    
+    def to_json_info(self):
+        return {
+            'id': self.id,
+            'name': self.name_from_value(),
+            'value': self.value,
+            'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '',
+        }
+        
+    def to_json_tooltip(self):
+        return {
+            'id': self.id,
+            'name': self.name_from_value(),
+            'value': self.value,
+            'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '', 
+        }
+        
+        
 class DataPermission(db.Model):
     __tablename__ = 'data_permissions'
     id = db.Column(db.Integer, primary_key=True)

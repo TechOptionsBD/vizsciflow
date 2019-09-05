@@ -20,7 +20,7 @@ from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType, DataProperty, Filter
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory
 from ..util import Utility
 from ..biowl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -528,12 +528,20 @@ def search_and_filter(path, filters):
         if f["selected"]:
             selected_filters.append(f)
     
-    Filter.add(current_user.id, json.dumps(selected_filters))
+    FilterHistory.add(current_user.id, json.dumps(selected_filters))
     
     fs = Utility.fs_by_prefix_or_default(path)
     return FilterManager.listdirR(fs, path, filters);
 
 def load_filter_history():
+    filters = FilterHistory.query.filter(Filter.user_id == current_user.id)
+    histories = []
+    for f in filters:
+        histories.append(f.to_json_info())
+        
+    return jsonify(histories = histories)
+
+def load_filters():
     filters = Filter.query.filter(Filter.user_id == current_user.id)
     histories = []
     for f in filters:
@@ -585,12 +593,11 @@ def datasources():
     elif request.args.get('filters'):
         return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('filters')) })
     elif request.args.get('filterhistory'):
-        return load_filter_history()
+        return load_filters()
     elif request.args.get('filtertip'):
         return json.dumps(load_filter_tip(request.args.get('filtertip')))
     elif request.args.get('filtertforscript'):
         return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filtertforscript')))
-    
         
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 

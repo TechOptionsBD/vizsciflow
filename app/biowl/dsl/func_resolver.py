@@ -7,7 +7,7 @@ import pathlib
 from ...util import Utility
 from ..exechelper import func_exec_run
 from ...models import Task, Status, DataType, AccessRights, DataSourceAllocation, DataProperty, Runnable
-from ..fileop import FilterManager
+from ..fileop import FilterManager, FolderItem
 
 # import_module can't load the following modules in the NGINX server
 # while running in 'immediate' mode. The early imports here are needed.
@@ -44,7 +44,7 @@ def load_module(modulename):
     #name = "package." + modulename
     #return __import__(modulename, fromlist=[''])
     return import_module(modulename)
-
+        
 class Function():
     def __init__(self, name, internal, package = None, module = None, params = [], example = None, desc = None, runmode = None, level = 0, group = None, user = None, access = 0, example2 = None, returns = None, href = None):
         self.name = name
@@ -281,12 +281,15 @@ class Library():
             func = self.get_function(function, package)
     
             task = Task.create_task(context.runnable, func[0].name)
+            context.task_id = task.id
             task.start()
         
             if function.lower() == "print":
                 result = context.write(*arguments)
+                task.succeeded(DataType.Text, "")
             elif function.lower() == "range":
                 result = range(*arguments)
+                task.succeeded(DataType.Text, str(result))
             elif function.lower() == "read":
                 if not arguments:
                     raise ValueError("Read must have one argument.")
@@ -294,42 +297,49 @@ class Library():
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.read(arguments[0])
+                task.succeeded(DataType.File, str(result))
             elif function.lower() == "write":
                 if len(arguments) < 2:
                     raise ValueError("Write must have two arguments.")
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.write(arguments[0], arguments[1])
+                task.succeeded(DataType.File, str(result))
             elif function.lower() == "getfiles":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
-                if len(arguments) == 2:
-                    result = FilterManager.listdirR(fs, arguments[0], arguments[1], True)
-                else:
-                    result = fs.get_files(arguments[0], arguments[1])
+                result = FolderItem.StrToFolderItem(FilterManager.listdirR(fs, arguments[0], arguments[1], True)) if len(arguments) == 2 else FolderItem.StrToFolderItem(fs.get_files(arguments[0]))
+                task.succeeded(DataType.FileList, str(result))
             elif function.lower() == "getfolders":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.get_folders(arguments[0])
+                task.succeeded(DataType.FolderList, str(result))
             elif function.lower() == "createfolder":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.makedirs(arguments[0])
+                task.succeeded(DataType.FolderList, str(result))
             elif function.lower() == "remove":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.remove(arguments[0])
+                task.succeeded(DataType.File, str(result))
             elif function.lower() == "makedirs":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.makedirs(arguments[0])
+                task.succeeded(DataType.Folder, str(result))
             elif function.lower() == "getcwd":
                 result = getcwd()
+                task.succeeded(DataType.Text, str(result))
             elif function.lower() == "isfile":
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.isfile(arguments[0])
+                task.succeeded(DataType.Text, str(result))
             elif function.lower() == "dirname":
                 result = os.path.dirname(arguments[0])
+                task.succeeded(DataType.Folder, str(result))
             elif function.lower() == "basename":
                 result = os.path.basename(arguments[0])
             elif function.lower() == "getdatatype":
@@ -337,37 +347,32 @@ class Library():
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 extension = pathlib.Path(arguments[0]).suffix
                 result = extension[1:] if extension else extension
+                task.succeeded(DataType.Text, str(result))
             elif function.lower() == "len":
                 result = len(arguments[0])
+                task.succeeded(DataType.Text, str(result))
             elif function.lower() == "exec":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
-                result = func_exec_run(arguments[0], *arguments[1:])            
+                result = func_exec_run(arguments[0], *arguments[1:])
+                task.succeeded(DataType.Text, str(result))
             elif function.lower() == "copyfile":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[1], AccessRights.Write)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
-                result = fs.copy(arguments[0], arguments[1])                        
+                result = fs.copy(arguments[0], arguments[1])
+                task.succeeded(DataType.File, str(result))
             elif function.lower() == "deletefile":
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Write)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.remove(arguments[0])
+                task.succeeded(DataType.File, str(result))
             else:
                 module_obj = load_module(func[0].module)
                 function = getattr(module_obj, func[0].internal)
                 
                 result = function(context, *arguments, **kwargs)
                 
-            datatype = Library.GetDataTypeFromFunc(func[0].returns, result)
-            task.succeeded(datatype, str(result) if result else '')
+            #datatype = Library.GetDataTypeFromFunc(func[0].returns, result)
             
-            if (datatype & DataType.File) == DataType.File  or (datatype & DataType.Folder) ==  DataType.Folder:
-                ds = Utility.ds_by_prefix_or_default(result)
-                data_alloc = DataSourceAllocation.get(context.user_id, ds.id, result)
-                if not data_alloc:
-                    data_alloc = DataSourceAllocation.add(context.user_id, ds.id, result, AccessRights.Owner)
-                
-                workflow_id = Runnable.query.get(task.runnable_id).workflow_id
-                DataProperty.add(data_alloc.id, "execution {0}".format(task.id), { 'workflow': { 'task_id': task.id, 'job_id': task.runnable_id, 'workflow_id': workflow_id, 'inout': 'out'} })
-                
 #                 DataProperty.add(data_alloc.id, { 'job_id': task.runnable_id}, DataType.Value)
 #                 workflow_id = Runnable.query.get(task.runnable_id).workflow_id
 #                 DataProperty.add(data_alloc.id, { 'workflow_id': workflow_id}, DataType.Value)

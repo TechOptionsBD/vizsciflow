@@ -857,11 +857,16 @@ class Task(db.Model):
             raise
         
     def to_json_log(self):
+        data = self.data
+        if data and data.startswith('[') and data.endswith(']'):
+            data = data[1:]
+            data = data[:-1]
+            
         log = { 
             'name': self.name if self.name else "", 
             'datatype': self.datatype, 
             'status': self.status,
-            'data': self.data
+            'data': data
         }
         if self.status == Status.SUCCESS and (self.datatype & DataType.FileList) > 0:
             log['data'] = log['data'].strip('}{').split(',')

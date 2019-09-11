@@ -330,6 +330,7 @@ def load_data_sources_biowl(recursive):
 
 def download_biowl(path):
     # construct data source tree
+    path = path.strip()
     fs = Utility.fs_by_prefix_or_default(path)
     fullpath = fs.download(path)
     if not fullpath:

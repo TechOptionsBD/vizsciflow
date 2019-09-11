@@ -7,6 +7,7 @@ from .func_resolver import Library
 from ..tasks import TaskManager
 from .context import Context
 from .provenance import BioProv
+from ..fileop import FolderItem
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -144,7 +145,10 @@ class Interpreter(object):
         if len(left) > 1:
             left = ['NUMEXPR'] + left
         left = self.eval(left)
-        return left + right if expr[-2] == '+' else left - right
+        if isinstance(left, FolderItem) or isinstance(left, list) or isinstance(left, FolderItem):
+            return FolderItem.union(left, right) if expr[-2] == '+' else FolderItem.substract(left, right)
+        else:
+            return left + right if expr[-2] == '+' else left - right
     
     def doif(self, expr):
         '''

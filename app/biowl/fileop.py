@@ -27,6 +27,54 @@ try:
 except:
     pass
 
+class FolderItem():
+    def __init__(self, path):
+        self.path = path
+    
+    def __str__(self):
+        return self.path
+    
+    def __repr__(self):
+        return self.__str__()
+    
+    @staticmethod
+    def StrToFolderItem(item_s):
+        return [FolderItem(f) for f in item_s] if isinstance(item_s, list) else FolderItem(item_s)
+    
+    @staticmethod
+    def union(left, right):
+        v = []
+        if not isinstance(left, list):
+            left = [left]
+            
+        if not isinstance(right, list):
+            right = [right]
+            
+        for l in left:
+            v.append(l if isinstance(l, FolderItem) else FolderItem(l))
+            found = False
+            for r in right:
+                if str(l) == str(r):
+                    found = True
+                    break
+            if not found:
+                v.append(l if isinstance(r, FolderItem) else FolderItem(r))
+        
+        return v
+    
+    @staticmethod
+    def substract(left, right):
+        if not isinstance(left, list):
+            left = [left]
+            
+        if not isinstance(right, list):
+            right = [right]
+            
+        for r in right:
+            left = [l for l in left if str(l) != str(r)]
+            
+        return left                    
+    
 class FilterManager:
     @staticmethod
     def Filter(fs, path, filename, filters):
@@ -301,6 +349,7 @@ class PosixFileSystem(BaseFileSystem):
     
     def make_unique_dir(self, path):
         unique_dir = self.join(path, str(uuid.uuid4()))
+        unique_dir = self.normalize_path(unique_dir)
         os.makedirs(unique_dir)
         return unique_dir
             

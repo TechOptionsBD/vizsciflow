@@ -1,8 +1,12 @@
 import os
 from os import path
-from ...exechelper import func_exec_run
 from pathlib import Path
+
+from ...exechelper import func_exec_run
 from ...argshelper import get_posix_data_args, get_posix_output_args
+from ....util import Utility
+from app.models import AccessRights, DataType
+from ...fileop import FolderItem
 
 pear = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'pear'))
 
@@ -48,4 +52,6 @@ def run_pear(context, *args, **kwargs):
     if not fs.exists(assembled_output):
         raise ValueError("Pear operation failed due to error: " + err)
     
-    return stripped_path
+    Utility.add_meta_data(stripped_path, context.user_id, context.runnable, context.task_id, AccessRights.Owner, DataType.File if fs.isfile(output) else DataType.Folder)
+    
+    return FolderItem(stripped_path)

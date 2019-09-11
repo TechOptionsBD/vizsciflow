@@ -9,7 +9,6 @@
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jstree/3.3.8/themes/default/style.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/knockout.contextmenu@1.0.0/dist/css/knockout.contextmenu.min.css">
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round|Open+Sans">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -28,7 +27,6 @@
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/knockout.contextmenu@1.0.0/src/knockout.contextmenu.min.js"></script>
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/ko.observableDictionary.js') }}"></script>
@@ -56,42 +54,42 @@
 								data-bind="click: load.bind($data, true)">
 								<i class="glyphicon glyphicon-unchecked"></i>
 							</button> -->
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+							<button id="btnAbout" class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="About"
 								data-bind="click: about">
 								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+							<button id="btnReload" class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Reload"
 								data-bind="click: load.bind($data, true)">
 								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
 							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+							<button id="btnDownload" class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Download"
 								data-bind="click: download">
 								<i class="glyphicon glyphicon-download toolbar-icon"></i>
 							</button>
-							<button class="btn btn-primary pull-right" data-toggle="modal"
+							<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal"
 								data-placement="top" title="Upload"
 								data-bind="click: beginFileUpload">
 								<i class="glyphicon glyphicon-upload toolbar-icon"></i>
 							</button>
-							<button class="btn btn-primary pull-right" data-toggle="modal"
+							<button id="btnBeginUpdateMetadata" class="btn btn-primary pull-right" data-toggle="modal"
 								data-placement="top" title="Update Metadata"
 								data-bind="click: beginUpdateMetadata">
 								<i class="glyphicon glyphicon-edit toolbar-icon"></i>
 							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+							<button id="btnDeleteFolderFile" class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Delete Folder/File" data-bind="click: remove">
 								<i class="glyphicon glyphicon-minus toolbar-icon"></i>
 							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+							<button id="btnAddFolder" class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Add Folder" data-bind="click: addFolder, clickBubble: false">
 								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 							</button>
 						</div>
 						<input class="form-control col-md-9" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
-						<button class="btn btn-primary pull-right" data-toggle="tooltip"
+						<button id="btnOpenFilterDialog" class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Filter" data-bind="click: openFilterDialog">
 								<i class="glyphicon glyphicon-filter"></i>
 						</button>
@@ -160,18 +158,18 @@
 				<div class="panel-body"
 					style="max-height: 200px; width: 100%; overflow-y: scroll;"
 					data-bind="foreach: items">
-					<div class="row menu_button"
+					<div class="div-history-item row menu_button"
 						data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
-						style="width: 100%">
+						>
 						<div class="col-md-auto" style="vertical-align: middle;" >
-							<input type="checkbox" class="form-check-input" style="margin-left: 10px;"
+							<input type="checkbox" class="form-check-input" style="margin-left: 10px"
 								data-bind="checked: selected" /> <img
-								style="vertical-align: middle" width="16px" height="16px"
+								class="history-item-img" width="16px" height="16px"
 								data-bind="attr:{src: statusImg}" />
-							<label data-bind="text: name" class="form-check-label label-checkbox"></label>
+							<label data-bind="text: name" class="form-check-label label-checkbox" style="margin-top: 2px"></label>
 						</div>
 						
-						<div class="col" style="float: right;">
+						<div class="col" style="float: right;padding-right: 5px">
 							<span data-bind="text: modified" style="text-align: right"></span>
 						</div>
 						<div style="clear: both" ></div>
@@ -227,13 +225,13 @@
 					
 				</div>
 					<div class="panel-body" style="">
-						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px">
+						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
 							<ul class="nav nav-tabs marginBottom">
 								<li class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
 								<li><a href="#graphtab" data-toggle="tab">Graph</a></li>
 								<li><a href="#metatab" data-toggle="tab">Metadata</a></li>
-<!-- 								<li><a href="#graphtab" data-toggle="tab"><button class="close closeTab" type="button" >×</button>Graph</a></li> -->
-<!-- 								<li><a href="#metatab" data-toggle="tab"><button class="close closeTab" type="button" >×</button>Metadata</a></li> -->
+								<!-- <li><a href="#graphtab" data-toggle="tab"><button class="close closeTab" type="button" >×</button>Graph</a></li>
+								<li><a href="#metatab" data-toggle="tab"><button class="close closeTab" type="button" >×</button>Metadata</a></li> -->
 							</ul>
 						<div class="tab-content">
 							<div class="tab-pane fade in active scriptstyle" id="scripttab">
@@ -246,30 +244,39 @@
 							</div>
 						</div>
 						</div>
-						<br> <span class="text-secondary">Arguments:</span>
-						<textarea rows="1" style="width: 100%;" id="args"></textarea>
-						<br>
+						<div class="row">
+							<div class="col-sm-1">
+								<span class="text-secondary ">Arguments:</span>
+							</div>
+							<div class="col-sm-11">
+								<textarea rows="1" class="args-area" id="args"></textarea>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="panel panel-primary"
 					style="padding: 0px; border: 0; margin: 4px">
 					<div class="panel-body" style="padding: 0">
-						<button class="btn pull-left btn-primary btn-lg"
+						<button id="runBioWL" class="btn pull-left btn-primary btn-lg"
 							style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
 						<button class="btn pull-left btn-primary btn-lg"
 							style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
 						<!-- <button class="btn pull-left btn-primary"
 							style="margin-right: 5px;" data-bind="click: provenance">Provenance</button> -->
-						<label class="checkbox-inline label-checkbox"><input type="checkbox"
-							id="immediate">Immediate</label> <span
+						<div style="margin-top: 8px">
+						<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
+							id="immediate"> <span class="label-immediate">Immediate</span>
+					    </label> 
+					    <span
 							class="badge badge-primary">Time: <span id="duration"
-							class="badge badge-light">0s</span>
+							class="badge badge-light" style="vertical-align: baseline;">0s</span>
 						</span> <span
 							class="glyphicon glyphicon-repeat normal-right-spinner pull-right"
 							id="refresh"></span>
+						</div>
 					</div>
 				</div>
-				<div id="exTab2" class="panel panel-primary">
+				<div id="exTab2" class="panel panel-primary extab2">
 					<ul class="nav nav-tabs">
 						<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
 						<li><a href="#2" data-toggle="tab">Error</a></li>
@@ -278,29 +285,30 @@
 					<span class="badge badge-pill badge-primary" style="float: left" id="reportid"></span>
 					<span class="badge badge-pill badge-primary" style="float: right" id="execstatus"></span>
 					<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
-					<div class="tab-content ">
+					<div class="tab-content extab2-tab-content">
 						<div class="tab-pane fade in active" id="1">
-							<textarea rows="10" style="min-width: 100%" id="output"></textarea>
-							<br>
+							<textarea rows="10" class="log-tab" id="output"></textarea>
+							<!-- <br> -->
 						</div>
 						<div class="tab-pane fade" id="2">
-							<textarea rows="10" style="min-width: 100%" id="error"></textarea>
-							<br>
+							<textarea rows="10" class="log-tab" id="error"></textarea>
+							<!-- <br> -->
 						</div>
 						<div class="tab-pane fade" id="3">
 							<span id="executable-status"></span>
-							<table class="table table-striped" id="log"
-								style="table-layout: fixed; width: 100%">
-								<thead>
-									<tr>
-										<th class="report-header" scope="col" align="center" width="15%">Task</th>
-										<th class="report-header" scope="col" align="center" width="70%" style="text-align:center;">Data</th>
-										<th class="report-header" scope="col" align="center" width="15%" style="text-align:center;">Status</th>
-									</tr>
-								</thead>
-								<tbody>
-								</tbody>
+							<div>
+								<table class="table table-striped" id="log" style="table-layout: fixed;">
+									<thead>
+										<tr>
+											<th class="report-header" scope="col" align="center" width="15%">Task</th>
+											<th class="report-header" scope="col" align="center" width="70%" style="text-align:center;">Data</th>
+											<th class="report-header" scope="col" align="center" width="15%" style="text-align:center;">Status</th>
+										</tr>
+									</thead>
+									<tbody>
+									</tbody>
 							</table>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -373,16 +381,16 @@
 					style="max-height: 500px; overflow-y: scroll; padding: 3px">
 					<div class="row" style="width: 100%; margin: 0">
 						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: left; text-align: center; width: 60%">Name</div>
+							style="float: left; text-align: left; padding-left:5px; width: 60%">Name</div>
 						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: right; padding-left: 4px; text-align: center; width: 40%">Group(Package)</div>
+							style="float: right; padding-left: 4px; text-align: right; padding-right: 5px; width: 40%">Group(Package)</div>
 					</div>
 					<div data-bind="foreach: filteredTasks">
 						<div class="row"
 							data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
-							style="width: 100%; margin: 0">
-							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false"></div>
-							<div class="col" style="float: right;">
+							style="width: 100%; margin: 0; display: block;">
+							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></div>
+							<div class="col" style="float: right;padding-right: 5px">
 								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package_name" style="text-align: left"></span>)
 							</div>
 							<div style="clear:both"></div>
@@ -451,20 +459,21 @@
 </div>
 
 <div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 560px; height: 640px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <div class="modal-header addsService-modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" title="close">&times;</button>
         <h3 id="addDialogLabel">Add Service</h3>
     </div>
     <div class="modal-body">
+    	
         <form class="form-horizontal">
             <div class="control-group">
                 <div class="controls">
-                 <label class="control-label" for="package">Package</label>
-                    <input data-bind="value: name" type="text" id="package" placeholder="{{username}}" style="width: 150px;">
+                 	<label class="control-label" for="package">Package</label>
+                    <input data-bind="value: name" type="text" id="package" placeholder="{{username}}" >
                 </div>
                 <div class="controls">                    
                 	<label class="control-label" for="organization">Organization</label>
-                    <input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 200px;">
+                    	<input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 200px;">
                 </div>
             	<div class="controls">
 	                <label class="control-label" for="module">Module</label><input type="file" id="module">
@@ -490,10 +499,10 @@
                  <label class="control-label" for="pippkgs">pip Install</label>
                  <input data-bind="value: pippkgs" type="text" id="pippkgs" placeholder="" style="width: 200px;">
                 </div>
-             <div class="controls">
+             	<div class="controls">
                 	<label class="control-label" for="access">Shared</label>
-                	<input type="checkbox" id="access" data-bind="checked: access" />
-             </div>
+             	   	<input type="checkbox" id="access" data-bind="checked: access" />
+             	</div>
         	</div>
         </form>
     </div>
@@ -845,7 +854,7 @@
 		      </td>
 		      <td data-bind="text: name"></td>
 		      <td>
-		      	<input type="text" class="form-control" data-bind="value: value">
+		      	<input type="text" class="form-control" data-bind="text: value">
 		      </td>
 		      <td>
 		      	<select data-bind="options: $parent.sortOrders, optionsText: 'name', optionsValue: 'id', value: sort, optionsCaption: 'Sort...'"></select>
@@ -1182,32 +1191,32 @@
 		});
 		
     	$('#refresh').hide();
-        $('.draggable-functions').each(function() {
-            // inner scope
-            var phrase = $(this);
-             
-             $(this).find('div.draggable-func').each(function() {
-                 // cache jquery object
-                 var current = $(this);
-                current.addClass("draggable-func");
+        // $('.draggable-functions').each(function() {
+        //     // inner scope
+        //     var phrase = $(this);
+
+        //      $(this).find('div.draggable-func').each(function() {
+        //          // cache jquery object
+        //          var current = $(this);
+        //         current.addClass("draggable-func");
                  
-                 current.draggable({
-                     revert : 'invalid',
-                     stack : '.draggable-func',
-                     helper : 'clone'
-                 });
+        //          current.draggable({
+        //              revert : 'invalid',
+        //              stack : '.draggable-func',
+        //              helper : 'clone'
+        //          });
                  
                  
-//                  current.on("dragstart", function(e) {
-//                 	 e.originalEvent.dataTransfer.setData("text/plain", this.textContent)
-//                  });
+        //         //  current.on("dragstart", function(e) {
+        //         // 	 e.originalEvent.dataTransfer.setData("text/plain", this.textContent)
+        //         //  });
                  
-//                  current.bind('dragstart', function(e) {
-//                         e.dataTransfer.setData("text/plain", this.textContent)
-//                  });
+        //         //  current.bind('dragstart', function(e) {
+        //         //         e.dataTransfer.setData("text/plain", this.textContent)
+        //         //  });
                  
-             });
-         });
+        //      });
+        //  });
         
         $('.draggable-samples').each(function() {
             // inner scope
@@ -1230,6 +1239,14 @@
             $('.menu_button').click(function() {
           		$(this).addClass('selected').siblings().removeClass('selected')
         	});
+            
+            var runBioWL = $("#runBioWL");
+            $(runBioWL).on('click', function(){
+            	$(".extab2-tab-content").css("min-height","168px");
+            });
+            
+            var logTab = $(".log-tab");
+            $(logTab).css('height','150px');
             
           //Toggle fullscreen
             $("#panel-fullscreen").click(function (e) {
@@ -1369,7 +1386,7 @@
       self.loadMetadataProperties = function() {
 
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'metadataproperties': true }).done(function(data) {
-			
+			  
         	  self.visualizers = ko.observableArray();
         	  $.each(data['visualizers'], function(key, value){
         		  self.visualizers.push(ko.observable(key + ": " + value))
@@ -1473,6 +1490,36 @@
           });
       }
       
+      self.loadNewItem = function(node, newItemName ,recursive = true) {
+          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.original.path, 'recursive': recursive }).done(function(data) {
+        	  var dataSources = self.dataSources();
+              var newAddedItemPath = data.path + "\/" + newItemName;
+              for(var i=0; i < dataSources.length; ++i){
+            	  
+            	  var item = self.getItemByPath(dataSources[i], data.path);
+            	  if (item != null) {
+                  	item.text = data.text;
+                  	item.nodes = data.children;
+                    item.loaded = data.loaded;
+                    for(var j = 0; j< item.nodes.length; ++i ){
+                    	var newAddedItem = self.getItemByPath(item.nodes[j], newAddedItemPath);
+                    	if(newAddedItem != null){
+                    		var newItemPositon = 'inside';
+                    		var newItemId = $("#tree").jstree().create_node(node, newAddedItem, newItemPositon);
+                    		$("#tree").jstree("deselect_all");
+                    		$("#tree").jstree(true).select_node(newItemId);
+                    		break;
+                    	}
+                    }  
+                  	break;
+            	  }
+              }
+          }).fail(function(jqXHR) {
+              showXHRText(jqXHR);
+          });
+      }
+      
+      
       self.selectedNode = function()
       {
     	  node = $('#tree').jstree("get_selected")
@@ -1481,7 +1528,10 @@
       
       self.parentNode = function(node)
       {
-    	  return node.parentNode;
+    	  var parentNodeId = $("#"+node.id).parent().parent().attr('id');
+    	  var parentNode = $("#tree").jstree(true).get_node(parentNodeId);
+    	  return parentNode;
+    	  //return node.parentNode;
       }
       
       self.upload = function() {
@@ -1510,9 +1560,10 @@
 			  mimetype = mimetype.split(": ");
 			  formdata.append('mimetype', JSON.stringify({ [mimetype[0].trim()]: mimetype[1].trim() }));
 		  }
-		  
+
           ajaxcalls.form(self.dataSourcesURI, 'POST', formdata).done(function(data) {
-        	  self.loadItem(node);
+        	  var inputFileName = $("#inputFilename").val();
+        	  self.loadNewItem(node, inputFileName);
           });
        }
       
@@ -1520,7 +1571,7 @@
 
 		  window.open("static/biodsl-help.html#datasources", '_blank');
       }
-      
+	  
       self.download = $.debounce(500, function() {
     	  
     	  node = self.selectedNode();
@@ -1531,11 +1582,17 @@
             
       self.addFolder = $.debounce(500, function() {
     	  node = self.selectedNode();
+    	  
           if (node === undefined)
               return;
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'addfolder': node.original.path }).done(function(data) {
-        	  self.load();
-        	  $('#tree').jstree(true).select_node(node.id);
+        	  var newNodePosition = 'inside';
+        	  var parentNode = node;
+        	  var newNode = $('#tree').jstree().create_node(parentNode, data, newNodePosition, function(){
+        		  				$("#btnAddFolder").removeClass('active');
+        	  				});
+        	  $('#tree').jstree("deselect_all");
+        	  $("#tree").jstree(true).select_node(newNode);
           });
       });
       
@@ -1551,7 +1608,9 @@
           	  var siblings = parentNode.children;
           	  if (siblings !== undefined && siblings.length > 0)
           	  	sibling = siblings[0].path;
-        	  self.loadItem(parentNode);
+        	  //self.loadItem(parentNode);
+        	  $('#tree').jstree().delete_node(node.id);
+        	  $('#tree').jstree(true).select_node(parentNode.id);
         	  
         	  if (sibling === undefined)
         	  	$('#tree').jstree(true).select_node(node.nodeId);
@@ -1955,39 +2014,50 @@ function typeInTextarea(el, newText) {
    	// or 
    	//editor.completers = [staticWordCompleter]
     
-//     editor.droppable({
+    $("#editor").droppable({
 
-//         activeClass: "ui-state-default",
-//         hoverClass: "ui-state-hover",
-//         accept: ":not(.ui-sortable-helper)",
+        activeClass: "ui-state-default",
+        hoverClass: "ui-state-hover",
+        accept: ":not(.ui-sortable-helper)",
         
-//         drop: function(event, ui) {
-//           var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
-//           var v = ko.dataFor(ui.draggable[0]);
-//           example = ''
-//           if (v)
-//         	  if (v.example)
-//         		  example = v.example();
-//         	  else if (v.sample)
-//         		  example = v.sample();
-//               else {
-//             	  node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
-//             	  if (node){
-//             		  example = node.path;
-// //             		  path = split(node.path, ';');
-// //             		  if (path.length >= 2)
-// //             			  example = node[]
-//             	  }
-//             	  else
-//             		  example = v.name() + "()";
-//               }
-//           editor.session.insert(pos, example);
-//           editor.focus();
-//           return true;
-//         }
-//       });
+        drop: function(event, ui) {
+          var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
+          var v = ko.dataFor(ui.draggable[0]);
+          example = ''
+          if (v)
+        	  if (v.example)
+        		  example = v.example();
+        	  else if (v.sample)
+        		  example = v.sample();
+              else {
+            	  node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
+            	  if (node){
+            		  example = node.path;
+//             		  path = split(node.path, ';');
+//             		  if (path.length >= 2)
+//             			  example = node[]
+            	  }
+            	  else
+            		  example = v.name() + "()";
+              }
+          editor.session.insert(pos, example);
+          editor.focus();
+          return true;
+        }
+      });
 
      
+		ko.bindingHandlers.draggable = {
+			init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+				$(element).draggable(
+					{
+						revert: 'invalid',
+						helper: 'clone',
+						stack: '.draggable-func'
+					});
+			}
+		};
+
      function TasksViewModel() {
          var self = this;
          self.tasksURI = '/functions';
@@ -2316,7 +2386,7 @@ function typeInTextarea(el, newText) {
                        if (content){
                         content = JSON.parse(content);
                         
-                        tooltip = "<div class=\'expandedtask\' style=\'border:2px solid black;background-color:lightblue\'> <p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
+                        tooltip = "<div class=\'expandedtask\'> <p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
                         if (content.example) {
                         	tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 0); return false;">Add: </a>' + content.example;	
                         }
@@ -2344,8 +2414,8 @@ function typeInTextarea(el, newText) {
        	    }
         	 }, 300);
      	}
-     }
-        
+	 };
+
        function SamplesViewModel(sampleViewModel) {
            var self = this;
            self.samplesURI = '/samples';
@@ -2830,7 +2900,7 @@ function typeInTextarea(el, newText) {
            		 self.clicks = 0;
            		 event.preventDefault();
            	 var domItem = $(event.target);
-       		 $(".expandedhistory").remove();           	 
+       		 $(".expanded-history").remove();           	 
            	 if (item.expanded()) {
            		 item.expanded(false);
           	    } else {
@@ -2844,7 +2914,7 @@ function typeInTextarea(el, newText) {
 	                    .then(function(content) {
 	                        // Set the tooltip content upon successful retrieval
 	                        content = JSON.parse(content);
-	                        content = "<div class=\'expandedhistory\' style=\'border:2px solid black;background-color:lightblue\'> <p>Name: " + content.name + "</p><p>Created: " + content.created_on + "<br>Modified: " + content.modified_on + "<br>Duration: " + content.duration + 
+	                        content = "<div class=\'expanded-history\'> <p>Name: " + content.name + "</p><p>Created: " + content.created_on + "<br>Modified: " + content.modified_on + "<br>Duration: " + content.duration + 
 	                        	"(s)</p><p>Status: " + content.status + (content.err && content.err.length > 0 ? "<br>Error: " + content.err : "") + "</p><p>Double click to show in report.<br>Check to pin job to report.</p></div>";
 	                        	
                         	domItem.parent().append(content);

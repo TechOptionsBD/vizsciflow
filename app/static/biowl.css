@@ -244,6 +244,11 @@ input[type=checkbox]  {
     height: 20px;
     position: relative;
     vertical-align: middle;
+    
+    
+    margin: 0;
+    padding: 0;
+    top: -1px;
 }
 
 label-checkbox {
@@ -253,3 +258,73 @@ label-checkbox {
     display: inline-block;
     vertical-align: middle;
 }
+
+
+.log-tab {
+	
+	min-width: 100%;
+	max-width: 100%;
+	min-height: 150px;
+}
+
+.args-area {
+	max-width: 100%;
+	min-width: 100%;
+}
+
+.checkbox-font{
+	font-size: 20px;
+}
+
+.label-immediate{
+	margin-top: 2px;
+	padding-left: 2px;
+}
+
+.label-checkbox-jobhistory{
+	margin-top: 3px;
+}
+
+.extab2 {
+	min-height: 150px;	
+}
+
+.extab2-tab-content {
+	min-height: 150px;
+}
+
+.expanded-history {
+	border:2px ridge;
+	background-color:lightblue;
+	padding:10px;
+	margin: 10px;
+	border-radius: 10px;
+}
+
+.expandedtask {
+	border:2px groove;
+	background-color:lightblue;
+	padding:10px;
+	margin: 10px;
+	border-radius: 10px;
+}
+
+.history-item-checkbox {
+	margin-left: 10px;
+}
+
+.history-item-img{
+	vertical-align: middle; 
+	margin-bottom: 2px;
+}
+
+.div-history-item {
+	margin-left: 0px;
+	display: block;
+	width: 100%;
+}
+
+.addsService-modal-header{
+	background-color: #337AB7;
+}
+

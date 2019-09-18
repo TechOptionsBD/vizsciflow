@@ -479,7 +479,7 @@ def load_metadata(path):
         metadatadb = data_alloc.properties
         properties = {}
         for m in metadatadb:
-            properties.update(m.keyvalue)
+            properties.update({ m.key: m.value })
         metadata['properties'] = properties
     
     return metadata
@@ -535,7 +535,7 @@ def search_and_filter(path, filters):
     return FilterManager.listdirR(fs, path, filters);
 
 def load_filter_history():
-    filters = FilterHistory.query.filter(Filter.user_id == current_user.id)
+    filters = FilterHistory.query.filter(FilterHistory.user_id == current_user.id)
     histories = []
     for f in filters:
         histories.append(f.to_json_info())
@@ -558,7 +558,27 @@ def load_script_from_filter(path, filter_id):
     filterjson = [f for f in filterjson if f["selected"] ]
     script = "data = GetFiles('{0}', {1})".format(path, filterjson)
     return script
-     
+def save_filters(name, filters):
+    filters = json.loads(filters)
+    Filter.add(current_user.id, name, filters)
+    return ""
+
+@main.route('/filters', methods=['GET', 'POST'])
+@login_required
+def filters():
+    if request.args.get('filterhistory'):
+        return load_filter_history()
+    elif request.args.get('filters'):
+        return load_filters()
+    elif request.args.get("savefilters"):
+        return json.dumps(save_filters(request.args.get("name"), request.args.get("savefilters")))
+    elif request.args.get('filtertip'):
+        return json.dumps(load_filter_tip(request.args.get('filtertip')))
+    elif request.args.get('filterforscript'):
+        return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filterforscript')))
+    elif request.args.get('applyfilters'):
+        return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('applyfilters')) })
+    
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
@@ -591,14 +611,6 @@ def datasources():
         return json.dumps(load_metadataproperties())
     elif request.form.get('metadatasave'):
         return json.dumps(save_metadata(request))                
-    elif request.args.get('filters'):
-        return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('filters')) })
-    elif request.args.get('filterhistory'):
-        return load_filters()
-    elif request.args.get('filtertip'):
-        return json.dumps(load_filter_tip(request.args.get('filtertip')))
-    elif request.args.get('filtertforscript'):
-        return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filtertforscript')))
         
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 

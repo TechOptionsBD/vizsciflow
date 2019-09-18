@@ -1,5 +1,7 @@
 import os
 from os import path
+
+from ...fileop import FolderItem
 from ...exechelper import func_exec_run
 from ...argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args
 
@@ -38,4 +40,4 @@ def run_samtools_merge(context, *args, **kwargs):
     if not fs.exists(output):
         raise ValueError("Merge operation failed due to error: " + err)
     
-    return stripped_path
+    return FolderItem(stripped_path)

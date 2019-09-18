@@ -1010,14 +1010,16 @@ class Filter(db.Model):
     __tablename__ = 'filters'
     id = db.Column(db.Integer, primary_key=True)
     user_id  = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.Text, nullable = False)
     value = db.Column(JSON, nullable = False)
     created_on = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     
     @staticmethod
-    def add(user_id, value):
+    def add(user_id, name, value):
         try:
             filterobj = Filter()
             filterobj.user_id = user_id
+            filterobj.name = name
             filterobj.value = value
             filterobj.created_on = datetime.utcnow()
             db.session.add(filterobj)
@@ -1038,7 +1040,7 @@ class Filter(db.Model):
     def to_json_info(self):
         return {
             'id': self.id,
-            'name': self.name_from_value(),
+            'name': self.name,
             'value': self.value,
             'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '',
         }

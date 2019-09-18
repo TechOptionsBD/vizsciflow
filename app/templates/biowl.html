@@ -39,7 +39,7 @@
 <div class="container-fluid">
 	<div class="row row-flex">
 		<div class="col-md-3 box-one" style="padding: 0">
-			<div id="dataSourcesPanel" class="panel panel-primary">
+			<div id="dataSourcesPanel" class="panel panel-primary" style="position: relative;">
 				<div class="panel-heading">
 					<div class="row">
 						<div>
@@ -88,11 +88,14 @@
 								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 							</button>
 						</div>
-						<input class="form-control col-md-9" type="text" placeholder="Search…" data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
-						<button id="btnOpenFilterDialog" class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Filter" data-bind="click: openFilterDialog">
+						<div id="dataSourcesSearchPanel" class="form-inline" style="position: relative">
+							<input class="form-control" style="width: 85%" type="text" placeholder="Search…"
+								data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
+							<button id="btnOpenFilterDialog" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+								title="Filter" data-bind="click: openFilterDialog">
 								<i class="glyphicon glyphicon-filter"></i>
-						</button>
+							</button>
+						</div>
 					</div>
 				</div>
 				<div class="panel-body draggable-datasources"
@@ -237,7 +240,7 @@
 							<div class="tab-pane fade in active scriptstyle" id="scripttab">
 								<div id="editor" class="editorstyle"></div>
 							</div>
-							<div class="tab-pane fade" id="graphtab" style="height: 400px">
+							<div class="tab-pane fade" id="graphtab">
 								<div style="width: 100%; height: 100%" id="graph"></div>
 							</div>
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="metatab">
@@ -326,7 +329,7 @@
 							</button>
 						</div>
 					</div>
-					<div class="row">
+					<div class="row panel-controlgroup">
 						<div class="btn-group">
 							<div class="btn-group">
 								<button
@@ -381,15 +384,15 @@
 					style="max-height: 500px; overflow-y: scroll; padding: 3px">
 					<div class="row" style="width: 100%; margin: 0">
 						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: left; text-align: left; padding-left:5px; width: 60%">Name</div>
+							style="float: left; text-align: left; padding-left:5px; width: 60%"><strong>Name</strong></div>
 						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: right; padding-left: 4px; text-align: right; padding-right: 5px; width: 40%">Group(Package)</div>
+							style="float: right; padding-left: 4px; text-align: right; padding-right: 5px; width: 40%"><strong>Group(Package)</strong></div>
 					</div>
 					<div data-bind="foreach: filteredTasks">
 						<div class="row"
 							data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 							style="width: 100%; margin: 0; display: block;">
-							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></div>
+							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px; font-weight: bold;" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></div>
 							<div class="col" style="float: right;padding-right: 5px">
 								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package_name" style="text-align: left"></span>)
 							</div>
@@ -409,7 +412,7 @@
 							</button>
 						</div>
 					</div>
-					<div class="row">
+					<div class="row panel-controlgroup">
 						<label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked="checked" autocomplete="off">Public</label>
 						<label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click" autocomplete="off">Shared</label>
 						<label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click" autocomplete="off">Private</label>
@@ -433,22 +436,22 @@
 					</div>
 				</div>
 				<div class="panel-body draggable-samples"
-					style="max-height: 200px; width: 100%; overflow-y: scroll; padding: 3px">
+					style="max-height: 200px; width: 100%; overflow-y: scroll; padding: 3px 3px 0 0">
 					<div class="row" style="width: 100%; margin: 0">
 						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: left; width: 80%; text-align: center">Name</div>
+							style="float: left; width: 80%; text-align: left; padding-left: 12px"><strong>Name</strong></div>
 						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: right; padding-left: 4px; width: 20%; text-align: center">Owner</div>
+							style="float: right; padding-left: 5px; width: 20%; text-align: center"><strong>Owner</strong></div>
 					</div>
 
 					<div data-bind="foreach: filteredWorkflows">
-						<div class="row menu_button"
-							data-bind="event: {dblclick: $parent.saveCurrentLoadintoEditor}, qTipWf: name, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
-							style="width: 100%; margin: 0">
-							<div class="col-xm-6" style="float: left; margin: 0; width: 80%"
-								data-bind="text: name"></div>
-							<div class="col-xm-3"
-								style="float: right; margin: 0; padding-left: 4px; width: 20%"
+						<div class="row draggable-workflow"
+							data-bind="event: {dblclick: $parent.saveCurrentLoadintoEditor, click : $parent.toggleExpand}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+							style="width: 100%; margin: 0; display: block">
+							<div class="col-xm-6 menu_button" style="float: left; margin: 7px 0px 7px 0px; padding-left: 10px; width: 80%; font-weight: bold"
+								data-bind="text: name, draggable : $data"></div>
+							<div class="col-xm-3 menu_button"
+								style="float: right; margin: 7px 0 7px 0; padding-left: 20px; width: 20%"
 								data-bind="text: user"></div>
 						</div>
 					</div>
@@ -826,48 +829,58 @@
 		</div>
 	</div>
 </div>
-
+<!-- top:22%; left: 0.8%; width: 21.6%; height: 50%; -->
 <div id="filter-dialog" class="modal fade bs-modal-sm" tabindex="=1"
 	role="dialog" aria-labelledby="filterDialogLabel" aria-hidden="true"
-	style="position:absolute; width: 50%; height: 50%; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
+	style="  background: #fff;  max-height: calc(100vh - 210px);">
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal"
 			aria-hidden="true">&times;</button>
-		<h5 id="filterDialogLabel">Update Metadata</h5>
+		<h5 id="filterDialogLabel"><strong>Filter and Search</strong></h5>
 	</div>
-	<div class="modal-body" style="overflow-x: auto;">
-		<table class="table static-table table-bordered table-hover no-bottom-margin">
-		  <thead>
-		    <tr>
-		      <th>Selected</th>
-		      <th>Name</th>
-		      <th>Filter Value</th>
-		      <th>Sort</th>
-		      <th>Up</th>
-		      <th>Down</th>
-		    </tr>
-		  </thead>
-		  <tbody data-bind="foreach: filters">
-		    <tr>
-		      <td>
-		        <input type="checkbox" data-bind="checked: selected" />
-		      </td>
-		      <td data-bind="text: name"></td>
-		      <td>
-		      	<input type="text" class="form-control" data-bind="text: value">
-		      </td>
-		      <td>
-		      	<select data-bind="options: $parent.sortOrders, optionsText: 'name', optionsValue: 'id', value: sort, optionsCaption: 'Sort...'"></select>
-		      </td>
-		      <td>
-		        <button data-bind="disable: $index() === 0, click: $parent.moveUp">Up</button>
-		      </td>
-		      <td>  
-		        <button data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown">Down</button>
-		      </td>
-		    </tr>
-		  </tbody>
-		</table>
+	<!-- static-table table-hover no-bottom-margin -->
+	<div class="modal-body" style="overflow-x: auto;padding-right: 0px;">
+		<div class="table-responsive">
+			<table class="table table-bordered " style="display: block;overflow-x: auto">
+				<thead>
+					<tr>
+						<th class="filter-dialog-modal-text" style="width: 5%; padding: 0 0 8px 0 "><i class="fa fa-check-square-o" style="font-size: 2rem"></i></th>
+						<th class="filter-dialog-modal-text" style="width: 20%">Name</th>
+						<th class="filter-dialog-modal-text" style="width:35%">Value</th>
+						<th class="filter-dialog-modal-text" style="width: 9%">Sort</th>
+						<th class="filter-dialog-modal-text" style="width: 10%"><i class="fa fa-arrow-up"></i><i class="fa fa-arrow-down"></i></th>
+						<!-- <th>Down</th> --> 
+					</tr>
+				</thead>
+				<tbody data-bind="foreach: filters">
+					<tr>
+						<td>
+							<input type="checkbox" data-bind="checked: selected" />
+						</td>
+						<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+						<td class="filter-dialog-modal-text filter-value-td">
+							<input type="text" class="form-control" data-bind="text: value">
+						</td>
+						<td class="filter-dialog-modal-text">
+							<!-- <select data-bind="options: $parent.sortOrders, optionsText: 'name', optionsValue: 'id', value: sort"></select> -->
+							<button class="btn btn-xs btn-primary sortBtn" style="border-radius: 5px" data-bind="value: sort"><i class="fa fa-minus"></i></button>
+						</td>
+						<td class="filter-dialog-modal-text">
+							<div class="btn-group">
+								<button class="btn-xs" style="border-radius: 2px" data-bind="disable: $index() === 0, click: $parent.moveUp"
+									title="Move Up"><i class="fa fa-arrow-up"></i></button>
+								<button class="btn-xs" style="border-radius: 2px"
+									data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown" title="Move Down"><i
+										class="fa fa-arrow-down"></i></button>
+							</div>
+						</td>
+						<!-- <td>  
+							  <button class="btn-xs" data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown"><i class="fa fa-arrow-down"></i></button>
+							</td> -->
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
 	<div class="modal-footer">
 		<!--         <button data-bind="click: update" class="btn btn-primary">Save</button> -->
@@ -1166,7 +1179,7 @@
              }
          });
     }
-    
+	
     $(window).on('load', function() {
     	 
     	centerDialog = function(dlg) {
@@ -1232,10 +1245,33 @@
                 });
             });
         });
-        
+		
         $(document).ready(function() {
             //$('[data-toggle="tooltip"]').tooltip();
-            
+
+			$('.sortBtn').on('click', function(){
+				var sort = $(this).val();
+				switch (sort) {
+					case '0':
+						$(this).val(1);
+						$(this).html('<i class="fa fa-sort-asc"></i>');
+						break;
+					case '1':
+						$(this).val(2);
+						$(this).html('<i class="fa fa-sort-desc"></i>');
+						break;
+					case '2':
+						$(this).val(0);
+						$(this).html('<i class="fa fa-minus"></i>');
+						break;
+					default:
+						$(this).html('<i class="fa fa-minus"></i>');
+						break;
+				}
+			});
+			
+			$("#graphtab").css('height', $("#scripttab").css('height'));
+
             $('.menu_button').click(function() {
           		$(this).addClass('selected').siblings().removeClass('selected')
         	});
@@ -1279,6 +1315,14 @@
    				editor.setFontSize($(e.target).text() + 'pt');
             });
             
+			// $("#tree").on("search.jstree", function (e, data) {
+			// 	$('.jstree-open').on("dragstart", function (e) {
+			// 		e.stopPropagation();
+			// 		var nodeId = e.target.id.replace("_anchor", "");
+			// 		var node = $("#tree").jstree(true).get_node(nodeId);
+			// 		e.originalEvent.dataTransfer.setData("text/plain", node.original.path);
+			// 	});
+			// });
             
         });
         
@@ -1406,7 +1450,7 @@
     	  self.dataSources(datasources);
     	  
     	  ko.cleanNode($("#dataSourcesPanel")[0]);
-    	  ko.applyBindings(self, $("#dataSourcesPanel")[0]);    	  
+    	  ko.applyBindings(self, $("#dataSourcesPanel")[0]);   	  
       }
       
       self.load = function(recursive) {
@@ -1622,7 +1666,10 @@
       });
       
       self.openFilterDialog = function() {
+		  $("#filter-dialog").appendTo("#dataSourcesPanel");
+		  $("#filter-dialog").css('position', 'absolute');
     	  $('#filter-dialog').modal('show');
+		  $("#filter-dialog").css('width', $("#dataSourcesPanel").css('width'));
       }
       /* self.rename = function() {
     	  $('#rename-filefolder-dialog').modal('hide');
@@ -1936,6 +1983,22 @@ function typeInTextarea(el, newText) {
 	    		},
                 'plugins': ['search', 'state', 'types', 'wholerow', 'contextmenu']
 	        });
+			$(element).bind('ready.jstree', function (e, data) {
+			   $('.jstree-node').on("dragstart", function (e) {
+				   e.stopPropagation();
+				   var nodeId = e.target.id.replace("_anchor", "");
+				   var node = $("#tree").jstree(true).get_node(nodeId);
+				   e.originalEvent.dataTransfer.setData("text/plain", node.original.path);
+			   });
+		   });
+		   $(element).on("redraw.jstree", function(e, data){
+			   $('.jstree-node').on("dragstart", function(e){
+				   e.stopPropagation();
+				   var nodeId = e.target.id.replace("_anchor", "");
+				   var node = $("#tree").jstree(true).get_node(nodeId);
+				   e.originalEvent.dataTransfer.setData("text/plain", node.original.path);
+			   });
+		   });
 	    },
 	    update: function (element, valueAccessor) {
 	        var treeData = ko.unwrap(valueAccessor());
@@ -2017,34 +2080,52 @@ function typeInTextarea(el, newText) {
     $("#editor").droppable({
 
         activeClass: "ui-state-default",
-        hoverClass: "ui-state-hover",
-        accept: ":not(.ui-sortable-helper)",
-        
-        drop: function(event, ui) {
-          var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
-          var v = ko.dataFor(ui.draggable[0]);
-          example = ''
-          if (v)
-        	  if (v.example)
-        		  example = v.example();
-        	  else if (v.sample)
-        		  example = v.sample();
-              else {
-            	  node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
-            	  if (node){
-            		  example = node.path;
-//             		  path = split(node.path, ';');
-//             		  if (path.length >= 2)
-//             			  example = node[]
-            	  }
-            	  else
-            		  example = v.name() + "()";
-              }
-          editor.session.insert(pos, example);
-          editor.focus();
-          return true;
-        }
-      });
+		hoverClass: "ui-state-hover",
+		accept: ":not(.ui-sortable-helper)",
+
+		drop: function (event, ui) {
+			event.preventDefault();
+			event.stopPropagation();
+			var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
+			var v = ko.dataFor(ui.draggable[0]);
+			example = '';
+			if (v) {
+				if (v.example) {
+					example = v.example();
+				}
+
+				else if (v.sample) {
+					example = v.sample();
+				}
+
+				else if (v.id) {
+					ajaxcalls.simple('/samples', 'GET', { 'sample_id': v.id }).done(function (data) {
+						v.script = data['script'];
+						example = v.script;
+						editor.session.insert(pos, example);
+						editor.focus();
+						return true;
+					});
+					return true;
+				}
+				else {
+					node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
+					if (node) {
+						example = node.path;
+						//             		  path = split(node.path, ';');
+						//             		  if (path.length >= 2)
+						//             			  example = node[]
+					}
+					else
+						example = v.name() + "()";
+				}
+			}
+
+			editor.session.insert(pos, example);
+			editor.focus();
+			return true;
+		}
+	});
 
      
 		ko.bindingHandlers.draggable = {
@@ -2053,7 +2134,7 @@ function typeInTextarea(el, newText) {
 					{
 						revert: 'invalid',
 						helper: 'clone',
-						stack: '.draggable-func'
+						stack: '.draggable-func, .draggable-workflow'
 					});
 			}
 		};
@@ -2419,6 +2500,8 @@ function typeInTextarea(el, newText) {
        function SamplesViewModel(sampleViewModel) {
            var self = this;
            self.samplesURI = '/samples';
+		   self.clicks = 0;
+		   self.timer = null;
            self.items = ko.observableArray();
            self.sampleViewModel = sampleViewModel;
            self.access = ko.observable("0");
@@ -2483,6 +2566,34 @@ function typeInTextarea(el, newText) {
             	 
               return isDirty;
            }
+
+		   self.toggleExpand = function (item, event) {
+			   event.stopPropagation();
+			   self.clicks++;
+			   if (self.clicks !== 1) {
+				   $(".expandedWorkflow").remove();
+				   self.loadIntoEditor(item);
+				   self.clicks = 0
+				   return;
+			   }
+			   else {
+				   self.clicks= 0;
+				   var domItem = $(event.target);
+				   if (domItem.next().next('div .expandedWorkflow').length !== 0) {
+					   $(".expandedWorkflow").remove();
+					   return;
+				   } else {
+					   $(".expandedWorkflow").remove();
+
+					   tooltip = "<div class=\"expandedWorkflow\" style=\"margin-top: 40px \"> <p>Name: " + item.name() + "<br>Owner: " + item.user() + "<br>Selected: " + item.selected() + "</p>";
+					   tooltip += "</p>";
+					   tooltip += "<p>Double click item to insert into code editor.</p></div>";
+
+					   domItem.parent().append(tooltip);
+				   }
+			   }
+				
+		   };
            
            self.loadIntoEditor = function(item) {
         	   
@@ -3075,6 +3186,25 @@ function typeInTextarea(el, newText) {
         		id: 2
         	}
           ]);
+		  self.sortText = ko.observable("ASC");
+		  self.sortToggle = function(data){
+			  debugger;
+			  switch(data.sort){
+				  case 0 :
+				  this.sort = 1;
+				  $(this).text('ASC');
+				  //self.sortText.text = 'ASC';
+				  break;
+				  case 1 :
+				  this.sort = 2
+				  $(this).text('DESC');
+				  break;
+				  case 2:
+				  this.sort = 0
+				  $(this).text('ASC');
+				  break;
+			  }
+		  }
           
        	  self.filters = ko.observableArray([
        	  {

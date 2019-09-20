@@ -846,11 +846,11 @@
 			<table class="table table-bordered " style="display: block;overflow-x: auto">
 				<thead>
 					<tr>
-						<th class="filter-dialog-modal-text" style="width: 5%; padding: 0 0 8px 0 "><i class="fa fa-check-square-o" style="font-size: 2rem"></i></th>
+						<th class="filter-dialog-modal-text" style="width: 5%; padding: 0 0 8px 0 ; text-align: center"><i class="fa fa-check-square-o" style="font-size: 2rem"></i></th>
 						<th class="filter-dialog-modal-text" style="width: 20%">Name</th>
 						<th class="filter-dialog-modal-text" style="width:35%">Filter</th>
 						<th class="filter-dialog-modal-text" style="width: 9%">Sort</th>
-						<th class="filter-dialog-modal-text" style="width: 10%"><i class="fa fa-arrow-up"></i><i class="fa fa-arrow-down"></i></th>
+						<th class="filter-dialog-modal-text" style="width: 17%; text-align: center"><i class="fa fa-sort" style="font-size: 2rem"></i></th>
 						<!-- <th>Down</th> --> 
 					</tr>
 				</thead>
@@ -865,15 +865,14 @@
 						</td>
 						<td class="filter-dialog-modal-text">
 							<!-- <select data-bind="options: $parent.sortOrders, optionsText: 'name', optionsValue: 'id', value: sort"></select> -->
-							<button class="btn btn-xs btn-primary sortBtn" style="border-radius: 5px" data-bind="value: sort"><i class="fa fa-minus"></i></button>
+							<button class="btn btn-xs btn-primary" style="background: transparent; border-color: transparent" data-bind="value: sort, click: $parent.toggleSort;"><i data-bind="class : $parent.setSortClass(sort)" class="fa fa-times fa-xs" style="background: transparent; color: black"></i></button>
 						</td>
 						<td class="filter-dialog-modal-text">
-							<div class="btn-group">
-								<button class="btn-xs" style="border-radius: 2px" data-bind="disable: $index() === 0, click: $parent.moveUp"
-									title="Move Up"><i class="fa fa-arrow-up"></i></button>
-								<button class="btn-xs" style="border-radius: 2px"
-									data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown" title="Move Down"><i
-										class="fa fa-arrow-down"></i></button>
+							<div style="display: inline-block">
+								<button class="btn btn-xs fa fa-sort-up" style="border-radius: 2px; display: inline-block;" data-bind="disable: $index() === 0, click: $parent.moveUp"
+									title="Move Up"></button>
+								<button class="btn btn-xs fa fa-sort-down" style="border-radius: 2px; display: inline-block;"
+									data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown" title="Move Down"></button>
 							</div>
 						</td>
 						<!-- <td>  
@@ -1279,27 +1278,6 @@
 		
         $(document).ready(function() {
             //$('[data-toggle="tooltip"]').tooltip();
-
-			$('.sortBtn').on('click', function(){
-				var sort = $(this).val();
-				switch (sort) {
-					case '0':
-						$(this).val(1);
-						$(this).html('<i class="fa fa-sort-asc"></i>');
-						break;
-					case '1':
-						$(this).val(2);
-						$(this).html('<i class="fa fa-sort-desc"></i>');
-						break;
-					case '2':
-						$(this).val(0);
-						$(this).html('<i class="fa fa-minus"></i>');
-						break;
-					default:
-						$(this).html('<i class="fa fa-minus"></i>');
-						break;
-				}
-			});
 			
 			$("#graphtab").css('height', $("#scripttab").css('height'));
 
@@ -3225,25 +3203,20 @@ function typeInTextarea(el, newText) {
         		id: 2
         	}
           ]);
-		  self.sortText = ko.observable("ASC");
-		  self.sortToggle = function(data){
-			  debugger;
-			  switch(data.sort){
-				  case 0 :
-				  this.sort = 1;
-				  $(this).text('ASC');
-				  //self.sortText.text = 'ASC';
-				  break;
-				  case 1 :
-				  this.sort = 2
-				  $(this).text('DESC');
-				  break;
-				  case 2:
-				  this.sort = 0
-				  $(this).text('ASC');
-				  break;
-			  }
-		  }
+
+		  self.toggleSort = function(data, event){
+
+			var sort = data.sort();
+			sort  = ++sort > 2? 0 : sort;
+
+			for(var i =0 ; i < self.filters().length; i++){
+				var filtersName =  ko.utils.unwrapObservable(self.filters()[i].name());
+				if(filtersName == data.name()){
+					self.filters()[i].sort(sort);
+					break;
+				}
+			}
+		}
           
        	  self.filters = ko.observableArray([
        	  {
@@ -3284,6 +3257,22 @@ function typeInTextarea(el, newText) {
        	  }
        	  ]);
        	  
+		self.setSortClass = function (sort) {
+			   switch (sort()) {
+				   case 0:
+					   return 'fa fa-times fa-xs';
+
+				   case 1:
+					   return 'fa fa-sort-asc filter-dialog-sortIcon';
+
+				   case 2:
+					   return 'fa fa-sort-desc filter-dialog-sortIcon';
+
+				   default:
+					   return 'fa fa-times fa-xs';
+			   }
+		   };
+
        	self.moveUp = function(data) {
        	    var idx = self.filters.indexOf(data),
        	      tmp = self.filters.splice(idx, 1);
@@ -3298,6 +3287,7 @@ function typeInTextarea(el, newText) {
        	    self.filters.splice(idx + 1, 0, tmp[0]);
        	  };
 
+	   
        	  // apply the filters
    		 self.filterInternal = function(node, jsonFilters) {
 

@@ -348,10 +348,13 @@ label-checkbox {
     text-align: left;
 }
 
-.filter-value-td :hover{
-    /* transform: scaleX(1.1); */
+/* .filter-value-td :hover{
     width: auto;
     font-size: inherit;
     transition:  .2s ease;
     
+} */
+
+.filter-dialog-sortIcon{
+    margin-left: 2px;
 }

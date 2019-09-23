@@ -230,10 +230,11 @@
 					<div class="panel-body" style="">
 						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
 							<ul class="nav nav-tabs marginBottom">
-								<li class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
-								<li><a href="#graphtab" data-toggle="tab">Graph</a></li>
-								<li><a href="#metatab" data-toggle="tab">Metadata</a></li>
-								<li><a href="#filterhistorytab" data-toggle="tab">Filter History</a></li>
+								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
+								<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph</a></li>
+								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata</a></li>
+								<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History</a></li>
+								<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser</a></li>
 							</ul>
 						<div class="tab-content">
 							<div class="tab-pane fade in active scriptstyle" id="scripttab">
@@ -246,6 +247,9 @@
 							</div>
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="filterhistorytab">
 								
+							</div>
+							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="browsertab">
+
 							</div>
 						</div>
 						</div>
@@ -999,6 +1003,17 @@
 <!-- 	</div> -->
 <!-- </div> -->
 
+<div id="browserView" class="container-fluid" aria-hidden="true" style="display:none">
+	<h3 class="text-info mx-auto">Files & Folders</h3>
+	<div class="col-sm-12" data-bind="foreach : browserItems">
+		<div class="col-sm-6 form-group">
+			<!-- <img data-bind="attr: {src: imgPath}" alt= "" > -->
+			<i data-bind="class: imgPath"></i>
+			<label data-bind="text: itemName"></label>
+		</div>
+	</div>
+</div>
+
 <div id="metadataView" class="container-fluid" aria-hidden="true" style="display:none">
 	<h3 class="text-info mx-auto">Metadata Information</h3>
 	
@@ -1227,12 +1242,12 @@
 		 	  copyDataPathToEditor(node.original);
 		});
 		
-		$('#tree').on("select_node.jstree", function (e, data) {
+		// $('#tree').on("select_node.jstree", function (e, data) {
 			
-			if ($("#metatab").length == 0)
-				return;
-			showMetadata(data.node.original.path);
-		});
+		// 	if ($("#metatab").length == 0)
+		// 		return;
+		// 	showMetadata(data.node.original.path);
+		// });
 		
     	$('#refresh').hide();
         // $('.draggable-functions').each(function() {
@@ -1383,6 +1398,36 @@
                 };
                 return $.ajax(request);
         }
+
+		// self.simpleByteData = function(uri, method, data, asyncParam = true) {
+        //     var request = {
+        //             url: uri,
+        //             type: method,
+        //             async: asyncParam,
+        //             contentType: "application/json; charset=utf-8",
+        //             cache: false,
+        //             data: data,
+		// 			dataType : 'json',
+        //             // beforeSend: function (xhr, settings) {
+		// 			// 	// debugger;
+		// 			// 	// if (settings.dataType === 'binary') {
+		// 			// 	// 	settings.xhr().responseType = 'arraybuffer';
+		// 			// 	// 	settings.processData = false;
+		// 			// 	// }
+		// 			// 	xhr.setRequestHeader("Authorization",
+		// 			// 		"Basic " + btoa(self.username + ":" + self.password));
+        //             // },
+        //             error: function(jqXHR, textStatus, error) {
+		// 				debugger;
+        //                 showXHRText(jqXHR);
+        //             },
+		// 			success: function(data){
+		// 				var byteArray = new Uint8Array(data);
+		// 				console.log(byteArray);
+		// 			}
+        //         };
+        //         return $.ajax(request);
+        // }
     }
     
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
@@ -1629,9 +1674,11 @@
       self.download = $.debounce(500, function() {
     	  
     	  node = self.selectedNode();
-          if (node === undefined)
-              return;
-          $.redirect(self.dataSourcesURI, { 'download': node.path }, "POST", "_blank");
+          if (node === undefined){
+			return;
+		  }
+
+          $.redirect(self.dataSourcesURI, { 'download': node.original.path }, "POST", "_blank");
       });
             
       self.addFolder = $.debounce(500, function() {
@@ -2010,6 +2057,18 @@ function typeInTextarea(el, newText) {
 				   var node = $("#tree").jstree(true).get_node(nodeId);
 				   e.originalEvent.dataTransfer.setData("text/plain", node.original.path);
 			   });
+		   });
+		   $(element).on('select_node.jstree', function (e, data) {
+
+			   var isMetatab = $("#metatab").hasClass('active');
+			   var isBrowserTab = $("#browsertab").hasClass('active');
+			   if (isMetatab) {
+				   showMetadata(data.node.original.path);
+			   }
+			   else if(isBrowserTab){
+				   showBrowser(data.node);
+			   }
+			   
 		   });
 	    },
 	    update: function (element, valueAccessor) {
@@ -2996,6 +3055,73 @@ function typeInTextarea(el, newText) {
                 });
             }
         }
+
+		function BrowserViewModel (){
+			var self = this;
+			self.browserItems = ko.observableArray();
+
+			self.loadItems = function(data) {
+
+
+				//var uri = "/datasources";
+
+				// $.redirect(uri, { 'download': data.original.path }, "POST", "_self");
+
+				// ajaxcalls.simple(uri, "POST",  { 'download' : data.original.path }).done(function(data){
+				// 	debugger;
+				// });
+
+				self.browserItems([]);
+					debugger;
+				if (data.children.length == 0) {
+
+					var iconType = data.type == "folder"? "fa fa-folder browser-icon" : "fa fa-file browser-icon";
+					self.browserItems.push(
+						{
+							imgPath: ko.observable(iconType),
+							itemName: ko.observable(data.text)
+						}
+					);
+				}
+				else {
+					data.children.forEach(function (child) {
+						var childNode = $("#tree").jstree(true).get_node(child);
+						var iconType = childNode.type == "folder" ? "fa fa-folder browser-icon" : "fa fa-file browser-icon"
+						self.browserItems.push(
+							{
+								imgPath: ko.observable(iconType),
+								itemName: ko.observable(childNode.text)
+							}
+						);
+
+					});
+
+				}
+			};
+
+		};
+
+		var browserViewModel = new BrowserViewModel();
+
+		//ko.applyBindings(browserViewModel, $("#browserView")[0]);
+
+		function loadBrowserData(data) {
+			browserViewModel.loadItems(data);
+			if ($("#browsertab").length == 0) {
+				createNewBrowserTab("browsertab", "Browser", "fade in scriptstyle");
+			}
+			else{
+				ko.applyBindings(browserViewModel, $("#browserView")[0]);
+			}
+		}
+
+		function showBrowser(data) {
+			loadBrowserData(data);
+			if ($("#browserView").parent('div#browsertab').length == 0) {
+				$('#browsertab').append($("#browserView"));
+				$("#browserView").show();
+			}
+		}
         
         function RunnablesViewModel(sampleViewModel) {
             var self = this;
@@ -3896,6 +4022,15 @@ function typeInTextarea(el, newText) {
 	  registerCloseEvent();
 // 	  ko.cleanNode($("#metadataView")[0]);
  	  ko.applyBindings(metadataViewModel, $('#metadataView')[0]);
+  }
+
+  function createNewBrowserTab(tabId, tabHeader, style){
+	$('#exTabBiowl .nav-tabs').append('<li><a href="#' + tabId + '"><button class="close closeTab" type="button" >×</button>' + tabHeader + '</a></li>');
+	  $('#exTabBiowl .tab-content').append('<div class="tab-pane '+ style + '" id="' + tabId + '" style="overflow-y: scroll"></div>');
+	 
+	  showTab(tabId);
+	  registerCloseEvent();
+ 	  ko.applyBindings(browserViewModel, $('#browserViewss')[0]);
   }
   
   registerCloseEvent();

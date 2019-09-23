@@ -358,3 +358,8 @@ label-checkbox {
 .filter-dialog-sortIcon{
     margin-left: 2px;
 }
+
+.browser-icon{
+    color:#E0C88D;
+    font-size: 40px;
+}

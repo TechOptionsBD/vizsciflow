@@ -2075,15 +2075,17 @@ function typeInTextarea(el, newText) {
 		   });
 		   $(element).on('select_node.jstree', function (e, data) {
 
-			   var isMetatab = $("#metatab").hasClass('active');
-			   var isBrowserTab = $("#browsertab").hasClass('active');
-			   if (isMetatab) {
-				   showMetadata(data.node.original.path);
-			   }
-			   else if(isBrowserTab){
-				   showBrowser(data.node);
-			   }
-			   
+			   showMetadata(data.node.original.path);
+			   showBrowser(data.node);
+			   //    var isMetatab = $("#metatab").hasClass('active');
+			   //    var isBrowserTab = $("#browsertab").hasClass('active');
+			   //    if (isMetatab) {
+			   // 	   showMetadata(data.node.original.path);
+			   //    }
+			   //    else if(isBrowserTab){
+			   // 	   showBrowser(data.node);
+			   //    }
+
 		   });
 	    },
 	    update: function (element, valueAccessor) {

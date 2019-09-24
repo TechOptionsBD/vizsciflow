@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import io
 import os
 import sys
 from os import path
@@ -10,7 +11,7 @@ import time
 
 from flask import Flask, render_template, redirect, url_for, abort, flash, request, \
     current_app, make_response
-from flask import send_from_directory, jsonify
+from flask import send_from_directory, jsonify, send_file
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -338,6 +339,13 @@ def download_biowl(path):
     mime = mimetypes.guess_type(fullpath)[0]
     return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
+def get_filecontent(path):
+    # construct data source tree
+    path = path.strip()
+    fs = Utility.fs_by_prefix_or_default(path)
+    image_binary = fs.read(path)
+    return send_file(io.BytesIO(image_binary), mimetype='image/jpeg', as_attachment=True, attachment_filename=fs.basename(path))
+
 def upload_biowl(file, request):
     
     fullpath = request.form['path'] 
@@ -584,6 +592,8 @@ def filters():
 def datasources():
     if request.form.get('download'):
         return download_biowl(request.form['download'])
+    elif request.args.get('filecontent'):
+        return get_filecontent(request.args.get('filecontent'))
     elif request.files and request.files['upload']:
         upload_biowl(request.files['upload'], request)
     elif request.args.get('addfolder'):

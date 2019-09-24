@@ -1399,35 +1399,46 @@
                 return $.ajax(request);
         }
 
-		// self.simpleByteData = function(uri, method, data, asyncParam = true) {
-        //     var request = {
-        //             url: uri,
-        //             type: method,
-        //             async: asyncParam,
-        //             contentType: "application/json; charset=utf-8",
-        //             cache: false,
-        //             data: data,
-		// 			dataType : 'json',
-        //             // beforeSend: function (xhr, settings) {
-		// 			// 	// debugger;
-		// 			// 	// if (settings.dataType === 'binary') {
-		// 			// 	// 	settings.xhr().responseType = 'arraybuffer';
-		// 			// 	// 	settings.processData = false;
-		// 			// 	// }
-		// 			// 	xhr.setRequestHeader("Authorization",
-		// 			// 		"Basic " + btoa(self.username + ":" + self.password));
-        //             // },
-        //             error: function(jqXHR, textStatus, error) {
-		// 				debugger;
-        //                 showXHRText(jqXHR);
-        //             },
-		// 			success: function(data){
-		// 				var byteArray = new Uint8Array(data);
-		// 				console.log(byteArray);
-		// 			}
-        //         };
-        //         return $.ajax(request);
-        // }
+		self.simpleByteData = function(uri, method, data, asyncParam = true) {
+            var request = {
+                    url: uri,
+                    type: method,
+                    async: asyncParam,
+                    contentType: "application/json",
+                    accepts: "application/json",
+                    cache: false,
+                    data: data,
+					dataType : 'binary',
+					responseType: 'arraybuffer',
+                    error: function(jqXHR, textStatus, error) {
+                    	showXHRText(jqXHR);
+                    }
+             };
+             return $.ajax(request);
+        }
+		
+		self.simpleByteDataTest = function(uri, method, data, asyncParam = true) {
+			
+			var oReq = new XMLHttpRequest();
+			oReq.open(method, uri + "?" + data, true);
+			oReq.responseType = "arraybuffer";
+
+			oReq.onload = function(oEvent) {
+				if (this.status == 200) {
+					var arrayBuffer = oReq.response;
+				
+					// if you want to access the bytes:
+					var byteArray = new Uint8Array(arrayBuffer);
+						
+					// If you want to use the image in your DOM:
+					var blob = new Blob([arrayBuffer], {type: "image/png"});
+					var url = URL.createObjectURL(blob);
+					//someImageElement.src = url;
+				}
+			};
+
+			oReq.send();
+		}
     }
     
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
@@ -3058,6 +3069,7 @@ function typeInTextarea(el, newText) {
 
 		function BrowserViewModel (){
 			var self = this;
+			self.dataSourcesURI = '/datasources';
 			self.browserItems = ko.observableArray();
 
 			self.loadItems = function(data) {
@@ -3076,6 +3088,18 @@ function typeInTextarea(el, newText) {
 				if (data.children.length == 0) {
 
 					var iconType = data.type == "folder"? "fa fa-folder browser-icon" : "fa fa-file browser-icon";
+
+					// Check if it is an image file (.png, .jpg, .bmp etc)
+					if (data.type == "file") {
+						ajaxcalls.simpleByteDataTest(self.dataSourcesURI, 'GET', 'filecontent=' + data.original.path);
+						
+						/* ajaxcalls.simpleByteData(self.dataSourcesURI, 'GET', { 'filecontent':  data.original.path}).done(function(databytes) {
+							var x = 10;
+							var y = 12;
+							z = x + y;
+						}); */
+					}
+					
 					self.browserItems.push(
 						{
 							imgPath: ko.observable(iconType),
@@ -3086,7 +3110,8 @@ function typeInTextarea(el, newText) {
 				else {
 					data.children.forEach(function (child) {
 						var childNode = $("#tree").jstree(true).get_node(child);
-						var iconType = childNode.type == "folder" ? "fa fa-folder browser-icon" : "fa fa-file browser-icon"
+						var iconType = childNode.type == "folder" ? "fa fa-folder browser-icon" : "fa fa-file browser-icon";
+						
 						self.browserItems.push(
 							{
 								imgPath: ko.observable(iconType),

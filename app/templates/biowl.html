@@ -2060,7 +2060,8 @@ function typeInTextarea(el, newText) {
 				   e.stopPropagation();
 				   var nodeId = e.target.id.replace("_anchor", "");
 				   var node = $("#tree").jstree(true).get_node(nodeId);
-				   e.originalEvent.dataTransfer.setData("text/plain", node.original.path);
+				   var nodeData = "\""+node.original.path + "\"";
+				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
 			   });
 		   });
 		   $(element).on("redraw.jstree", function(e, data){
@@ -2068,7 +2069,8 @@ function typeInTextarea(el, newText) {
 				   e.stopPropagation();
 				   var nodeId = e.target.id.replace("_anchor", "");
 				   var node = $("#tree").jstree(true).get_node(nodeId);
-				   e.originalEvent.dataTransfer.setData("text/plain", node.original.path);
+				   var nodeData = "\""+node.original.path + "\"";
+				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
 			   });
 		   });
 		   $(element).on('select_node.jstree', function (e, data) {
@@ -2186,7 +2188,7 @@ function typeInTextarea(el, newText) {
 					ajaxcalls.simple('/samples', 'GET', { 'sample_id': v.id }).done(function (data) {
 						v.script = data['script'];
 						example = v.script;
-						editor.session.insert(pos, example);
+						editor.session.insert(pos, example + "\r\n");
 						editor.focus();
 						return true;
 					});
@@ -2205,7 +2207,7 @@ function typeInTextarea(el, newText) {
 				}
 			}
 
-			editor.session.insert(pos, example);
+			editor.session.insert(pos, example + "\r\n");
 			editor.focus();
 			return true;
 		}

@@ -1007,8 +1007,8 @@
 	<h3 class="text-info mx-auto">Files & Folders</h3>
 	<div class="col-sm-12" data-bind="foreach : browserItems">
 		<div class="col-sm-6 form-group">
-			<!-- <img data-bind="attr: {src: imgPath}" alt= "" > -->
-			<i data-bind="class: imgPath"></i>
+			<img height="50rem" width="45rem" data-bind="attr: {src: imgPath, alt: itemName}" >
+			<!-- <i data-bind="class: imgPath"></i> -->
 			<label data-bind="text: itemName"></label>
 		</div>
 	</div>
@@ -1417,21 +1417,23 @@
              return $.ajax(request);
         }
 		
-		self.simpleByteDataTest = function(uri, method, data, asyncParam = true) {
+		self.simpleByteDataTest = function(uri, method, data, asyncParam = true, imageType) {
 			
 			var oReq = new XMLHttpRequest();
 			oReq.open(method, uri + "?" + data, true);
 			oReq.responseType = "arraybuffer";
-
+			var imgType = "image/" + imageType;
+			var url = "";
 			oReq.onload = function(oEvent) {
 				if (this.status == 200) {
 					var arrayBuffer = oReq.response;
 				
 					// if you want to access the bytes:
 					var byteArray = new Uint8Array(arrayBuffer);
-						
+
 					// If you want to use the image in your DOM:
-					var blob = new Blob([arrayBuffer], {type: "image/png"});
+					
+					var blob = new Blob([arrayBuffer], {type: imgType});
 					var url = URL.createObjectURL(blob);
 					//someImageElement.src = url;
 				}
@@ -3071,53 +3073,124 @@ function typeInTextarea(el, newText) {
 			var self = this;
 			self.dataSourcesURI = '/datasources';
 			self.browserItems = ko.observableArray();
+			self.folderImgPath = "{{ url_for('static', filename='icon-folders.jpg') }}";
+			self.fileImgPath = "{{ url_for('static', filename='icon-image-file-3.jpg') }}";
+			self.imageTypes = ["png", "jpg", "jpeg", "bmp", "gif", "ico", "ief", "jpe", "pbm", "pgm", "jng","nef",
+								 "orf", "psd", "art","pnm", "ppm", "rab", "rgb","svg","tif", "tiff", "xbm", "xpm","xwd", "jp2",
+								 "jpm", "jpx", "jpf", "pcx", "svgz", "djvu","djv", "pat", "cr2", "crw", "cdr", "cdt", "erf", "wbmp"];
 
 			self.loadItems = function(data) {
 
-
-				//var uri = "/datasources";
-
-				// $.redirect(uri, { 'download': data.original.path }, "POST", "_self");
-
-				// ajaxcalls.simple(uri, "POST",  { 'download' : data.original.path }).done(function(data){
-				// 	debugger;
-				// });
-
 				self.browserItems([]);
-					debugger;
+			
 				if (data.children.length == 0) {
 
-					var iconType = data.type == "folder"? "fa fa-folder browser-icon" : "fa fa-file browser-icon";
+					var imgUrl = data.type == "folder"? self.folderImgPath  : self.fileImgPath;
 
-					// Check if it is an image file (.png, .jpg, .bmp etc)
+					
 					if (data.type == "file") {
-						ajaxcalls.simpleByteDataTest(self.dataSourcesURI, 'GET', 'filecontent=' + data.original.path);
+						var fileType = data.text.substring(data.text.lastIndexOf('.')+1,data.text.length) || data.text; 
 						
-						/* ajaxcalls.simpleByteData(self.dataSourcesURI, 'GET', { 'filecontent':  data.original.path}).done(function(databytes) {
-							var x = 10;
-							var y = 12;
-							z = x + y;
-						}); */
+						if (self.imageTypes.includes(fileType)) {
+
+							// var req = ajaxcalls.simpleByteDataTest(self.dataSourcesURI, 'GET', 'filecontent=' + data.original.path, true, fileType);
+
+							var oReq = new XMLHttpRequest();
+							oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.original.path, true);
+							oReq.responseType = "arraybuffer";
+							var imgType = "image/" + fileType;
+							
+							oReq.onload = function (oEvent) {
+								if (this.status == 200) {
+									var arrayBuffer = oReq.response;
+									var byteArray = new Uint8Array(arrayBuffer);
+
+									var blob = new Blob([arrayBuffer], { type: imgType });
+									imgUrl = URL.createObjectURL(blob);
+									self.browserItems.push(
+										{
+											imgPath: ko.observable(imgUrl),
+											itemName: ko.observable(data.text)
+										}
+									);
+								}
+							};
+
+							oReq.send();
+						}
+						else {
+							self.browserItems.push(
+								{
+									imgPath: ko.observable(imgUrl),
+									itemName: ko.observable(data.text)
+								}
+							);
+						}
+					}
+					else {
+						self.browserItems.push(
+							{
+								imgPath: ko.observable(imgUrl),
+								itemName: ko.observable(data.text)
+							}
+						);
 					}
 					
-					self.browserItems.push(
-						{
-							imgPath: ko.observable(iconType),
-							itemName: ko.observable(data.text)
-						}
-					);
+					
 				}
 				else {
 					data.children.forEach(function (child) {
-						var childNode = $("#tree").jstree(true).get_node(child);
-						var iconType = childNode.type == "folder" ? "fa fa-folder browser-icon" : "fa fa-file browser-icon";
 						
-						self.browserItems.push(
-							{
-								imgPath: ko.observable(iconType),
-								itemName: ko.observable(childNode.text)
+						var childNode = $("#tree").jstree(true).get_node(child);
+						var imgUrl = childNode.type == "folder" ? self.folderImgPath : self.fileImgPath;
+
+						if (childNode.type == "file") {
+							var fileType = childNode.text.substring(childNode.text.lastIndexOf('.') + 1, childNode.text.length) || childNode.text;
+
+							if (self.imageTypes.includes(fileType)) {
+
+								// var req = ajaxcalls.simpleByteDataTest(self.dataSourcesURI, 'GET', 'filecontent=' + childNode.original.path, true, fileType);
+
+								var oReq = new XMLHttpRequest();
+								oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + childNode.original.path, true);
+								oReq.responseType = "arraybuffer";
+								var imgType = "image/" + fileType;
+
+								oReq.onload = function (oEvent) {
+									if (this.status == 200) {
+										var arrayBuffer = oReq.response;
+										var byteArray = new Uint8Array(arrayBuffer);
+
+										var blob = new Blob([arrayBuffer], { type: imgType });
+										imgUrl = URL.createObjectURL(blob);
+										self.browserItems.push(
+											{
+												imgPath: ko.observable(imgUrl),
+												itemName: ko.observable(childNode.text)
+											}
+										);
+									}
+								};
+
+								oReq.send();
 							}
-						);
+							else {
+								self.browserItems.push(
+									{
+										imgPath: ko.observable(imgUrl),
+										itemName: ko.observable(childNode.text)
+									}
+								);
+							}
+						}
+						else {
+							self.browserItems.push(
+								{
+									imgPath: ko.observable(imgUrl),
+									itemName: ko.observable(childNode.text)
+								}
+							);
+						}
 
 					});
 
@@ -3128,16 +3201,16 @@ function typeInTextarea(el, newText) {
 
 		var browserViewModel = new BrowserViewModel();
 
-		//ko.applyBindings(browserViewModel, $("#browserView")[0]);
+		ko.applyBindings(browserViewModel, $("#browserView")[0]);
 
 		function loadBrowserData(data) {
 			browserViewModel.loadItems(data);
 			if ($("#browsertab").length == 0) {
 				createNewBrowserTab("browsertab", "Browser", "fade in scriptstyle");
 			}
-			else{
-				ko.applyBindings(browserViewModel, $("#browserView")[0]);
-			}
+			// else{
+			// 	ko.applyBindings(browserViewModel, $("#browserView")[0]);
+			// }
 		}
 
 		function showBrowser(data) {
@@ -4055,7 +4128,7 @@ function typeInTextarea(el, newText) {
 	 
 	  showTab(tabId);
 	  registerCloseEvent();
- 	  ko.applyBindings(browserViewModel, $('#browserViewss')[0]);
+ 	  //ko.applyBindings(browserViewModel, $('#browserView')[0]);
   }
   
   registerCloseEvent();

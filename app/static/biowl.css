@@ -1,22 +1,22 @@
 .nav-tabs > li .close {
-    margin: -2px 0 0 10px;
-    font-size: 18px;
+  margin: -2px 0 0 10px;
+  font-size: 18px;
 }
 .marginBottom {
-    margin-bottom :1px !important;
+  margin-bottom :1px !important;
 }
 .operationDiv {
-    padding:5px 10px 5px 5px;
+  padding:5px 10px 5px 5px;
 }
 .operationDivWrapper {
-    margin-top:-1px;
+  margin-top:-1px;
 }
 .leftMenu {
-    height :70%;
-    background-color: #E6E6E6;
-    border-right: 2px solid #BFBFBF;
+  height :70%;
+  background-color: #E6E6E6;
+  border-right: 2px solid #BFBFBF;
 }
-			
+    
 .odd-row {
 background-color: LightGray;
 }
@@ -25,50 +25,50 @@ background-color: White;
 }
 
 .panel-actions {
-  margin-top: -20px;
-  margin-bottom: 0;
-  text-align: right;
+margin-top: -20px;
+margin-bottom: 0;
+text-align: right;
 }
 .panel-actions a {
-  color:#333;
+color:#333;
 }
 .panel-fullscreen {
-    display: block;
-    z-index: 9999;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    overflow: auto;
+  display: block;
+  z-index: 9999;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  overflow: auto;
 }
 
- .marginRow{
-     margin:4px !important; 
-   }
-   
- input[type="text"]{
-	background-color:white !important
+.marginRow{
+   margin:4px !important; 
+ }
+ 
+input[type="text"]{
+background-color:white !important
 }
 
 .menu_button {
-    color: #141313;
-    
-    cursor: pointer;
+  color: #141313;
+  
+  cursor: pointer;
 }
 
 .menu_button:hover {
-    color: #f26d7d;
+  color: #f26d7d;
 }
 
 .menu_button:active {
-    color: #ccc;
+  color: #ccc;
 }
 
 .menu_button.selected {
-    background-color: #ccc;
+  background-color: #ccc;
 }
 
 /* .main-wrapper { */
@@ -76,17 +76,17 @@ background-color: White;
 /* } */
 
 .row-flex {
-  display: flex;
+display: flex;
 /*   height: 100%; */
 }
 
 .col-md-6 {
-  flex-grow: 1;
+flex-grow: 1;
 }
 
 .box-one {
 /*  background-color: red; */
-  max-width: 400px;
+max-width: 400px;
 /*   min-width: 200px; */
 }
 
@@ -96,334 +96,369 @@ background-color: White;
 
 .box-three {
 /*  background-color: red; */
-  max-width: 400px;
+max-width: 400px;
 /*   min-width: 200px;   */
 }
- 
+
 .link {
-  fill: none;
-  stroke: #666;
-  stroke-width: 1.5px;
+fill: none;
+stroke: #666;
+stroke-width: 1.5px;
 }
 
 /* .link { stroke: #999; stroke-opacity: .6; stroke-width: 1px; } */
 
 .node circle {
-   fill: #ccc;
-   stroke: #fff;
-   stroke-width: 1.5px;
+ fill: #ccc;
+ stroke: #fff;
+ stroke-width: 1.5px;
 }
 
 text {
-  font: 10px sans-serif;
-  pointer-events: none;
+font: 10px sans-serif;
+pointer-events: none;
 }
 .scriptstyle
 {
-    width:100%;
-    height: 600px;
-    display:inline-block;
-    position:relative;
+  width:100%;
+  height: 600px;
+  display:inline-block;
+  position:relative;
 }
 .editorstyle {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 .toolbar-icon {
-	font-size:20px;
+font-size:20px;
 }
 
 .radio-inline {
-  font-size: 20px;
+font-size: 20px;
 }
 
 .checkbox-inline {
-  font-size: 20px;
+font-size: 20px;
 }
 
 .nav-tabs li a {font-size:20px;}
 
 .report-header {
-	font-size:20px
+font-size:20px
 }
 /* input[type=radio] {
-	transform:scale(1.5);
+transform:scale(1.5);
 } */
 
 .table-wrapper {
-	width: 700px;
-	margin: 30px auto;
-       background: #fff;
-       padding: 20px;	
-       box-shadow: 0 1px 1px rgba(0,0,0,.05);
-   }
-   .table-title {
-       padding-bottom: 10px;
-       margin: 0 0 10px;
-   }
-   .table-title h2 {
-       margin: 6px 0 0;
-       font-size: 22px;
-   }
-   .table-title .add-new {
-       float: right;
-	height: 30px;
-	font-weight: bold;
-	font-size: 12px;
-	text-shadow: none;
-	min-width: 100px;
-	border-radius: 50px;
-	line-height: 13px;
-   }
+width: 700px;
+margin: 30px auto;
+     background: #fff;
+     padding: 20px;	
+     box-shadow: 0 1px 1px rgba(0,0,0,.05);
+ }
+ .table-title {
+     padding-bottom: 10px;
+     margin: 0 0 10px;
+ }
+ .table-title h2 {
+     margin: 6px 0 0;
+     font-size: 22px;
+ }
+ .table-title .add-new {
+     float: right;
+height: 30px;
+font-weight: bold;
+font-size: 12px;
+text-shadow: none;
+min-width: 100px;
+border-radius: 50px;
+line-height: 13px;
+ }
 .table-title .add-new i {
-	margin-right: 4px;
+margin-right: 4px;
 }
-   table.table {
-       table-layout: fixed;
-   }
-   table.table tr th, table.table tr td {
-       border-color: #e9e9e9;
-   }
-   table.table th i {
-       font-size: 13px;
-       margin: 0 5px;
-       cursor: pointer;
-   }
-   table.table th:last-child {
-       width: 100px;
-   }
-   table.table td a {
-	cursor: pointer;
-       display: inline-block;
-       margin: 0 5px;
-	min-width: 24px;
-   }    
+ table.table {
+     table-layout: fixed;
+ }
+ table.table tr th, table.table tr td {
+     border-color: #e9e9e9;
+ }
+ table.table th i {
+     font-size: 13px;
+     margin: 0 5px;
+     cursor: pointer;
+ }
+ table.table th:last-child {
+     width: 100px;
+ }
+ table.table td a {
+cursor: pointer;
+     display: inline-block;
+     margin: 0 5px;
+min-width: 24px;
+ }    
 table.table td a.add {
-       color: #27C46B;
-   }
-   table.table td a.edit {
-       color: #FFC107;
-   }
-   table.table td a.delete {
-       color: #E34724;
-   }
-   table.table td i {
-       font-size: 19px;
-   }
+     color: #27C46B;
+ }
+ table.table td a.edit {
+     color: #FFC107;
+ }
+ table.table td a.delete {
+     color: #E34724;
+ }
+ table.table td i {
+     font-size: 19px;
+ }
 table.table td a.add i {
-       font-size: 24px;
-   	margin-right: -1px;
-       position: relative;
-       top: 3px;
-   }    
-   table.table .form-control {
-       height: 32px;
-       line-height: 32px;
-       box-shadow: none;
-       border-radius: 2px;
-   }
+     font-size: 24px;
+   margin-right: -1px;
+     position: relative;
+     top: 3px;
+ }    
+ table.table .form-control {
+     height: 32px;
+     line-height: 32px;
+     box-shadow: none;
+     border-radius: 2px;
+ }
 table.table .form-control.error {
-	border-color: #f50000;
+border-color: #f50000;
 }
 table.table td .add {
-	display: none;
+display: none;
 }
 
 input[type=radio] {
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
 }
 
 input[type=checkbox]  {
-    width: 20px;
-    height: 20px;
-    position: relative;
-    vertical-align: middle;
-    
-    
-    margin: 0;
-    padding: 0;
-    top: -1px;
+  width: 20px;
+  height: 20px;
+  position: relative;
+  vertical-align: middle;
+  
+  
+  margin: 0;
+  padding: 0;
+  top: -1px;
 }
 
 label-checkbox {
-	width: 20px;
-    height: 20px;
-    position: relative;
-    display: inline-block;
-    vertical-align: middle;
+width: 20px;
+  height: 20px;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 
 .log-tab {
-	
-	min-width: 100%;
-	max-width: 100%;
-	min-height: 150px;
+
+min-width: 100%;
+max-width: 100%;
+min-height: 150px;
 }
 
 .args-area {
-	max-width: 100%;
-	min-width: 100%;
+max-width: 100%;
+min-width: 100%;
 }
 
 .checkbox-font{
-	font-size: 20px;
+font-size: 20px;
 }
 
 .label-immediate{
-	margin-top: 2px;
-	padding-left: 2px;
+margin-top: 2px;
+padding-left: 2px;
 }
 
 .label-checkbox-jobhistory{
-	margin-top: 3px;
+margin-top: 3px;
 }
 
 .extab2 {
-	min-height: 150px;	
+min-height: 150px;	
 }
 
 .extab2-tab-content {
-	min-height: 150px;
+min-height: 150px;
 }
 
 .expanded-history {
-	border:2px ridge;
-	background-color:lightblue;
-	padding:10px;
-	margin: 10px;
-	border-radius: 10px;
+border:2px ridge;
+background-color:lightblue;
+padding:10px;
+margin: 10px;
+border-radius: 10px;
 }
 
 .expandedtask {
-	border:2px groove;
-	background-color:lightblue;
-	padding:10px;
-	margin: 40px 10px 10px 10px;
-	border-radius: 10px;
+border:2px groove;
+background-color:lightblue;
+padding:10px;
+margin: 40px 10px 10px 10px;
+border-radius: 10px;
 }
 
 .expandedWorkflow {
-    border:2px groove;
-	background-color:lightblue;
-	padding:10px;
-	margin: 10px;
-	border-radius: 10px;
+  border:2px groove;
+background-color:lightblue;
+padding:10px;
+margin: 10px;
+border-radius: 10px;
 }
 
 .history-item-checkbox {
-	margin-left: 10px;
+margin-left: 10px;
 }
 
 .history-item-img{
-	vertical-align: middle; 
-	margin-bottom: 2px;
+vertical-align: middle; 
+margin-bottom: 2px;
 }
 
 .div-history-item {
-	margin-left: 0px;
-	display: block;
-	width: 100%;
+margin-left: 0px;
+display: block;
+width: 100%;
 }
 
 .addsService-modal-header{
-	background-color: #337AB7;
+background-color: #337AB7;
 }
 
 .panel-controlgroup {
-    padding: 15px;
+  padding: 15px;
 }
 
 .modal-backdrop{
-    position: absolute !important;
+  position: absolute !important;
 }
 
 .filter-dialog-modal-text{
-    text-align: left;
+  text-align: left;
 }
 
 /* .filter-value-td :hover{
-    width: auto;
-    font-size: inherit;
-    transition:  .2s ease;
-    
+  width: auto;
+  font-size: inherit;
+  transition:  .2s ease;
+  
 } */
 
 .filter-dialog-sortIcon{
-    margin-left: 2px;
+  margin-left: 2px;
 }
 
 .browser-icon{
-    color:#E0C88D;
-    font-size: 40px;
+  color:#E0C88D;
+  font-size: 40px;
 }
 
 
 
 /* .odd-row :hover{
-    background-color: red;
+  background-color: red;
 }
 .even-row :hover {
-    background-color: red;
- } */
+  background-color: red;
+} */
+
+/*  context menu css start  */
 
 .context-menu {
-    position: absolute;
-    padding: 0;
-    margin: 0;
-    z-index: 1030;
-    background-color: #ffffff;
-  }
-  .context-menu ul {
-    line-height: 1.6;
-    padding: 0;
-    margin: 0;
-    border: 1px solid #dddddd;
-    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
-  }
-  .context-menu ul > li {
-    padding: 4px 20px;
-    margin: 0;
-    z-index: 1031;
-    list-style-type: none;
-    cursor: pointer;
-    white-space: nowrap;
-    color: #333333;
-  }
-  .context-menu ul > li:hover {
-    background-color: #eeeeee;
-  }
-  .context-menu ul > li.disabled,
-  .context-menu ul > li.disabled a {
-    color: #666666;
-    cursor: default;
-  }
-  .context-menu ul > li.checked:before {
-    position: absolute;
-    content: "\2713";
-    left: 7px;
-  }
-  .context-menu ul > li.with-url {
-    padding: 0;
-  }
-  .context-menu ul > li.with-url a {
-    display: block;
-    padding: 4px 20px;
-    text-decoration: none;
-    color: #333333;
-  }
-  .context-menu ul > li.separator {
-    margin: 4px 0;
-    padding: 0;
-    border-bottom: 1px solid #cccccc;
-    cursor: default;
-  }
-  .context-menu ul > li.separator:hover {
-    background-color: #ffffff;
-  }
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  z-index: 1030;
+  background-color: #ffffff;
+}
+.context-menu ul {
+  line-height: 1.6;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #dddddd;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+}
+.context-menu ul > li {
+  padding: 4px 20px;
+  margin: 0;
+  z-index: 1031;
+  list-style-type: none;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #333333;
+}
+.context-menu ul > li:hover {
+  background-color: #eeeeee;
+}
+.context-menu ul > li.disabled,
+.context-menu ul > li.disabled a {
+  color: #666666;
+  cursor: default;
+}
+.context-menu ul > li.checked:before {
+  position: absolute;
+  content: "\2713";
+  left: 7px;
+}
+.context-menu ul > li.with-url {
+  padding: 0;
+}
+.context-menu ul > li.with-url a {
+  display: block;
+  padding: 4px 20px;
+  text-decoration: none;
+  color: #333333;
+}
+.context-menu ul > li.separator {
+  margin: 4px 0;
+  padding: 0;
+  border-bottom: 1px solid #cccccc;
+  cursor: default;
+}
+.context-menu ul > li.separator:hover {
+  background-color: #ffffff;
+}
+
+/* context menu css end*/
+
+
+.datasources-panel-header{
+  padding: 15px; 
+  border-radius: 0; 
+  background-color: #337AB7
+}
+
+.dataset-listview{
+  display: block;
+  background-color: transparent;
+  margin: 10px;
+  /* border-top-right-radius: 100px; 
+  border-bottom-right-radius: 100px; */
+}
+
+/* .dataset-listview-hover{
+  border-top-right-radius: 100px; 
+  border-bottom-right-radius: 100px;
+  background-color: #666;
+  margin: 10px;
+  display: block;
+} */
+
+.dataset-listview-selected{
+  border-top-right-radius: 100px; 
+  border-bottom-right-radius: 100px;
+  background-color: #666;
+  margin: 10px;
+  display: block;
+}

@@ -443,6 +443,33 @@ class DataSource(db.Model):
     def __repr__(self):
         return '<DataSource %r>' % self.name
 
+class Dataset(db.Model):
+    __tablename__ = 'datasets'
+    id = db.Column(db.Integer, primary_key=True)
+    schema = db.Column(JSON, nullable = False)
+    
+    @staticmethod
+    def add(schema):
+        try:
+            dataset = Dataset()
+            dataset.schema = schema
+            db.session.add(dataset)
+            db.session.commit()
+            return dataset
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
+    def to_json(self):
+        json_post = {
+            'id': self.id,
+            'schema': json.loads(self.schema)
+        }
+        return json_post
+        
+    def __repr__(self):
+        return '<Dataset %r>' % self.id
+    
 
 class AccessRights:
     NotSet = 0x00

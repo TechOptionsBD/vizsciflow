@@ -970,7 +970,7 @@
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal"
 				aria-hidden="true">&times;</button>
-			<h5 id="dataSetsFilterDialogLabel"><strong>Add New</strong></h5>
+			<h5 id="dataSetsFilterDialogLabel"><strong>Add New Dataset</strong></h5>
 		</div>
 		<div class="modal-body" style="padding: 5px">
 			<div class="table-responsive">
@@ -979,24 +979,13 @@
 						<tr>
 							<th class="filter-dialog-modal-text" style="width: 20%">Name</th>
 							<th class="filter-dialog-modal-text" style="width:35%">Value</th>
-							<th class="filter-dialog-modal-text" style="width: 14%; text-align: center"><i class="fa fa-sort" style="font-size: 2rem"></i></th>
 						</tr>
 					</thead>
 					<tbody data-bind="foreach: dataset">
 						<tr>
-							
 							<td class="filter-dialog-modal-text" data-bind="text: name"></td>
 							<td class="filter-dialog-modal-text filter-value-td">
 								<input type="text" class="form-control" data-bind="value: value">
-							</td>
-							
-							<td class="filter-dialog-modal-text">
-								<div style="display: inline-block">
-									<button class="btn btn-xs fa fa-sort-up" style="border-radius: 2px; display: inline-block;" data-bind="disable: $index() === 0, click: $parent.moveUp"
-										title="Move Up"></button>
-									<button class="btn btn-xs fa fa-sort-down" style="border-radius: 2px; display: inline-block;"
-										data-bind="disable: $index() === $parent.dataset().length - 1, click: $parent.moveDown" title="Move Down"></button>
-								</div>
 							</td>
 						</tr>
 					</tbody>
@@ -2249,66 +2238,60 @@ function typeInTextarea(el, newText) {
 //     });
 
 	function DatasetsViewModel() {
-			var self = this;
-			self.datasets = ko.observableArray();
-			self.datasetsURI = '/datasources';//change this url according to api
-			self.tempData = [
-				{Title: "Test One", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
-				{Title: "Test Two", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
-				{Title: "Test Three", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
-				{Title: "Test Four", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"}
-				];
+		var self = this;
+		self.datasets = ko.observableArray();
+		self.datasetsURI = '/datasets';//change this url according to api
+		self.tempData = [
+			{Title: "Test One", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
+			{Title: "Test Two", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
+			{Title: "Test Three", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
+			{Title: "Test Four", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"}
+			];
 
-			self.addNew = function(){
-				$('#dataSets-addNew-dialog').modal('show');
-			};
-
-			self.saveNew = function(dataset){
-				//ajax call to save new dataset from modal and further operation after successful save
-				ajaxcalls.simple(self.datasetsURI, 'GET').done(function (data) {
-
-				});
-			}
-			// self.loadFromJSON = function (datasources) {
-			// 	self.dataSources(datasources);
-
-			// 	ko.cleanNode($("#dataSetsPanel")[0]);
-			// 	ko.applyBindings(self, $("#dataSetsPanel")[0]);
-			// };
-
-			self.about = function () {
-
-				window.open("static/biodsl-help.html#datasources", '_blank');
-			};
-
-			//ajax call to api to load the datasets
-
-			self.load = function () {
-				// ajaxcalls.simple(self.datasetsURI, 'GET').done(function (data) {
-
-				// 	self.datasets(data);
-
-				//ko.cleanNode($("#dataSetsPanel")[0]);
-				//ko.applyBindings(self, $("#dataSetsPanel")[0]);
-
-				// }).fail(function (jqXHR) {
-				// 	showXHRText(jqXHR);
-				// });
-				self.datasets([]);
-				self.datasets(self.tempData);
-
-			};
-
-			self.click = function(data, element){
-				
-                $('.dataset-listview').removeClass('dataset-listview-selected');
-				$(element.currentTarget).addClass('dataset-listview-selected');
-				
-			};
-
-			self.load(true);
-
+		self.addNew = function(){
+			$('#dataSets-addNew-dialog').modal('show');
 		};
+
+		self.saveNew = function(dataset){
+			//ajax call to save new dataset from modal and further operation after successful save
+			ajaxcalls.simple(self.datasetsURI, 'GET', { 'save': ko.toJSON(dataset) })
+			.done(function (data) {
+				self.load();
+			});
+		}
+
+		self.about = function () {
+			window.open("static/biodsl-help.html#datasources", '_blank');
+		};
+
+		//ajax call to api to load the datasets
+		self.load = function () {
+			ajaxcalls.simple(self.datasetsURI, 'GET')
+			.done(function (data) {
+
+				self.datasets([]);
+                $.each(data['datasets'], function(i, s){
+                    self.datasets.push({
+                    	id: s.id,
+                    	schema: s.schema
+                    });
+                });
+                
+				self.datasets(data.datasets);
+			}).fail(function (jqXHR) {
+				showXHRText(jqXHR);
+			});
+		};
+
+		self.click = function(data, element){
+			
+               $('.dataset-listview').removeClass('dataset-listview-selected');
+			$(element.currentTarget).addClass('dataset-listview-selected');
+			
+		};
+
+		self.load();
+	};
     
     // configure ace.js for code editor
     var langTools = ace.require("ace/ext/language_tools");
@@ -3912,124 +3895,77 @@ function typeInTextarea(el, newText) {
           //self.name = ko.observable();
           //self.clicks = 0;
           //self.timer = null;
-         
           
        	  self.dataset = ko.observableArray([
        	  {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Name"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0)
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Url"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0)
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Image"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0)
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Description"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Version"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Text"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Source Organization"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Publisher"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Publication"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Producer"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Location Created"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("License"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Key Words"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Expires"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Date Published"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Date Modified"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Date Created"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Creator"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Comment"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Author"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Access Mode"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("About"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }, {
-       		  selected: ko.observable(false),
        		  name: ko.observable("Publisher"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
+       		  value: ko.observable("")
        	  }
        	  ]);
        	
@@ -4050,7 +3986,7 @@ function typeInTextarea(el, newText) {
 
 	   
        	self.saveNew = function(){
-			datasetsViewModel.saveNew(self.dataSet());
+			datasetsViewModel.saveNew(self.dataset());
 		};
 		
           // apply the filters

@@ -21,7 +21,7 @@ from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
 from ..util import Utility
 from ..biowl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -566,10 +566,28 @@ def load_script_from_filter(path, filter_id):
     filterjson = [f for f in filterjson if f["selected"] ]
     script = "data = GetFiles('{0}', {1})".format(path, filterjson)
     return script
+
 def save_filters(name, filters):
     filters = json.loads(filters)
     Filter.add(current_user.id, name, filters)
     return ""
+
+def load_datasets():
+    datasets = Dataset.query.all()
+    jsondatasets = []
+    for d in datasets:
+        jsondatasets.append(d.to_json_info())
+        
+    return jsonify(datasets = jsondatasets)
+
+def save_datasets(schema):
+    schema = json.loads(schema)
+    schemadic = {}
+    for s in schema:
+        schemadic.update({s['name']: s['value']})
+            
+    dataset = Dataset.add(schemadic)
+    return jsonify(dataset = dataset.to_json())
 
 @main.route('/filters', methods=['GET', 'POST'])
 @login_required
@@ -586,7 +604,16 @@ def filters():
         return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filterforscript')))
     elif request.args.get('applyfilters'):
         return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('applyfilters')) })
+
+
+@main.route('/datasets', methods=['GET', 'POST'])
+@login_required
+def datasets():
+    if request.args.get("save"):
+        return save_datasets(request.args.get("save"))
     
+    return load_datasets()
+   
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():

@@ -562,7 +562,7 @@ def load_filter_tip(filter_id):
     return Filter.query.get(filter_id).to_json_tooltip()
 
 def load_script_from_filter(path, filter_id):
-    filterjson = json.loads(Filter.query.get(filter_id).value)
+    filterjson = Filter.query.get(filter_id).value
     filterjson = [f for f in filterjson if f["selected"] ]
     script = "data = GetFiles('{0}', {1})".format(path, filterjson)
     return script

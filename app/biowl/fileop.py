@@ -41,39 +41,67 @@ class FolderItem():
     def StrToFolderItem(item_s):
         return [FolderItem(f) for f in item_s] if isinstance(item_s, list) else FolderItem(item_s)
     
+#     @staticmethod
+#     def union(left, right):
+#         v = []
+#         if not isinstance(left, list):
+#             left = [left]
+#             
+#         if not isinstance(right, list):
+#             right = [right]
+#         
+#         rest = []
+#         for l in left:
+#             rest = [r for r in right if str(l) != str(r)]
+#         left.extend(rest)
+#         return left
+    
+    # set operations  
     @staticmethod
     def union(left, right):
-        v = []
         if not isinstance(left, list):
             left = [left]
-            
+             
         if not isinstance(right, list):
             right = [right]
-            
-        for l in left:
-            v.append(l if isinstance(l, FolderItem) else FolderItem(l))
-            found = False
-            for r in right:
-                if str(l) == str(r):
-                    found = True
-                    break
-            if not found:
-                v.append(l if isinstance(r, FolderItem) else FolderItem(r))
-        
-        return v
+         
+        left = [str(f) for f in left]
+        right = [str(f) for f in right]
+        left_s = set(left)
+        right_s = set(right)
+         
+        left = left_s.union(right_s)
+        return [FolderItem(f) for f in left]
+      
+#     @staticmethod
+#     def substract(left, right):
+#         if not isinstance(left, list):
+#             left = [left]
+#             
+#         if not isinstance(right, list):
+#             right = [right]
+#             
+#         for r in right:
+#             left = [l for l in left if str(l) != str(r)]
+#             
+#         return left
+    
     
     @staticmethod
     def substract(left, right):
         if not isinstance(left, list):
             left = [left]
-            
+             
         if not isinstance(right, list):
             right = [right]
-            
-        for r in right:
-            left = [l for l in left if str(l) != str(r)]
-            
-        return left                    
+         
+        left = [str(f) for f in left]
+        right = [str(f) for f in right]
+        left_s = set(left)
+        right_s = set(right)
+         
+        left = left_s - right_s
+        return [FolderItem(f) for f in left]                    
     
 class FilterManager:
     @staticmethod
@@ -120,7 +148,11 @@ class FilterManager:
     @staticmethod
     def listdirRInternal(fs, path, filters, flatfiles = False):
         if fs.isfile(path):
-            return fs.make_json_item(path) if filter(path, filters) else None
+            filtered_file = filter(path, filters)
+            if not filtered_file:
+                return None
+            
+            return fs.make_json_item(path) if not flatfiles else path
 
         fsitems = []
         for fd in fs.get_folders(path):

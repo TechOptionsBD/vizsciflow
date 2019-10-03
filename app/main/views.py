@@ -576,7 +576,7 @@ def load_datasets():
     datasets = Dataset.query.all()
     jsondatasets = []
     for d in datasets:
-        jsondatasets.append(d.to_json_info())
+        jsondatasets.append(d.to_json())
         
     return jsonify(datasets = jsondatasets)
 

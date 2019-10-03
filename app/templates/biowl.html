@@ -2273,11 +2273,11 @@ function typeInTextarea(el, newText) {
                 $.each(data['datasets'], function(i, s){
                     self.datasets.push({
                     	id: s.id,
-                    	schema: s.schema
+                    	About: s.schema.About,
+                    	// add all other
                     });
                 });
                 
-				self.datasets(data.datasets);
 			}).fail(function (jqXHR) {
 				showXHRText(jqXHR);
 			});

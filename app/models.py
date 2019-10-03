@@ -463,7 +463,7 @@ class Dataset(db.Model):
     def to_json(self):
         json_post = {
             'id': self.id,
-            'schema': json.loads(self.schema)
+            'schema': self.schema
         }
         return json_post
         

@@ -582,11 +582,11 @@ def load_datasets():
 
 def save_datasets(schema):
     schema = json.loads(schema)
-    schemadic = {}
-    for s in schema:
-        schemadic.update({s['name']: s['value']})
+    #schemadic = {}
+    #for s in schema:
+     #   schemadic.update({s['name']: s['value']})
             
-    dataset = Dataset.add(schemadic)
+    dataset = Dataset.add(schema)
     return jsonify(dataset = dataset.to_json())
 
 @main.route('/filters', methods=['GET', 'POST'])

@@ -348,6 +348,10 @@ background-color: #337AB7;
   text-align: left;
 }
 
+.dataset-dialog-tableheader{
+  text-align: center;
+  font-weight: bold;
+}
 /* .filter-value-td :hover{
   width: auto;
   font-size: inherit;
@@ -455,10 +459,39 @@ background-color: #337AB7;
   display: block;
 } */
 
+.dataset-listview-hover{
+  border-top-right-radius: 100px; 
+  border-bottom-right-radius: 100px;
+  background-color: rgb(153, 179, 250);
+  margin: 10px;
+  display: block;
+}
+
 .dataset-listview-selected{
   border-top-right-radius: 100px; 
   border-bottom-right-radius: 100px;
-  background-color: #666;
+  background-color: #337AB7;
   margin: 10px;
   display: block;
+}
+
+.datasetView-header{
+  background-color: #8AC5F8;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  padding: 10px;
+}
+
+.datasetView-tab-content{
+  font-weight: normal;
+}
+
+.datasetView-tab-area{
+  background-color: #B9D6F0;
+  padding: 10px;
+}
+
+.datasets-dialog-header{
+  font-size: large;
+  color: white;
 }

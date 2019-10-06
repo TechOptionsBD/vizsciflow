@@ -136,17 +136,17 @@
 							</div>
 							<div id="dataSetsSearchPanel" class="form-inline">
 								<input class="form-control" style="width: 67%" type="text" placeholder="Search…"
-									 /> 	
+									 data-bind="value: datasetFilter, valueUpdate: 'keyup' " /> 	
 							</div>
 						</div>
 						<div id="dataSetsListView" class="panel-body draggable-datasources"
 							style="height: 416px; overflow-y: scroll; padding: 0" >
-							<div data-bind="foreach: datasets">
-                                <div class="dataset-listview" data-bind="click: $parent.click.bind($data)">
-									<label>
-										<h2 data-bind="text: Title"></h2><br>
-										<span data-bind="text: Url"></span><br>
-										<span data-bind="text: UpdatedDate"></span>
+							<div data-bind="foreach: filteredDatasets">
+                                <div class="dataset-listview" data-bind="click: $parent.click.bind($data),  datasetHover : $data">
+									<label style="padding: 10px">
+										<h2 data-bind="text: name"></h2><br>
+										<span data-bind="text: url" style="margin-left: 10px"></span><br>
+										<span data-bind="text: description" style="margin-left: 10px"></span>
 									</label>
 								</div>
 							</div>
@@ -298,7 +298,7 @@
 								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata</a></li>
 								<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History</a></li>
 								<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser</a></li>
-								<li id="liBrowserTab2"><a href="#datasettab" data-toggle="tab">Dataset</a></li>
+								<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset</a></li>
 							</ul>
 						<div class="tab-content">
 							<div class="tab-pane fade in active scriptstyle" id="scripttab">
@@ -964,37 +964,186 @@
 </div>
 
 
-<div id="dataSets-addNew-dialog" class="modal fade modal-md col-md-3" tabindex="=-1"
-	role="dialog" aria-labelledby="dataSetsFilterDialogLabel" aria-hidden="true">
+<div id="dataSets-addNew-dialog" class="modal fade in modal-lg" tabindex="=-1"
+	role="dialog" aria-labelledby="dataSetsFilterDialogLabel" aria-hidden="true" style="overflow-y: initial">
 	<div class="modal-content">
-		<div class="modal-header">
+		<div class="modal-header" style="background-color: #337AB7">
 			<button type="button" class="close" data-dismiss="modal"
 				aria-hidden="true">&times;</button>
-			<h5 id="dataSetsFilterDialogLabel"><strong>Add New Dataset</strong></h5>
+			<h5 id="dataSetsFilterDialogLabel"><strong class="datasets-dialog-header">Add New Dataset</strong></h5>
 		</div>
-		<div class="modal-body" style="padding: 5px">
-			<div class="table-responsive">
-				<table class="table table-bordered " style="display: block;">
-					<thead>
-						<tr>
-							<th class="filter-dialog-modal-text" style="width: 20%">Name</th>
-							<th class="filter-dialog-modal-text" style="width:35%">Value</th>
-						</tr>
-					</thead>
-					<tbody data-bind="foreach: dataset">
-						<tr>
-							<td class="filter-dialog-modal-text" data-bind="text: name"></td>
-							<td class="filter-dialog-modal-text filter-value-td">
-								<input type="text" class="form-control" data-bind="value: value">
-							</td>
-						</tr>
-					</tbody>
-				</table>
+		<div class="modal-body" style="overflow-y: auto">
+			<div class="container-fluid" style="padding: 0px">
+				<form id="frmschemaUpload">
+					<div class="form-group row">
+						<label class="col-sm-2 col-form-label"><strong>Load Schema:</strong></label>
+						<div class="col-sm-4">
+							<input type="file" class="form-control-file" id="fileSchemaUpload">
+						</div>
+						<div class="col-sm-6">
+							<button class="btn btn-primary"  data-bind="click: uploadSchema">Upload</button>
+						</div>
+					</div>
+				</form>
+			</div>
+			<hr>
+			<div role="tabpanel">
+				<ul class="nav nav-tabs" role="tablist">
+					<li role="presentation" class="active" ><a href="#datasetValues" role="tab" data-toggle="tab">Properties</a></li>
+					<li role="presentation" class=""><a href="#datasetDateProperties" role="tab" data-toggle="tab">Dates</a></li>
+					<li role="presentation" class=""><a href="#datasetAuthor" role="tab" data-toggle="tab">Author</a></li>
+					<li role="presentation" class=""><a href="#datasetCreator" role="tab" data-toggle="tab">Creator</a></li>
+					<li role="presentation"><a href="#datasetProducer" role="tab" data-toggle="tab">Producer</a></li>
+					<li role="presentation" class=""><a href="#datasetPublisher" role="tab" data-toggle="tab">Publisher</a></li>
+					<li role="presentation" class=""><a href="#datasetEditor" role="tab" data-toggle="tab">Editor</a></li>
+				</ul>
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="datasetValues">
+						<div class="table-responsive">
+							<table class="table table-primary table-bordered table-striped table-dark">
+								<thead>
+									<tr>
+										<th class="dataset-dialog-tableheader" style="width: 20%">Name</th>
+										<th class="dataset-dialog-tableheader" style="width: 35%">Value</th>
+									</tr>
+								</thead>
+								<tbody data-bind="foreach: dataset.SingularProperty">
+									<tr>
+										<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+										<td class="filter-dialog-modal-text">
+											<input type="text" class="form-control" data-bind="value: value">
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="datasetAuthor">
+						<div class="table-responsive">
+							<table class="table table-primary table-bordered table-striped table-dark" >
+								<thead>
+									<tr>
+										<th class="dataset-dialog-tableheader" style="width: 20%">Name</th>
+										<th class="dataset-dialog-tableheader" style="width: 35%">Value</th>
+									</tr>
+								</thead>
+								<tbody data-bind="foreach: dataset.AuthorProperty">
+									<tr>
+										<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+										<td class="filter-dialog-modal-text">
+											<input type="text" class="form-control" data-bind="value: value">
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="datasetDateProperties">
+						<div class="table-responsive">
+							<table class="table table-primary table-bordered table-striped table-dark" >
+								<thead>
+									<tr>
+										<th class="dataset-dialog-tableheader" style="width: 20%">Name</th>
+										<th class="dataset-dialog-tableheader" style="width: 35%">Value</th>
+									</tr>
+								</thead>
+								<tbody data-bind="foreach: dataset.DateProperty">
+									<tr>
+										<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+										<td class="filter-dialog-modal-text">
+											<input type="date" class="form-control" style="line-height: 15px" data-bind="value: value">
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="datasetCreator">
+						<div class="table-responsive">
+							<table class="table table-primary table-bordered table-striped table-dark" >
+								<thead>
+									<tr>
+										<th class="dataset-dialog-tableheader" style="width: 20%">Name</th>
+										<th class="dataset-dialog-tableheader" style="width: 35%">Value</th>
+									</tr>
+								</thead>
+								<tbody data-bind="foreach: dataset.CreatorProperty">
+									<tr>
+										<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+										<td class="filter-dialog-modal-text">
+											<input type="text" class="form-control" data-bind="value: value">
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="datasetProducer">
+						<div class="table-responsive">
+							<table class="table table-primary table-bordered table-striped table-dark" >
+								<thead>
+									<tr>
+										<th class="dataset-dialog-tableheader" style="width: 20%">Name</th>
+										<th class="dataset-dialog-tableheader" style="width: 35%">Value</th>
+									</tr>
+								</thead>
+								<tbody data-bind="foreach: dataset.ProducerProperty">
+									<tr>
+										<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+										<td class="filter-dialog-modal-text">
+											<input type="text" class="form-control" data-bind="value: value">
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="datasetPublisher">
+						<div class="table-responsive">
+							<table class="table table-primary table-bordered table-striped table-dark" >
+								<thead>
+									<tr>
+										<th class="dataset-dialog-tableheader" style="width: 20%">Name</th>
+										<th class="dataset-dialog-tableheader" style="width: 35%">Value</th>
+									</tr>
+								</thead>
+								<tbody data-bind="foreach: dataset.PublisherProperty">
+									<tr>
+										<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+										<td class="filter-dialog-modal-text">
+											<input type="text" class="form-control" data-bind="value: value">
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="datasetEditor">
+						<div class="table-responsive">
+							<table class="table table-primary table-bordered table-striped table-dark" >
+								<thead>
+									<tr>
+										<th class="dataset-dialog-tableheader" style="width: 20%">Name</th>
+										<th class="dataset-dialog-tableheader" style="width: 35%">Value</th>
+									</tr>
+								</thead>
+								<tbody data-bind="foreach: dataset.EditorProperty">
+									<tr>
+										<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+										<td class="filter-dialog-modal-text">
+											<input type="text" class="form-control" data-bind="value: value">
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="modal-footer">
-			<button class="btn" data-dismiss="modal" data-bind="click: saveNew" aria-hidden="true">Save</button>
-			<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			<button class="btn btn-primary" data-dismiss="modal" data-bind="click: saveNew" aria-hidden="true">Save</button>
+			<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		</div>
 	</div>
 </div>
@@ -1115,6 +1264,42 @@
 	</div>
 </div>
 
+<div id="datasetView" class="container-fluid" aria-hidden="true" style="display:none">
+	<div class="col-sm-12">
+		<h2 data-bind="text: name" class="datasetView-header"></h2>
+		<div class="container-fluid datasetView-tab-area">
+			<div class = "form-group">
+				<label  >Url: </label>
+				<label class="datasetView-tab-content"><strong><a data-bind="attr:{href : url}, text: url" target="_blank"></a></strong></label>
+			 </div>
+			 <div class="form-group">
+				<label>Version: </label>
+				<label class="datasetView-tab-content" data-bind="text: version"></label>
+			 </div>
+			 <div class="form-group">
+				<label >Text: </label>
+				<label class="datasetView-tab-content" data-bind="text: text"></label>
+			 </div>
+			 <div class="form-group">
+				<label>Description: </label>
+				<label class="datasetView-tab-content" data-bind="text: description"></label>
+			 </div>
+			 <div class="form-group">
+				<label>Source Organization: </label>
+				<label class="datasetView-tab-content" data-bind="text: sourceOrganization"></label>
+			 </div>
+			 <div class="form-group">
+				<label >License: </label>
+				<label class="datasetView-tab-content" data-bind="text: license"></label>
+			 </div>
+			 <div class="form-group">
+				<label>About: </label>
+				<label class="datasetView-tab-content" data-bind="text: about"></label>
+			 </div>
+		</div>
+	</div>
+</div>
+
 <div id="metadataView" class="container-fluid" aria-hidden="true" style="display:none">
 	<h3 class="text-info mx-auto">Metadata Information</h3>
 	
@@ -1202,7 +1387,7 @@
 	<div class="row-fluid mb-3">
     <div class="col-md-6 themed-grid-col">
 	   	<div class="row-fluid mb-3">
-			<span>System Properties</span>
+			<span>System Properties</span>modal-body
 		
 			<div data-bind="foreach: systemProperties.items">
 				<div class="row-fluid mb-3" data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
@@ -1394,17 +1579,11 @@
         });
 		
         $(document).ready(function() {
-            //$('[data-toggle="tooltip"]').tooltip();
+            
 
-			// $(".dataset-listview").hover(function(e){
-				
-			// 	e.stopPropagation();
-			// });
-			$('dataset-listview').mouseenter(function(e){
-				debugger;
-				$('dataset-listview').removeClass('dataset-listview-selected');
-				$(this).setClass('dataset-listview-selected');
-			});
+			$("#dataSets-addNew-dialog").css("left", $(window).width()/4);
+
+			
 
 			$("input[name=dataSourcesTab]").on("click", function(e){
 				
@@ -1521,7 +1700,7 @@
 //                         xhr.setRequestHeader("Authorization", 
 //                             "Basic " + btoa(self.username + ":" + self.password));
 //                     },
-                    error: function(jqXHR) {
+                    error: function(jqXHR, a, b) {
                         showXHRText(jqXHR);
                     }
                 };
@@ -1864,10 +2043,12 @@
           });
       });
       
-      self.openFilterDialog = function() {
+      self.openFilterDialog = function(isSave) {
+		var okText = isSave? "Save" : "Search";
+		filterViewModel.okText(okText);
 		$('#filter-dialog').modal('show');
-		$('#filter-dialog .modal-body').css('max-height', $('#dataSourcesPanel').css('height'));
-		$('#filter-dialog .modal-body').css('width', $('#dataSourcesPanel').css('width')+ '5');
+		// $('#filter-dialog .modal-body').css('max-height', $('#dataSourcesPanel').css('height'));
+		// $('#filter-dialog .modal-body').css('width', $('#dataSourcesPanel').css('width')+ '5');
       }
       self.load(true);
       self.init = true;
@@ -2236,24 +2417,28 @@ function typeInTextarea(el, newText) {
 //         $('#rename-filefolder-text').val(filename);
 //         $('#rename-filefolder-text').focus();
 //     });
+		
 
 	function DatasetsViewModel() {
 		var self = this;
 		self.datasets = ko.observableArray();
-		self.datasetsURI = '/datasets';//change this url according to api
-		self.tempData = [
-			{Title: "Test One", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
-			{Title: "Test Two", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
-			{Title: "Test Three", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"},
-			{Title: "Test Four", Url: "www.google.com", UpdatedDate : new Date().getDate(), Path: "/dummypath"}
-			];
+		self.datasetsURI = '/datasets';
+		self.datasetFilter = ko.observable("");
+		self.filteredDatasets = ko.computed(function(){
+			 return this.datasets().filter(function(dataset){
+				 if(!self.datasetFilter() || dataset.name.toLowerCase().indexOf(self.datasetFilter().toLowerCase()) !== -1
+	       		   || dataset.url.toLowerCase().indexOf(self.datasetFilter().toLowerCase()) !== -1
+	       		   || dataset.description.toLowerCase().indexOf(self.datasetFilter().toLowerCase()) !== -1)
+	            return dataset;
+	      	});
+		 },this);
 
 		self.addNew = function(){
 			$('#dataSets-addNew-dialog').modal('show');
 		};
 
 		self.saveNew = function(dataset){
-			//ajax call to save new dataset from modal and further operation after successful save
+			
 			ajaxcalls.simple(self.datasetsURI, 'GET', { 'save': ko.toJSON(dataset) })
 			.done(function (data) {
 				self.load();
@@ -2270,12 +2455,8 @@ function typeInTextarea(el, newText) {
 			.done(function (data) {
 
 				self.datasets([]);
-                $.each(data['datasets'], function(i, s){
-                    self.datasets.push({
-                    	id: s.id,
-                    	About: s.schema.About,
-                    	// add all other
-                    });
+                $.each(data.datasets, function(i, s){
+                    self.datasets.push(s.schema);
                 });
                 
 			}).fail(function (jqXHR) {
@@ -2283,16 +2464,28 @@ function typeInTextarea(el, newText) {
 			});
 		};
 
-		self.click = function(data, element){
-			
-               $('.dataset-listview').removeClass('dataset-listview-selected');
+		self.click = function(schema, element){
+            $('.dataset-listview').removeClass('dataset-listview-selected');
 			$(element.currentTarget).addClass('dataset-listview-selected');
-			
+			showDatasetTab(schema);
 		};
 
 		self.load();
 	};
     
+	ko.bindingHandlers.datasetHover = {
+			init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+
+				$(element).mouseover(function () {
+					$('.dataset-listview').removeClass('dataset-listview-hover');
+					$(element).addClass('dataset-listview-hover');
+				});
+				$(element).mouseleave(function(){
+					$('.dataset-listview').removeClass('dataset-listview-hover');
+				});
+			}
+	};
+
     // configure ace.js for code editor
     var langTools = ace.require("ace/ext/language_tools");
     var editor = ace.edit("editor");
@@ -3720,7 +3913,7 @@ function typeInTextarea(el, newText) {
    	   		 }
    		
           self.copyToEditor = function(item) {
-              debugger;
+             
         	  if (!dataSourceViewModel.selectedNode())
         		  return;
         	  
@@ -3757,7 +3950,7 @@ function typeInTextarea(el, newText) {
    		 }
    		 
          // opens the filters dialog to define filters
-   		 self.openFilterDialog = function(item, save) {
+   		 self.openFilterDialog = function(item, isSave) {
 
         	 historyFilters = item.value(); //JSON.parse(item.value());
         	 if (!historyFilters)
@@ -3779,8 +3972,8 @@ function typeInTextarea(el, newText) {
    				 }
    			 });
         	self.name("");
-   			self.okText(save ? "Save" : "Search");
-   			dataSourceViewModel.openFilterDialog();
+   			
+   			dataSourceViewModel.openFilterDialog(isSave);
    		 }
    		 
    		self.toggleExpand = function() {
@@ -3887,88 +4080,443 @@ function typeInTextarea(el, newText) {
 		};
 		   
       }
+	   
+
+	   function DatasetviewViewModel(){
+			var self = this;
+			self.dataset = ko.observable();
+			self.name = ko.observable();
+			self.text = ko.observable();
+			self.url = ko.observable();
+			self.about = ko.observable();
+			self.version = ko.observable();
+			self.text = ko.observable();
+			self.description = ko.observable();
+			self.license = ko.observable();
+			self.sourceOrganization = ko.observable();
+			
+			self.load  = function(schema){
+				self.dataset();
+				self.name(schema.name);
+				self.text(schema.text);
+				self.url(schema.url);
+				self.about(schema.about);
+				self.version(schema.version);
+				self.description(schema.description);
+				self.license(schema.license);
+				self.sourceOrganization(schema.sourceOrganization);
+			} 
+	   };
+
+	   var datasetviewViewModel = new DatasetviewViewModel();
+	   ko.applyBindings(datasetviewViewModel, $("#datasetView")[0]);
+
+	   function showDatasetTab(schema) {
+		loadDatasetviewData(schema);
+			if ($("#datasetView").parent('div#datasettab').length == 0) {
+				$('#datasettab').append($("#datasetView"));
+				$("#datasetView").show();
+			}
+		}
+
+	   function loadDatasetviewData(schema) {
+		datasetviewViewModel.load(schema);
+			if ($("#datasettab").length == 0) {
+				createNewBrowserTab("datasettab", "Dataset", "fade in scriptstyle");
+			}
+		}
+
+	  var DatasetSingularPropertyViewModel = [
+			{
+				name: ko.observable("name"),
+				value: ko.observable("")
+			}, {
+				name: ko.observable("url"),
+				value: ko.observable("")
+			}, {
+				name: ko.observable("description"),
+				value: ko.observable("")
+			}, {
+				name: ko.observable("version"),
+				value: ko.observable("")
+			}, {
+				name: ko.observable("text"),
+				value: ko.observable("")
+			}, {
+				name: ko.observable("sourceOrganization"),
+				value: ko.observable("")
+			}, {
+				name: ko.observable("license"),
+				value: ko.observable("")
+			}, {
+				name: ko.observable("keywords"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("accessMode"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("about"),
+				value: ko.observable("")
+			}];
+
+	 	var DatasetAuthorViewModel = [
+			{
+				name: ko.observable("additionalName"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("email"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("telephone"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("gender"),
+				value: ko.observable("")
+			}
+
+	];
+
+		var DatasetDatesViewModel = [
+				{
+					name: ko.observable("expires"),
+					value: ko.observable("")
+				}, {
+					name: ko.observable("datePublished"),
+					value: ko.observable("")
+				}, {
+					name: ko.observable("dateModified"),
+					value: ko.observable("")
+				}, {
+					name: ko.observable("dateCreated"),
+					value: ko.observable("")
+				}
+		];
+
+		var DatasetPublisherViewModel = [
+				{
+					name: ko.observable("additionalName"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("email"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("telephone"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("gender"),
+					value: ko.observable("")
+				}
+			];
+
+	    var DatasetCreatorViewModel = [
+				{
+					name: ko.observable("additionalName"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("email"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("telephone"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("gender"),
+					value: ko.observable("")
+				}
+			];
+
+		var DatasetEditorViewModel = [
+				{
+					name: ko.observable("additionalName"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("email"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("telephone"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("gender"),
+					value: ko.observable("")
+				}
+
+			];
+
+	var DatasetProducerViewModel = [
+			{
+				name: ko.observable("additionalName"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("email"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("telephone"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("gender"),
+				value: ko.observable("")
+			}
+		];
+
+	  //var datasetSingualrPropertyViewModel = new DatasetSingularPropertyViewModel();
+	  //var datsetAuthorViewModel = new DatasetAuthorViewModel(); 
 
 	  function DatasetAddViewModel() {
           var self = this;
          
-          //self.filterURI = '/filters';
-          //self.name = ko.observable();
-          //self.clicks = 0;
-          //self.timer = null;
+          self.uploadDatasetURI = ''; // add URI according to API
           
-       	  self.dataset = ko.observableArray([
-       	  {
-       		  name: ko.observable("Name"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Url"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Image"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Description"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Version"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Text"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Source Organization"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Publisher"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Publication"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Producer"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Location Created"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("License"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Key Words"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Expires"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Date Published"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Date Modified"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Date Created"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Creator"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Comment"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Author"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Access Mode"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("About"),
-       		  value: ko.observable("")
-       	  }, {
-       		  name: ko.observable("Publisher"),
-       		  value: ko.observable("")
-       	  }
-       	  ]);
-       	
+          
+       	  self.dataset = {
+			  SingularProperty: DatasetSingularPropertyViewModel,
+			  AuthorProperty: DatasetAuthorViewModel,
+			  DateProperty: DatasetDatesViewModel,
+			  CreatorProperty: DatasetCreatorViewModel,
+			  EditorProperty: DatasetEditorViewModel,
+			  PublisherProperty: DatasetPublisherViewModel,
+			  ProducerProperty : DatasetProducerViewModel
+		  };
+			 
+		
+		self.parseFileDataToViewModel = function(filedata){
+			
+			var jsObjectData = JSON.parse(filedata);
+			self.dataset.SingularProperty= [];
+			self.dataset.DateProperty = [];
+            
+			for (const key in jsObjectData) {
+				if (jsObjectData.hasOwnProperty(key)) {
+					
+					switch (key) {
+						case "author":
+							self.dataset.AuthorProperty = [
+								{
+									name: ko.observable("additionalName"),
+									value: ko.observable(jsObjectData.author.additionalName)
+								},
+								{
+									name: ko.observable("email"),
+									value: ko.observable(jsObjectData.author.email)
+								},
+								{
+									name: ko.observable("telephone"),
+									value: ko.observable(jsObjectData.author.telephone)
+								},
+								{
+									name: ko.observable("gender"),
+									value: ko.observable(jsObjectData.author.gender)
+								}
+
+							];
+							break;
+
+						case "editor":
+							self.dataset.EditorProperty = [
+								{
+									name: ko.observable("additionalName"),
+									value: ko.observable(jsObjectData.editor.additionalName)
+								},
+								{
+									name: ko.observable("email"),
+									value: ko.observable(jsObjectData.editor.email)
+								},
+								{
+									name: ko.observable("telephone"),
+									value: ko.observable(jsObjectData.editor.telephone)
+								},
+								{
+									name: ko.observable("gender"),
+									value: ko.observable(jsObjectData.editor.gender)
+								}
+
+							];
+							break;
+
+						case "creator":
+							self.dataset.CreatorProperty = [
+								{
+									name: ko.observable("additionalName"),
+									value: ko.observable(jsObjectData.creator.additionalName)
+								},
+								{
+									name: ko.observable("email"),
+									value: ko.observable(jsObjectData.creator.email)
+								},
+								{
+									name: ko.observable("telephone"),
+									value: ko.observable(jsObjectData.creator.telephone)
+								},
+								{
+									name: ko.observable("gender"),
+									value: ko.observable(jsObjectData.creator.gender)
+								}
+
+							];
+							break;
+
+						case "publisher":
+							self.dataset.PublisherProperty = [
+								{
+									name: ko.observable("additionalName"),
+									value: ko.observable(jsObjectData.publisher.additionalName)
+								},
+								{
+									name: ko.observable("email"),
+									value: ko.observable(jsObjectData.publisher.email)
+								},
+								{
+									name: ko.observable("telephone"),
+									value: ko.observable(jsObjectData.publisher.telephone)
+								},
+								{
+									name: ko.observable("gender"),
+									value: ko.observable(jsObjectData.publisher.gender)
+								}
+
+							];
+							break;
+
+						case "producer":
+							self.dataset.ProducerProperty = [
+								{
+									name: ko.observable("additionalName"),
+									value: ko.observable(jsObjectData.producer.additionalName)
+								},
+								{
+									name: ko.observable("email"),
+									value: ko.observable(jsObjectData.producer.email)
+								},
+								{
+									name: ko.observable("telephone"),
+									value: ko.observable(jsObjectData.producer.telephone)
+								},
+								{
+									name: ko.observable("gender"),
+									value: ko.observable(jsObjectData.producer.gender)
+								}
+
+							];
+							break;
+
+						default:
+							switch (key) {
+								case "name":
+									var nameObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(nameObj);
+									break;
+
+								case "url":
+									var urlObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(urlObj);
+									break;
+
+								case "description":
+									var descriptionObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(descriptionObj);
+									break;
+
+								case "version":
+									var versionObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(versionObj);
+									break;
+								case "text":
+									var textObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(textObj);
+									break;
+
+								case "sourceOrganization":
+									var sourceOrganizationObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(sourceOrganizationObj);
+									break;
+
+								case "license":
+									var licenseObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(licenseObj);
+									break;
+
+								case "keywords":
+									var keywordsObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(keywordsObj);
+									break;
+
+								case "accessMode":
+									var accessModeObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(accessModeObj);
+									break;
+
+								case "about":
+									var aboutModeObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.SingularProperty.push(aboutModeObj);
+									break;
+
+								case "expires":
+									var expiresObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.DateProperty.push(expiresObj);
+									break;
+
+								case "datePublished":
+									var datePublishedObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.DateProperty.push(datePublishedObj);
+									break;
+
+								case "dateModified":
+									var dateModifiedObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.DateProperty.push(dateModifiedObj);
+									break;
+
+								case "dateCreated":
+									var dateCreatedObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
+									self.dataset.DateProperty.push(dateCreatedObj);
+									break;
+
+								default:
+									break;
+							}
+							break;
+					}
+					
+				}
+			}
+			// ko.cleanNode($("#dataSets-addNew-dialog")[0]);
+			// ko.applyBindings(datasetAddViewModel, $("#dataSets-addNew-dialog")[0]);
+ 	  		
+			console.log(self.dataset);
+		};
+
+       	self.uploadSchema = function () {
+			  self.dataset= [];
+			  var schemaFile = $("#fileSchemaUpload").get(0).files[0];
+			  
+			  var reader = new FileReader();
+			  reader.readAsText(schemaFile);
+
+			  reader.onload = function(){
+				  //self.parseFileDataToViewModel(reader.result);
+			  };
+
+		// 	  var formdata = new FormData();
+		// 	  formdata.append('schemaUpload', files[0]);
+
+		// 	  ajaxcalls.form(self.uploadDatasetURI, 'POST', formdata).done(function(data) {
+        // 	  // further operation for successful upload 
+        //   });
+		};
 
        	self.moveUp = function(data) {
        	    var idx = self.filters.indexOf(data),
@@ -3983,32 +4531,79 @@ function typeInTextarea(el, newText) {
 
        	    self.filters.splice(idx + 1, 0, tmp[0]);
        	  };
+		
 
+		self.convertToSchemaFormat = function(){
+
+			var universalSchema = new Object();
+			var authorProperties = new Object();
+			var dateProperties = new Object();
+			var creatorProperties = new Object();
+			var producerProperties = new Object();
+			var publisherProperties = new Object();
+			var editorProperties = new Object();
+
+			for(var i =0; i<self.dataset.SingularProperty.length ; i++ ){
+				var key = ko.utils.unwrapObservable(self.dataset.SingularProperty[i].name);
+				var value = ko.utils.unwrapObservable(self.dataset.SingularProperty[i].value);
+				universalSchema[key] = value;
+			}
+
+			for(var i =0; i< self.dataset.AuthorProperty.length; i++){
+				var key = ko.utils.unwrapObservable(self.dataset.AuthorProperty[i].name);
+				var value = ko.utils.unwrapObservable(self.dataset.AuthorProperty[i].value);
+				authorProperties[key] = value;
+			}
+
+			for(var i =0; i< self.dataset.CreatorProperty.length; i++){
+				var key = ko.utils.unwrapObservable(self.dataset.CreatorProperty[i].name);
+				var value = ko.utils.unwrapObservable(self.dataset.CreatorProperty[i].value);
+				creatorProperties[key] = value;
+			}
+
+			for(var i =0; i< self.dataset.ProducerProperty.length; i++){
+				var key = ko.utils.unwrapObservable(self.dataset.ProducerProperty[i].name);
+				var value = ko.utils.unwrapObservable(self.dataset.ProducerProperty[i].value);
+				producerProperties[key] = value;
+			}
+
+			for(var i =0; i< self.dataset.PublisherProperty.length; i++){
+				var key = ko.utils.unwrapObservable(self.dataset.PublisherProperty[i].name);
+				var value = ko.utils.unwrapObservable(self.dataset.PublisherProperty[i].value);
+				publisherProperties[key] = value;
+			}
+
+			for(var i =0; i< self.dataset.EditorProperty.length; i++){
+				var key = ko.utils.unwrapObservable(self.dataset.EditorProperty[i].name);
+				var value = ko.utils.unwrapObservable(self.dataset.EditorProperty[i].value);
+				editorProperties[key] = value;
+			}
+
+			for(var i =0; i< self.dataset.DateProperty.length; i++){
+				var key = ko.utils.unwrapObservable(self.dataset.DateProperty[i].name);
+				var value = ko.utils.unwrapObservable(self.dataset.DateProperty[i].value);
+				universalSchema[key] = value;
+			}
+
+			universalSchema.author = authorProperties; 
+			universalSchema.editor = editorProperties;
+			universalSchema.creator = creatorProperties;
+			universalSchema.publisher = publisherProperties;
+			universalSchema.producer = producerProperties;
+
+			return universalSchema;
+		};
 	   
        	self.saveNew = function(){
-			datasetsViewModel.saveNew(self.dataset());
+
+			   var schema = self.convertToSchemaFormat();
+				 
+			datasetsViewModel.saveNew(schema);
 		};
-		
-          // apply the filters
-   		//  self.filter = function() {
-   		// 	 if (!datasetsViewModel.selectedNode())
-   		// 		 return;
-   		// 	 if (self.okText() == "Save") {
-   		// 		 // save the filters
-		// 		ajaxcalls.simple(self.filterURI, 'GET', { 'name': self.name(), 'savefilters': ko.toJSON(self.filters) }).done(function(data) {
-   	    //         	self.loadSavedFilters();
-   	                          
-   	    //         }).fail(function(jqXHR) {
-   	    //             showXHRText(jqXHR);
-   	    //         });
-   		// 	 }
-   		// 	 else {
-   		// 	 	self.filterInternal(datasetsViewModel.selectedNode().original.path, ko.toJSON(self.filters));
-   		// 	 }
-   		//  };
-   		  
+		  
       };
 
+	  
 	   
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var datasetsViewModel = new DatasetsViewModel();

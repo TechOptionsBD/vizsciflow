@@ -1971,7 +1971,7 @@
       
       self.loadMetadataProperties = function() {
 			
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'metadataproperties': true }).done(function(data) {
+          ajaxcalls.simple(metadataViewModel.metadataURI, 'GET', { 'properties': true }).done(function(data) {
 			  
         	  self.visualizers = ko.observableArray();
         	  $.each(data['visualizers'], function(key, value){
@@ -3547,7 +3547,7 @@ function typeInTextarea(el, newText) {
        function MetaDataViewModel() {
             var self = this;
             
-            self.metadataURI = '/datasources';
+            self.metadataURI = '/metadata';
             self.path =  new ko.observable();
             self.filename = new ko.observable();
             self.systemProperties = new ko.observableDictionary();
@@ -3560,7 +3560,7 @@ function typeInTextarea(el, newText) {
             	
             	var formdata = new FormData();
             	
-				formdata.append('metadatasave', self.path());
+				formdata.append('save', self.path());
 				formdata.append('filename', self.filename());
 				formdata.append('visualizers', ko.toJSON(self.visualizers));
 				formdata.append('annotations', ko.toJSON(self.annotations));
@@ -3575,7 +3575,7 @@ function typeInTextarea(el, newText) {
             	
             	self.path(path);
             	self.filename(path.replace(/^.*[\\\/]/, ''));
-            	ajaxcalls.simple(self.metadataURI, 'GET', {'metadataload': path}).done(function(data) {
+            	ajaxcalls.simple(self.metadataURI, 'GET', {'load': path}).done(function(data) {
                 	if (data == undefined)
                 		return;
                 	

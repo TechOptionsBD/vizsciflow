@@ -16,7 +16,7 @@ from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 
 from app.exceptions import ValidationError
 
@@ -746,22 +746,42 @@ class DataSourceAllocation(db.Model):
     
     @staticmethod
     def has_access_rights(user_id, path, checkRights):
+        defaultRights = AccessRights.NotSet
+        
+        if path == os.sep:
+            defaultRights = AccessRights.Read # we are giving read access to our root folder to all logged in user
+
+        prefixedDataSources = DataSource.query.filter(or_(DataSource.prefix == path, DataSource.url == path))
+        if prefixedDataSources:
+            defaultRights = AccessRights.Read
+
         allocations = DataSourceAllocation.query.join(DataPermission, DataPermission.data_id == DataSourceAllocation.id).filter(DataPermission.user_id == user_id)
         for allocation in allocations:
             if path.startswith(allocation.url):
                 for permission in allocation.permissions: 
                     if AccessRights.hasRight(permission.rights, checkRights):
                         return True
-        return False
+                    
+        return defaultRights >= checkRights
 
     @staticmethod
     def get_access_rights(user_id, path):
+        defaultRights = AccessRights.NotSet
+        
+        if path == os.sep:
+            defaultRights = AccessRights.Read # we are giving read access to our root folder to all logged in user
+
+        prefixedDataSources = DataSource.query.filter(or_(DataSource.prefix == path, DataSource.url == path))
+        if prefixedDataSources:
+            defaultRights = AccessRights.Read
+        
         allocations = DataSourceAllocation.query.join(DataPermission, DataPermission.data_id == DataSourceAllocation.id).filter(DataPermission.user_id == user_id)
         for allocation in allocations:
             if path.startswith(allocation.url):
                 for permission in allocation.permissions:
                     return permission.rights 
-        return AccessRights.NotSet
+        
+        return defaultRights
     
     @staticmethod
     def check_access_rights(user_id, path, checkRights):

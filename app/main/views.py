@@ -613,7 +613,17 @@ def datasets():
         return save_datasets(request.args.get("save"))
     
     return load_datasets()
-   
+
+@main.route('/metadata', methods=['GET', 'POST'])
+@login_required
+def metadata():
+    if request.args.get('load'):
+        return json.dumps(load_metadata(request.args.get('load')))
+    elif request.args.get('properties'):
+        return json.dumps(load_metadataproperties())
+    elif request.form.get('save'):
+        return json.dumps(save_metadata(request))
+       
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
@@ -642,12 +652,6 @@ def datasources():
     elif request.args.get('load'):
         fs = Utility.fs_by_prefix_or_default(request.args['load'])
         return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
-    elif request.args.get('metadataload'):
-        return json.dumps(load_metadata(request.args.get('metadataload')))
-    elif request.args.get('metadataproperties'):
-        return json.dumps(load_metadataproperties())
-    elif request.form.get('metadatasave'):
-        return json.dumps(save_metadata(request))                
         
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
 

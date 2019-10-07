@@ -1266,12 +1266,20 @@
 
 <div id="datasetView" class="container-fluid" aria-hidden="true" style="display:none">
 	<div class="col-sm-12">
-		<h2 data-bind="text: name" class="datasetView-header"></h2>
+		<h2 class="datasetView-header">Properties</h2>
 		<div class="container-fluid datasetView-tab-area">
+			<div class="form-group">
+				<label>Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: name"></label>
+			</div>
 			<div class = "form-group">
 				<label  >Url: </label>
 				<label class="datasetView-tab-content"><strong><a data-bind="attr:{href : url}, text: url" target="_blank"></a></strong></label>
 			 </div>
+			 <div class="form-group">
+					<label>Description: </label>
+					<label class="datasetView-tab-content" data-bind="text: description"></label>
+				 </div>
 			 <div class="form-group">
 				<label>Version: </label>
 				<label class="datasetView-tab-content" data-bind="text: version"></label>
@@ -1280,10 +1288,7 @@
 				<label >Text: </label>
 				<label class="datasetView-tab-content" data-bind="text: text"></label>
 			 </div>
-			 <div class="form-group">
-				<label>Description: </label>
-				<label class="datasetView-tab-content" data-bind="text: description"></label>
-			 </div>
+			 
 			 <div class="form-group">
 				<label>Source Organization: </label>
 				<label class="datasetView-tab-content" data-bind="text: sourceOrganization"></label>
@@ -1293,9 +1298,163 @@
 				<label class="datasetView-tab-content" data-bind="text: license"></label>
 			 </div>
 			 <div class="form-group">
+				<label>Keywords: </label>
+				<label class="datasetView-tab-content" data-bind="text: keywords"></label>
+			 </div>
+			 <div class="form-group">
+				<label>Access Mode: </label>
+				<label class="datasetView-tab-content" data-bind="text: accessMode"></label>
+			 </div>
+			 <div class="form-group">
 				<label>About: </label>
 				<label class="datasetView-tab-content" data-bind="text: about"></label>
 			 </div>
+		</div>
+	</div>
+	<div class="col-sm-12">
+		<h2 class="datasetView-header">Dates</h2>
+		<div class="container-fluid datasetView-tab-area">
+			<div class="form-group">
+				<label>Expires: </label>
+				<label class="datasetView-tab-content" data-bind="text: expires"></label>
+			</div>
+			<div class="form-group">
+				<label>Date Published: </label>
+				<label class="datasetView-tab-content" data-bind="text: datePublished"></label>
+			</div>
+			<div class="form-group">
+				<label>Date Modified: </label>
+				<label class="datasetView-tab-content" data-bind="text: dateModified"></label>
+			</div>
+			<div class="form-group">
+				<label>Date Created: </label>
+				<label class="datasetView-tab-content" data-bind="text: dateCreated"></label>
+			</div>
+		</div>
+	</div>			
+	<div class="col-sm-12">
+		<h2 class="datasetView-header">Author</h2>
+		<div class="container-fluid datasetView-tab-area">
+			<div class="form-group">
+				<label>Given Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: authGivenName"></label>
+			</div>
+			<div class="form-group">
+				<label>Family Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: authFamilyName"></label>
+			</div>
+			<div class="form-group">
+				<label>Email: </label>
+				<label class="datasetView-tab-content" data-bind="text: authEmail"></label>
+			</div>
+			<div class="form-group">
+				<label>Telephone: </label>
+				<label class="datasetView-tab-content" data-bind="text: authTelephone"></label>
+			</div>
+			<div class="form-group">
+				<label>Gender: </label>
+				<label class="datasetView-tab-content" data-bind="text: authGender"></label>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-12">
+		<h2 class="datasetView-header">Creator</h2>
+		<div class="container-fluid datasetView-tab-area">
+			<div class="form-group">
+				<label>Given Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: crtGivenName"></label>
+			</div>
+			<div class="form-group">
+				<label>Family Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: crtFamilyName"></label>
+			</div>
+			<div class="form-group">
+				<label>Email: </label>
+				<label class="datasetView-tab-content" data-bind="text: crtEmail"></label>
+			</div>
+			<div class="form-group">
+				<label>Telephone: </label>
+				<label class="datasetView-tab-content" data-bind="text: crtTelephone"></label>
+			</div>
+			<div class="form-group">
+				<label>Gender: </label>
+				<label class="datasetView-tab-content" data-bind="text: crtGender"></label>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-12">
+		<h2 class="datasetView-header">Producer</h2>
+		<div class="container-fluid datasetView-tab-area">
+			<div class="form-group">
+				<label>Given Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: prdcGivenName"></label>
+			</div>
+			<div class="form-group">
+				<label>Family Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: prdcFamilyName"></label>
+			</div>
+			<div class="form-group">
+				<label>Email: </label>
+				<label class="datasetView-tab-content" data-bind="text: prdcEmail"></label>
+			</div>
+			<div class="form-group">
+				<label>Telephone: </label>
+				<label class="datasetView-tab-content" data-bind="text: prdcTelephone"></label>
+			</div>
+			<div class="form-group">
+				<label>Gender: </label>
+				<label class="datasetView-tab-content" data-bind="text: prdcGender"></label>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-12">
+		<h2 class="datasetView-header">Publisher</h2>
+		<div class="container-fluid datasetView-tab-area">
+			<div class="form-group">
+				<label>Given Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: pblsGivenName"></label>
+			</div>
+			<div class="form-group">
+				<label>Family Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: pblsFamilyName"></label>
+			</div>
+			<div class="form-group">
+				<label>Email: </label>
+				<label class="datasetView-tab-content" data-bind="text: pblsEmail"></label>
+			</div>
+			<div class="form-group">
+				<label>Telephone: </label>
+				<label class="datasetView-tab-content" data-bind="text: pblsTelephone"></label>
+			</div>
+			<div class="form-group">
+				<label>Gender: </label>
+				<label class="datasetView-tab-content" data-bind="text: pblsGender"></label>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-12">
+		<h2 class="datasetView-header">Editor</h2>
+		<div class="container-fluid datasetView-tab-area">
+			<div class="form-group">
+				<label>Given Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: edtGivenName"></label>
+			</div>
+			<div class="form-group">
+				<label>Family Name: </label>
+				<label class="datasetView-tab-content" data-bind="text: edtFamilyName"></label>
+			</div>
+			<div class="form-group">
+				<label>Email: </label>
+				<label class="datasetView-tab-content" data-bind="text: edtEmail"></label>
+			</div>
+			<div class="form-group">
+				<label>Telephone: </label>
+				<label class="datasetView-tab-content" data-bind="text: edtTelephone"></label>
+			</div>
+			<div class="form-group">
+				<label>Gender: </label>
+				<label class="datasetView-tab-content" data-bind="text: edtGender"></label>
+			</div>
 		</div>
 	</div>
 </div>
@@ -1527,13 +1686,7 @@
 		 	  var node = tree.get_node(event.target);
 		 	  copyDataPathToEditor(node.original);
 		});
-		
-		// $('#tree').on("select_node.jstree", function (e, data) {
-			
-		// 	if ($("#metatab").length == 0)
-		// 		return;
-		// 	showMetadata(data.node.original.path);
-		// });
+	
 		
     	$('#refresh').hide();
         // $('.draggable-functions').each(function() {
@@ -1580,10 +1733,7 @@
 		
         $(document).ready(function() {
             
-
 			$("#dataSets-addNew-dialog").css("left", $(window).width()/4);
-
-			
 
 			$("input[name=dataSourcesTab]").on("click", function(e){
 				
@@ -4110,6 +4260,44 @@ function typeInTextarea(el, newText) {
 			self.description = ko.observable();
 			self.license = ko.observable();
 			self.sourceOrganization = ko.observable();
+			self.keywords = ko.observable();
+			self.accessMode = ko.observable();
+			self.expires = ko.observable();
+			self.datePublished = ko.observable();
+			self.dateModified = ko.observable();
+			self.dateCreated = ko.observable();
+
+			self.authGivenName = ko.observable();
+			self.authFamilyName = ko.observable();
+			self.authEmail = ko.observable();
+			self.authTelephone = ko.observable();
+			self.authGender = ko.observable();
+			
+			self.crtGivenName = ko.observable();
+			self.crtFamilyName = ko.observable();
+			self.crtEmail = ko.observable();
+			self.crtTelephone = ko.observable();
+			self.crtGender = ko.observable();
+
+			self.prdcGivenName = ko.observable();
+			self.prdcFamilyName = ko.observable();
+			self.prdcEmail = ko.observable();
+			self.prdcTelephone = ko.observable();
+			self.prdcGender = ko.observable();
+
+			self.pblsGivenName = ko.observable();
+			self.pblsFamilyName = ko.observable();
+			self.pblsEmail = ko.observable();
+			self.pblsTelephone = ko.observable();
+			self.pblsGender = ko.observable();
+
+			self.edtGivenName = ko.observable();
+			self.edtFamilyName = ko.observable();
+			self.edtEmail = ko.observable();
+			self.edtTelephone = ko.observable();
+			self.edtGender = ko.observable();
+
+
 			
 			self.load  = function(schema){
 				self.dataset();
@@ -4121,6 +4309,43 @@ function typeInTextarea(el, newText) {
 				self.description(schema.description);
 				self.license(schema.license);
 				self.sourceOrganization(schema.sourceOrganization);
+				self.keywords(schema.keywords);
+				self.accessMode(schema.accessMode);
+
+				self.expires(schema.expires);
+				self.datePublished(schema.datePublished);
+				self.dateModified(schema.dateModified);
+				self.dateCreated(schema.dateCreated);
+				
+				self.authGivenName(schema.author.givenName);
+				self.authFamilyName(schema.author.familyName);
+				self.authEmail(schema.author.email);
+				self.authTelephone(schema.author.telephone);
+				self.authGender( schema.author.gender);
+
+				self.crtGivenName(schema.creator.givenName);
+				self.crtFamilyName(schema.creator.familyName); 
+				self.crtEmail(schema.creator.email);
+				self.crtTelephone(schema.creator.telephone);
+				self.crtGender(schema.creator.gender);
+
+				self.prdcGivenName(schema.producer.givenName);
+				self.prdcFamilyName(schema.producer.familyName);
+				self.prdcEmail(schema.producer.email);
+				self.prdcTelephone(schema.producer.telephone);
+				self.prdcGender(schema.producer.gender);
+
+				self.pblsGivenName(schema.publisher.givenName);
+				self.pblsFamilyName(schema.publisher.familyName);
+				self.pblsEmail(schema.publisher.email);
+				self.pblsTelephone(schema.publisher.telephone);
+				self.pblsGender(schema.publisher.gender);
+
+				self.edtGivenName(schema.editor.givenName);
+				self.edtFamilyName(schema.editor.familyName);
+				self.edtEmail(schema.editor.email);
+				self.edtTelephone(schema.editor.telephone);
+				self.edtGender(schema.editor.gender);
 			} 
 	   };
 
@@ -4179,7 +4404,11 @@ function typeInTextarea(el, newText) {
 
 	 	var DatasetAuthorViewModel = [
 			{
-				name: ko.observable("additionalName"),
+				name: ko.observable("givenName"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("familyName"),
 				value: ko.observable("")
 			},
 			{
@@ -4215,7 +4444,11 @@ function typeInTextarea(el, newText) {
 
 		var DatasetPublisherViewModel = [
 				{
-					name: ko.observable("additionalName"),
+					name: ko.observable("givenName"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("familyName"),
 					value: ko.observable("")
 				},
 				{
@@ -4234,7 +4467,11 @@ function typeInTextarea(el, newText) {
 
 	    var DatasetCreatorViewModel = [
 				{
-					name: ko.observable("additionalName"),
+					name: ko.observable("givenName"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("familyName"),
 					value: ko.observable("")
 				},
 				{
@@ -4253,7 +4490,11 @@ function typeInTextarea(el, newText) {
 
 		var DatasetEditorViewModel = [
 				{
-					name: ko.observable("additionalName"),
+					name: ko.observable("givenName"),
+					value: ko.observable("")
+				},
+				{
+					name: ko.observable("familyName"),
 					value: ko.observable("")
 				},
 				{
@@ -4273,7 +4514,11 @@ function typeInTextarea(el, newText) {
 
 	var DatasetProducerViewModel = [
 			{
-				name: ko.observable("additionalName"),
+				name: ko.observable("givenName"),
+				value: ko.observable("")
+			},
+			{
+				name: ko.observable("familyName"),
 				value: ko.observable("")
 			},
 			{
@@ -4290,13 +4535,12 @@ function typeInTextarea(el, newText) {
 			}
 		];
 
-	  //var datasetSingualrPropertyViewModel = new DatasetSingularPropertyViewModel();
-	  //var datsetAuthorViewModel = new DatasetAuthorViewModel(); 
+	  
 
 	  function DatasetAddViewModel() {
           var self = this;
          
-          self.uploadDatasetURI = ''; // add URI according to API
+          self.uploadDatasetURI = ''; 
           
           
        	  self.dataset = {
@@ -4323,8 +4567,8 @@ function typeInTextarea(el, newText) {
 						case "author":
 							self.dataset.AuthorProperty = [
 								{
-									name: ko.observable("additionalName"),
-									value: ko.observable(jsObjectData.author.additionalName)
+									name: ko.observable("givenName"),
+									value: ko.observable(jsObjectData.author.givenName)
 								},
 								{
 									name: ko.observable("email"),
@@ -4345,8 +4589,8 @@ function typeInTextarea(el, newText) {
 						case "editor":
 							self.dataset.EditorProperty = [
 								{
-									name: ko.observable("additionalName"),
-									value: ko.observable(jsObjectData.editor.additionalName)
+									name: ko.observable("givenName"),
+									value: ko.observable(jsObjectData.editor.givenName)
 								},
 								{
 									name: ko.observable("email"),
@@ -4367,8 +4611,8 @@ function typeInTextarea(el, newText) {
 						case "creator":
 							self.dataset.CreatorProperty = [
 								{
-									name: ko.observable("additionalName"),
-									value: ko.observable(jsObjectData.creator.additionalName)
+									name: ko.observable("givenName"),
+									value: ko.observable(jsObjectData.creator.givenName)
 								},
 								{
 									name: ko.observable("email"),
@@ -4389,8 +4633,8 @@ function typeInTextarea(el, newText) {
 						case "publisher":
 							self.dataset.PublisherProperty = [
 								{
-									name: ko.observable("additionalName"),
-									value: ko.observable(jsObjectData.publisher.additionalName)
+									name: ko.observable("givenName"),
+									value: ko.observable(jsObjectData.publisher.givenName)
 								},
 								{
 									name: ko.observable("email"),
@@ -4411,8 +4655,8 @@ function typeInTextarea(el, newText) {
 						case "producer":
 							self.dataset.ProducerProperty = [
 								{
-									name: ko.observable("additionalName"),
-									value: ko.observable(jsObjectData.producer.additionalName)
+									name: ko.observable("givenName"),
+									value: ko.observable(jsObjectData.producer.givenName)
 								},
 								{
 									name: ko.observable("email"),

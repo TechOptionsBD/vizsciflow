@@ -980,9 +980,9 @@
 						<div class="col-sm-4">
 							<input type="file" class="form-control-file" id="fileSchemaUpload">
 						</div>
-						<div class="col-sm-6">
-							<button class="btn btn-primary"  data-bind="click: uploadSchema">Upload</button>
-						</div>
+					</div>
+					<div class="col-sm-3">
+						<button class="btn btn-primary" style="margin-left: 133px" data-bind="click: uploadSchema">Load</button>
 					</div>
 				</form>
 			</div>
@@ -1970,7 +1970,7 @@
       }
       
       self.loadMetadataProperties = function() {
-
+			
           ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'metadataproperties': true }).done(function(data) {
 			  
         	  self.visualizers = ko.observableArray();
@@ -1983,7 +1983,7 @@
         		  self.mimetypes.push(ko.observable(key + ": " + value))
         	  });
                         
-          }).fail(function(jqXHR) {
+          }).fail(function(jqXHR, a, b) {
               showXHRText(jqXHR);
           });
       }
@@ -4512,7 +4512,7 @@ function typeInTextarea(el, newText) {
 
 			];
 
-	var DatasetProducerViewModel = [
+		var DatasetProducerViewModel = [
 			{
 				name: ko.observable("givenName"),
 				value: ko.observable("")
@@ -4535,7 +4535,65 @@ function typeInTextarea(el, newText) {
 			}
 		];
 
-	  
+	  function datasetSingularPropertyViewModelFileDataMapper(filedata){
+			DatasetSingularPropertyViewModel[0].value(filedata.name);
+			DatasetSingularPropertyViewModel[1].value(filedata.url);
+			DatasetSingularPropertyViewModel[2].value(filedata.description);
+			DatasetSingularPropertyViewModel[3].value(filedata.version);
+			DatasetSingularPropertyViewModel[4].value(filedata.text);
+			DatasetSingularPropertyViewModel[5].value(filedata.sourceOrganization);
+			DatasetSingularPropertyViewModel[6].value(filedata.license);
+			DatasetSingularPropertyViewModel[7].value(filedata.keywords);
+			DatasetSingularPropertyViewModel[8].value(filedata.accessMode);
+			DatasetSingularPropertyViewModel[9].value(filedata.about);
+	  };
+
+	  function datasetDatesViewModelFileDataMapper(filedata){
+			DatasetDatesViewModel[0].value(filedata.expires);
+			DatasetDatesViewModel[1].value(filedata.datePublished);
+			DatasetDatesViewModel[2].value(filedata.dateModified);
+			DatasetDatesViewModel[3].value(filedata.dateCreated);
+	  };
+
+	  function datasetAuthorViewModelFileDataMapper(fileAuthordata){
+			DatasetAuthorViewModel[0].value(fileAuthordata.givenName);
+			DatasetAuthorViewModel[1].value(fileAuthordata.familyName);
+			DatasetAuthorViewModel[2].value(fileAuthordata.email);
+			DatasetAuthorViewModel[3].value(fileAuthordata.telephone);
+			DatasetAuthorViewModel[4].value(fileAuthordata.gender);
+	  };
+
+	  function datasetCreatorViewModelFileDataMapper(fileCreatorData){
+			DatasetCreatorViewModel[0].value(fileCreatorData.givenName);
+			DatasetCreatorViewModel[1].value(fileCreatorData.familyName);
+			DatasetCreatorViewModel[2].value(fileCreatorData.email);
+			DatasetCreatorViewModel[3].value(fileCreatorData.telephone);
+			DatasetCreatorViewModel[4].value(fileCreatorData.gender);
+	  };
+
+	  function datasetEditorViewModelFileDataMapper(fileEditorData){
+			DatasetEditorViewModel[0].value(fileEditorData.givenName);
+			DatasetEditorViewModel[1].value(fileEditorData.familyName);
+			DatasetEditorViewModel[2].value(fileEditorData.email);
+			DatasetEditorViewModel[3].value(fileEditorData.telephone);
+			DatasetEditorViewModel[4].value(fileEditorData.gender);
+	  };
+
+	  function datasetPublisherViewModelFileDataMapper(filePublisherData){
+			DatasetPublisherViewModel[0].value(filePublisherData.givenName);
+			DatasetPublisherViewModel[1].value(filePublisherData.familyName);
+			DatasetPublisherViewModel[2].value(filePublisherData.email);
+			DatasetPublisherViewModel[3].value(filePublisherData.telephone);
+			DatasetPublisherViewModel[4].value(filePublisherData.gender);
+	  };
+
+	  function datasetProducerViewModelFileDataMapper(fileProducerData){
+			DatasetProducerViewModel[0].value(fileProducerData.givenName);
+			DatasetProducerViewModel[1].value(fileProducerData.familyName);
+			DatasetProducerViewModel[2].value(fileProducerData.email);
+			DatasetProducerViewModel[3].value(fileProducerData.telephone);
+			DatasetProducerViewModel[4].value(fileProducerData.gender);
+	  }
 
 	  function DatasetAddViewModel() {
           var self = this;
@@ -4557,225 +4615,26 @@ function typeInTextarea(el, newText) {
 		self.parseFileDataToViewModel = function(filedata){
 			
 			var jsObjectData = JSON.parse(filedata);
-			self.dataset.SingularProperty= [];
-			self.dataset.DateProperty = [];
-            
-			for (const key in jsObjectData) {
-				if (jsObjectData.hasOwnProperty(key)) {
-					
-					switch (key) {
-						case "author":
-							self.dataset.AuthorProperty = [
-								{
-									name: ko.observable("givenName"),
-									value: ko.observable(jsObjectData.author.givenName)
-								},
-								{
-									name: ko.observable("email"),
-									value: ko.observable(jsObjectData.author.email)
-								},
-								{
-									name: ko.observable("telephone"),
-									value: ko.observable(jsObjectData.author.telephone)
-								},
-								{
-									name: ko.observable("gender"),
-									value: ko.observable(jsObjectData.author.gender)
-								}
-
-							];
-							break;
-
-						case "editor":
-							self.dataset.EditorProperty = [
-								{
-									name: ko.observable("givenName"),
-									value: ko.observable(jsObjectData.editor.givenName)
-								},
-								{
-									name: ko.observable("email"),
-									value: ko.observable(jsObjectData.editor.email)
-								},
-								{
-									name: ko.observable("telephone"),
-									value: ko.observable(jsObjectData.editor.telephone)
-								},
-								{
-									name: ko.observable("gender"),
-									value: ko.observable(jsObjectData.editor.gender)
-								}
-
-							];
-							break;
-
-						case "creator":
-							self.dataset.CreatorProperty = [
-								{
-									name: ko.observable("givenName"),
-									value: ko.observable(jsObjectData.creator.givenName)
-								},
-								{
-									name: ko.observable("email"),
-									value: ko.observable(jsObjectData.creator.email)
-								},
-								{
-									name: ko.observable("telephone"),
-									value: ko.observable(jsObjectData.creator.telephone)
-								},
-								{
-									name: ko.observable("gender"),
-									value: ko.observable(jsObjectData.creator.gender)
-								}
-
-							];
-							break;
-
-						case "publisher":
-							self.dataset.PublisherProperty = [
-								{
-									name: ko.observable("givenName"),
-									value: ko.observable(jsObjectData.publisher.givenName)
-								},
-								{
-									name: ko.observable("email"),
-									value: ko.observable(jsObjectData.publisher.email)
-								},
-								{
-									name: ko.observable("telephone"),
-									value: ko.observable(jsObjectData.publisher.telephone)
-								},
-								{
-									name: ko.observable("gender"),
-									value: ko.observable(jsObjectData.publisher.gender)
-								}
-
-							];
-							break;
-
-						case "producer":
-							self.dataset.ProducerProperty = [
-								{
-									name: ko.observable("givenName"),
-									value: ko.observable(jsObjectData.producer.givenName)
-								},
-								{
-									name: ko.observable("email"),
-									value: ko.observable(jsObjectData.producer.email)
-								},
-								{
-									name: ko.observable("telephone"),
-									value: ko.observable(jsObjectData.producer.telephone)
-								},
-								{
-									name: ko.observable("gender"),
-									value: ko.observable(jsObjectData.producer.gender)
-								}
-
-							];
-							break;
-
-						default:
-							switch (key) {
-								case "name":
-									var nameObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(nameObj);
-									break;
-
-								case "url":
-									var urlObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(urlObj);
-									break;
-
-								case "description":
-									var descriptionObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(descriptionObj);
-									break;
-
-								case "version":
-									var versionObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(versionObj);
-									break;
-								case "text":
-									var textObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(textObj);
-									break;
-
-								case "sourceOrganization":
-									var sourceOrganizationObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(sourceOrganizationObj);
-									break;
-
-								case "license":
-									var licenseObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(licenseObj);
-									break;
-
-								case "keywords":
-									var keywordsObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(keywordsObj);
-									break;
-
-								case "accessMode":
-									var accessModeObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(accessModeObj);
-									break;
-
-								case "about":
-									var aboutModeObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.SingularProperty.push(aboutModeObj);
-									break;
-
-								case "expires":
-									var expiresObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.DateProperty.push(expiresObj);
-									break;
-
-								case "datePublished":
-									var datePublishedObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.DateProperty.push(datePublishedObj);
-									break;
-
-								case "dateModified":
-									var dateModifiedObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.DateProperty.push(dateModifiedObj);
-									break;
-
-								case "dateCreated":
-									var dateCreatedObj = {name : ko.observable(key), value : ko.observable(jsObjectData.key)}
-									self.dataset.DateProperty.push(dateCreatedObj);
-									break;
-
-								default:
-									break;
-							}
-							break;
-					}
-					
-				}
-			}
-			// ko.cleanNode($("#dataSets-addNew-dialog")[0]);
-			// ko.applyBindings(datasetAddViewModel, $("#dataSets-addNew-dialog")[0]);
- 	  		
-			console.log(self.dataset);
+			
+			datasetDatesViewModelFileDataMapper(jsObjectData);
+			datasetAuthorViewModelFileDataMapper(jsObjectData.author);
+			datasetCreatorViewModelFileDataMapper(jsObjectData.creator);
+			datasetEditorViewModelFileDataMapper(jsObjectData.editor);
+			datasetProducerViewModelFileDataMapper(jsObjectData.producer);
+			datasetPublisherViewModelFileDataMapper(jsObjectData.publisher);
+			datasetSingularPropertyViewModelFileDataMapper(jsObjectData);
 		};
 
        	self.uploadSchema = function () {
-			  self.dataset= [];
+			  
 			  var schemaFile = $("#fileSchemaUpload").get(0).files[0];
 			  
 			  var reader = new FileReader();
 			  reader.readAsText(schemaFile);
 
 			  reader.onload = function(){
-				  //self.parseFileDataToViewModel(reader.result);
+				  self.parseFileDataToViewModel(reader.result);
 			  };
-
-		// 	  var formdata = new FormData();
-		// 	  formdata.append('schemaUpload', files[0]);
-
-		// 	  ajaxcalls.form(self.uploadDatasetURI, 'POST', formdata).done(function(data) {
-        // 	  // further operation for successful upload 
-        //   });
 		};
 
        	self.moveUp = function(data) {

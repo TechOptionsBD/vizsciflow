@@ -45,7 +45,7 @@
 						<!-- checked: access, -->
 					<div class="row" style="padding-left: 15px">
 							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="0"  checked="checked" autocomplete="off">Data Sources</label>
-							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Data Sets</label>
+							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Datasets</label>
 						<!-- <div>
 							<h4 class="col-sm-6">Data Sources</h4>
 						</div> -->
@@ -1591,10 +1591,26 @@
 					case "0":
 						$("#dataSourcesPanel").show();
 						$("#dataSetsPanel").hide();
-						break;
+						$("#liBrowserTab").siblings('li').removeClass("active");
+						$("#liBrowserTab").addClass("active");
+						$("#browsertab").siblings("div").removeClass("active");
+						$("#browsertab").addClass("active in");
+						if ($("#browserView").parent('div#browsertab').length == 0) {
+							$('#browsertab').append($("#browserView"));
+							$("#browserView").show();
+						}
+							break;
 					case "1":
 						$("#dataSourcesPanel").hide();
 						$("#dataSetsPanel").show();
+						$("#liDataset").siblings('li').removeClass("active");
+						$("#liDataset").addClass("active");
+						$("#datasettab").siblings('div').removeClass("active");
+						$("#datasettab").addClass("active in");
+						if ($("#datasetView").parent('div#datasettab').length == 0) {
+							$('#datasettab').append($("#datasetView"));
+							$("#datasetView").show();
+						}
 						break;
 					default:
 						$("#dataSourcesPanel").show();

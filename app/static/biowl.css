@@ -500,3 +500,9 @@ background-color: #337AB7;
 .dataset-item-label{
   padding: 0 10px 0 10px;
 }
+
+.savedfilter-item{
+  display: block;
+  padding: 10px;
+  font-weight: bold;
+}

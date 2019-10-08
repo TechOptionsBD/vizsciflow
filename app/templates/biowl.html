@@ -174,8 +174,8 @@
 						</div>
 					</div>
 				</div> 
-				<div class="panel-body" style="max-height: 200px; overflow-y: scroll;" data-bind="foreach: savedFilters">
-					<div class="col" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openFilterDialog, 'To Editor': $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+				<div class="panel-body" style="max-height: 200px; overflow-y: auto;" data-bind="foreach: savedFilters">
+					<div class="col savedfilter-item" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openFilterDialog, 'To Editor': $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
 						<span data-bind="text: name"></span>
 					</div>
 				</div>

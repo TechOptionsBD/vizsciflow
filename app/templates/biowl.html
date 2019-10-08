@@ -120,15 +120,15 @@
 								<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal" data-placement="top"
 									title="Upload" data-bind="click: beginFileUpload">
 									<i class="glyphicon glyphicon-upload toolbar-icon"></i>
-								</button>
-								<button id="btnBeginUpdateMetadata" class="btn btn-primary pull-right" data-toggle="modal"
-									data-placement="top" title="Update Metadata" data-bind="click: beginUpdateMetadata">
-									<i class="glyphicon glyphicon-edit toolbar-icon"></i>
-								</button>
-								<button id="btnDeleteFolderFile" class="btn btn-primary pull-right" data-toggle="tooltip"
-									data-placement="top" title="Delete Folder/File" data-bind="click: remove">
-									<i class="glyphicon glyphicon-minus toolbar-icon"></i>
 								</button> -->
+								<button id="btnEditSchema" class="btn btn-primary pull-right" data-toggle="modal"
+									data-placement="top" title="Edit Schema" data-bind="click: editSchema">
+									<i class="glyphicon glyphicon-edit toolbar-icon"></i>
+								</button> 
+								<button id="btnDeleteSchema" class="btn btn-primary pull-right" data-toggle="tooltip"
+									data-placement="top" title="Delete Schema" data-bind="click: deleteSchema">
+									<i class="glyphicon glyphicon-minus toolbar-icon"></i>
+								</button>
 								<button id="btnAddNewDataset" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
 									title="Add New" data-bind="click : addNew">
 									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
@@ -1142,7 +1142,8 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-			<button class="btn btn-primary" data-dismiss="modal" data-bind="click: saveNew" aria-hidden="true">Save</button>
+			<button class="btn btn-primary" data-dismiss="modal" data-bind="click : update, visible : isUpdate()">Update</button>
+			<button class="btn btn-primary" data-dismiss="modal" data-bind="click: saveNew, visible : !isUpdate()" aria-hidden="true">Save</button>
 			<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		</div>
 	</div>
@@ -2599,10 +2600,19 @@ function typeInTextarea(el, newText) {
 	      	});
 		 },this);
 
+		self.selectedSchema = {};
+
 		self.addNew = function(){
+			datasetAddViewModel.isUpdate(false);
 			$('#dataSets-addNew-dialog').modal('show');
 		};
 
+		self.update = function(dataset){
+			ajaxcalls.simple(self.datasetsURI, 'GET', {'update': ko.toJSON(dataset)}).done(function(){
+				self.load();
+			});
+		}
+		
 		self.saveNew = function(dataset){
 			
 			ajaxcalls.simple(self.datasetsURI, 'GET', { 'save': ko.toJSON(dataset) })
@@ -2633,7 +2643,28 @@ function typeInTextarea(el, newText) {
 		self.click = function(schema, element){
             $('.dataset-listview').removeClass('dataset-listview-selected');
 			$(element.currentTarget).addClass('dataset-listview-selected');
+			self.selectedSchema = schema;
 			showDatasetTab(schema);
+		};
+
+		self.deleteSchema = function(){
+
+			if($('.dataset-listview-selected').length == 0){
+				return;
+			}
+			//api call to delete schema
+			ajaxcalls.simple(self.datasetsURI, 'GET', {'delete': self.selectedSchema}).done(function (data) {
+				self.load();
+			});
+		};
+
+		self.editSchema = function(){
+			if($('.dataset-listview-selected').length == 0){
+				return;
+			}
+			datasetAddViewModel.parseFileDataToViewModel(ko.toJSON(self.selectedSchema));
+			$('#dataSets-addNew-dialog').modal('show');
+			datasetAddViewModel.isUpdate(true);
 		};
 
 		self.load();
@@ -4630,7 +4661,7 @@ function typeInTextarea(el, newText) {
 
 	  function DatasetAddViewModel() {
           var self = this;
-         
+		  self.isUpdate = ko.observable(false);
           self.uploadDatasetURI = ''; 
           
           
@@ -4752,6 +4783,11 @@ function typeInTextarea(el, newText) {
 				 
 			datasetsViewModel.saveNew(schema);
 		};
+
+		self.update = function(){
+			var schema = self.convertToSchemaFormat();
+			datasetsViewModel.update(schema);
+		}
 		  
       };
 

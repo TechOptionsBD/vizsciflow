@@ -506,3 +506,12 @@ background-color: #337AB7;
   padding: 10px;
   font-weight: bold;
 }
+
+.filterdialog-header{
+  background-color: #337AB7;
+  color: white;
+}
+
+.browseritem-hover{
+  background-color: #B4E7FF;
+}

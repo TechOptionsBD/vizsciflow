@@ -584,7 +584,7 @@
     </div>
     <div class="modal-footer">
         <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
         <div><span class="label label-default" id="add-library-info"></span></div>
     </div>
     
@@ -906,7 +906,7 @@
 <div id="filter-dialog" class="modal fade modal-md col-md-3" tabindex="=-1"
 	role="dialog" aria-labelledby="filterDialogLabel" aria-hidden="true">
 	<div class="modal-content">
-		<div class="modal-header">
+		<div class="modal-header filterdialog-header">
 			<button type="button" class="close" data-dismiss="modal"
 				aria-hidden="true">&times;</button>
 			<h5 id="filterDialogLabel"><strong>Search and Filter</strong></h5>
@@ -956,9 +956,9 @@
 		</div>
 		<div class="modal-footer">
 			<label class="control-label" data-bind="visible: okText() == 'Save'" for="filtername">Name</label>
-			<input data-bind="value: name, visible: okText() == 'Save'" type="text" id="filtername"></input>
-			<button class="btn" data-dismiss="modal" data-bind="click: filter, text: okText" aria-hidden="true"></button>
-			<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			<input class="" data-bind="value: name, visible: okText() == 'Save'" type="text" id="filtername"></input>
+			<button class="btn btn-primary" data-dismiss="modal" data-bind="click: filter, text: okText" aria-hidden="true"></button>
+			<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		</div>
 	</div>
 </div>
@@ -1256,8 +1256,8 @@
 
 <div id="browserView" class="container-fluid" aria-hidden="true" style="display:none">
 	<div class="col-sm-12" data-bind="foreach : browserItems">
-		<div class="col-sm-6 form-group">
-			<img height="50rem" width="45rem" data-bind="attr: {src: imgPath, alt: itemName}" >
+		<div class="col-sm-6 form-group" data-bind="event : {dblclick: $parent.openInNewTab.bind($data)}, browserItemHover : $data">
+			<img height="50rem" width="45rem" data-bind="attr: {src: imgPath, alt: itemName}">
 			<!-- <i data-bind="class: imgPath"></i> -->
 			<label data-bind="text: itemName"></label>
 		</div>
@@ -3627,8 +3627,16 @@ function typeInTextarea(el, newText) {
 								 "orf", "psd", "art","pnm", "ppm", "rab", "rgb","svg","tif", "tiff", "xbm", "xpm","xwd", "jp2",
 								 "jpm", "jpx", "jpf", "pcx", "svgz", "djvu","djv", "pat", "cr2", "crw", "cdr", "cdt", "erf", "wbmp"];
 
-			self.loadItems = function(data) {
+			self.openInNewTab = function(data, event){
+				
+				if(ko.utils.unwrapObservable(data.dataType) == 'folder'){
+					return;
+				}
+				$.redirect(self.dataSourcesURI, { 'download': ko.utils.unwrapObservable(data.originalPath)}, "POST", "_blank");
+				
+			};
 
+			self.loadItems = function(data) {
 				self.browserItems([]);
 			
 				if (data.children.length == 0) {
@@ -3658,7 +3666,9 @@ function typeInTextarea(el, newText) {
 									self.browserItems.push(
 										{
 											imgPath: ko.observable(imgUrl),
-											itemName: ko.observable(data.text)
+											itemName: ko.observable(data.text),
+											originalPath: ko.observable(data.original.path),
+											dataType: ko.observable(data.type)
 										}
 									);
 								}
@@ -3670,7 +3680,9 @@ function typeInTextarea(el, newText) {
 							self.browserItems.push(
 								{
 									imgPath: ko.observable(imgUrl),
-									itemName: ko.observable(data.text)
+									itemName: ko.observable(data.text),
+									originalPath: ko.observable(data.original.path),
+									dataType: ko.observable(data.type)
 								}
 							);
 						}
@@ -3679,7 +3691,9 @@ function typeInTextarea(el, newText) {
 						self.browserItems.push(
 							{
 								imgPath: ko.observable(imgUrl),
-								itemName: ko.observable(data.text)
+								itemName: ko.observable(data.text),
+								originalPath: ko.observable(data.original.path),
+								dataType: ko.observable(data.type)
 							}
 						);
 					}
@@ -3714,7 +3728,9 @@ function typeInTextarea(el, newText) {
 										self.browserItems.push(
 											{
 												imgPath: ko.observable(imgUrl),
-												itemName: ko.observable(childNode.text)
+												itemName: ko.observable(childNode.text),
+												originalPath: ko.observable(childNode.original.path),
+												dataType: ko.observable(childNode.type)
 											}
 										);
 									}
@@ -3726,7 +3742,9 @@ function typeInTextarea(el, newText) {
 								self.browserItems.push(
 									{
 										imgPath: ko.observable(imgUrl),
-										itemName: ko.observable(childNode.text)
+										itemName: ko.observable(childNode.text),
+										originalPath: ko.observable(childNode.original.path),
+										dataType: ko.observable(childNode.type)
 									}
 								);
 							}
@@ -3735,7 +3753,9 @@ function typeInTextarea(el, newText) {
 							self.browserItems.push(
 								{
 									imgPath: ko.observable(imgUrl),
-									itemName: ko.observable(childNode.text)
+									itemName: ko.observable(childNode.text),
+									originalPath: ko.observable(childNode.original.path),
+									dataType: ko.observable(childNode.type)
 								}
 							);
 						}
@@ -3746,6 +3766,19 @@ function typeInTextarea(el, newText) {
 			};
 
 		};
+
+		ko.bindingHandlers.browserItemHover = {
+				init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+
+					$(element).mouseover(function () {
+						$(element).siblings().removeClass('browseritem-hover');
+						$(element).addClass('browseritem-hover');
+					});
+					$(element).mouseleave(function () {
+						$(element).removeClass('browseritem-hover');
+					});
+				}
+			};
 
 		var browserViewModel = new BrowserViewModel();
 

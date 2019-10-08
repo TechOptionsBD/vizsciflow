@@ -143,8 +143,8 @@
 							style="height: 416px; overflow-y: scroll; padding: 0" >
 							<div data-bind="foreach: filteredDatasets">
                                 <div class="dataset-listview" data-bind="click: $parent.click.bind($data),  datasetHover : $data">
-									<label style="padding: 10px">
-										<h2 data-bind="text: name"></h2><br>
+									<label class="dataset-item-label">
+										<h4 data-bind="text: name"></h4>
 										<span data-bind="text: url" style="margin-left: 10px"></span><br>
 										<span data-bind="text: description" style="margin-left: 10px"></span>
 									</label>
@@ -1266,192 +1266,192 @@
 
 <div id="datasetView" class="container-fluid" aria-hidden="true" style="display:none">
 	<div class="col-sm-12">
-		<h2 class="datasetView-header">Properties</h2>
+		<h4 class="datasetView-header">Properties</h4>
 		<div class="container-fluid datasetView-tab-area">
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: name">
 				<label>Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: name"></label>
 			</div>
-			<div class = "form-group">
+			<div class = "form-group" data-bind="visible : url">
 				<label  >Url: </label>
 				<label class="datasetView-tab-content"><strong><a data-bind="attr:{href : url}, text: url" target="_blank"></a></strong></label>
 			 </div>
-			 <div class="form-group">
+			 <div class="form-group" data-bind="visible: description">
 					<label>Description: </label>
 					<label class="datasetView-tab-content" data-bind="text: description"></label>
 				 </div>
-			 <div class="form-group">
+			 <div class="form-group" data-bind="visible: version">
 				<label>Version: </label>
 				<label class="datasetView-tab-content" data-bind="text: version"></label>
 			 </div>
-			 <div class="form-group">
+			 <div class="form-group" data-bind="visible: text">
 				<label >Text: </label>
 				<label class="datasetView-tab-content" data-bind="text: text"></label>
 			 </div>
 			 
-			 <div class="form-group">
+			 <div class="form-group" data-bind="visible: sourceOrganization">
 				<label>Source Organization: </label>
 				<label class="datasetView-tab-content" data-bind="text: sourceOrganization"></label>
 			 </div>
-			 <div class="form-group">
+			 <div class="form-group" data-bind="visible: license">
 				<label >License: </label>
 				<label class="datasetView-tab-content" data-bind="text: license"></label>
 			 </div>
-			 <div class="form-group">
+			 <div class="form-group" data-bind="visible: keywords">
 				<label>Keywords: </label>
 				<label class="datasetView-tab-content" data-bind="text: keywords"></label>
 			 </div>
-			 <div class="form-group">
+			 <div class="form-group" data-bind="visible: accessMode">
 				<label>Access Mode: </label>
 				<label class="datasetView-tab-content" data-bind="text: accessMode"></label>
 			 </div>
-			 <div class="form-group">
+			 <div class="form-group" data-bind="visible: about">
 				<label>About: </label>
 				<label class="datasetView-tab-content" data-bind="text: about"></label>
 			 </div>
 		</div>
 	</div>
 	<div class="col-sm-12">
-		<h2 class="datasetView-header">Dates</h2>
+		<h4 class="datasetView-header">Dates</h4>
 		<div class="container-fluid datasetView-tab-area">
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: expires">
 				<label>Expires: </label>
 				<label class="datasetView-tab-content" data-bind="text: expires"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: datePublished">
 				<label>Date Published: </label>
 				<label class="datasetView-tab-content" data-bind="text: datePublished"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: dateModified">
 				<label>Date Modified: </label>
 				<label class="datasetView-tab-content" data-bind="text: dateModified"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: dateCreated">
 				<label>Date Created: </label>
 				<label class="datasetView-tab-content" data-bind="text: dateCreated"></label>
 			</div>
 		</div>
 	</div>			
 	<div class="col-sm-12">
-		<h2 class="datasetView-header">Author</h2>
+		<h4 class="datasetView-header">Author</h4>
 		<div class="container-fluid datasetView-tab-area">
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: authGivenName">
 				<label>Given Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: authGivenName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: authFamilyName">
 				<label>Family Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: authFamilyName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: authEmail">
 				<label>Email: </label>
 				<label class="datasetView-tab-content" data-bind="text: authEmail"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: authTelephone">
 				<label>Telephone: </label>
 				<label class="datasetView-tab-content" data-bind="text: authTelephone"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: authGender">
 				<label>Gender: </label>
 				<label class="datasetView-tab-content" data-bind="text: authGender"></label>
 			</div>
 		</div>
 	</div>
 	<div class="col-sm-12">
-		<h2 class="datasetView-header">Creator</h2>
+		<h4 class="datasetView-header">Creator</h4>
 		<div class="container-fluid datasetView-tab-area">
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: crtGivenName">
 				<label>Given Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: crtGivenName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: crtFamilyName">
 				<label>Family Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: crtFamilyName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: crtEmail">
 				<label>Email: </label>
 				<label class="datasetView-tab-content" data-bind="text: crtEmail"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: crtTelephone">
 				<label>Telephone: </label>
 				<label class="datasetView-tab-content" data-bind="text: crtTelephone"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: crtGender">
 				<label>Gender: </label>
 				<label class="datasetView-tab-content" data-bind="text: crtGender"></label>
 			</div>
 		</div>
 	</div>
 	<div class="col-sm-12">
-		<h2 class="datasetView-header">Producer</h2>
+		<h4 class="datasetView-header">Producer</h4>
 		<div class="container-fluid datasetView-tab-area">
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: prdcGivenName">
 				<label>Given Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: prdcGivenName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: prdcFamilyName">
 				<label>Family Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: prdcFamilyName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: prdcEmail">
 				<label>Email: </label>
 				<label class="datasetView-tab-content" data-bind="text: prdcEmail"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: prdcTelephone">
 				<label>Telephone: </label>
 				<label class="datasetView-tab-content" data-bind="text: prdcTelephone"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: prdcGender">
 				<label>Gender: </label>
 				<label class="datasetView-tab-content" data-bind="text: prdcGender"></label>
 			</div>
 		</div>
 	</div>
 	<div class="col-sm-12">
-		<h2 class="datasetView-header">Publisher</h2>
+		<h4 class="datasetView-header">Publisher</h4>
 		<div class="container-fluid datasetView-tab-area">
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: pblsGivenName">
 				<label>Given Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: pblsGivenName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: pblsFamilyName">
 				<label>Family Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: pblsFamilyName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: pblsEmail">
 				<label>Email: </label>
 				<label class="datasetView-tab-content" data-bind="text: pblsEmail"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: pblsTelephone">
 				<label>Telephone: </label>
 				<label class="datasetView-tab-content" data-bind="text: pblsTelephone"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: pblsGender">
 				<label>Gender: </label>
 				<label class="datasetView-tab-content" data-bind="text: pblsGender"></label>
 			</div>
 		</div>
 	</div>
 	<div class="col-sm-12">
-		<h2 class="datasetView-header">Editor</h2>
+		<h4 class="datasetView-header">Editor</h4>
 		<div class="container-fluid datasetView-tab-area">
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: edtGivenName">
 				<label>Given Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: edtGivenName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: edtFamilyName">
 				<label>Family Name: </label>
 				<label class="datasetView-tab-content" data-bind="text: edtFamilyName"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: edtEmail">
 				<label>Email: </label>
 				<label class="datasetView-tab-content" data-bind="text: edtEmail"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: edtTelephone">
 				<label>Telephone: </label>
 				<label class="datasetView-tab-content" data-bind="text: edtTelephone"></label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" data-bind="visible: edtGender">
 				<label>Gender: </label>
 				<label class="datasetView-tab-content" data-bind="text: edtGender"></label>
 			</div>

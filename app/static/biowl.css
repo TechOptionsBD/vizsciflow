@@ -480,6 +480,7 @@ background-color: #337AB7;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   padding: 10px;
+  margin-bottom: 0px;
 }
 
 .datasetView-tab-content{
@@ -494,4 +495,8 @@ background-color: #337AB7;
 .datasets-dialog-header{
   font-size: large;
   color: white;
+}
+
+.dataset-item-label{
+  padding: 0 10px 0 10px;
 }

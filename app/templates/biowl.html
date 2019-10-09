@@ -2608,7 +2608,13 @@ function typeInTextarea(el, newText) {
 		};
 
 		self.update = function(dataset){
-			ajaxcalls.simple(self.datasetsURI, 'GET', {'update': ko.toJSON(dataset)}).done(function(){
+			
+			if(!self.selectedSchema || !self.selectedSchema.id){
+				return;
+			}
+			dataset.id = self.selectedSchema.id;
+			
+			ajaxcalls.simple(self.datasetsURI, 'GET', {'update': ko.toJSON(dataset), 'update_id': self.selectedSchema.id}).done(function(){
 				self.load();
 			});
 		}
@@ -2632,7 +2638,9 @@ function typeInTextarea(el, newText) {
 
 				self.datasets([]);
                 $.each(data.datasets, function(i, s){
-                    self.datasets.push(s.schema);
+                	var dataset = s.schema;
+                	dataset.id = s.id;
+                    self.datasets.push(dataset);
                 });
                 
 			}).fail(function (jqXHR) {
@@ -2649,11 +2657,11 @@ function typeInTextarea(el, newText) {
 
 		self.deleteSchema = function(){
 
-			if($('.dataset-listview-selected').length == 0){
+			if($('.dataset-listview-selected').length == 0 || !self.selectedSchema || !self.selectedSchema.id){
 				return;
 			}
 			//api call to delete schema
-			ajaxcalls.simple(self.datasetsURI, 'GET', {'delete': self.selectedSchema}).done(function (data) {
+			ajaxcalls.simple(self.datasetsURI, 'GET', {'delete': self.selectedSchema.id}).done(function (data) {
 				self.load();
 			});
 		};

@@ -589,6 +589,15 @@ def save_datasets(schema):
     dataset = Dataset.add(schema)
     return jsonify(dataset = dataset.to_json())
 
+def delete_datasets(dataset_id):
+    Dataset.remove(dataset_id)
+    return json.dumps({})
+
+def update_datasets(dataset_id, schema):
+    schema = json.loads(schema)
+    Dataset.update(dataset_id, schema)
+    return json.dumps({})
+
 @main.route('/filters', methods=['GET', 'POST'])
 @login_required
 def filters():
@@ -611,6 +620,10 @@ def filters():
 def datasets():
     if request.args.get("save"):
         return save_datasets(request.args.get("save"))
+    elif request.args.get("delete"):
+        return delete_datasets(request.args.get("delete"))
+    elif request.args.get("update"):
+        return update_datasets(request.args.get("update_id"), request.args.get("update"))
     
     return load_datasets()
 

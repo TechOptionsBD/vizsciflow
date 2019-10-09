@@ -459,7 +459,27 @@ class Dataset(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+    
+    @staticmethod
+    def remove(dataset_id):
+        try:
+            Dataset.query.filter_by(id = dataset_id).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
         
+    @staticmethod
+    def update(dataset_id, schema):
+        try:
+            dataset = Dataset.query.get(dataset_id)
+            dataset.schema = schema
+            db.session.commit()
+            return dataset
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+            
     def to_json(self):
         json_post = {
             'id': self.id,

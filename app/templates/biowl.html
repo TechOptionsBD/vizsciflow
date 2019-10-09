@@ -135,7 +135,7 @@
 								</button>
 							</div>
 							<div id="dataSetsSearchPanel" class="form-inline">
-								<input class="form-control" style="width: 67%" type="text" placeholder="Search…"
+								<input id="txtDatasetsSearch" class="form-control" style="width: 67%" type="text" placeholder="Search…"
 									 data-bind="value: datasetFilter, valueUpdate: 'keyup' " /> 	
 							</div>
 						</div>
@@ -144,9 +144,9 @@
 							<div data-bind="foreach: filteredDatasets">
                                 <div class="dataset-listview" data-bind="click: $parent.click.bind($data),  datasetHover : $data">
 									<label class="dataset-item-label">
-										<h4 data-bind="text: name"></h4>
-										<span data-bind="text: url" style="margin-left: 10px"></span><br>
-										<span data-bind="text: description" style="margin-left: 10px"></span>
+										<h4 data-bind="text: name, searchTextMatch : $data"></h4>
+										<span data-bind="text: url, searchTextMatch : $data" style="margin-left: 10px"></span><br>
+										<span data-bind="text: description, searchTextMatch : $data" style="margin-left: 10px"></span>
 									</label>
 								</div>
 							</div>
@@ -2678,6 +2678,43 @@ function typeInTextarea(el, newText) {
 		self.load();
 	};
     
+	ko.bindingHandlers.searchTextMatch = {
+		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+			
+			var searchText = ko.utils.unwrapObservable(datasetsViewModel.datasetFilter());
+			var eleText = $(element).html();
+			var refresheEleText = eleText.replace('<span class="highlight">', '').replace('</span>', '');
+
+			if (!searchText) {
+				$(element).html(refresheEleText);
+				return;
+			}
+			
+			var pattern = refresheEleText.match(new RegExp(searchText, 'gi'));  //new RegExp("(" + searchText + ")");
+			var higlightedText = refresheEleText.replace(pattern, '<span class="highlight">' + pattern + '</span>');
+			$(element).html(higlightedText);
+
+
+		},
+		update:  function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+			
+			var searchText = ko.utils.unwrapObservable(datasetsViewModel.datasetFilter());
+			var eleText = $(element).html();
+			var refresheEleText = eleText.replace('<span class="highlight">', '').replace('</span>', '');
+			
+			if (!searchText) {
+				$(element).html(refresheEleText);
+				return;
+			}
+
+			var pattern = refresheEleText.match(new RegExp(searchText, 'gi')); //new RegExp("(" + searchText + ")");
+			var higlightedText = refresheEleText.replace(pattern, '<span class="highlight">' + pattern + '</span>');
+			$(element).html(higlightedText);
+
+
+		}
+	}
+
 	ko.bindingHandlers.datasetHover = {
 			init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
 

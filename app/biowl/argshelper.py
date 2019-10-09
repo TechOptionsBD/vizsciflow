@@ -7,11 +7,11 @@ def get_input_from_args(paramindex, keyname, *args, **kwargs):
     
     barcode = ''
     if keyname in kwargs.keys():
-        barcode = kwargs[keyname]
+        barcode = str(kwargs[keyname])
     else:
         if len(args) == paramindex:
             raise ValueError("Argument {0} missing error in function call.".format(keyname))
-        barcode = args[paramindex]
+        barcode = str(args[paramindex])
         paramindex +=1
     
     return paramindex, barcode
@@ -20,7 +20,7 @@ def get_optiona_input_from_args(paramindex, keyname, *args, **kwargs):
     
     barcode = ''
     if keyname in kwargs.keys():
-        barcode = kwargs[keyname]
+        barcode = str(kwargs[keyname])
     else:
         if len(args) > paramindex:
             barcode = args[paramindex]
@@ -75,10 +75,10 @@ def get_posix_data_args(paramindex, keyname, context, *args, **kwargs):
 def get_posix_output_folder_args(paramindex, keyname, fs, context, *args, **kwargs):
     outdir = ''
     if keyname in kwargs.keys():
-        outdir = kwargs[keyname]
+        outdir = str(kwargs[keyname])
     else:
         if len(args) > paramindex:
-            outdir = args[paramindex]
+            outdir = str(args[paramindex])
             paramindex +=1
     
     if outdir and Utility.fs_type_by_prefix(outdir) == 'posix':
@@ -94,10 +94,10 @@ def get_posix_output_folder_args(paramindex, keyname, fs, context, *args, **kwar
 def get_posix_output_args(paramindex, keyname, fs, data, context, ext, *args, **kwargs):
     output = ''
     if keyname in kwargs.keys():
-        output = kwargs[keyname]
+        output = str(kwargs[keyname])
     else:
         if paramindex >= 0 and len(args) > paramindex:
-            output = args[paramindex]
+            output = str(args[paramindex])
             paramindex +=1
     
     data_path = Path(os.path.basename(data))
@@ -115,10 +115,10 @@ def get_input_from_args_optional(paramindex, keyname, default, *args, **kwargs):
     
     barcode = default
     if keyname in kwargs.keys():
-        barcode = kwargs[keyname]
+        barcode = str(kwargs[keyname])
     else:
         if len(args) > paramindex:
-            barcode = args[paramindex]
+            barcode = str(args[paramindex])
             paramindex +=1
             
     return paramindex, barcode
@@ -126,10 +126,10 @@ def get_input_from_args_optional(paramindex, keyname, default, *args, **kwargs):
 def get_output_path_from_args(paramindex, fs, data, keyname, default, *args, **kwargs):
     repseqs=default
     if keyname in kwargs.keys():
-        repseqs = kwargs[keyname]
+        repseqs = str(kwargs[keyname])
     else:
         if len(args) > paramindex:
-            repseqs = args[paramindex]
+            repseqs = str(args[paramindex])
             paramindex +=1
     
     if not repseqs:

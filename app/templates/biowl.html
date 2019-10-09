@@ -1266,7 +1266,7 @@
 </div>
 
 <div id="datasetView" class="container-fluid" aria-hidden="true" style="display:none">
-	<div class="col-sm-12">
+	<div class="col-sm-12" data-bind="visible : hasProperties">
 		<h4 class="datasetView-header">Properties</h4>
 		<div class="container-fluid datasetView-tab-area">
 			<div class="form-group" data-bind="visible: name">
@@ -1312,7 +1312,7 @@
 			 </div>
 		</div>
 	</div>
-	<div class="col-sm-12">
+	<div class="col-sm-12" data-bind="visible: hasDates">
 		<h4 class="datasetView-header">Dates</h4>
 		<div class="container-fluid datasetView-tab-area">
 			<div class="form-group" data-bind="visible: expires">
@@ -1333,7 +1333,7 @@
 			</div>
 		</div>
 	</div>			
-	<div class="col-sm-12">
+	<div class="col-sm-12" data-bind="visible : hasAuthor">
 		<h4 class="datasetView-header">Author</h4>
 		<div class="container-fluid datasetView-tab-area">
 			<div class="form-group" data-bind="visible: authGivenName">
@@ -1358,7 +1358,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="col-sm-12">
+	<div class="col-sm-12" data-bind="visible : hasCreator">
 		<h4 class="datasetView-header">Creator</h4>
 		<div class="container-fluid datasetView-tab-area">
 			<div class="form-group" data-bind="visible: crtGivenName">
@@ -1383,7 +1383,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="col-sm-12">
+	<div class="col-sm-12" data-bind="visible: hasProducer">
 		<h4 class="datasetView-header">Producer</h4>
 		<div class="container-fluid datasetView-tab-area">
 			<div class="form-group" data-bind="visible: prdcGivenName">
@@ -1408,7 +1408,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="col-sm-12">
+	<div class="col-sm-12" data-bind="visible: hasPublisher">
 		<h4 class="datasetView-header">Publisher</h4>
 		<div class="container-fluid datasetView-tab-area">
 			<div class="form-group" data-bind="visible: pblsGivenName">
@@ -1433,7 +1433,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="col-sm-12">
+	<div class="col-sm-12" data-bind="visible : hasEditor">
 		<h4 class="datasetView-header">Editor</h4>
 		<div class="container-fluid datasetView-tab-area">
 			<div class="form-group" data-bind="visible: edtGivenName">
@@ -4360,6 +4360,14 @@ function typeInTextarea(el, newText) {
 	   function DatasetviewViewModel(){
 			var self = this;
 			self.dataset = ko.observable();
+			self.hasProperties = ko.observable(false);
+			self.hasDates = ko.observable(false);
+			self.hasAuthor = ko.observable(false);
+			self.hasCreator = ko.observable(false);
+			self.hasProducer = ko.observable(false);
+			self.hasPublisher = ko.observable(false);
+			self.hasEditor = ko.observable(false);
+
 			self.name = ko.observable();
 			self.text = ko.observable();
 			self.url = ko.observable();
@@ -4409,7 +4417,89 @@ function typeInTextarea(el, newText) {
 
 			
 			self.load  = function(schema){
+				self.hasProperties(false);
+				self.hasPublisher(false);
+				self.hasProducer(false);
+				self.hasDates(false);
+				self.hasAuthor(false);
+				self.hasCreator(false);
+				self.hasEditor(false);
+
+				for (var key in schema) {
+					if (schema.hasOwnProperty(key)) {
+						var element = schema[key];
+						if(key == 'author' || key == 'creator' || key == 'editor' || key == 'publisher' || key == 'producer')
+						continue;
+						if(element !== "")
+						{
+							self.hasProperties(true);
+							break;
+						}
+					}
+				}
+
+				for (var key in schema.author) {
+					if (schema.author.hasOwnProperty(key)) {
+						var element = schema.author[key];
+						if(element !== "")
+						{
+							self.hasAuthor(true);
+							break;
+						}
+					}
+				}
+
+
+				for (var key in schema.editor) {
+					if (schema.editor.hasOwnProperty(key)) {
+						var element = schema.editor[key];
+						if(element !== "")
+						{
+							self.hasEditor(true);
+							break;
+						}
+					}
+				}
+
+				for (var key in schema.producer) {
+					if (schema.producer.hasOwnProperty(key)) {
+						var element = schema.producer[key];
+						if(element !== "")
+						{
+							self.hasProducer(true);
+							break;
+						}
+					}
+				}
+
+				for (var key in schema.publisher) {
+					if (schema.publisher.hasOwnProperty(key)) {
+						var element = schema.publisher[key];
+						if(element !== "")
+						{
+							self.hasPublisher(true);
+							break;
+						}
+					}
+				}
+
+				for (var key in schema.creator) {
+					if (schema.creator.hasOwnProperty(key)) {
+						var element = schema.creator[key];
+						if(element !== "")
+						{
+							self.hasCreator(true);
+							break;
+						}
+					}
+				}
+
+				if(schema.expires !== '' || schema.dateCreated !== '' || schema.dateModified !== '' || schema.datePublished !== ''){
+					self.hasDates(true);
+				}
+
 				self.dataset();
+				
 				self.name(schema.name);
 				self.text(schema.text);
 				self.url(schema.url);

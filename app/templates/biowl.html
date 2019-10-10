@@ -296,6 +296,7 @@
 								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
 								<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph</a></li>
 								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata</a></li>
+								<!-- <button class="close closeTab" type="button">×</button> -->
 								<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History</a></li>
 								<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser</a></li>
 								<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset</a></li>
@@ -1514,30 +1515,27 @@
 </div>
 
 <div id="filterhistoryView" class="container-fluid" aria-hidden="true" style="display:none">
-	<div class="container">
-		<div class="table-wrapper">
-			
-			<table class="table table-bordered">
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Filter</th>
-						<th>Creation Time</th>
-						<th>Actions</th>
-					</tr>
-				</thead>
-				<tbody data-bind="foreach: histories">
-					<tr>
-						<td scope="row" data-bind="text: name"></td>
-						<td data-bind="text: value"></td>
-						<td data-bind="text: created_on"></td>
-						<td>
-							<a title="Add" data-toggle="tooltip" data-bind="click: $parent.openFilterDialog.bind($data, true)"><i class="material-icons">&#xE03B;</i></a>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+	<div class="table-filterhistory">	
+		<table class="table table-bordered">
+			<thead class="filterhistory-thead">
+				<tr>
+					<th>Name</th>
+					<th>Filter</th>
+					<th>Creation Time</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody data-bind="foreach: histories">
+				<tr>
+					<td scope="row" data-bind="text: name"></td>
+					<td data-bind="text: value"></td>
+					<td data-bind="text: created_on"></td>
+					<td>
+						<a title="Add" data-toggle="tooltip" data-bind="click: $parent.openFilterDialog.bind($data, true)"><i class="material-icons">&#xE03B;</i></a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
 </div>
 

@@ -521,3 +521,19 @@ background-color: #337AB7;
  font-weight: bolder
  /* text-decoration:underline; */
 }
+
+.filterhistory-thead{
+  background-color: #99B3FA;
+}
+
+.table-filterhistory{
+  padding-top: 20px;
+}
+
+.table-filterhistory th {
+  text-align: center;
+}
+
+.table-filterhistory td {
+  text-align: center;
+}

@@ -4223,9 +4223,9 @@ function typeInTextarea(el, newText) {
    		 }
    		 
          // opens the filters dialog to define filters
-   		 self.openFilterDialog = function(item, isSave) {
+   		 self.openFilterDialog = function(isSave, item) {
 
-        	 historyFilters = item.value(); //JSON.parse(item.value());
+        	 historyFilters = JSON.parse(item.value());
         	 if (!historyFilters)
         		  return;
         	 

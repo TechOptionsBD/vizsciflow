@@ -19,7 +19,7 @@ def prepare_args(fs, data1, data2, output, *args):
         extensions = output[separator_index + 1:]
         output = fs.unique_filename(os.path.dirname(output), os.path.basename(stem), extensions)
         
-    cmdargs.append("-o {0}".format(output))
+    cmdargs.append("-o {0}".format(fs.normalize_path(output)))
     
 #     for arg in args[3:]:
 #         cmdargs.append(arg)

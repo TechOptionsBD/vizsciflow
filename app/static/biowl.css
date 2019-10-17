@@ -515,6 +515,7 @@ background-color: #337AB7;
 
 .browseritem-hover{
   background-color: #B4E7FF;
+  cursor: pointer;
 }
 
 .highlight{

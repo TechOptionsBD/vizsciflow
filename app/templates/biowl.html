@@ -3706,8 +3706,23 @@ function typeInTextarea(el, newText) {
 			self.openInNewTab = function(data, event){
 				
 				if(ko.utils.unwrapObservable(data.dataType) == 'folder'){
+
+					var item = dataSourceViewModel.getItemByPath(dataSourceViewModel.dataSources()[0], ko.utils.unwrapObservable(data.originalPath));
+					var treeNodes =$("#tree").jstree(true).get_json('#', {'flat': true});
+					
+					for (var index = 0; index < treeNodes.length; index++) {
+						var node = treeNodes[index];
+						var targetNode = $("#tree").jstree(true).get_node(node.id);
+
+						if(targetNode.original.path == item.path){
+							$("#tree").jstree("deselect_all");
+							$("#tree").jstree(true).select_node(targetNode);
+							break;
+						}
+					}
 					return;
 				}
+
 				$.redirect(self.dataSourcesURI, { 'download': ko.utils.unwrapObservable(data.originalPath)}, "POST", "_blank");
 				
 			};

@@ -1533,6 +1533,7 @@
 					<td data-bind="text: created_on"></td>
 					<td>
 						<a title="Add" data-toggle="tooltip" data-bind="click: $parent.openFilterDialog.bind($data, true)"><i class="material-icons">&#xE03B;</i></a>
+						<a title="Delete" data-toggle="tooltip" data-bind="click: $parent.deleteFilter.bind($data)"><i class="fa fa-trash"></i></a>
 					</td>
 				</tr>
 			</tbody>
@@ -4230,7 +4231,13 @@ function typeInTextarea(el, newText) {
           
           self.openFilterDialog = function(isSave, item) {
         	  self.openFilterDialogInternal(isSave, item.value());
-          }
+          };
+
+		  self.deleteFilter = function (item, element) {
+			   ajaxcalls.simple(self.filterURI, 'POST', { 'delete': item.id()}).done(function (data) {
+				   $(element.currentTarget).parent().parent('tr').remove();
+			   });
+		   };
           
          // opens the filters dialog to define filters
    		 self.openFilterDialogInternal = function(isSave, item) {

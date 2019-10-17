@@ -537,3 +537,7 @@ background-color: #337AB7;
 .table-filterhistory td {
   text-align: center;
 }
+
+.fa-trash {
+  color: #d43f3a;
+}

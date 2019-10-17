@@ -175,7 +175,7 @@
 					</div>
 				</div> 
 				<div class="panel-body" style="max-height: 200px; overflow-y: auto;" data-bind="foreach: savedFilters">
-					<div class="col savedfilter-item" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openSavedFilterDialog, 'To Editor': $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col savedfilter-item" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openSavedFilterDialog, 'To Editor': $parent.copyToEditor, 'Delete' : $parent.deleteSavedFilter}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
 						<span data-bind="text: name"></span>
 					</div>
 				</div>
@@ -1533,7 +1533,7 @@
 					<td data-bind="text: created_on"></td>
 					<td>
 						<a title="Add" data-toggle="tooltip" data-bind="click: $parent.openFilterDialog.bind($data, true)"><i class="material-icons">&#xE03B;</i></a>
-						<a title="Delete" data-toggle="tooltip" data-bind="click: $parent.deleteFilter.bind($data)"><i class="fa fa-trash"></i></a>
+						<!-- <a title="Delete" data-toggle="tooltip" data-bind="click: $parent.deleteFilter.bind($data)"><i class="fa fa-trash"></i></a> -->
 					</td>
 				</tr>
 			</tbody>
@@ -4233,9 +4233,9 @@ function typeInTextarea(el, newText) {
         	  self.openFilterDialogInternal(isSave, item.value());
           };
 
-		  self.deleteFilter = function (item, element) {
+		  self.deleteSavedFilter = function (item, element) {
 			   ajaxcalls.simple(self.filterURI, 'POST', { 'delete': item.id()}).done(function (data) {
-				   $(element.currentTarget).parent().parent('tr').remove();
+				self.loadSavedFilters();
 			   });
 		   };
           

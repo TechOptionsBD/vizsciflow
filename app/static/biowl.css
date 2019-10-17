@@ -505,6 +505,7 @@ background-color: #337AB7;
   display: block;
   padding: 10px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .filterdialog-header{

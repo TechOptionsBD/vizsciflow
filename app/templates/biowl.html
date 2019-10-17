@@ -1259,9 +1259,10 @@
 <div id="browserView" class="container-fluid" aria-hidden="true" style="display:none">
 	<div class="col-sm-12" data-bind="foreach : browserItems">
 		<div class="col-sm-6 form-group" data-bind="event : {dblclick: $parent.openInNewTab.bind($data)}, browserItemHover : $data">
-			<img height="50rem" width="45rem" data-bind="attr: {src: imgPath, alt: itemName}">
-			<!-- <i data-bind="class: imgPath"></i> -->
-			<label data-bind="text: itemName"></label>
+			<figure style="display: inline-block">
+				<img height="50rem" width="45rem" data-bind="attr: {src: imgPath, alt: itemName}">
+				<figcaption data-bind="text: itemName"></figcaption>
+			</figure>
 		</div>
 	</div>
 </div>
@@ -3695,8 +3696,8 @@ function typeInTextarea(el, newText) {
 			var self = this;
 			self.dataSourcesURI = '/datasources';
 			self.browserItems = ko.observableArray();
-			self.folderImgPath = "{{ url_for('static', filename='icon-folders.jpg') }}";
-			self.fileImgPath = "{{ url_for('static', filename='icon-image-file-3.jpg') }}";
+			self.folderImgPath = "{{ url_for('static', filename='folder_Icon_blue.png') }}";
+			self.fileImgPath = "{{ url_for('static', filename='file_icon_blue.png') }}";
 			self.imageTypes = ["png", "jpg", "jpeg", "bmp", "gif", "ico", "ief", "jpe", "pbm", "pgm", "jng","nef",
 								 "orf", "psd", "art","pnm", "ppm", "rab", "rgb","svg","tif", "tiff", "xbm", "xpm","xwd", "jp2",
 								 "jpm", "jpx", "jpf", "pcx", "svgz", "djvu","djv", "pat", "cr2", "crw", "cdr", "cdt", "erf", "wbmp"];

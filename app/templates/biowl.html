@@ -4351,7 +4351,7 @@ function typeInTextarea(el, newText) {
    				if (data === undefined)
 					return;
    				
-   				self.histories([]);
+   				self.savedFilters([]);
                 $.each(data['histories'], function(i, s){
                     self.savedFilters.push({
                     	id: ko.observable(s.id),

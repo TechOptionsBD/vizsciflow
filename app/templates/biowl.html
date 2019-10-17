@@ -175,7 +175,7 @@
 					</div>
 				</div> 
 				<div class="panel-body" style="max-height: 200px; overflow-y: auto;" data-bind="foreach: savedFilters">
-					<div class="col savedfilter-item" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openFilterDialog, 'To Editor': $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col savedfilter-item" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openSavedFilterDialog, 'To Editor': $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
 						<span data-bind="text: name"></span>
 					</div>
 				</div>
@@ -4222,10 +4222,19 @@ function typeInTextarea(el, newText) {
    			 }
    		 }
    		 
+          self.openSavedFilterDialog = function(item) {
+        	  self.name(item.name());
+        	  self.openFilterDialogInternal(true, ko.toJSON(item.value()));
+          }
+          
+          self.openFilterDialog = function(isSave, item) {
+        	  self.openFilterDialogInternal(isSave, item.value());
+          }
+          
          // opens the filters dialog to define filters
-   		 self.openFilterDialog = function(isSave, item) {
+   		 self.openFilterDialogInternal = function(isSave, item) {
 
-        	 historyFilters = JSON.parse(item.value());
+        	 historyFilters = JSON.parse(item);
         	 if (!historyFilters)
         		  return;
         	 
@@ -4244,7 +4253,9 @@ function typeInTextarea(el, newText) {
    					f.sort(historyFilter.sort);
    				 }
    			 });
-        	self.name("");
+        	
+        	
+        	//self.name("");
    			
    			dataSourceViewModel.openFilterDialog(isSave);
    		 }

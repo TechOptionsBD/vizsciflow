@@ -572,6 +572,10 @@ def save_filters(name, filters):
     Filter.add(current_user.id, name, filters)
     return ""
 
+def delete_filter(filter_id):
+    Filter.remove(filter_id)
+    return ""
+
 def load_datasets():
     datasets = Dataset.query.all()
     jsondatasets = []
@@ -613,7 +617,8 @@ def filters():
         return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filterforscript')))
     elif request.args.get('applyfilters'):
         return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('applyfilters')) })
-
+    elif request.args.get('delete'):
+        return json.dumps(delete_filter(request.args.get('delete')))
 
 @main.route('/datasets', methods=['GET', 'POST'])
 @login_required

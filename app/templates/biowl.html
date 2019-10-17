@@ -4234,7 +4234,7 @@ function typeInTextarea(el, newText) {
           };
 
 		  self.deleteSavedFilter = function (item, element) {
-			   ajaxcalls.simple(self.filterURI, 'POST', { 'delete': item.id()}).done(function (data) {
+			   ajaxcalls.simple(self.filterURI, 'GET', { 'delete': item.id()}).done(function (data) {
 				self.loadSavedFilters();
 			   });
 		   };

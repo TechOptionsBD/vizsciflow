@@ -1095,6 +1095,15 @@ class Filter(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+        
+    @staticmethod
+    def remove(filter_id):
+        try:
+            Filter.query.filter_by(id = filter_id).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
     
     def name_from_value(self):
         name = ""

@@ -145,7 +145,7 @@
                                 <div class="dataset-listview" data-bind="click: $parent.click.bind($data),  datasetHover : $data">
 									<label class="dataset-item-label">
 										<h4 data-bind="text: name, searchTextMatch : $data"></h4>
-										<span data-bind="text: url, searchTextMatch : $data" style="margin-left: 10px"></span><br>
+										<a data-bind="attr: {href: 'http://' + url} ,text: url, searchTextMatch : $data" style="margin-left: 10px" target="_blank"></a><br>
 										<span data-bind="text: description, searchTextMatch : $data" style="margin-left: 10px"></span>
 									</label>
 								</div>
@@ -535,61 +535,73 @@
 	</div>
 </div>
 
-<div id="add" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="width: 560px; height: 640px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
-    <div class="modal-header addsService-modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" title="close">&times;</button>
-        <h3 id="addDialogLabel">Add Service</h3>
-    </div>
-    <div class="modal-body">
-    	
-        <form class="form-horizontal">
-            <div class="control-group">
-                <div class="controls">
-                 	<label class="control-label" for="package">Package</label>
-                    <input data-bind="value: name" type="text" id="package" placeholder="{{username}}" >
-                </div>
-                <div class="controls">                    
-                	<label class="control-label" for="organization">Organization</label>
-                    	<input data-bind="value: org" type="text" id="organization" placeholder="Org" style="width: 200px;">
-                </div>
-            	<div class="controls">
-	                <label class="control-label" for="module">Module</label><input type="file" id="module">
-             	</div>
-
-				<div id="exTabService" class="controls">
-					<ul class="nav nav-tabs">
-						<li class="active"><a href="#service1" data-toggle="tab">Script</a></li>
-						<li><a href="#service2" data-toggle="tab">JSON Mapper</a></li>
-					</ul>
-					<div class="tab-content ">
-						<div class="tab-pane fade in active" id="service1">
-							<textarea rows="10" style="width: 540px;" id="servicescript"></textarea>
-							<br>
-						</div>
-						<div class="tab-pane fade" id="service2">
-							<div style="width: 540px;" id="mapper"></div>
-							<br>
-						</div>
+<div id="add" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="overflow-y: auto;">
+	<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+	  <div class="modal-content">
+		<div class="modal-header addsService-modal-header">
+		  <h3 id="addDialogLabel" class="modal-title">Add Service</h3>
+		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		  </button>
+		</div>
+		<div class="modal-body">
+			<form role="form">
+				<div class="row service-form-group">
+					<label class="col-sm-2" for="package">Package</label>
+					<div class="col-sm-6">
+						<input type="text" class="form-control" id="package" data-bind="value: name" placeholder="{{username}}">
 					</div>
 				</div>
-                <div class="controls">
-                 <label class="control-label" for="pippkgs">pip Install</label>
-                 <input data-bind="value: pippkgs" type="text" id="pippkgs" placeholder="" style="width: 200px;">
-                </div>
-             	<div class="controls">
-                	<label class="control-label" for="access">Shared</label>
-             	   	<input type="checkbox" id="access" data-bind="checked: access" />
-             	</div>
-        	</div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
-        <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
-        <div><span class="label label-default" id="add-library-info"></span></div>
-    </div>
-    
-</div>
+				<div class="row service-form-group">
+					<label class="col-sm-2" for="organization">Organization</label>
+					<div class="col-sm-6">
+						<input id="organization" class="form-control" type="text" data-bind="value: org" placeholder="Organization">
+					</div>
+				</div>
+				<div class="row service-form-group">
+					<label class="col-sm-2" for="module">Module</label>
+					<div class="col-sm-6">
+						<input type="file" class="form-control-file" id="module">
+					</div>
+				</div>
+			</form>
+			<br>
+			<div id="exTabService" class="controls">
+				<ul class="nav nav-tabs">
+					<li class="active"><a href="#service1" data-toggle="tab">Script</a></li>
+					<li><a href="#service2" data-toggle="tab">JSON Mapper</a></li>
+				</ul>
+				<div class="tab-content ">
+					<div class="tab-pane fade in active" id="service1">
+						<textarea rows="10" style="width: inherit" id="servicescript"></textarea>
+						<br>
+					</div>
+					<div class="tab-pane fade" id="service2">
+						<div style="width: inherit;" id="mapper"></div>
+						<br>
+					</div>
+				</div>
+			</div>
+			<div class="row service-form-group">
+				<label class="col-sm-2" for="pippkgs">pip Install</label>
+				<div class="col-sm-4">
+					<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
+				</div>
+				<label class="col-sm-1" for="access">Shared</label>
+				<div class="col-sm-4">
+					<input type="checkbox" id="access" data-bind="checked: access">
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+		  <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
+          <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
+          <span class="label label-default" id="add-library-info"></span>
+		</div>
+	  </div>
+	</div>
+  </div>
+
 <div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 580px; height: 700px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -3405,7 +3417,7 @@ function typeInTextarea(el, newText) {
             var mapperDiv = $('<div>', {
                 position: 'absolute',
                 id: 'aceeditor',
-                width: mapperArea.width(),
+                width: '100%',
                 height: height,//mapperArea.height(),
                 'class': mapperArea.attr('class'),
                 'css': 'border:2px solid black'
@@ -3499,8 +3511,8 @@ function typeInTextarea(el, newText) {
             self.access = ko.observable();
             self.pippkgs = ko.observable();
  			
-			self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 200);
-			self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 200);
+			self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 350);
+			self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
 			
 			self.checkFunction = function() {
 				var formdata = new FormData();

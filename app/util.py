@@ -137,12 +137,12 @@ class Utility:
     @staticmethod
     def get_normalized_path(path):
         fs = Utility.fs_by_prefix_or_default(path)
-        return fs.normalize_path(path)
+        return fs.normalize_path(str(path))
     
     @staticmethod
     def strip_root(path):
         fs = Utility.fs_by_prefix_or_default(path)
-        return fs.strip_root(path)
+        return fs.strip_root(str(path))
 
     @staticmethod
     def add_meta_data(data, user_id, runnable_id, task_id, rights = AccessRights.Owner, datatype = DataType.Text):

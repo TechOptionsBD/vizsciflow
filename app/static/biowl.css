@@ -548,3 +548,126 @@ background-color: #337AB7;
   margin-top: 5px ;
   margin-bottom: 5px;
 }
+
+.div-browser-items{
+  max-height: 68%;
+  min-height: 68%;
+  overflow-y: auto;
+}
+.owl-carousel{
+  border-color: #e3e6f0;
+  border-radius: 5px;
+}
+hr {
+ margin-top: 10px;
+ margin-bottom: 10px;
+ border-block-color:  #99b3fa;
+ text-shadow: 2px 2px 2px  rgb(153, 179, 250);
+}
+
+.owl-theme .owl-controls .owl-page {
+  display: inline-block;
+}
+.owl-theme .owl-controls .owl-page span {
+  background: none repeat scroll 0 0 #869791;
+  border-radius: 20px;
+  display: block;
+  height: 12px;
+  margin: 5px 7px;
+  opacity: 0.5;
+  width: 12px;
+}
+
+#browserItemModal .modal-body{
+  background: transparent;
+}
+
+#browserItemModal .modal-header{
+  background-color: #337AB7;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+}
+
+.browser-panel-heading{
+  color: white;
+  background-color: #8AC5F8;
+  text-align: right;
+  margin-bottom: 10px;
+  padding-right: 15px;
+}
+
+.browser-details-view{
+  position: relative; 
+  height: inherit; 
+  overflow-y: auto;
+}
+
+.browser-list-view{
+  overflow-y: auto;
+  /* height: inherit; */
+}
+
+.owl-item{
+  text-align: center;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 5px;
+}
+
+/* .owl-item :hover{
+  transform: scale3d(1.1,1.1,1.1);
+  box-shadow: 0 0 6px rgba(35, 173, 278, 1);
+} */
+
+.owl-item-focus{
+  transform: scale(1.1);
+  box-shadow: 0 0 6px 3px #7794e6;
+}
+
+.owl-prev {
+  width: 15px;
+  height: 44px;
+  position: absolute;
+  top: 26%;
+  left: 6px;
+  display: block !important;
+  border:0px solid black;
+}
+
+.owl-next {
+  width: 15px;
+  height: 44px;
+  position: absolute;
+  top: 26%;
+  right: 5px;
+  display: block !important;
+  border:0px solid black;
+}
+.owl-prev i, .owl-next i {
+  transform : scale(1,6); 
+  color: #337AB7;
+}
+
+.owl-stage-outer{
+  margin: 10px;
+}
+
+.owl-nav {
+  display: block !important;
+}
+
+
+.fa-times{
+  color: #d43f3a;
+}
+
+center {
+  display: block;
+  margin: 0 auto;
+}
+
+/* iframe {
+  display: block;
+  margin: 0 auto;
+} */

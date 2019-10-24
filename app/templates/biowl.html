@@ -13,6 +13,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round|Open+Sans">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css">
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
@@ -26,12 +29,21 @@
 <script src="http://d3js.org/d3.v4.min.js" type="text/javascript"></script>
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/knockout.contextmenu@1.0.0/src/knockout.contextmenu.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/ko.observableDictionary.js') }}"></script>
 <!-- <script type='text/javascript' src="https://raw.github.com/jamesfoster/knockout.observableDictionary/master/ko.observableDictionary.js"></script> -->
+
+<!-- app js files -->
+<script src="/static/app.js/browserViewModel.js"></script>
+<script src="/static/app.js/datasetsViewModel.js"></script>
+<script src="/static/app.js/datasetAddViewModel.js"></script>
+<script src="/static/app.js/datasetviewViewModel.js"></script>
+<script src="/static/app.js/document.ready.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 {% endblock %}
@@ -313,8 +325,13 @@
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="filterhistorytab">
 								
 							</div>
-							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="browsertab">
-
+							<div class="tab-pane fade in scriptstyle" id="browsertab">
+								<div class="browser-panel-heading">
+									<label class="radio-inline"> <input type="radio" name="browserTabView" value="0" checked="checked"
+											autocomplete="off">&nbsp; List View</label>
+									<label class="radio-inline"> <input type="radio" name="browserTabView" value="1"
+											autocomplete="off">&nbsp; Details View</label>
+								</div>
 							</div>
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="datasettab">
 
@@ -1268,14 +1285,41 @@
 <!-- 	</div> -->
 <!-- </div> -->
 
-<div id="browserView" class="container-fluid" aria-hidden="true" style="display:none">
-	<div class="col-sm-12" data-bind="foreach : browserItems">
+<div class="modal fade" id="browserItemModal" tabindex="-1" role="dialog" aria-labelledby="browserItemModal"
+	aria-hidden="true">
+	<div class="modal-dialog modal-lg modal-xl" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Modal title</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<img id="browserImagePopup" class="center" src="" alt="">
+				<iframe id="browserItemPopup" class="center" src="" frameborder="0"></iframe>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="browserView" class="container-fluid" aria-hidden="true" style="display:none; ">
+	<div id="browserViewList" class="col-sm-12 border border-primary" data-bind="foreach : browserItems">
 		<div class="col-sm-6 form-group" data-bind="event : {dblclick: $parent.openInNewTab.bind($data)}, browserItemHover : $data">
 			<figure style="display: inline-block">
 				<img height="50rem" width="45rem" data-bind="attr: {src: imgPath, alt: itemName}">
 				<figcaption data-bind="text: itemName"></figcaption>
 			</figure>
 		</div>
+	</div>
+	<div class="col-sm-12" data-bind="visible: !isListView()">
+		<hr>
+	</div>
+	<div id="browserTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="visible: !isListView()">
+		
 	</div>
 </div>
 
@@ -1682,7 +1726,22 @@
                  editor.focus();
              }
          });
-    }
+    };
+
+	function showBrowserItemModal(itemSrc, itemName) {
+			$("#browserItemModal").find('h5').html(itemName);
+			var iframe = $("#browserItemModal").find('iframe');
+
+			$(iframe).attr('src', itemSrc);
+			$(iframe).css('height', $('.div-browser-items').height()).css('width', $('.div-browser-items').width());
+
+			setTimeout(function () {
+				$('#browserItemModal').modal('show');
+			}, 200);
+
+	}
+
+	
 	
     $(window).on('load', function() {
     	 
@@ -1744,99 +1803,7 @@
             });
         });
 		
-        $(document).ready(function() {
-            
-			$("#dataSets-addNew-dialog").css("left", $(window).width()/4);
-
-			$("input[name=dataSourcesTab]").on("click", function(e){
-				
-				switch (e.currentTarget.value) {
-					case "0":
-						$("#dataSourcesPanel").show();
-						$("#dataSetsPanel").hide();
-						$("#liBrowserTab").siblings('li').removeClass("active");
-						$("#liBrowserTab").addClass("active");
-						$("#browsertab").siblings("div").removeClass("active");
-						$("#browsertab").addClass("active in");
-						if ($("#browserView").parent('div#browsertab').length == 0) {
-							$('#browsertab').append($("#browserView"));
-							$("#browserView").show();
-						}
-							break;
-					case "1":
-						$("#dataSourcesPanel").hide();
-						$("#dataSetsPanel").show();
-						$("#liDataset").siblings('li').removeClass("active");
-						$("#liDataset").addClass("active");
-						$("#datasettab").siblings('div').removeClass("active");
-						$("#datasettab").addClass("active in");
-						if ($("#datasetView").parent('div#datasettab').length == 0) {
-							$('#datasettab').append($("#datasetView"));
-							$("#datasetView").show();
-						}
-						break;
-					default:
-						$("#dataSourcesPanel").show();
-						$("#dataSetsPanel").hide();
-						break;
-				}
-			});
-			
-			$("#graphtab").css('height', $("#scripttab").css('height'));
-
-            $('.menu_button').click(function() {
-          		$(this).addClass('selected').siblings().removeClass('selected')
-        	});
-            
-            var runBioWL = $("#runBioWL");
-            $(runBioWL).on('click', function(){
-            	$(".extab2-tab-content").css("min-height","168px");
-            });
-            
-            var logTab = $(".log-tab");
-            $(logTab).css('height','150px');
-            
-          //Toggle fullscreen
-            $("#panel-fullscreen").click(function (e) {
-                e.preventDefault();
-                
-                var $this = $(this);
-            
-                if ($this.children('i').hasClass('glyphicon-resize-full'))
-                {
-                    $this.children('i').removeClass('glyphicon-resize-full');
-                    $this.children('i').addClass('glyphicon-resize-small');
-                }
-                else if ($this.children('i').hasClass('glyphicon-resize-small'))
-                {
-                    $this.children('i').removeClass('glyphicon-resize-small');
-                    $this.children('i').addClass('glyphicon-resize-full');
-                }
-                $(this).closest('.panel').toggleClass('panel-fullscreen');
-                editor.resize();
-            });
-          
-            $("#panel-about").click(function (e) {
-                e.preventDefault();
-   				window.open("static/biodsl-help.html#syntax", '_blank');
-            });
-            
-            $("#panel-fontsize a").on('click', function (e) {
-                e.preventDefault();
-   				
-   				editor.setFontSize($(e.target).text() + 'pt');
-            });
-            
-			// $("#tree").on("search.jstree", function (e, data) {
-			// 	$('.jstree-open').on("dragstart", function (e) {
-			// 		e.stopPropagation();
-			// 		var nodeId = e.target.id.replace("_anchor", "");
-			// 		var node = $("#tree").jstree(true).get_node(nodeId);
-			// 		e.originalEvent.dataTransfer.setData("text/plain", node.original.path);
-			// 	});
-			// });
-            
-        });
+        
         
     });
 
@@ -2597,148 +2564,6 @@ function typeInTextarea(el, newText) {
 //         $('#rename-filefolder-text').focus();
 //     });
 		
-
-	function DatasetsViewModel() {
-		var self = this;
-		self.datasets = ko.observableArray();
-		self.datasetsURI = '/datasets';
-		self.datasetFilter = ko.observable("");
-		self.filteredDatasets = ko.computed(function(){
-			 return this.datasets().filter(function(dataset){
-				 if(!self.datasetFilter() || dataset.name.toLowerCase().indexOf(self.datasetFilter().toLowerCase()) !== -1
-	       		   || dataset.url.toLowerCase().indexOf(self.datasetFilter().toLowerCase()) !== -1
-	       		   || dataset.description.toLowerCase().indexOf(self.datasetFilter().toLowerCase()) !== -1)
-	            return dataset;
-	      	});
-		 },this);
-
-		self.selectedSchema = {};
-
-		self.addNew = function(){
-			datasetAddViewModel.isUpdate(false);
-			$('#dataSets-addNew-dialog').modal('show');
-		};
-
-		self.update = function(dataset){
-			
-			if(!self.selectedSchema || !self.selectedSchema.id){
-				return;
-			}
-			dataset.id = self.selectedSchema.id;
-			
-			ajaxcalls.simple(self.datasetsURI, 'GET', {'update': ko.toJSON(dataset), 'update_id': self.selectedSchema.id}).done(function(){
-				self.load();
-			});
-		}
-		
-		self.saveNew = function(dataset){
-			
-			ajaxcalls.simple(self.datasetsURI, 'GET', { 'save': ko.toJSON(dataset) })
-			.done(function (data) {
-				self.load();
-			});
-		}
-
-		self.about = function () {
-			window.open("static/biodsl-help.html#datasources", '_blank');
-		};
-
-		//ajax call to api to load the datasets
-		self.load = function () {
-			ajaxcalls.simple(self.datasetsURI, 'GET')
-			.done(function (data) {
-
-				self.datasets([]);
-                $.each(data.datasets, function(i, s){
-                	var dataset = s.schema;
-                	dataset.id = s.id;
-                    self.datasets.push(dataset);
-                });
-                
-			}).fail(function (jqXHR) {
-				showXHRText(jqXHR);
-			});
-		};
-
-		self.click = function(schema, element){
-            $('.dataset-listview').removeClass('dataset-listview-selected');
-			$(element.currentTarget).addClass('dataset-listview-selected');
-			self.selectedSchema = schema;
-			showDatasetTab(schema);
-		};
-
-		self.deleteSchema = function(){
-
-			if($('.dataset-listview-selected').length == 0 || !self.selectedSchema || !self.selectedSchema.id){
-				return;
-			}
-			//api call to delete schema
-			ajaxcalls.simple(self.datasetsURI, 'GET', {'delete': self.selectedSchema.id}).done(function (data) {
-				self.load();
-			});
-		};
-
-		self.editSchema = function(){
-			if($('.dataset-listview-selected').length == 0){
-				return;
-			}
-			datasetAddViewModel.parseFileDataToViewModel(ko.toJSON(self.selectedSchema));
-			$('#dataSets-addNew-dialog').modal('show');
-			datasetAddViewModel.isUpdate(true);
-		};
-
-		self.load();
-	};
-    
-	ko.bindingHandlers.searchTextMatch = {
-		init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-			
-			var searchText = ko.utils.unwrapObservable(datasetsViewModel.datasetFilter());
-			var eleText = $(element).html();
-			var refresheEleText = eleText.replace('<span class="highlight">', '').replace('</span>', '');
-
-			if (!searchText) {
-				$(element).html(refresheEleText);
-				return;
-			}
-			
-			var pattern = refresheEleText.match(new RegExp(searchText, 'gi'));  //new RegExp("(" + searchText + ")");
-			var higlightedText = refresheEleText.replace(pattern, '<span class="highlight">' + pattern + '</span>');
-			$(element).html(higlightedText);
-
-
-		},
-		update:  function(element, valueAccessor, allBindings, viewModel, bindingContext) {
-			
-			var searchText = ko.utils.unwrapObservable(datasetsViewModel.datasetFilter());
-			var eleText = $(element).html();
-			var refresheEleText = eleText.replace('<span class="highlight">', '').replace('</span>', '');
-			
-			if (!searchText) {
-				$(element).html(refresheEleText);
-				return;
-			}
-
-			var pattern = refresheEleText.match(new RegExp(searchText, 'gi')); //new RegExp("(" + searchText + ")");
-			var higlightedText = refresheEleText.replace(pattern, '<span class="highlight">' + pattern + '</span>');
-			$(element).html(higlightedText);
-
-
-		}
-	}
-
-	ko.bindingHandlers.datasetHover = {
-			init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
-
-				$(element).mouseover(function () {
-					$('.dataset-listview').removeClass('dataset-listview-hover');
-					$(element).addClass('dataset-listview-hover');
-				});
-				$(element).mouseleave(function(){
-					$('.dataset-listview').removeClass('dataset-listview-hover');
-				});
-			}
-	};
 
     // configure ace.js for code editor
     var langTools = ace.require("ace/ext/language_tools");
@@ -3705,187 +3530,11 @@ function typeInTextarea(el, newText) {
             }
         }
 
-		function BrowserViewModel (){
-			var self = this;
-			self.dataSourcesURI = '/datasources';
-			self.browserItems = ko.observableArray();
-			self.folderImgPath = "{{ url_for('static', filename='folder_Icon_blue.png') }}";
-			self.fileImgPath = "{{ url_for('static', filename='file_icon_blue.png') }}";
-			self.imageTypes = ["png", "jpg", "jpeg", "bmp", "gif", "ico", "ief", "jpe", "pbm", "pgm", "jng","nef",
-								 "orf", "psd", "art","pnm", "ppm", "rab", "rgb","svg","tif", "tiff", "xbm", "xpm","xwd", "jp2",
-								 "jpm", "jpx", "jpf", "pcx", "svgz", "djvu","djv", "pat", "cr2", "crw", "cdr", "cdt", "erf", "wbmp"];
-
-			self.openInNewTab = function(data, event){
-				
-				if(ko.utils.unwrapObservable(data.dataType) == 'folder'){
-
-					var item = dataSourceViewModel.getItemByPath(dataSourceViewModel.dataSources()[0], ko.utils.unwrapObservable(data.originalPath));
-					var treeNodes =$("#tree").jstree(true).get_json('#', {'flat': true});
-					
-					for (var index = 0; index < treeNodes.length; index++) {
-						var node = treeNodes[index];
-						var targetNode = $("#tree").jstree(true).get_node(node.id);
-
-						if(targetNode.original.path == item.path){
-							$("#tree").jstree("deselect_all");
-							$("#tree").jstree(true).select_node(targetNode);
-							break;
-						}
-					}
-					return;
-				}
-
-				$.redirect(self.dataSourcesURI, { 'download': ko.utils.unwrapObservable(data.originalPath)}, "POST", "_blank");
-				
-			};
-
-			self.loadItems = function(data) {
-				self.browserItems([]);
-			
-				if (data.children.length == 0) {
-
-					var imgUrl = data.type == "folder"? self.folderImgPath  : self.fileImgPath;
-
-					
-					if (data.type == "file") {
-						var fileType = data.text.substring(data.text.lastIndexOf('.')+1,data.text.length) || data.text; 
-						
-						if (self.imageTypes.includes(fileType)) {
-
-							// var req = ajaxcalls.simpleByteDataTest(self.dataSourcesURI, 'GET', 'filecontent=' + data.original.path, true, fileType);
-
-							var oReq = new XMLHttpRequest();
-							oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.original.path, true);
-							oReq.responseType = "arraybuffer";
-							var imgType = "image/" + fileType;
-							
-							oReq.onload = function (oEvent) {
-								if (this.status == 200) {
-									var arrayBuffer = oReq.response;
-									var byteArray = new Uint8Array(arrayBuffer);
-
-									var blob = new Blob([arrayBuffer], { type: imgType });
-									imgUrl = URL.createObjectURL(blob);
-									self.browserItems.push(
-										{
-											imgPath: ko.observable(imgUrl),
-											itemName: ko.observable(data.text),
-											originalPath: ko.observable(data.original.path),
-											dataType: ko.observable(data.type)
-										}
-									);
-								}
-							};
-
-							oReq.send();
-						}
-						else {
-							self.browserItems.push(
-								{
-									imgPath: ko.observable(imgUrl),
-									itemName: ko.observable(data.text),
-									originalPath: ko.observable(data.original.path),
-									dataType: ko.observable(data.type)
-								}
-							);
-						}
-					}
-					else {
-						self.browserItems.push(
-							{
-								imgPath: ko.observable(imgUrl),
-								itemName: ko.observable(data.text),
-								originalPath: ko.observable(data.original.path),
-								dataType: ko.observable(data.type)
-							}
-						);
-					}
-					
-					
-				}
-				else {
-					data.children.forEach(function (child) {
-						
-						var childNode = $("#tree").jstree(true).get_node(child);
-						var imgUrl = childNode.type == "folder" ? self.folderImgPath : self.fileImgPath;
-
-						if (childNode.type == "file") {
-							var fileType = childNode.text.substring(childNode.text.lastIndexOf('.') + 1, childNode.text.length) || childNode.text;
-
-							if (self.imageTypes.includes(fileType)) {
-
-								// var req = ajaxcalls.simpleByteDataTest(self.dataSourcesURI, 'GET', 'filecontent=' + childNode.original.path, true, fileType);
-
-								var oReq = new XMLHttpRequest();
-								oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + childNode.original.path, true);
-								oReq.responseType = "arraybuffer";
-								var imgType = "image/" + fileType;
-
-								oReq.onload = function (oEvent) {
-									if (this.status == 200) {
-										var arrayBuffer = oReq.response;
-										var byteArray = new Uint8Array(arrayBuffer);
-
-										var blob = new Blob([arrayBuffer], { type: imgType });
-										imgUrl = URL.createObjectURL(blob);
-										self.browserItems.push(
-											{
-												imgPath: ko.observable(imgUrl),
-												itemName: ko.observable(childNode.text),
-												originalPath: ko.observable(childNode.original.path),
-												dataType: ko.observable(childNode.type)
-											}
-										);
-									}
-								};
-
-								oReq.send();
-							}
-							else {
-								self.browserItems.push(
-									{
-										imgPath: ko.observable(imgUrl),
-										itemName: ko.observable(childNode.text),
-										originalPath: ko.observable(childNode.original.path),
-										dataType: ko.observable(childNode.type)
-									}
-								);
-							}
-						}
-						else {
-							self.browserItems.push(
-								{
-									imgPath: ko.observable(imgUrl),
-									itemName: ko.observable(childNode.text),
-									originalPath: ko.observable(childNode.original.path),
-									dataType: ko.observable(childNode.type)
-								}
-							);
-						}
-
-					});
-
-				}
-			};
-
-		};
-
-		ko.bindingHandlers.browserItemHover = {
-				init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
-
-					$(element).mouseover(function () {
-						$(element).siblings().removeClass('browseritem-hover');
-						$(element).addClass('browseritem-hover');
-					});
-					$(element).mouseleave(function () {
-						$(element).removeClass('browseritem-hover');
-					});
-				}
-			};
-
+		// Browser ViewModel binding
 		var browserViewModel = new BrowserViewModel();
 
 		ko.applyBindings(browserViewModel, $("#browserView")[0]);
+
 
 		function loadBrowserData(data) {
 			browserViewModel.loadItems(data);
@@ -4401,196 +4050,7 @@ function typeInTextarea(el, newText) {
       }
 	   
 
-	   function DatasetviewViewModel(){
-			var self = this;
-			self.dataset = ko.observable();
-			self.hasProperties = ko.observable(false);
-			self.hasDates = ko.observable(false);
-			self.hasAuthor = ko.observable(false);
-			self.hasCreator = ko.observable(false);
-			self.hasProducer = ko.observable(false);
-			self.hasPublisher = ko.observable(false);
-			self.hasEditor = ko.observable(false);
-
-			self.name = ko.observable();
-			self.text = ko.observable();
-			self.url = ko.observable();
-			self.about = ko.observable();
-			self.version = ko.observable();
-			self.text = ko.observable();
-			self.description = ko.observable();
-			self.license = ko.observable();
-			self.sourceOrganization = ko.observable();
-			self.keywords = ko.observable();
-			self.accessMode = ko.observable();
-			self.expires = ko.observable();
-			self.datePublished = ko.observable();
-			self.dateModified = ko.observable();
-			self.dateCreated = ko.observable();
-
-			self.authGivenName = ko.observable();
-			self.authFamilyName = ko.observable();
-			self.authEmail = ko.observable();
-			self.authTelephone = ko.observable();
-			self.authGender = ko.observable();
-			
-			self.crtGivenName = ko.observable();
-			self.crtFamilyName = ko.observable();
-			self.crtEmail = ko.observable();
-			self.crtTelephone = ko.observable();
-			self.crtGender = ko.observable();
-
-			self.prdcGivenName = ko.observable();
-			self.prdcFamilyName = ko.observable();
-			self.prdcEmail = ko.observable();
-			self.prdcTelephone = ko.observable();
-			self.prdcGender = ko.observable();
-
-			self.pblsGivenName = ko.observable();
-			self.pblsFamilyName = ko.observable();
-			self.pblsEmail = ko.observable();
-			self.pblsTelephone = ko.observable();
-			self.pblsGender = ko.observable();
-
-			self.edtGivenName = ko.observable();
-			self.edtFamilyName = ko.observable();
-			self.edtEmail = ko.observable();
-			self.edtTelephone = ko.observable();
-			self.edtGender = ko.observable();
-
-
-			
-			self.load  = function(schema){
-				self.hasProperties(false);
-				self.hasPublisher(false);
-				self.hasProducer(false);
-				self.hasDates(false);
-				self.hasAuthor(false);
-				self.hasCreator(false);
-				self.hasEditor(false);
-
-				for (var key in schema) {
-					if (schema.hasOwnProperty(key)) {
-						var element = schema[key];
-						if(key == 'author' || key == 'creator' || key == 'editor' || key == 'publisher' || key == 'producer')
-						continue;
-						if(element !== "")
-						{
-							self.hasProperties(true);
-							break;
-						}
-					}
-				}
-
-				for (var key in schema.author) {
-					if (schema.author.hasOwnProperty(key)) {
-						var element = schema.author[key];
-						if(element !== "")
-						{
-							self.hasAuthor(true);
-							break;
-						}
-					}
-				}
-
-
-				for (var key in schema.editor) {
-					if (schema.editor.hasOwnProperty(key)) {
-						var element = schema.editor[key];
-						if(element !== "")
-						{
-							self.hasEditor(true);
-							break;
-						}
-					}
-				}
-
-				for (var key in schema.producer) {
-					if (schema.producer.hasOwnProperty(key)) {
-						var element = schema.producer[key];
-						if(element !== "")
-						{
-							self.hasProducer(true);
-							break;
-						}
-					}
-				}
-
-				for (var key in schema.publisher) {
-					if (schema.publisher.hasOwnProperty(key)) {
-						var element = schema.publisher[key];
-						if(element !== "")
-						{
-							self.hasPublisher(true);
-							break;
-						}
-					}
-				}
-
-				for (var key in schema.creator) {
-					if (schema.creator.hasOwnProperty(key)) {
-						var element = schema.creator[key];
-						if(element !== "")
-						{
-							self.hasCreator(true);
-							break;
-						}
-					}
-				}
-
-				if(schema.expires !== '' || schema.dateCreated !== '' || schema.dateModified !== '' || schema.datePublished !== ''){
-					self.hasDates(true);
-				}
-
-				self.dataset();
-				
-				self.name(schema.name);
-				self.text(schema.text);
-				self.url(schema.url);
-				self.about(schema.about);
-				self.version(schema.version);
-				self.description(schema.description);
-				self.license(schema.license);
-				self.sourceOrganization(schema.sourceOrganization);
-				self.keywords(schema.keywords);
-				self.accessMode(schema.accessMode);
-
-				self.expires(schema.expires);
-				self.datePublished(schema.datePublished);
-				self.dateModified(schema.dateModified);
-				self.dateCreated(schema.dateCreated);
-				
-				self.authGivenName(schema.author.givenName);
-				self.authFamilyName(schema.author.familyName);
-				self.authEmail(schema.author.email);
-				self.authTelephone(schema.author.telephone);
-				self.authGender( schema.author.gender);
-
-				self.crtGivenName(schema.creator.givenName);
-				self.crtFamilyName(schema.creator.familyName); 
-				self.crtEmail(schema.creator.email);
-				self.crtTelephone(schema.creator.telephone);
-				self.crtGender(schema.creator.gender);
-
-				self.prdcGivenName(schema.producer.givenName);
-				self.prdcFamilyName(schema.producer.familyName);
-				self.prdcEmail(schema.producer.email);
-				self.prdcTelephone(schema.producer.telephone);
-				self.prdcGender(schema.producer.gender);
-
-				self.pblsGivenName(schema.publisher.givenName);
-				self.pblsFamilyName(schema.publisher.familyName);
-				self.pblsEmail(schema.publisher.email);
-				self.pblsTelephone(schema.publisher.telephone);
-				self.pblsGender(schema.publisher.gender);
-
-				self.edtGivenName(schema.editor.givenName);
-				self.edtFamilyName(schema.editor.familyName);
-				self.edtEmail(schema.editor.email);
-				self.edtTelephone(schema.editor.telephone);
-				self.edtGender(schema.editor.gender);
-			} 
-	   };
+	  
 
 	   var datasetviewViewModel = new DatasetviewViewModel();
 	   ko.applyBindings(datasetviewViewModel, $("#datasetView")[0]);
@@ -4609,366 +4069,6 @@ function typeInTextarea(el, newText) {
 				createNewBrowserTab("datasettab", "Dataset", "fade in scriptstyle");
 			}
 		}
-
-	  var DatasetSingularPropertyViewModel = [
-			{
-				name: ko.observable("name"),
-				value: ko.observable("")
-			}, {
-				name: ko.observable("url"),
-				value: ko.observable("")
-			}, {
-				name: ko.observable("description"),
-				value: ko.observable("")
-			}, {
-				name: ko.observable("version"),
-				value: ko.observable("")
-			}, {
-				name: ko.observable("text"),
-				value: ko.observable("")
-			}, {
-				name: ko.observable("sourceOrganization"),
-				value: ko.observable("")
-			}, {
-				name: ko.observable("license"),
-				value: ko.observable("")
-			}, {
-				name: ko.observable("keywords"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("accessMode"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("about"),
-				value: ko.observable("")
-			}];
-
-	 	var DatasetAuthorViewModel = [
-			{
-				name: ko.observable("givenName"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("familyName"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("email"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("telephone"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("gender"),
-				value: ko.observable("")
-			}
-
-	];
-
-		var DatasetDatesViewModel = [
-				{
-					name: ko.observable("expires"),
-					value: ko.observable("")
-				}, {
-					name: ko.observable("datePublished"),
-					value: ko.observable("")
-				}, {
-					name: ko.observable("dateModified"),
-					value: ko.observable("")
-				}, {
-					name: ko.observable("dateCreated"),
-					value: ko.observable("")
-				}
-		];
-
-		var DatasetPublisherViewModel = [
-				{
-					name: ko.observable("givenName"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("familyName"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("email"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("telephone"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("gender"),
-					value: ko.observable("")
-				}
-			];
-
-	    var DatasetCreatorViewModel = [
-				{
-					name: ko.observable("givenName"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("familyName"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("email"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("telephone"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("gender"),
-					value: ko.observable("")
-				}
-			];
-
-		var DatasetEditorViewModel = [
-				{
-					name: ko.observable("givenName"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("familyName"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("email"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("telephone"),
-					value: ko.observable("")
-				},
-				{
-					name: ko.observable("gender"),
-					value: ko.observable("")
-				}
-
-			];
-
-		var DatasetProducerViewModel = [
-			{
-				name: ko.observable("givenName"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("familyName"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("email"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("telephone"),
-				value: ko.observable("")
-			},
-			{
-				name: ko.observable("gender"),
-				value: ko.observable("")
-			}
-		];
-
-	  function datasetSingularPropertyViewModelFileDataMapper(filedata){
-			DatasetSingularPropertyViewModel[0].value(filedata.name);
-			DatasetSingularPropertyViewModel[1].value(filedata.url);
-			DatasetSingularPropertyViewModel[2].value(filedata.description);
-			DatasetSingularPropertyViewModel[3].value(filedata.version);
-			DatasetSingularPropertyViewModel[4].value(filedata.text);
-			DatasetSingularPropertyViewModel[5].value(filedata.sourceOrganization);
-			DatasetSingularPropertyViewModel[6].value(filedata.license);
-			DatasetSingularPropertyViewModel[7].value(filedata.keywords);
-			DatasetSingularPropertyViewModel[8].value(filedata.accessMode);
-			DatasetSingularPropertyViewModel[9].value(filedata.about);
-	  };
-
-	  function datasetDatesViewModelFileDataMapper(filedata){
-			DatasetDatesViewModel[0].value(filedata.expires);
-			DatasetDatesViewModel[1].value(filedata.datePublished);
-			DatasetDatesViewModel[2].value(filedata.dateModified);
-			DatasetDatesViewModel[3].value(filedata.dateCreated);
-	  };
-
-	  function datasetAuthorViewModelFileDataMapper(fileAuthordata){
-			DatasetAuthorViewModel[0].value(fileAuthordata.givenName);
-			DatasetAuthorViewModel[1].value(fileAuthordata.familyName);
-			DatasetAuthorViewModel[2].value(fileAuthordata.email);
-			DatasetAuthorViewModel[3].value(fileAuthordata.telephone);
-			DatasetAuthorViewModel[4].value(fileAuthordata.gender);
-	  };
-
-	  function datasetCreatorViewModelFileDataMapper(fileCreatorData){
-			DatasetCreatorViewModel[0].value(fileCreatorData.givenName);
-			DatasetCreatorViewModel[1].value(fileCreatorData.familyName);
-			DatasetCreatorViewModel[2].value(fileCreatorData.email);
-			DatasetCreatorViewModel[3].value(fileCreatorData.telephone);
-			DatasetCreatorViewModel[4].value(fileCreatorData.gender);
-	  };
-
-	  function datasetEditorViewModelFileDataMapper(fileEditorData){
-			DatasetEditorViewModel[0].value(fileEditorData.givenName);
-			DatasetEditorViewModel[1].value(fileEditorData.familyName);
-			DatasetEditorViewModel[2].value(fileEditorData.email);
-			DatasetEditorViewModel[3].value(fileEditorData.telephone);
-			DatasetEditorViewModel[4].value(fileEditorData.gender);
-	  };
-
-	  function datasetPublisherViewModelFileDataMapper(filePublisherData){
-			DatasetPublisherViewModel[0].value(filePublisherData.givenName);
-			DatasetPublisherViewModel[1].value(filePublisherData.familyName);
-			DatasetPublisherViewModel[2].value(filePublisherData.email);
-			DatasetPublisherViewModel[3].value(filePublisherData.telephone);
-			DatasetPublisherViewModel[4].value(filePublisherData.gender);
-	  };
-
-	  function datasetProducerViewModelFileDataMapper(fileProducerData){
-			DatasetProducerViewModel[0].value(fileProducerData.givenName);
-			DatasetProducerViewModel[1].value(fileProducerData.familyName);
-			DatasetProducerViewModel[2].value(fileProducerData.email);
-			DatasetProducerViewModel[3].value(fileProducerData.telephone);
-			DatasetProducerViewModel[4].value(fileProducerData.gender);
-	  }
-
-	  function DatasetAddViewModel() {
-          var self = this;
-		  self.isUpdate = ko.observable(false);
-          self.uploadDatasetURI = ''; 
-          
-          
-       	  self.dataset = {
-			  SingularProperty: DatasetSingularPropertyViewModel,
-			  AuthorProperty: DatasetAuthorViewModel,
-			  DateProperty: DatasetDatesViewModel,
-			  CreatorProperty: DatasetCreatorViewModel,
-			  EditorProperty: DatasetEditorViewModel,
-			  PublisherProperty: DatasetPublisherViewModel,
-			  ProducerProperty : DatasetProducerViewModel
-		  };
-			 
-		
-		self.parseFileDataToViewModel = function(filedata){
-			
-			var jsObjectData = JSON.parse(filedata);
-			
-			datasetDatesViewModelFileDataMapper(jsObjectData);
-			datasetAuthorViewModelFileDataMapper(jsObjectData.author);
-			datasetCreatorViewModelFileDataMapper(jsObjectData.creator);
-			datasetEditorViewModelFileDataMapper(jsObjectData.editor);
-			datasetProducerViewModelFileDataMapper(jsObjectData.producer);
-			datasetPublisherViewModelFileDataMapper(jsObjectData.publisher);
-			datasetSingularPropertyViewModelFileDataMapper(jsObjectData);
-		};
-
-       	self.uploadSchema = function () {
-			  
-			  var schemaFile = $("#fileSchemaUpload").get(0).files[0];
-			  
-			  var reader = new FileReader();
-			  reader.readAsText(schemaFile);
-
-			  reader.onload = function(){
-				  self.parseFileDataToViewModel(reader.result);
-			  };
-		};
-
-       	self.moveUp = function(data) {
-       	    var idx = self.filters.indexOf(data),
-       	      tmp = self.filters.splice(idx, 1);
-
-       	    self.filters.splice(idx - 1, 0, tmp[0]);
-       	  };
-       	  
-       	self.moveDown = function(data) {
-       	    var idx = self.filters.indexOf(data),
-       	      tmp = self.filters.splice(idx, 1);
-
-       	    self.filters.splice(idx + 1, 0, tmp[0]);
-       	  };
-		
-
-		self.convertToSchemaFormat = function(){
-
-			var universalSchema = new Object();
-			var authorProperties = new Object();
-			var dateProperties = new Object();
-			var creatorProperties = new Object();
-			var producerProperties = new Object();
-			var publisherProperties = new Object();
-			var editorProperties = new Object();
-
-			for(var i =0; i<self.dataset.SingularProperty.length ; i++ ){
-				var key = ko.utils.unwrapObservable(self.dataset.SingularProperty[i].name);
-				var value = ko.utils.unwrapObservable(self.dataset.SingularProperty[i].value);
-				universalSchema[key] = value;
-			}
-
-			for(var i =0; i< self.dataset.AuthorProperty.length; i++){
-				var key = ko.utils.unwrapObservable(self.dataset.AuthorProperty[i].name);
-				var value = ko.utils.unwrapObservable(self.dataset.AuthorProperty[i].value);
-				authorProperties[key] = value;
-			}
-
-			for(var i =0; i< self.dataset.CreatorProperty.length; i++){
-				var key = ko.utils.unwrapObservable(self.dataset.CreatorProperty[i].name);
-				var value = ko.utils.unwrapObservable(self.dataset.CreatorProperty[i].value);
-				creatorProperties[key] = value;
-			}
-
-			for(var i =0; i< self.dataset.ProducerProperty.length; i++){
-				var key = ko.utils.unwrapObservable(self.dataset.ProducerProperty[i].name);
-				var value = ko.utils.unwrapObservable(self.dataset.ProducerProperty[i].value);
-				producerProperties[key] = value;
-			}
-
-			for(var i =0; i< self.dataset.PublisherProperty.length; i++){
-				var key = ko.utils.unwrapObservable(self.dataset.PublisherProperty[i].name);
-				var value = ko.utils.unwrapObservable(self.dataset.PublisherProperty[i].value);
-				publisherProperties[key] = value;
-			}
-
-			for(var i =0; i< self.dataset.EditorProperty.length; i++){
-				var key = ko.utils.unwrapObservable(self.dataset.EditorProperty[i].name);
-				var value = ko.utils.unwrapObservable(self.dataset.EditorProperty[i].value);
-				editorProperties[key] = value;
-			}
-
-			for(var i =0; i< self.dataset.DateProperty.length; i++){
-				var key = ko.utils.unwrapObservable(self.dataset.DateProperty[i].name);
-				var value = ko.utils.unwrapObservable(self.dataset.DateProperty[i].value);
-				universalSchema[key] = value;
-			}
-
-			universalSchema.author = authorProperties; 
-			universalSchema.editor = editorProperties;
-			universalSchema.creator = creatorProperties;
-			universalSchema.publisher = publisherProperties;
-			universalSchema.producer = producerProperties;
-
-			return universalSchema;
-		};
-	   
-       	self.saveNew = function(){
-
-			   var schema = self.convertToSchemaFormat();
-				 
-			datasetsViewModel.saveNew(schema);
-		};
-
-		self.update = function(){
-			var schema = self.convertToSchemaFormat();
-			datasetsViewModel.update(schema);
-		}
-		  
-      };
 
 	  
 	   

@@ -23,7 +23,7 @@ def get_optiona_input_from_args(paramindex, keyname, *args, **kwargs):
         barcode = str(kwargs[keyname])
     else:
         if len(args) > paramindex:
-            barcode = args[paramindex]
+            barcode = str(args[paramindex])
             paramindex +=1
     
     return paramindex, barcode
@@ -34,12 +34,14 @@ def get_optional_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     if not data:
         return paramindex, data, None
     
-    DataSourceAllocation.check_access_rights(context.user_id, data, AccessRights.Read)
+    DataSourceAllocation.check_access_rights(context.user_id, str(data), AccessRights.Read)
     
     fs = None
     if Utility.fs_type_by_prefix(data) != 'posix':
         tempdir = context.get_temp_dir('posix')
         fssrc = Utility.fs_by_prefix(data)
+        if not fssrc:
+            raise ValueError("Data doesn't exist: " + str(data))
         fs = Utility.fs_by_prefix(tempdir)
         dest = fs.join(tempdir, fssrc.basename(data))
         fs.write(dest, fssrc.read(data))
@@ -47,7 +49,7 @@ def get_optional_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     else:
         fs = Utility.fs_by_prefix_or_default(data)
         
-    data = fs.normalize_path(data)
+    data = fs.normalize_path(str(data))
     
     return paramindex, data, fs
 
@@ -61,6 +63,8 @@ def get_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     if Utility.fs_type_by_prefix(data) != 'posix':
         tempdir = context.get_temp_dir('posix')
         fssrc = Utility.fs_by_prefix(data)
+        if not fssrc:
+            raise ValueError("Data doesn't exist: " + str(data))
         fs = Utility.fs_by_prefix(tempdir)
         dest = fs.join(tempdir, fssrc.basename(data))
         fs.write(dest, fssrc.read(data))

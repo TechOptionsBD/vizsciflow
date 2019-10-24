@@ -53,7 +53,7 @@ class Utility:
     def ds_by_prefix_or_default(path):
         if not path:
             return None
-        #path = os.path.normpath(path)
+        path = str(path)
         dsdb = None
         datasources = DataSource.query.all()
         for ds in datasources:
@@ -74,7 +74,7 @@ class Utility:
     def ds_by_prefix(path):
         if not path:
             return None
-        #path = os.path.normpath(path)
+        path = str(path)
         datasources = DataSource.query.all()
         for ds in datasources:
             if ds.prefix:
@@ -93,6 +93,7 @@ class Utility:
     @staticmethod
     def fs_type_by_prefix(path):
         ds = Utility.ds_by_prefix(path)
+        path = str(path)
         return ds.type if ds else "posix" if path.startswith(os.sep) else None
             
     @staticmethod
@@ -123,6 +124,8 @@ class Utility:
         desttype = Utility.fs_type_by_prefix_or_default(dest)
         
         fssrc = Utility.fs_type_by_prefix_or_default(src)
+        src = str(src)
+        dest = dest(src)
         if srctype != desttype:
             fsdest = Utility.fs_type_by_prefix_or_default(dest)
             content = fssrc.read(src)
@@ -134,12 +137,12 @@ class Utility:
     @staticmethod
     def get_normalized_path(path):
         fs = Utility.fs_by_prefix_or_default(path)
-        return fs.normalize_path(path)
+        return fs.normalize_path(str(path))
     
     @staticmethod
     def strip_root(path):
         fs = Utility.fs_by_prefix_or_default(path)
-        return fs.strip_root(path)
+        return fs.strip_root(str(path))
 
     @staticmethod
     def add_meta_data(data, user_id, runnable_id, task_id, rights = AccessRights.Owner, datatype = DataType.Text):

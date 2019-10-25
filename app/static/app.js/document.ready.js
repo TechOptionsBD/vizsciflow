@@ -18,6 +18,17 @@ $(document).ready(function () {
     $('#browserItemModal').on('show.bs.modal', function (e) {
         $("#browserItemPopup").contents().find('body').find('img').css('display', 'block').css('margin', '0 auto');
     });
+    
+    $("#btnOpenNewWindow").click(function (e) {  
+        var contentUrl = $(this).parents('div.modal-content').find('iframe').attr('src');
+        window.open(contentUrl, '_blank');
+    });
+
+    // $("#btnBrowserModalFullscreen").click(function (e) {  
+    //     $("#browserItemModal").find('.modal-dialog').addClass('modal-dialog-fullscreen');
+    //     $("#browserItemModal").find('.modal-content').addClass('modal-content-fullscreen');
+    //     $()
+    // });
 
     $("#dataSets-addNew-dialog").css("left", $(window).width() / 4);
 

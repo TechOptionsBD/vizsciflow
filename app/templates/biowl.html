@@ -733,205 +733,208 @@
 	</div>
 </div>
 
-<div id="update-metadata-dialog" class="modal fade" tabindex="=1"
-	role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true"
-	style="width: 50%; height: 50%; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal"
-			aria-hidden="true">&times;</button>
-		<h3 id="addDialogLabel">Update Metadata</h3>
-	</div>
-	<div class="modal-body" style="overflow-x: auto;">
-		<form class="form-horizontal">
-			<div class="control-group">
-				<div class="controls">
-					<ul class="nav nav-tabs">
-						<li class="active"><a href="#generaltab" data-toggle="tab">General</a></li>
-						<li><a href="#visualizertab" data-toggle="tab">Visualizers</a></li>
-						<li><a href="#annotationtab" data-toggle="tab">Annotations</a></li>
-						<li><a href="#mimetypestab" data-toggle="tab">MIME Types</a></li>
-						<li><a href="#propertiestab" data-toggle="tab">Properties</a></li>
-					</ul>
-					<div class="tab-content ">
-						<div class="tab-pane fade in active" id="generaltab">
-							<div class="container">
-								<!-- Default input -->
-								<label for="filename">Filename</label>
-								<input type="text" id="filename" class="form-control" data-bind="value: filename">
-								<div class="table-wrapper">
-									<table class="table table-bordered">
-										<thead>
-											<tr>
-												<th>Key</th>
-												<th>Value</th>
-												<th></th>
-											</tr>
-										</thead>
-										<tbody data-bind="foreach: systemProperties.items">
-											<tr>
-												<td scope="row" data-bind="text: key"></td>
-												<td data-bind="text: value"></td>
-												
-											</tr>
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-						<div class="tab-pane fade" id="visualizertab">
-							<div class="container">
-								<div class="table-wrapper">
-									<div class="table-title">
-										<div class="row justify-content-end">
-											<div class="col-sm-12">
-												<button type="button" class="btn btn-info add-new">
-													<i class="fa fa-plus"></i> Add New
-												</button>
+<div id="update-metadata-dialog" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"
+					aria-hidden="true">&times;</button>
+				<h3  class="modal-title" id="addDialogLabel">Update Metadata</h3>
+			</div>
+			<div class="modal-body" style="overflow-x: auto;">
+				<form class="form-horizontal">
+					<div class="control-group">
+						<div class="controls">
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#generaltab" data-toggle="tab">General</a></li>
+								<li><a href="#visualizertab" data-toggle="tab">Visualizers</a></li>
+								<li><a href="#annotationtab" data-toggle="tab">Annotations</a></li>
+								<li><a href="#mimetypestab" data-toggle="tab">MIME Types</a></li>
+								<li><a href="#propertiestab" data-toggle="tab">Properties</a></li>
+							</ul>
+							<div class="tab-content ">
+								<div class="tab-pane fade in active" id="generaltab">
+									<div class="container-fluid">
+										<div class="row service-form-group">
+											<label class="col-sm-3 control-label" for="filename">Filename</label>
+											<div class="col-sm-9">
+												<input type="text" id="filename" class="form-control" data-bind="value: filename">
 											</div>
 										</div>
-									</div>
-									<table class="table table-bordered">
-										<thead>
-											<tr>
-												<th>Key</th>
-												<th>Value</th>
-												<th>Actions</th>
-											</tr>
-										</thead>
-										<tbody data-bind="foreach: visualizers.items">
-											<tr>
-												<td scope="row" data-bind="text: key"></td>
-												<td data-bind="text: value"></td>
-												<td>
-													<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-													<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-													<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-												</td>
-											</tr>
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-						<div class="tab-pane fade" id="annotationtab">
-							<div class="container">
-								<div class="table-wrapper">
-									<div class="table-title">
-										<div class="row justify-content-end">
-											<div class="col-sm-12">
-												<button type="button" class="btn btn-info add-new">
-													<i class="fa fa-plus"></i> Add New
-												</button>
-											</div>
+										<div class="table-wrapper">
+											<table class="table table-bordered">
+												<thead>
+													<tr>
+														<th>Name</th>
+														<th>Value</th>
+													</tr>
+												</thead>
+												<tbody data-bind="foreach: systemProperties.items">
+													<tr>
+														<td scope="row" data-bind="text: key"></td>
+														<td data-bind="text: value"></td>
+													</tr>
+												</tbody>
+											</table>
 										</div>
 									</div>
-									<table class="table table-bordered">
-										<thead>
-											<tr>
-												<th>Key</th>
-												<th>Value</th>
-												<th>Actions</th>
-											</tr>
-										</thead>
-										<tbody data-bind="foreach: annotations.items">
-											<tr>
-												<td scope="row" data-bind="text: key"></td>
-												<td data-bind="text: value"></td>
-												<td>
-													<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-													<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-													<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-												</td>
-											</tr>
-										</tbody>
-									</table>
 								</div>
-							</div>
-						</div>
-						<div class="tab-pane fade" id="mimetypestab">
-							<div class="container">
-								<div class="table-wrapper">
-									<div class="table-title">
-										<div class="row justify-content-end">
-											<div class="col-sm-12">
-												<button type="button" class="btn btn-info add-new">
-													<i class="fa fa-plus"></i> Add New
-												</button>
+								<div class="tab-pane fade" id="visualizertab">
+									<div class="container-fluid">
+										<div class="table-wrapper">
+											<div class="table-title">
+												<div class="row justify-content-end">
+													<div class="col-sm-12">
+														<button type="button" class="btn btn-info add-new">
+															<i class="fa fa-plus"></i> Add New
+														</button>
+													</div>
+												</div>
 											</div>
+											<table class="table table-bordered">
+												<thead>
+													<tr>
+														<th>Name</th>
+														<th>Value</th>
+														<th class="th-action">Actions</th>
+													</tr>
+												</thead>
+												<tbody data-bind="foreach: visualizers.items">
+													<tr>
+														<td scope="row" data-bind="text: key"></td>
+														<td data-bind="text: value"></td>
+														<td>
+															<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
+															<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+															<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+														</td>
+													</tr>
+												</tbody>
+											</table>
 										</div>
 									</div>
-									<table class="table table-bordered">
-										<thead>
-											<tr>
-												<th>Key</th>
-												<th>Value</th>
-												<th>Actions</th>
-											</tr>
-										</thead>
-										<tbody data-bind="foreach: mimetypes.items">
-											<tr>
-												<td scope="row" data-bind="text: key"></td>
-												<td data-bind="text: value"></td>
-												<td>
-													<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-													<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-													<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-												</td>
-											</tr>
-										</tbody>
-									</table>
 								</div>
-							</div>
-						</div>
-						<div class="tab-pane fade" id="propertiestab">
-							<div class="container">
-								<div class="table-wrapper">
-									<div class="table-title">
-										<div class="row justify-content-end">
-											<div class="col-sm-12">
-												<button type="button" class="btn btn-info add-new">
-													<i class="fa fa-plus"></i> Add New
-												</button>
+								<div class="tab-pane fade" id="annotationtab">
+									<div class="container-fluid">
+										<div class="table-wrapper">
+											<div class="table-title">
+												<div class="row justify-content-end">
+													<div class="col-sm-12">
+														<button type="button" class="btn btn-info add-new">
+															<i class="fa fa-plus"></i> Add New
+														</button>
+													</div>
+												</div>
 											</div>
+											<table class="table table-bordered">
+												<thead>
+													<tr>
+														<th>Name</th>
+														<th>Value</th>
+														<th class="th-action">Actions</th>
+													</tr>
+												</thead>
+												<tbody data-bind="foreach: annotations.items">
+													<tr>
+														<td scope="row" data-bind="text: key"></td>
+														<td data-bind="text: value"></td>
+														<td>
+															<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
+															<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+															<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+														</td>
+													</tr>
+												</tbody>
+											</table>
 										</div>
 									</div>
-									<table class="table table-bordered">
-										<thead>
-											<tr>
-												<th>Key</th>
-												<th>Value</th>
-												<th>Actions</th>
-											</tr>
-										</thead>
-										<tbody	data-bind="foreach: properties.items">
-											<tr>
-												<td scope="row" data-bind="text: key"></td>
-												<td data-bind="text: value"></td>
-												<td>
-													<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-													<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-													<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-												</td>
-											</tr>
-										</tbody>
-									</table>
+								</div>
+								<div class="tab-pane fade" id="mimetypestab">
+									<div class="container-fluid">
+										<div class="table-wrapper">
+											<div class="table-title">
+												<div class="row justify-content-end">
+													<div class="col-sm-12">
+														<button type="button" class="btn btn-info add-new">
+															<i class="fa fa-plus"></i> Add New
+														</button>
+													</div>
+												</div>
+											</div>
+											<table class="table table-bordered">
+												<thead>
+													<tr>
+														<th>Name</th>
+														<th>Value</th>
+														<th class="th-action">Actions</th>
+													</tr>
+												</thead>
+												<tbody data-bind="foreach: mimetypes.items">
+													<tr>
+														<td scope="row" data-bind="text: key"></td>
+														<td data-bind="text: value"></td>
+														<td>
+															<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
+															<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+															<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+														</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+								<div class="tab-pane fade" id="propertiestab">
+									<div class="container-fluid">
+										<div class="table-wrapper">
+											<div class="table-title">
+												<div class="row justify-content-end">
+													<div class="col-sm-12">
+														<button type="button" class="btn btn-info add-new">
+															<i class="fa fa-plus"></i> Add New
+														</button>
+													</div>
+												</div>
+											</div>
+											<table class="table table-bordered">
+												<thead>
+													<tr>
+														<th>Name</th>
+														<th>Value</th>
+														<th class="th-action">Actions</th>
+													</tr>
+												</thead>
+												<tbody	data-bind="foreach: properties.items">
+													<tr>
+														<td scope="row" data-bind="text: key"></td>
+														<td data-bind="text: value"></td>
+														<td>
+															<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
+															<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+															<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+														</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-primary" data-dismiss="modal" data-bind="event: {click: save}" aria-hidden="true">Update</button>
+				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
+				<div>
+					<span class="label label-default" id="add-metadata-info"></span>
 				</div>
 			</div>
-		</form>
-	</div>
-	<div class="modal-footer">
-		<!--         <button data-bind="click: update" class="btn btn-primary">Save</button> -->
-		<button class="btn" data-dismiss="modal" data-bind="event: {click: save}" aria-hidden="true">OK</button>
-		<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-		<div>
-			<span class="label label-default" id="add-metadata-info"></span>
 		</div>
 	</div>
 </div>
+
 <!-- top:22%; left: 0.8%; width: 21.6%; height: 50%; -->
 <div id="filter-dialog" class="modal fade modal-md col-md-3" tabindex="=-1"
 	role="dialog" aria-labelledby="filterDialogLabel" aria-hidden="true">

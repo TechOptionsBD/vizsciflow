@@ -24,11 +24,32 @@ $(document).ready(function () {
         window.open(contentUrl, '_blank');
     });
 
-    // $("#btnBrowserModalFullscreen").click(function (e) {  
-    //     $("#browserItemModal").find('.modal-dialog').addClass('modal-dialog-fullscreen');
-    //     $("#browserItemModal").find('.modal-content').addClass('modal-content-fullscreen');
-    //     $()
-    // });
+
+    $("#btnBrowserModalFullscreen").click(function (e) { 
+        if ($("#browserItemModal").hasClass('modal-fullscreen')) {
+            
+            $("#browserItemModal").removeClass('modal-fullscreen');
+            $("#browserItemModal").find('.modal-dialog').removeClass('modal-dialog-fullscreen');
+            $("#browserItemModal").find('.modal-content').removeClass('modal-content-fullscreen');
+            $("#browserItemModal").find('.modal-header').removeClass('modal-header-fullscreen');
+            $("#browserItemModal").find('.modal-body').removeClass('modal-body-fullscreen');
+            $("#browserItemModal").find('.modal-footer').removeClass('modal-footer-fullscreen');
+            $("#browserItemModal").find('iframe').height($('#browsertab').height()).width('100%');
+            $("#btnBrowserModalFullscreen").find('i').removeClass('glyphicon-resize-small').addClass('glyphicon-resize-full');
+            return;
+        } 
+        $("#browserItemModal").addClass('modal-fullscreen');
+        $("#browserItemModal").find('.modal-dialog').addClass('modal-dialog-fullscreen');
+        $("#browserItemModal").find('.modal-content').addClass('modal-content-fullscreen');
+        $("#browserItemModal").find('.modal-header').addClass('modal-header-fullscreen');
+        $("#browserItemModal").find('.modal-body').addClass('modal-body-fullscreen');
+        $("#browserItemModal").find('.modal-footer').addClass('modal-footer-fullscreen');
+        $("#btnBrowserModalFullscreen").find('i').removeClass('glyphicon-resize-full').addClass('glyphicon-resize-small');
+
+        // $("#browserItemModal").find('.modal-dialog').height('auto').width('auto')
+        // $("#browserItemModal").find('.modal-content').addClass('modal-content-fullscreen');
+        $("#browserItemModal").find('iframe').css('height', '100%').css('width', '100%');
+    });
 
     $("#dataSets-addNew-dialog").css("left", $(window).width() / 4);
 

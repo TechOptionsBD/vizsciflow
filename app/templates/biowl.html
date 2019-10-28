@@ -1294,9 +1294,9 @@
 				<!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button> -->
-				<!-- <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="btnBrowserModalFullscreen">
+				<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="btnBrowserModalFullscreen">
 					<i class="glyphicon glyphicon-resize-full"></i>
-				</button> -->
+				</button>
 				<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Open in new window" id="btnOpenNewWindow">
 					<i class="glyphicon glyphicon-new-window"></i>
 				</button>
@@ -1739,15 +1739,14 @@
 			var iframe = $("#browserItemModal").find('iframe');
 
 			$(iframe).attr('src', itemSrc);
-			$(iframe).css('height', $('.div-browser-items').height()).css('width', $('.div-browser-items').width());
-
+			$(iframe).height($('#browsertab').height()).width('100%');
 			setTimeout(function () {
 				$('#browserItemModal').modal('show');
 			}, 200);
 
 	}
 
-	
+
 	
     $(window).on('load', function() {
     	 

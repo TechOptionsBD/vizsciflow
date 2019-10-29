@@ -769,3 +769,11 @@ center {
   color: white;
   background-color: #337AB7;
 }
+
+.owl-item div figure > figcaption{
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 10rem;
+  display: block;
+  overflow: hidden
+}

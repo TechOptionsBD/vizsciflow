@@ -782,142 +782,133 @@
 								</div>
 								<div class="tab-pane fade" id="visualizertab">
 									<div class="container-fluid">
-										<div class="table-wrapper">
-											<div class="table-title">
-												<div class="row justify-content-end">
-													<div class="col-sm-12">
-														<button type="button" class="btn btn-info add-new">
-															<i class="fa fa-plus"></i> Add New
-														</button>
-													</div>
+										<div class="table-title">
+											<div class="row justify-content-end">
+												<div class="col-sm-12">
+													<button type="button" class="btn btn-info btn-add-new" data-bind="click: addNewVisualizer">
+														<i class="fa fa-plus"></i> Add New
+													</button>
 												</div>
 											</div>
-											<table class="table table-bordered">
-												<thead>
-													<tr>
-														<th>Name</th>
-														<th>Value</th>
-														<th class="th-action">Actions</th>
-													</tr>
-												</thead>
-												<tbody data-bind="foreach: visualizers.items">
-													<tr>
-														<td scope="row" data-bind="text: key"></td>
-														<td data-bind="text: value"></td>
-														<td>
-															<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-															<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-															<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-														</td>
-													</tr>
-												</tbody>
-											</table>
 										</div>
+										<table class="table table-bordered">
+											<thead>
+												<tr>
+													<th>Name</th>
+													<th>Value</th>
+													<th class="th-action">Actions</th>
+												</tr>
+											</thead>
+											<tbody data-bind="foreach: visualizers.items">
+												<tr>
+													<td scope="row"><input class="form-control" type="text" data-bind="text: key, value: key"></td>
+													<td><input type="text" class="form-control" data-bind="text: value, value: value"></td>
+													<td>
+														<a data-bind="click: $parent.addNewVisualizer" title="Add Another" data-toggle="tooltip"><i class="fa fa-plus"></i></a>
+														<a data-bind="click: $parent.removeVisualizer" title="Delete" data-toggle="tooltip"><i class="fa fa-trash"></i></a>
+													</td>
+												</tr>
+											</tbody>
+										</table>
 									</div>
 								</div>
 								<div class="tab-pane fade" id="annotationtab">
 									<div class="container-fluid">
-										<div class="table-wrapper">
-											<div class="table-title">
-												<div class="row justify-content-end">
-													<div class="col-sm-12">
-														<button type="button" class="btn btn-info add-new">
-															<i class="fa fa-plus"></i> Add New
-														</button>
-													</div>
+										<div class="table-title">
+											<div class="row justify-content-end">
+												<div class="col-sm-12">
+													<button type="button" class="btn btn-info btn-add-new" data-bind="click: addNewAnnotation">
+														<i class="fa fa-plus"></i> Add New
+													</button>
 												</div>
 											</div>
-											<table class="table table-bordered">
-												<thead>
-													<tr>
-														<th>Name</th>
-														<th>Value</th>
-														<th class="th-action">Actions</th>
-													</tr>
-												</thead>
-												<tbody data-bind="foreach: annotations.items">
-													<tr>
-														<td scope="row" data-bind="text: key"></td>
-														<td data-bind="text: value"></td>
-														<td>
-															<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-															<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-															<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-														</td>
-													</tr>
-												</tbody>
-											</table>
 										</div>
+										<table class="table table-bordered">
+											<thead>
+												<tr>
+													<th>Name</th>
+													<th>Value</th>
+													<th class="th-action">Actions</th>
+												</tr>
+											</thead>
+											<tbody data-bind="foreach: annotations.items">
+												<tr>
+													<td scope="row"><input type="text" class="form-control" data-bind="text: key, value: key"></td>
+													<td><input type="text" class="form-control" data-bind="text: value, value: value"></td>
+													<td>
+														<a data-bind="click: $parent.addNewAnnotation" title="Add Another" data-toggle="tooltip"><i class="fa fa-plus"></i></a>
+														<a data-bind="click: $parent.removeAnnotation" title="Delete" data-toggle="tooltip"><i class="fa fa-trash"></i></a>
+													</td>
+												</tr>
+											</tbody>
+										</table>
 									</div>
 								</div>
 								<div class="tab-pane fade" id="mimetypestab">
 									<div class="container-fluid">
-										<div class="table-wrapper">
-											<div class="table-title">
-												<div class="row justify-content-end">
-													<div class="col-sm-12">
-														<button type="button" class="btn btn-info add-new">
-															<i class="fa fa-plus"></i> Add New
-														</button>
-													</div>
+										<div class="table-title">
+											<div class="row justify-content-end">
+												<div class="col-sm-12">
+													<button type="button" class="btn btn-info btn-add-new" data-bind="click: addNewMimeType">
+														<i class="fa fa-plus"></i> Add New
+													</button>
 												</div>
 											</div>
-											<table class="table table-bordered">
-												<thead>
-													<tr>
-														<th>Name</th>
-														<th>Value</th>
-														<th class="th-action">Actions</th>
-													</tr>
-												</thead>
-												<tbody data-bind="foreach: mimetypes.items">
-													<tr>
-														<td scope="row" data-bind="text: key"></td>
-														<td data-bind="text: value"></td>
-														<td>
-															<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-															<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-															<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-														</td>
-													</tr>
-												</tbody>
-											</table>
 										</div>
+										<table class="table table-bordered">
+											<thead>
+												<tr>
+													<th>Name</th>
+													<th>Value</th>
+													<th class="th-action">Actions</th>
+												</tr>
+											</thead>
+											<tbody data-bind="foreach: mimetypes.items">
+												<tr>
+													<td scope="row"><input type="text" data-bind="text: key, value: key" class="form-control"></td>
+													<td><input type="text" class="form-control" data-bind="text: value, value: value"></td>
+													<td>
+														<a title="Add Another" data-toggle="tooltip" data-bind="click: $parent.addNewMimeType"><i class="fa fa-plus"></i></a>
+														<a title="Delete" data-toggle="tooltip" data-bind="click: $parent.removeMimeType.bind($data)"><i class="fa fa-trash"></i></a>
+													</td>
+												</tr>
+											</tbody>
+										</table>
 									</div>
 								</div>
 								<div class="tab-pane fade" id="propertiestab">
 									<div class="container-fluid">
-										<div class="table-wrapper">
-											<div class="table-title">
-												<div class="row justify-content-end">
-													<div class="col-sm-12">
-														<button type="button" class="btn btn-info add-new">
-															<i class="fa fa-plus"></i> Add New
-														</button>
-													</div>
+										<div class="table-title">
+											<div class="row justify-content-end">
+												<div class="col-sm-12">
+													<button type="button" class="btn btn-info btn-add-new" data-bind="click: addNewProperty">
+														<i class="fa fa-plus"></i> Add New
+													</button>
 												</div>
 											</div>
-											<table class="table table-bordered">
-												<thead>
-													<tr>
-														<th>Name</th>
-														<th>Value</th>
-														<th class="th-action">Actions</th>
-													</tr>
-												</thead>
-												<tbody	data-bind="foreach: properties.items">
-													<tr>
-														<td scope="row" data-bind="text: key"></td>
-														<td data-bind="text: value"></td>
-														<td>
-															<a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-															<a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-															<a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-														</td>
-													</tr>
-												</tbody>
-											</table>
 										</div>
+										<table class="table table-bordered">
+											<thead>
+												<tr>
+													<th>Name</th>
+													<th>Value</th>
+													<th class="th-action">Actions</th>
+												</tr>
+											</thead>
+											<tbody data-bind="foreach: properties.items">
+												<tr>
+													<td scope="row"><input class="form-control" type="text" name="key" id=""
+															data-bind="text: key, value: key"></td>
+													<td><input class="form-control" type="text" name="value" data-bind="text: value, value: value"></td>
+													<td>
+														<a data-bind="click: $parent.addNewProperty" title="Add Another" data-toggle="tooltip"><i
+																class="fa fa-plus"></i></a>
+														<a data-bind="click: $parent.removeProperty.bind($data)" title="Delete" data-toggle="tooltip"><i
+																class="fa fa-trash"></i></a>
+													</td>
+												</tr>
+											</tbody>
+										</table>
 									</div>
 								</div>
 							</div>
@@ -4364,7 +4355,7 @@ function typeInTextarea(el, newText) {
     });
 	
 	// Edit row on edit button click
-	$(document).on("click", ".edit", function(){		
+	$(document).on("click", ".edit", function(){	
         $(this).parents("tr").find("td:not(:last-child)").each(function(){
 			$(this).html('<input type="text" class="form-control" value="' + $(this).text() + '">');
 		});		

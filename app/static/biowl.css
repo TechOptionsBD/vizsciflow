@@ -162,8 +162,8 @@ margin: 30px auto;
      box-shadow: 0 1px 1px rgba(0,0,0,.05);
  }
  .table-title {
-     padding-bottom: 10px;
-     margin: 0 0 10px;
+     /* padding-bottom: 10px; */
+     margin: 10px 0 10px 0;
  }
  .table-title h2 {
      margin: 6px 0 0;
@@ -776,4 +776,16 @@ center {
   width: 10rem;
   display: block;
   overflow: hidden
+}
+
+.btn-add-new{
+  float: right;
+/* height: 30px; */
+font-weight: bold;
+font-size: 12px;
+/* 
+ text-shadow: none;
+min-width: 100px; */
+border-radius: 50px;
+/* line-height: 13px; */
 }

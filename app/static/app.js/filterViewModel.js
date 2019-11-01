@@ -326,13 +326,7 @@ function FilterViewModel() {
             case 'Modified':
             case 'Accessed':
                 var frmControl = ele.find('input');
-                frmControl.daterangepicker({
-                    linkedCalendars: false,
-                    maxSpan: {
-                        "days": 60
-                    },
-                    cancelClass : "btn-danger"
-                });
+                self.intitiateDateRangePicker(frmControl);
                 break;
 
             default:
@@ -340,6 +334,27 @@ function FilterViewModel() {
         }
     };
 
+    self.intitiateDateRangePicker = function (frmControl) {  
+       
+        frmControl.daterangepicker({
+            linkedCalendars: false,
+            cancelClass : "btn-danger",
+            maxSpan: {
+                "days": 60
+            },
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+            
+        });
+
+    };
+    
     self.intitiateRangeSlider = function (frmControl) {
 
         frmControl.bootstrapSlider({
@@ -357,6 +372,7 @@ function FilterViewModel() {
             self.customizeSlider(frmControl);
         });
     };
+
     self.customizeSlider = function (frmControl) {
 
         var sliderTooltip = $(frmControl).parent().find('.slider').find('.tooltip.tooltip-main').find('.tooltip-inner');

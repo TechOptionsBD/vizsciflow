@@ -15,7 +15,9 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/css/bootstrap-slider.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
@@ -30,7 +32,9 @@
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/knockout.contextmenu@1.0.0/src/knockout.contextmenu.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/bootstrap-slider.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
 
@@ -45,6 +49,7 @@
 <script src="/static/app.js/datasetviewViewModel.js"></script>
 <script src="/static/app.js/metadataViewModel.js"></script>
 <script src="/static/app.js/document.ready.js"></script>
+<script src="/static/app.js/filterViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 {% endblock %}
@@ -946,8 +951,7 @@
 							<th class="filter-dialog-modal-text" style="width: 20%">Name</th>
 							<th class="filter-dialog-modal-text" style="width:35%">Filter</th>
 							<th class="filter-dialog-modal-text" style="width: 9%">Sort</th>
-							<th class="filter-dialog-modal-text" style="width: 14%; text-align: center"><i class="fa fa-sort" style="font-size: 2rem"></i></th>
-							<!-- <th>Down</th> --> 
+							<th class="filter-dialog-modal-text" style="width: 14%; text-align: center"><i class="fa fa-sort" style="font-size: 2rem"></i></th> 
 						</tr>
 					</thead>
 					<tbody data-bind="foreach: filters">
@@ -956,11 +960,10 @@
 								<input type="checkbox" data-bind="checked: selected" />
 							</td>
 							<td class="filter-dialog-modal-text" data-bind="text: name"></td>
-							<td class="filter-dialog-modal-text filter-value-td">
+							<td class="filter-dialog-modal-text filter-value-td" data-bind="descendantsComplete: $parent.formControlCustomization.bind($data)">
 								<input type="text" class="form-control" data-bind="value: value">
 							</td>
 							<td class="filter-dialog-modal-text">
-								<!-- <select data-bind="options: $parent.sortOrders, optionsText: 'name', optionsValue: 'id', value: sort"></select> -->
 								<button class="btn btn-xs btn-primary" style="background: transparent; border-color: transparent" data-bind="value: sort, click: $parent.toggleSort;"><i data-bind="class : $parent.setSortClass(sort)" class="fa fa-times fa-xs" style="background: transparent; color: black"></i></button>
 							</td>
 							<td class="filter-dialog-modal-text">
@@ -971,9 +974,6 @@
 										data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown" title="Move Down"></button>
 								</div>
 							</td>
-							<!-- <td>  
-								  <button class="btn-xs" data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown"><i class="fa fa-arrow-down"></i></button>
-								</td> -->
 						</tr>
 					</tbody>
 				</table>
@@ -3663,321 +3663,7 @@ function typeInTextarea(el, newText) {
             }
         }
        
-       function FilterViewModel() {
-          var self = this;
-          
-          self.okText = ko.observable("Search");
-          self.filterURI = '/filters'
-          self.name = ko.observable();
-          self.clicks = 0;
-          self.timer = null;
-          
-          self.histories = ko.observableArray();
-          self.savedFilters = ko.observableArray();
-          self.sortOrders = ko.observableArray([
-        	{
-        		name: "None",
-        		id: 0
-        	},
-        	{
-        		name: "ASC",
-        		id: 1
-        	},
-        	{
-        		name: "DESC",
-        		id: 2
-        	}
-          ]);
-
-		  self.toggleSort = function(data, event){
-
-			var sort = data.sort();
-			sort  = ++sort > 2? 0 : sort;
-
-			for(var i =0 ; i < self.filters().length; i++){
-				var filtersName =  ko.utils.unwrapObservable(self.filters()[i].name());
-				if(filtersName == data.name()){
-					self.filters()[i].sort(sort);
-					break;
-				}
-			}
-		}
-          
-       	  self.filters = ko.observableArray([
-       	  {
-       		  selected: ko.observable(false),
-       		  name: ko.observable("Name"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0)
-       	  }, {
-       		  selected: ko.observable(false),
-       		  name: ko.observable("Size"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0)
-       	  }, {
-       		  selected: ko.observable(false),
-       		  name: ko.observable("Permission"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0)
-       	  }, {
-       		  selected: ko.observable(false),
-       		  name: ko.observable("Created"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
-       	  }, {
-       		  selected: ko.observable(false),
-       		  name: ko.observable("Modified"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
-       	  }, {
-       		  selected: ko.observable(false),
-       		  name: ko.observable("Accessed"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
-       	  }, {
-       		  selected: ko.observable(false),
-       		  name: ko.observable("key:value"),
-       		  value: ko.observable(""),
-       		  sort: ko.observable(0),
-       	  }
-       	  ]);
-       	  
-		self.setSortClass = function (sort) {
-			   switch (sort()) {
-				   case 0:
-					   return 'fa fa-times fa-xs';
-
-				   case 1:
-					   return 'fa fa-sort-asc filter-dialog-sortIcon';
-
-				   case 2:
-					   return 'fa fa-sort-desc filter-dialog-sortIcon';
-
-				   default:
-					   return 'fa fa-times fa-xs';
-			   }
-		   };
-
-       	self.moveUp = function(data) {
-       	    var idx = self.filters.indexOf(data),
-       	      tmp = self.filters.splice(idx, 1);
-
-       	    self.filters.splice(idx - 1, 0, tmp[0]);
-       	  };
-       	  
-       	self.moveDown = function(data) {
-       	    var idx = self.filters.indexOf(data),
-       	      tmp = self.filters.splice(idx, 1);
-
-       	    self.filters.splice(idx + 1, 0, tmp[0]);
-       	  };
-
-	   
-       	  // apply the filters
-   		 self.filterInternal = function(node, jsonFilters) {
-
-   	            ajaxcalls.simple(self.filterURI, 'GET', { 'root': node, 'applyfilters': jsonFilters }).done(function(data) {
-   	            	
-   	            	try {
-   	            		dataSourceViewModel.loadFromJSON(data.datasources);
-   	            	}
-   	            	catch(error) {
-   	            		
-   	            	}
-   	            	self.loadHistory();
-   	                          
-   	            }).fail(function(jqXHR) {
-   	                showXHRText(jqXHR);
-   	            });
-   	   		 }
-   		
-          self.copyToEditor = function(item) {
-             
-        	  if (!dataSourceViewModel.selectedNode())
-        		  return;
-        	  
-        	  path = dataSourceViewModel.selectedNode().original.path;
-        	  var pos = editor.selection.getCursor();
-              
-              $.ajax({
-            	  url: self.filterURI + "?filterforscript=" + item.id() + "&path=" + path
-              })
-              .then(function(data) {
-            	  editor.session.insert(pos, data["script"] + "\r\n");
-              	  editor.focus();
-              }, function(xhr, status, error) {
-                     // Upon failure... set the tooltip content to error
-              });
-          }
-		
-          // apply the filters
-   		 self.filter = function() {
-   			 if (!dataSourceViewModel.selectedNode())
-   				 return;
-   			 if (self.okText() == "Save") {
-   				 // save the filters
-				ajaxcalls.simple(self.filterURI, 'GET', { 'name': self.name(), 'savefilters': ko.toJSON(self.filters) }).done(function(data) {
-   	            	self.loadSavedFilters();
-   	                          
-   	            }).fail(function(jqXHR) {
-   	                showXHRText(jqXHR);
-   	            });
-   			 }
-   			 else {
-   			 	self.filterInternal(dataSourceViewModel.selectedNode().original.path, ko.toJSON(self.filters));
-   			 }
-   		 }
-   		 
-          self.openSavedFilterDialog = function(item) {
-        	  self.name(item.name());
-        	  self.openFilterDialogInternal(true, ko.toJSON(item.value()));
-          }
-          
-          self.openFilterDialog = function(isSave, item) {
-        	  self.openFilterDialogInternal(isSave, item.value());
-          };
-
-		  self.deleteSavedFilter = function (item, element) {
-			   ajaxcalls.simple(self.filterURI, 'GET', { 'delete': item.id()}).done(function (data) {
-				self.loadSavedFilters();
-			   });
-		   };
-          
-         // opens the filters dialog to define filters
-   		 self.openFilterDialogInternal = function(isSave, item) {
-
-        	 historyFilters = JSON.parse(item);
-        	 if (!historyFilters)
-        		  return;
-        	 
-        	 self.filters().forEach(function(f){
-        		f.selected(false);
-				f.value("");
-				f.sort(0);
-        	 });
-        	 
-        	self.filters().forEach(function(f){
-   				 
-   				historyFilter = historyFilters.find(x => x.name === f.name())
-   				if (historyFilter && (f.name() == historyFilter.name)) {
-   					f.selected(historyFilter.selected);
-   					f.value(historyFilter.value);
-   					f.sort(historyFilter.sort);
-   				 }
-   			 });
-        	
-        	
-        	//self.name("");
-   			
-   			dataSourceViewModel.openFilterDialog(isSave);
-   		 }
-   		 
-   		self.toggleExpand = function() {
-   			
-   			self.toggleExpand = function(item, event) {
-              	 event.stopPropagation();
-              	 
-              	 self.clicks++;
-              	 if (self.clicks !== 1) {
-              		 clearTimeout(self.timer);
-              		 self.filterByHistory(item);
-              		 self.clicks = 0;
-      				 return;        		 
-              	 }
-              	 
-              	 self.timer = setTimeout(function(){
-              		 self.clicks = 0;
-              		 event.preventDefault();
-	              	 var domItem = $(event.target);
-	          		 $(".expandedfilter").remove();
-	              	 if (item.expanded()) {
-	              		 item.expanded(false);
-	             	    } else {
-	             	      self.histories().forEach(function(candidateSample) {
-	             	        candidateSample.expanded(item === candidateSample);
-	             	        if (item === candidateSample){
-	             	        	
-	             	        	$.ajax({
-	   	                        url: self.filterURI + "?filtertip=" + item.id()
-	   	                    })
-	   	                    .then(function(content) {
-	   	                        // Set the tooltip content upon successful retrieval
-	   	                        content = JSON.parse(content);
-	   	                        content = "<div class=\'expandedfilter\' style=\'border:2px solid black;background-color:lightblue\'> <p>Name: " + content.name + "</p><p>Created: " + content.created_on + "<p>Filter: " + content.value  
-	   	                        	 + "</p><p>Double click to filter data sources with this.</p></div>";
-	   	                        	
-	                           	domItem.parent().append(content);
-	
-	   	                    }, function(xhr, status, error) {
-	   	                        // Upon failure... set the tooltip content to error
-	   	                    });
-	             	      }
-	             	    });
-             	    }
-              	 }, 300);
-           	}
-   		 }
-
-   		self.filterByHistory = function(item) {
-   			if (!dataSourceViewModel.selectedNode())
-  				 return;
-   			
-           	self.filterInternal(dataSourceViewModel.selectedNode().original.path, ko.toJSON(item.value()));
-   		 }
-   		
-   		self.loadHistory = function() {
-            
-   			ajaxcalls.simple(self.filterURI, 'GET', { 'filterhistory': true }).done(function(data) {
-            	
-   				if (data === undefined)
-					return;
-   				
-   				self.histories([]);
-                $.each(data['histories'], function(i, s){
-                    self.histories.push({
-                    	id: ko.observable(s.id),
-                    	name: ko.observable(s.name),
-                    	value: ko.observable(s.value),
-                    	created_on: ko.observable(s.created_on),
-                        expanded: ko.observable(false),
-                    });
-                });
-                
-            }).fail(function(jqXHR) {
-                showXHRText(jqXHR);
-            });
-  		 }
-   		
-		self.loadSavedFilters = function() {
-            
-   			ajaxcalls.simple(self.filterURI, 'GET', { 'filters': true }).done(function(data) {
-            	
-   				if (data === undefined)
-					return;
-   				
-   				self.savedFilters([]);
-                $.each(data['histories'], function(i, s){
-                    self.savedFilters.push({
-                    	id: ko.observable(s.id),
-                    	name: ko.observable(s.name),
-                    	value: ko.observable(s.value),
-                    	created_on: ko.observable(s.created_on),
-                        expanded: ko.observable(false),
-                    });
-                });
-                
-            }).fail(function(jqXHR) {
-                showXHRText(jqXHR);
-            });
-  		 };
-		
-		self.about = function () {
-			window.open("static/biodsl-help.html#datasources", '_blank');
-		};
-		   
-      }
-	   
-
+      
 	  
 
 	   var datasetviewViewModel = new DatasetviewViewModel();
@@ -4033,7 +3719,7 @@ function typeInTextarea(el, newText) {
         dataSourceViewModel.loadMetadataProperties();
         ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
 
-        filterViewModel = new FilterViewModel();
+        
        	ko.applyBindings(filterViewModel, $('#filter-dialog')[0]);
        	ko.applyBindings(filterViewModel, $('#searchHistoryPanel')[0]);
        	ko.applyBindings(filterViewModel, $('#filterhistoryView')[0]);

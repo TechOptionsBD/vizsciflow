@@ -789,3 +789,7 @@ min-width: 100px; */
 border-radius: 50px;
 /* line-height: 13px; */
 }
+
+.slider{
+  width: 100% !important;
+}

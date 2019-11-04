@@ -45,46 +45,6 @@ function BrowserViewModel() {
         return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
     };
 
-    self.pushImg = function (data, fileType) {  
-        var oReq = new XMLHttpRequest();
-        oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.original.path, true);
-        oReq.responseType = "arraybuffer";
-        var imgType = "image/" + fileType;
-
-        oReq.send();
-
-        oReq.onload = function (oEvent) {
-            if (this.status == 200) {
-                var arrayBuffer = oReq.response;
-                var byteArray = new Uint8Array(arrayBuffer);
-
-                var blob = new Blob([arrayBuffer], { type: imgType });
-                imgUrl = URL.createObjectURL(blob);
-
-                if (self.isListView()) {
-                    self.browserItems.push(
-                        {
-                            imgPath: ko.observable(imgUrl),
-                            itemName: ko.observable(data.text),
-                            originalPath: ko.observable(data.original.path),
-                            dataType: ko.observable(data.type)
-                        }
-                    );
-                    return;
-                }
-                
-
-                if (self.isNewSlider) {
-                    self.addNewSliderContent(imgUrl, data.text);
-                    self.initiateSlider();
-                    self.isNewSlider = false;
-                    return;
-                }
-
-                $("#browserTabCarousel").trigger('add.owl.carousel', [self.addNewSliderContent(imgUrl, data.text)]).trigger('refresh.owl.carousel');
-            }
-        };
-    };
 
     self.addNewSliderContent = function (imgPath, itemName) {
         var figure = '<div style ="display: block"><figure style="display: inline-block">' + '<img class="center" height="50rem" width="45rem" src="' + imgPath + '" alt= "' + itemName + '" >';
@@ -98,42 +58,6 @@ function BrowserViewModel() {
         return slider;
     };
 
-    // self.pushImgIntoSlider = function (data, fileType) {
-    //     var oReq = new XMLHttpRequest();
-    //     oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.original.path, true);
-    //     oReq.responseType = "arraybuffer";
-    //     var imgType = "image/" + fileType;
-
-    //     oReq.send();
-
-    //     oReq.onload = function (oEvent) {
-    //         if (this.status == 200) {
-    //             var arrayBuffer = oReq.response;
-    //             var byteArray = new Uint8Array(arrayBuffer);
-
-    //             var blob = new Blob([arrayBuffer], { type: imgType });
-    //             imgUrl = URL.createObjectURL(blob);
-
-    //             // self.browserItems.push(
-    //             // 	{
-    //             // 		imgPath: ko.observable(imgUrl),
-    //             // 		itemName: ko.observable(data.text),
-    //             // 		originalPath: ko.observable(data.original.path),
-    //             // 		dataType: ko.observable(data.type)
-    //             // 	}
-    //             // );
-
-    //             if (self.isNewSlider) {
-    //                 self.addNewSliderContent(imgUrl, data.text);
-    //                 self.initiateSlider();
-    //                 self.isNewSlider = false;
-    //                 return;
-    //             }
-
-    //             $("#browserTabCarousel").trigger('add.owl.carousel', [self.addNewSliderContent(imgUrl, data.text)]).trigger('refresh.owl.carousel');
-    //         }
-    //     };
-    // };
 
     self.openInNewTab = function (data, event) {
 
@@ -182,86 +106,98 @@ function BrowserViewModel() {
 
     };
 
+
+    self.pushImage = function (data, imgUrl, isFolder = false) {  
+        if (self.isListView() || isFolder) {
+            self.browserItems.push(
+                {
+                    imgPath: ko.observable(imgUrl),
+                    itemName: ko.observable(data.text),
+                    originalPath: ko.observable(data.original.path),
+                    dataType: ko.observable(data.type)
+                }
+            );
+            return;
+        }
+        
+        if (self.isNewSlider) {
+            self.addNewSliderContent(imgUrl, data.text);
+            self.initiateSlider();
+            self.isNewSlider = false;
+            return;
+        }
+
+        $("#browserTabCarousel").trigger('add.owl.carousel', [self.addNewSliderContent(imgUrl, data.text)]).trigger('refresh.owl.carousel');
+    };
+
+    self.getImage = function (data, fileType) { 
+
+        var oReq = new XMLHttpRequest();
+        oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.original.path, true);
+        oReq.responseType = "arraybuffer";
+        var imgType = "image/" + fileType;
+
+        oReq.send();
+
+        oReq.onload = function (oEvent) {
+            if (this.status == 200) {
+                var arrayBuffer = oReq.response;
+                // var byteArray = new Uint8Array(arrayBuffer);
+                var blob = new Blob([arrayBuffer], { type: imgType });
+                imgUrl = URL.createObjectURL(blob);
+                self.pushImage(data, imgUrl);
+            }
+        };
+    };
+
     self.loadItems = function (data) {
         self.browserItems([]);
         self.destroySlider();
         self.isNewSlider = true;
 
-        if(!self.isListView()){
-
-            
-        }
-
         if (data.children.length == 0) {
-
-            var imgUrl = data.type == "folder" ? self.folderImgPath : self.fileImgPath;
+            var imgUrl = '';
+            if(data.type == 'folder'){
+                
+                imgUrl =  self.folderImgPath;
+                self.pushImage(data, imgUrl, true);
+            }
 
             if (data.type == "file") {
                 var fileType = self.getFileExtension(data.text);
 
                 if (self.imageTypes.includes(fileType)) {
-                    self.pushImg(data, fileType);
+                    self.getImage(data, fileType);
                 }
                 else {
-                    self.browserItems.push(
-                        {
-                            imgPath: ko.observable(imgUrl),
-                            itemName: ko.observable(data.text),
-                            originalPath: ko.observable(data.original.path),
-                            dataType: ko.observable(data.type)
-                        }
-                    );
+                    imgUrl = self.fileImgPath;
+                    self.pushImage(data, imgUrl, false);
                 }
-            }
-            else {
-                self.browserItems.push(
-                    {
-                        imgPath: ko.observable(imgUrl),
-                        itemName: ko.observable(data.text),
-                        originalPath: ko.observable(data.original.path),
-                        dataType: ko.observable(data.type)
-                    }
-                );
             }
         }
         else {
             data.children.forEach(function (child) {
                 var childNode = $("#tree").jstree(true).get_node(child);
-                var imgUrl = childNode.type == "folder" ? self.folderImgPath : self.fileImgPath;
-
+                var imgUrl = '';
+                if(childNode.type == 'folder'){
+                    imgUrl = self.folderImgPath;
+                    self.pushImage(childNode, imgUrl, true);
+                }
                 if (childNode.type == "file") {
                     var fileType = self.getFileExtension(childNode.text);
 
                     if (self.imageTypes.includes(fileType)) {
 
-                        self.pushImg(childNode, fileType);
+                        self.getImage(childNode, fileType);
                     }
                     else {
-                        self.browserItems.push(
-                            {
-                                imgPath: ko.observable(imgUrl),
-                                itemName: ko.observable(childNode.text),
-                                originalPath: ko.observable(childNode.original.path),
-                                dataType: ko.observable(childNode.type)
-                            }
-                        );
+                        imgUrl = self.fileImgPath;
+                        self.pushImage(childNode, imgUrl)
                     }
                 }
-                else {
-                    self.browserItems.push(
-                        {
-                            imgPath: ko.observable(imgUrl),
-                            itemName: ko.observable(childNode.text),
-                            originalPath: ko.observable(childNode.original.path),
-                            dataType: ko.observable(childNode.type)
-                        }
-                    );
-                }
             });
-
         }
     };
-
 };
 
 ko.bindingHandlers.browserItemHover = {

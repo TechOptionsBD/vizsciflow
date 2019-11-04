@@ -1,6 +1,11 @@
 $(document).ready(function () {
     $('#browserTabCarousel').on('dblclick', '.owl-item', function (e, data) {
         var src = $(this).find('img').attr('src');
+
+        if(src == browserViewModel.folderImgPath || src == browserViewModel.fileImgPath){
+            return;
+        }
+
         var itemName = $(this).find('figcaption').html();
         showBrowserItemModal(src, itemName);
     });

@@ -359,24 +359,27 @@ function FilterViewModel() {
 
         frmControl.bootstrapSlider({
             tooltip: 'always',
-            min: '0',
-            max: '1024'
-        });
-
-        self.customizeSlider(frmControl);
-        frmControl.on('slideEnabled', function () {
-            self.customizeSlider(frmControl);
-        }).on('slide', function () {
-            self.customizeSlider(frmControl);
-        }).on('slideStop', function () {
-            self.customizeSlider(frmControl);
+            range: 'true',
+            min: 0,
+            max: 1024,
+            formatter:  function (value) {
+                
+                if (Array.isArray(value)) {
+                    value[0] = value[0] + ' KB';
+                    value[1] = value[1] + ' KB';
+                    return value;
+                } 
+            }
         });
     };
 
-    self.customizeSlider = function (frmControl) {
-
-        var sliderTooltip = $(frmControl).parent().find('.slider').find('.tooltip.tooltip-main').find('.tooltip-inner');
-        sliderTooltip.text(sliderTooltip.text() + ' KB');
+    self.customizeSlider = function (value) {
+        
+        // if(Array.isArray(value)){
+        //     value[0] = value[0] + ' KB';
+        //     value[1] = value[1] + ' KB';
+        //     return value;
+        // }
     };
      
 }

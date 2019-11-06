@@ -8,16 +8,19 @@ function BrowserViewModel() {
         "orf", "psd", "art", "pnm", "ppm", "rab", "rgb", "svg", "tif", "tiff", "xbm", "xpm", "xwd", "jp2",
         "jpm", "jpx", "jpf", "pcx", "svgz", "djvu", "djv", "pat", "cr2", "crw", "cdr", "cdt", "erf", "wbmp"];
 
-    self.isNewSlider = false;
+    self.videoTypes = ["3gp", "axv", "dl", "dif", "dv", "fli", "gl", "ts", "ogv", "mxu", "flv", "lsf", "lsx", "mng", "asf",
+        "asx", "wm", "wmv", "wmx", "wvx", "mpv", "mkv", "avi", "m1v", "mov", "movie", "mp4", "mpa", "mpe", "mpeg", "mpg", "webm"];
+
+    // self.isNewSlider = false;
     self.isListView = ko.observable(true);
+    self.sliderItems = ko.observableArray();
+
     self.destroySlider = function () {
         $('#browserTabCarousel').trigger('destroy.owl.carousel');
-        $("#browserTabCarousel").empty();
     };
 
 
     self.initiateSlider = function () {
-        
 
         $("#browserTabCarousel").owlCarousel({
             loop: true,
@@ -41,25 +44,31 @@ function BrowserViewModel() {
         });
     };
 
+    self.sliderController = function (data, element) { 
+        self.destroySlider();
+        self.initiateSlider();
+        
+    }
+
     self.getFileExtension = function (filename) {
         return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
     };
 
 
-    self.addNewSliderContent = function (imgPath, itemName) {
-        var figure = '<div style ="display: block"><figure style="display: inline-block">' + '<img class="center" height="50rem" width="45rem" src="' + imgPath + '" alt= "' + itemName + '" >';
-        var figureCaption = '<figcaption>' + itemName + '</figcaption> </figure></div>';
-        var slider = figure + figureCaption;
+    // self.addNewSliderContent = function (imgPath, itemName) {
+    //     var figure = '<div style ="display: block"><figure style="display: inline-block">' + '<img class="center" height="50rem" width="45rem" src="' + imgPath + '" alt= "' + itemName + '" >';
+    //     var figureCaption = '<figcaption>' + itemName + '</figcaption> </figure></div>';
+    //     var slider = figure + figureCaption;
 
-        if (self.isNewSlider) {
-            $("#browserTabCarousel").append(slider);
-            return;
-        }
-        return slider;
-    };
+    //     if (self.isNewSlider) {
+    //         $("#browserTabCarousel").append(slider);
+    //         return;
+    //     }
+    //     return slider;
+    // };
 
-
-    self.openInNewTab = function (data, event) {
+ 
+    self.openInNewTab = function (data, e) {
 
         if (ko.utils.unwrapObservable(data.dataType) == 'folder') {
 
@@ -77,30 +86,30 @@ function BrowserViewModel() {
             }
             return;
         }
-        else if (ko.utils.unwrapObservable(data.dataType) == 'file') {
-            var fileType = self.getFileExtension(data.itemName());
-            if (fileType == 'html' || fileType == 'htm') {
-                var oReq = new XMLHttpRequest();
-                oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
-                oReq.responseType = "arraybuffer";
+        // else if (ko.utils.unwrapObservable(data.dataType) == 'file') {
+        //     var fileType = self.getFileExtension(data.itemName());
+        //     if (fileType == 'html' || fileType == 'htm') {
+        //         var oReq = new XMLHttpRequest();
+        //         oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
+        //         oReq.responseType = "arraybuffer";
 
-                oReq.send();
+        //         oReq.send();
 
-                oReq.onload = function (oEvent) {
-                    if (this.status == 200) {
-                        var arrayBuffer = oReq.response;
-                        var byteArray = new Uint8Array(arrayBuffer);
+        //         oReq.onload = function (oEvent) {
+        //             if (this.status == 200) {
+        //                 var arrayBuffer = oReq.response;
+        //                 var byteArray = new Uint8Array(arrayBuffer);
 
-                        var blob = new Blob([arrayBuffer], { type: fileType });
-                        var fileSrc = URL.createObjectURL(blob);
+        //                 var blob = new Blob([arrayBuffer], { type: fileType });
+        //                 var fileSrc = URL.createObjectURL(blob);
 
-                        showBrowserItemModal(fileSrc, data.itemName());
+        //                 showBrowserItemModal(fileSrc, data.itemName());
 
-                    }
-                };
-                return;
-            }
-        }
+        //             }
+        //         };
+        //         return;
+        //     }
+        // }
 
         $.redirect(self.dataSourcesURI, { 'download': ko.utils.unwrapObservable(data.originalPath) }, "POST", "_blank");
 
@@ -120,14 +129,14 @@ function BrowserViewModel() {
             return;
         }
         
-        if (self.isNewSlider) {
-            self.addNewSliderContent(imgUrl, data.text);
-            self.initiateSlider();
-            self.isNewSlider = false;
-            return;
-        }
-
-        $("#browserTabCarousel").trigger('add.owl.carousel', [self.addNewSliderContent(imgUrl, data.text)]).trigger('refresh.owl.carousel');
+        self.sliderItems.push(
+            {
+                imgPath: ko.observable(imgUrl),
+                itemName: ko.observable(data.text),
+                originalPath: ko.observable(data.original.path),
+                dataType: ko.observable(data.type)
+            }
+        );
     };
 
     self.getImage = function (data, fileType) { 
@@ -153,7 +162,8 @@ function BrowserViewModel() {
     self.loadItems = function (data) {
         self.browserItems([]);
         self.destroySlider();
-        self.isNewSlider = true;
+        self.sliderItems([]);
+        $("#browserTabCarousel").empty();
 
         if (data.children.length == 0) {
             var imgUrl = '';
@@ -198,18 +208,71 @@ function BrowserViewModel() {
             });
         }
     };
-};
 
-ko.bindingHandlers.browserItemHover = {
-    init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+    self.openInModal = function (data, ele) {
 
-        $(element).mouseover(function () {
-            $(element).siblings().removeClass('browseritem-hover');
-            $(element).addClass('browseritem-hover');
-        });
-        $(element).mouseleave(function () {
-            $(element).removeClass('browseritem-hover');
-        });
+        var fileType = self.getFileExtension(data.itemName());
+
+        if (self.imageTypes.includes(fileType)) {
+            self.showModal(data);
+        }
+
+        else if (self.videoTypes.includes(fileType)) {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
+            oReq.responseType = "arraybuffer";
+            var videoType = "video/" + fileType;
+
+            oReq.send();
+
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: videoType });
+                    itemSrc = URL.createObjectURL(blob);
+                    
+                    self.showModal(data, itemSrc);
+                }
+            };
+        }
+        else if(fileType == 'htm' || fileType == 'html'){
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
+            oReq.responseType = "arraybuffer";
+
+            oReq.send();
+
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: fileType });
+                    itemSrc = URL.createObjectURL(blob);
+
+                    self.showModal(data, itemSrc);
+                }
+            };
+        }
+        else{
+            return;
+        }
+    };
+
+    self.showModal = function (data, itemSrc = null) {
+
+        browserItemModalViewModel.dataType(data.dataType());
+        browserItemModalViewModel.itemSrc(data.imgPath());
+        browserItemModalViewModel.itemName(data.itemName());
+        browserItemModalViewModel.originalPath(data.originalPath());
+        if(itemSrc != null){
+            browserItemModalViewModel.itemSrc(itemSrc);
+        }
+
+        var iframe = $("#browserItemModal").find('iframe');
+
+        $(iframe).height($('#browsertab').height()).width('100%');
+        setTimeout(function () {
+            $('#browserItemModal').modal('show');
+        }, 200);
     }
 };
 
@@ -225,3 +288,18 @@ ko.bindingHandlers.browserItemHover = {
         });
     }
 };
+
+
+function BrowserItemModalViewModel() {
+    var self = this;
+    self.iframeSource = ko.observable();
+    self.dataType = ko.observable();
+    self.itemSrc = ko.observable();
+    self.itemName = ko.observable();
+    self.originalPath = ko.observable();
+
+    self.openInNewTab = function (data, ele) {  
+        browserViewModel.openInNewTab(data, ele);
+    }
+
+}

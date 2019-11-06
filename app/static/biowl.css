@@ -778,6 +778,14 @@ center {
   overflow: hidden
 }
 
+.figcaption-clipped {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 12rem;
+  display: block;
+  overflow: hidden
+}
+
 .btn-add-new{
   float: right;
 /* height: 30px; */

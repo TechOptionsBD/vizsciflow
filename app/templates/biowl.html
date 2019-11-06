@@ -1286,20 +1286,20 @@
 	<div class="modal-dialog modal-lg modal-xl" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Modal title</h5>
+				<h5 class="modal-title" data-bind="text: itemName">Modal title</h5>
 				<!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button> -->
 				<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="btnBrowserModalFullscreen">
 					<i class="glyphicon glyphicon-resize-full"></i>
 				</button>
-				<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Open in new window" id="btnOpenNewWindow">
+				<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Open in new window" id="btnOpenNewWindow" data-bind="event: {click: openInNewTab.bind($data)}">
 					<i class="glyphicon glyphicon-new-window"></i>
 				</button>
 			</div>
 			<div class="modal-body">
-				<img id="browserImagePopup" class="center" src="" alt="">
-				<iframe id="browserItemPopup" class="center" src="" frameborder="0"></iframe>
+				<!-- <img id="browserImagePopup" class="center" src="" alt=""> -->
+				<iframe id="browserItemPopup" class="center" src="" frameborder="0" data-bind="attr:{src: itemSrc}"></iframe>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
@@ -1320,8 +1320,11 @@
 	<div class="col-sm-12" data-bind="visible: !isListView()">
 		<hr>
 	</div>
-	<div id="browserTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="visible: !isListView()">
-		
+	<div id="browserTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="visible: !isListView(), foreach: {data: sliderItems , afterRender: sliderController.bind($data)}">
+		<figure style="display: inline-block" data-bind="event: {dblclick : $parent.openInModal.bind($data)}">
+			<img height="50px" width="45px" data-bind="attr: {src: imgPath, alt: itemName}">
+			<figcaption class="figcaption-clipped" data-bind="text: itemName"></figcaption>
+		</figure>
 	</div>
 </div>
 
@@ -3371,8 +3374,10 @@ function typeInTextarea(el, newText) {
       
 		// Browser ViewModel binding
 		var browserViewModel = new BrowserViewModel();
+		var browserItemModalViewModel = new BrowserItemModalViewModel();
 
 		ko.applyBindings(browserViewModel, $("#browserView")[0]);
+		ko.applyBindings(browserItemModalViewModel, $("#browserItemModal")[0]);
 
 
 		function loadBrowserData(data) {

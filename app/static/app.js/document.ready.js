@@ -13,11 +13,19 @@ $(document).ready(function () {
     $("#browserTabCarousel").on('mouseover', '.owl-item', function (e) {  
        
         $(this).addClass('owl-item-focus');
+        $(this).css('transform', 'scale(1.11)');
+        $(this).siblings().addClass('owl-shrink');
+        $(this).siblings().css('transform-origin', 'center left');
+        //$(this).next().css('transform-origin', 'center right');
     
     });
 
     $("#browserTabCarousel").on('mouseleave', '.owl-item', function (e) {  
         $(this).removeClass('owl-item-focus');
+        $(this).css('transform', 'scale(1)');
+        $(this).siblings().removeClass('owl-shrink');
+        $(this).siblings().css('transform-origin', 'initial');
+        //$(this).next().css('transform-origin', 'initial');
     });
 
     $('#browserItemModal').on('show.bs.modal', function (e) {

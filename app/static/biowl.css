@@ -626,8 +626,10 @@ hr {
 } */
 
 .owl-item-focus{
-  transform: scale(1.1);
+  transform: scale(1.3);
   box-shadow: 0 0 6px 3px #7794e6;
+  opacity: 2;
+  transition: .3s;
 }
 
 .owl-prev {
@@ -650,7 +652,7 @@ hr {
   border:0px solid black;
 }
 .owl-prev i, .owl-next i {
-  transform : scale(1,6); 
+  transform : scale(2,4); 
   color: #337AB7;
 }
 
@@ -776,6 +778,21 @@ center {
   width: 10rem;
   display: block;
   overflow: hidden
+}
+
+/* .owl-grow{
+  -webkit-transform: scale(1.3);
+  -ms-transform: scale(1.3);
+  transform: scale(1.3);
+  opacity: 1.5;
+} */
+
+.owl-shrink{
+  -webkit-transform: scale(.8);
+  -ms-transform: scale(.8);
+  transform: scale(.8);
+  opacity: .7;
+  transition: .5s;
 }
 
 .figcaption-clipped {

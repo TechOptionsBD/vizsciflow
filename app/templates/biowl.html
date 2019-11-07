@@ -52,6 +52,7 @@
 <script src="/static/app.js/filterViewModel.js"></script>
 <script src="/static/app.js/ajaxCalls.js"></script>
 <script src="/static/app.js/tasksViewModel.js"></script>
+<script src="/static/app.js/samplesViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 {% endblock %}
@@ -515,6 +516,7 @@
 						<label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked="checked" autocomplete="off">Public</label>
 						<label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click" autocomplete="off">Shared</label>
 						<label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click" autocomplete="off">Private</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="3" data-bind="checked: access, click:click" autocomplete="off">All</label>
 						
 						<div class="input-group" style="margin-top: 10px">
 							<span class="input-group-btn">
@@ -547,10 +549,17 @@
 						<div class="row draggable-workflow"
 							data-bind="event: {dblclick: $parent.saveCurrentLoadintoEditor, click : $parent.toggleExpand}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 							style="width: 100%; margin: 0; display: block">
-							<div class="col-xm-6 menu_button" style="float: left; margin: 7px 0px 7px 0px; padding-left: 10px; width: 80%; font-weight: bold"
-								data-bind="text: name, draggable : $data"></div>
-							<div class="col-xm-3 menu_button"
-								style="float: right; margin: 7px 0 7px 0; padding-left: 20px; width: 20%"
+							<div class="col-xm-6 menu_button"
+								style="float: left; margin: 7px 0px 7px 0px; padding-left: 10px; width: 80%;"
+								data-bind=" draggable : $data">
+								<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
+								<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
+								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
+								&nbsp;
+								<span style="font-weight: bold;" data-bind="text: name"></span>
+							</div>
+							
+							<div class="col-xm-3 menu_button" style="float: right; margin: 7px 0 7px 0; padding-left: 20px; width: 20%"
 								data-bind="text: user"></div>
 						</div>
 					</div>
@@ -2602,178 +2611,7 @@ function typeInTextarea(el, newText) {
 		};
 
    
-       function SamplesViewModel(sampleViewModel) {
-           var self = this;
-           self.samplesURI = '/samples';
-		   self.clicks = 0;
-		   self.timer = null;
-           self.items = ko.observableArray();
-           self.sampleViewModel = sampleViewModel;
-           self.access = ko.observable("0");
-           self.workflowFilter = ko.observable("");
-			self.filteredWorkflows = ko.computed(function(){
-		       return this.items().filter(function(item){
-		           if(!self.workflowFilter() || item.name().toLowerCase().indexOf(self.workflowFilter().toLowerCase()) !== -1)
-		             return item;
-		       });
-  			},this);
-			
-		  self.about = function() {
-	    	  
-			  window.open("static/biodsl-help.html#workflows", '_blank');
-	      }
 
-           self.remove = function() {
-        	   
-        	   var item = self.firstSelectedItem();
-               if (item == null)
-                   return;
-               
-               ajaxcalls.simple(self.samplesURI, 'POST', { 'delete': item.name }).done(function(data) {
-                   self.load();
-               });
-           }
-           
-           self.newwf = function() {
-        	   self.saveCurrentLoadintoEditor(null);
-           }
-           
-           self.beginAdd = function() {
-        	   var script = editor.getSession().getValue();
-        	   if (script.length > 0) {
-        		   self.sampleViewModel.getCodeEditor().setValue(script, 1);
-        		}
-        	   var scriptname = $('#script-name').text();
-        	   if (scriptname.length <= 0) {
-        		   scriptname = "No Name";
-        	   }
-        	   self.sampleViewModel.name(scriptname);
-               centerDialog($('#addSample'));
-               return $('#addSample').modal('show');
-           }
-           
-           self.firstSelectedItem = function() {
-               var items = self.items();
-               for (var i = 0; i < items.length; i++) {
-                   if (items[i].selected()){
-                       return items[i];
-                   }
-               }
-               return null;
-           }
-           
-           self.saveNeeded = function() {
-          	 var script = $.trim(editor.getSession().getValue());
-          	 if (script)
-          		 script = script.trim();
-              if (!script && !workflowId) // || editor.session.getUndoManager().isClean())
-            	 	return false; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
-            	 
-              return isDirty;
-           }
-
-		   self.toggleExpand = function (item, event) {
-			   event.stopPropagation();
-			   self.clicks++;
-			   if (self.clicks !== 1) {
-				   $(".expandedWorkflow").remove();
-				   self.loadIntoEditor(item);
-				   self.clicks = 0
-				   return;
-			   }
-			   else {
-				   self.clicks= 0;
-				   var domItem = $(event.target);
-				   if (domItem.next().next('div .expandedWorkflow').length !== 0) {
-					   $(".expandedWorkflow").remove();
-					   return;
-				   } else {
-					   $(".expandedWorkflow").remove();
-
-					   tooltip = "<div class=\"expandedWorkflow\" style=\"margin-top: 40px \"> <p>Name: " + item.name() + "<br>Owner: " + item.user() + "<br>Selected: " + item.selected() + "</p>";
-					   tooltip += "</p>";
-					   tooltip += "<p>Double click item to insert into code editor.</p></div>";
-
-					   domItem.parent().append(tooltip);
-				   }
-			   }
-				
-		   };
-           
-           self.loadIntoEditor = function(item) {
-        	   
-        	   if (!item) {
-        		   workflowId = 0;
-            	   $('#script-name').text('New script');
-            	   editor.session.setValue("");
-            	   $('#args').val('');
-            	   return;
-        	   }
-        	   
-				ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item.id}).done(function(data) {
-        		   
-               	   if ($.isEmptyObject(data))
-               		   return;
-        		   
-         	   
-	         	   editor.session.setValue(data['script']);
-                   editor.focus();
-                   workflowId = item.id();
-                   $('#script-name').text(item.name());
-                   $('#args').val('');
-                   
-               }).fail(function(jqXHR) {
-                   showXHRText(jqXHR);
-               });
-           }
-           
-           self.saveCurrentLoadintoEditor = function(item) {
-	           if (self.saveNeeded()) {
-	          	   centerDialog($('#save-needed'));
-	               $('#save-needed').modal('show')
-	               	.on('click', '#save-needed-yes', function(e) {
-	               		var updateDlg = tasksViewModel.updateWorkflow(true);
-	                    if (updateDlg) {
-	                 	   updateDlg.on('hidden.bs.modal', function() 
-	                 			   { 
-	                 		   			self.loadIntoEditor(item); 
-	                 		   		}.bind(this));
-	                    }
-	                    else
-	                 	   self.loadIntoEditor(item);
-	                    
-	          	    }).on('click', '#save-needed-no', function(e) {
-	          	    	self.loadIntoEditor(item);
-	          	    });
-	      		}
-	           else {
-	        	   self.loadIntoEditor(item);
-	           }
-           }
-           
-           self.click = function(model){
-          		self.load();
-          	    return true;
-           }
-           
-           self.load = function() {
-               ajaxcalls.simple(self.samplesURI, 'GET', {'access': self.access()}).done(function(data) {
-				   self.items([]);
-            	   $.each(data.samples, function(i, s){
-            		   self.items.push({
-            			   id: ko.observable(s.id),
-            			   user:ko.observable(s.user),
-                           name: ko.observable(s.name),
-                           selected: ko.observable(false)
-                       });
-            	   });
-            	   
-               }).fail(function(jqXHR) {
-                   showXHRText(jqXHR);
-               });
-           }
-       }
-       
        $('input[name="wfaccess"]').change(function(e) { // Select the radio input group
 
     	    // This returns the value of the checked radio button

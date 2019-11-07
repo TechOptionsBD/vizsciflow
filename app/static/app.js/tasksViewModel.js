@@ -7,6 +7,7 @@ function TasksViewModel() {
     self.password = "";
     self.tasks = ko.observableArray();
     self.taskFilter = ko.observable("");
+    self.access = ko.observable("0");
     this.filteredTasks = ko.computed(function () {
         return this.tasks().filter(function (task) {
             if (!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
@@ -35,15 +36,15 @@ function TasksViewModel() {
         Name: "Public"
     });
 
-    self.categories = ko.observableArray([
-        {
-            Id: 0,
-            Name: "Basic"
-        }, {
-            Id: 1,
-            Name: "Advanced"
-        }
-    ]);
+    // self.categories = ko.observableArray([
+    //     {
+    //         Id: 0,
+    //         Name: "Basic"
+    //     }, {
+    //         Id: 1,
+    //         Name: "Advanced"
+    //     }
+    // ]);
 
     self.selectedCategory = ko.observable({
         Id: 0,
@@ -54,9 +55,14 @@ function TasksViewModel() {
         self.selectedCategory(category);
     }
 
-    self.selectServiceAccessType = function (serviceAccessType) {
-        self.selectedServiceAccessType(serviceAccessType);
+    // self.selectServiceAccessType = function (serviceAccessType) {
+    //     self.selectedServiceAccessType(serviceAccessType);
+    //     self.load();
+    // }
+
+    self.click = function (model) {
         self.load();
+        return true;
     }
 
     self.clearResults = function () {
@@ -249,7 +255,7 @@ function TasksViewModel() {
     }
 
     self.load = $.debounce(500, function () {
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'level': 1, 'access': self.selectedServiceAccessType().Id }).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'level': 1, 'access': self.access() }).done(function (data) {
 
             if (!data || !data.functions)
                 return;
@@ -266,7 +272,8 @@ function TasksViewModel() {
                     //runmode: ko.observable(f.runmode),
                     group: ko.observable(f.group),
                     href: ko.observable(f.href),
-                    expanded: ko.observable(false)
+                    expanded: ko.observable(false),
+                    access: ko.observable(self.access())
                 });
             });
         }).fail(function (jqXHR) {

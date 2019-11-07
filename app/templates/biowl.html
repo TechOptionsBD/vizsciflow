@@ -430,48 +430,23 @@
 						</div>
 					</div>
 					<div class="row panel-controlgroup">
-						<div class="btn-group">
-							<div class="btn-group">
-								<button
-									style="float: left; margin-right: 10px; margin-bottom: 10px;"
-									class="btn btn-primary dropdown-toggle" type="button"
-									id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
-									<span
-										data-bind="text: selectedServiceAccessType() ? selectedServiceAccessType().Name : 'Access Type'" style="font-size:20px;"></span>
-									<span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu" role="menu"
-									aria-labelledby="dropdownMenu2"
-									data-bind="foreach: serviceaccesstypes">
-									<li role="presentation"><a role="menuitem" tabindex="-1"
-										href="#"
-										data-bind="text: Name, click: $parent.selectServiceAccessType"></a></li>
-								</ul>
-							</div>
-							<div class="btn-group">
-								<button class="btn btn-primary dropdown-toggle" type="button"
-									id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
-									<span
-										data-bind="text: selectedCategory() ? selectedCategory().Name : 'Level'" style="font-size:20px;"></span>
-									<span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu" role="menu"
-									aria-labelledby="dropdownMenu1" data-bind="foreach: categories">
-									<li role="presentation"><a role="menuitem" tabindex="-1"
-										href="#" data-bind="text: Name, click: $parent.selectCategory"></a></li>
-								</ul>
-							</div>
-						</div>
-						<div class="input-group">
+						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="0" data-bind="checked: access, click:click"
+								checked="checked" autocomplete="off">Public</label>
+						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="1" data-bind="checked: access, click:click"
+								autocomplete="off">Shared</label>
+						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="2" data-bind="checked: access, click:click"
+								autocomplete="off">Private</label>
+						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="3" data-bind="checked: access, click:click"
+								autocomplete="off">All</label>
+
+						<div class="input-group" style="margin-top: 10px;">
 							<span class="input-group-btn">
-								<button style="margin-right: 10px;" class="btn btn-primary"
-									data-toggle="tooltip" data-placement="top" title="Reload"
-									data-bind="click: reload">
+								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
+									title="Reload" data-bind="click: reload">
 									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
 								</button>
-								<button style="margin-right: 10px;" class="btn btn-primary"
-									data-toggle="tooltip" data-placement="top" title="Add"
-									data-bind="click: beginAddLibrary">
+								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
+									title="Add" data-bind="click: beginAddLibrary">
 									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 								</button>
 							</span>
@@ -492,7 +467,13 @@
 						<div class="row"
 							data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 							style="width: 100%; margin: 0; display: block;">
-							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px; font-weight: bold;" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></div>
+							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px; font-weight: bold;" data-bind="event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data">
+								<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
+								<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
+								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
+								&nbsp;
+								<span style="font-weight: bold;" data-bind="text: name"></span>
+							</div>
 							<div class="col" style="float: right;padding-right: 5px">
 								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package_name" style="text-align: left"></span>)
 							</div>

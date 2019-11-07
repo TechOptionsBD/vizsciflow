@@ -1321,10 +1321,12 @@
 		<hr>
 	</div>
 	<div id="browserTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="visible: !isListView(), foreach: {data: sliderItems , afterRender: sliderController.bind($data)}">
-		<figure style="display: inline-block" data-bind="event: {dblclick : $parent.openInModal.bind($data)}">
-			<img height="50px" width="45px" data-bind="attr: {src: imgPath, alt: itemName}">
-			<figcaption class="figcaption-clipped" data-bind="text: itemName"></figcaption>
-		</figure>
+		<div style="display: block;" data-bind="event: {dblclick : $parent.openInModal.bind($data)}, attr: {title: itemName}">
+			<figure style="display: inline-block" data-bind="event: {dblclick : $parent.openInModal.bind($data)}">
+				<img height="50px" width="45px" data-bind="attr: {src: imgPath, alt: itemName}">
+				<figcaption class="figcaption-clipped" data-bind="text: itemName"></figcaption>
+			</figure>
+		</div>
 	</div>
 </div>
 

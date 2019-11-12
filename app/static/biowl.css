@@ -818,3 +818,7 @@ border-radius: 50px;
 .slider{
   width: 100% !important;
 }
+
+#btnEditorTabs{
+  border-radius: 3px;
+}

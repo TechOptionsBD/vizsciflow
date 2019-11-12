@@ -184,5 +184,9 @@ $(document).ready(function () {
     // 		e.originalEvent.dataTransfer.setData("text/plain", node.original.path);
     // 	});
     // });
-
+    $("#editortabs-dropdown li").click(function (e) {  
+        var targetTab = $(this).children().attr('href');
+        $(targetTab).show();
+        $(targetTab).removeClass('active');
+    });
 });

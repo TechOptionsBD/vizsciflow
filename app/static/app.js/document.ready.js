@@ -189,4 +189,22 @@ $(document).ready(function () {
         $(targetTab).show();
         $(targetTab).removeClass('active');
     });
+
+    $('.grid-stack').gridstack({
+        animate: true
+    });
+
+    var grid = $('.grid-stack').data('gridstack');
+
+    grid.disable();
+
+    $('.closeComponent').click(function (e) {  
+        var componentId = $(this).parents('.grid-stack-item').attr('id');
+        $("#" + componentId).hide();
+    });
+
+    $('#viewComponents-dropdown li').click(function (e) {  
+        var component = $(this).children().attr('href');
+        $(component).show();
+    });
 });

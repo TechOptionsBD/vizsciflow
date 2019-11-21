@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/css/bootstrap-slider.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/0.4.0/gridstack.css" />
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
@@ -35,14 +36,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/bootstrap-slider.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/0.4.0/gridstack.all.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/basic/jquery.qtip.min.js"></script>
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/ko.observableDictionary.js') }}"></script>
-<!-- <script type='text/javascript' src="https://raw.github.com/jamesfoster/knockout.observableDictionary/master/ko.observableDictionary.js"></script> -->
+
 
 <!-- app js files -->
+<script src="/static/app.js/dataSourceViewModel.js"></script>
 <script src="/static/app.js/browserViewModel.js"></script>
 <script src="/static/app.js/datasetsViewModel.js"></script>
 <script src="/static/app.js/datasetAddViewModel.js"></script>
@@ -53,6 +57,7 @@
 <script src="/static/app.js/ajaxCalls.js"></script>
 <script src="/static/app.js/tasksViewModel.js"></script>
 <script src="/static/app.js/samplesViewModel.js"></script>
+<script src="/static/app.js/gridStackViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 {% endblock %}
@@ -60,517 +65,564 @@
 
 <div class="container-fluid">
 	<div class="row row-flex">
-		<div class="col-md-3 box-one" style="padding: 0">
-			<div  class="panel panel-primary" style="position: relative;">
-				<div class="panel-heading" >
-						<!-- checked: access, -->
-					<div class="row" style="padding-left: 15px">
-							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="0"  checked="checked" autocomplete="off">Data Sources</label>
-							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Datasets</label>
-						<!-- <div>
-							<h4 class="col-sm-6">Data Sources</h4>
-						</div> -->
-					</div>
-				</div>
-				<div id="dataSourcesPanel">
-					<div class="panel datasources-panel-header">
-						<div class="btn-group btn-group-sm">
-							<!--<button class="btn btn-primary pull-right" data-toggle="tooltip"
-																			data-placement="top" title="Recursive Reload"
-																			data-bind="click: load.bind($data, true)">
-																			<i class="glyphicon glyphicon-unchecked"></i>
-																		</button> -->
-							<button id="btnAbout" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-								title="About" data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-							</button>
-							<button id="btnReload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-								title="Reload" data-bind="click: load.bind($data, true)">
-								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-							</button>
-							<button id="btnDownload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-								title="Download" data-bind="click: download">
-								<i class="glyphicon glyphicon-download toolbar-icon"></i>
-							</button>
-							<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal" data-placement="top"
-								title="Upload" data-bind="click: beginFileUpload">
-								<i class="glyphicon glyphicon-upload toolbar-icon"></i>
-							</button>
-							<button id="btnBeginUpdateMetadata" class="btn btn-primary pull-right" data-toggle="modal"
-								data-placement="top" title="Update Metadata" data-bind="click: beginUpdateMetadata">
-								<i class="glyphicon glyphicon-edit toolbar-icon"></i>
-							</button>
-							<button id="btnDeleteFolderFile" class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Delete Folder/File" data-bind="click: remove">
-								<i class="glyphicon glyphicon-minus toolbar-icon"></i>
-							</button>
-							<button id="btnAddFolder" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-								title="Add Folder" data-bind="click: addFolder, clickBubble: false">
-								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
-							</button>
-						</div>
-						<div id="dataSourcesSearchPanel" class="form-inline">
-							<input class="form-control" style="width: 67%" type="text" placeholder="Search…"
-								data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
-							<button id="btnOpenFilterDialog" class="btn btn-primary" data-toggle="tooltip"
-								data-placement="top" title="Filter" data-bind="click: openFilterDialog.bind($data, false)">
-								<i class="glyphicon glyphicon-filter"></i>
-							</button>
-						</div>
-					</div>
-					<div id="dataSourcesTreeView" class="panel-body draggable-datasources"
-						style="height: 416px; overflow-y: scroll; padding: 0">
-						<div id="tree" data-bind="jstree: { data: dataSources }"></div>
-					</div>
-				</div>
-				<div id="dataSetsPanel" hidden >
-						<div class="panel datasources-panel-header">
-							<div class="btn-group btn-group-sm">
-								<button id="btnAbout" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-									title="About" data-bind="click: about">
-									<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-								</button>
-								<button id="btnReload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-									title="Reload" data-bind="click: load.bind($data, true)">
-									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-								</button>
-								<!-- <button id="btnDownload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-									title="Download" data-bind="click: download">
-									<i class="glyphicon glyphicon-download toolbar-icon"></i>
-								</button>
-								<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal" data-placement="top"
-									title="Upload" data-bind="click: beginFileUpload">
-									<i class="glyphicon glyphicon-upload toolbar-icon"></i>
-								</button> -->
-								<button id="btnEditSchema" class="btn btn-primary pull-right" data-toggle="modal"
-									data-placement="top" title="Edit Schema" data-bind="click: editSchema">
-									<i class="glyphicon glyphicon-edit toolbar-icon"></i>
-								</button> 
-								<button id="btnDeleteSchema" class="btn btn-primary pull-right" data-toggle="tooltip"
-									data-placement="top" title="Delete Schema" data-bind="click: deleteSchema">
-									<i class="glyphicon glyphicon-minus toolbar-icon"></i>
-								</button>
-								<button id="btnAddNewDataset" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-									title="Add New" data-bind="click : addNew">
-									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
-								</button>
-							</div>
-							<div id="dataSetsSearchPanel" class="form-inline">
-								<input id="txtDatasetsSearch" class="form-control" style="width: 67%" type="text" placeholder="Search…"
-									 data-bind="value: datasetFilter, valueUpdate: 'keyup' " /> 	
+		<div class="col-md-12">
+			<div class="grid-stack">
+
+				<div class="grid-stack-item" data-gs-x="0" data-gs-y="0" data-gs-width="3" data-gs-height="8" id="datasourceStack">
+					<div class="grid-stack-item-content panel panel-primary">
+						<div class="panel-heading">
+							<button class="close closeComponent" type="button">×</button>
+							<!-- checked: access, -->
+							<div class="row" style="padding-left: 15px">
+								<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="0" checked="checked"
+										autocomplete="off">Data Sources</label>
+								<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"
+										autocomplete="off">Datasets</label>
+								<!-- <div>
+										<h4 class="col-sm-6">Data Sources</h4>
+									</div> -->
 							</div>
 						</div>
-						<div id="dataSetsListView" class="panel-body draggable-datasources"
-							style="height: 416px; overflow-y: scroll; padding: 0" >
-							<div data-bind="foreach: filteredDatasets">
-                                <div class="dataset-listview" data-bind="click: $parent.click.bind($data),  datasetHover : $data">
-									<label class="dataset-item-label">
-										<h4 data-bind="text: name, searchTextMatch : $data"></h4>
-										<a data-bind="attr: {href: 'http://' + url} ,text: url, searchTextMatch : $data" style="margin-left: 10px" target="_blank"></a><br>
-										<span data-bind="text: description, searchTextMatch : $data" style="margin-left: 10px"></span>
-									</label>
+						<div id="dataSourcesPanel">
+							<div class="panel datasources-panel-header">
+								<div class="btn-group btn-group-sm">
+									<!--<button class="btn btn-primary pull-right" data-toggle="tooltip"
+																						data-placement="top" title="Recursive Reload"
+																						data-bind="click: load.bind($data, true)">
+																						<i class="glyphicon glyphicon-unchecked"></i>
+																					</button> -->
+									<button id="btnAbout" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="About" data-bind="click: about">
+										<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+									</button>
+									<button id="btnReload" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="Reload" data-bind="click: load.bind($data, true)">
+										<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+									</button>
+									<button id="btnDownload" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="Download" data-bind="click: download">
+										<i class="glyphicon glyphicon-download toolbar-icon"></i>
+									</button>
+									<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal"
+										data-placement="top" title="Upload" data-bind="click: beginFileUpload">
+										<i class="glyphicon glyphicon-upload toolbar-icon"></i>
+									</button>
+									<button id="btnBeginUpdateMetadata" class="btn btn-primary pull-right" data-toggle="modal"
+										data-placement="top" title="Update Metadata" data-bind="click: beginUpdateMetadata">
+										<i class="glyphicon glyphicon-edit toolbar-icon"></i>
+									</button>
+									<button id="btnDeleteFolderFile" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="Delete Folder/File" data-bind="click: remove">
+										<i class="glyphicon glyphicon-minus toolbar-icon"></i>
+									</button>
+									<button id="btnAddFolder" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="Add Folder" data-bind="click: addFolder, clickBubble: false">
+										<i class="glyphicon glyphicon-plus toolbar-icon"></i>
+									</button>
+								</div>
+								<div id="dataSourcesSearchPanel" class="form-inline">
+									<input class="form-control" style="width: 67%" type="text" placeholder="Search…"
+										data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
+									<button id="btnOpenFilterDialog" class="btn btn-primary" data-toggle="tooltip"
+										data-placement="top" title="Filter" data-bind="click: openFilterDialog.bind($data, false)">
+										<i class="glyphicon glyphicon-filter"></i>
+									</button>
 								</div>
 							</div>
-							<!-- <ul data-bind="foreach: datasets">
-                                <li>
-									<div class="dataset-listview">
-										<h2 data-bind="text: Title"></h2>
-										<label data-bind="text: Url"></label>
-										<label data-bind="text: UpdatedDate"></label>
+							<div id="dataSourcesTreeView" class="panel-body draggable-datasources"
+								style="height: 416px; overflow-y: scroll; padding: 0">
+								<div id="tree" data-bind="jstree: { data: dataSources }"></div>
+							</div>
+						</div>
+						<div id="dataSetsPanel" hidden>
+							<div class="panel datasources-panel-header">
+								<div class="btn-group btn-group-sm">
+									<button id="btnAbout" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="About" data-bind="click: about">
+										<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+									</button>
+									<button id="btnReload" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="Reload" data-bind="click: load.bind($data, true)">
+										<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+									</button>
+									<!-- <button id="btnDownload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+												title="Download" data-bind="click: download">
+												<i class="glyphicon glyphicon-download toolbar-icon"></i>
+											</button>
+											<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal" data-placement="top"
+												title="Upload" data-bind="click: beginFileUpload">
+												<i class="glyphicon glyphicon-upload toolbar-icon"></i>
+											</button> -->
+									<button id="btnEditSchema" class="btn btn-primary pull-right" data-toggle="modal"
+										data-placement="top" title="Edit Schema" data-bind="click: editSchema">
+										<i class="glyphicon glyphicon-edit toolbar-icon"></i>
+									</button>
+									<button id="btnDeleteSchema" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="Delete Schema" data-bind="click: deleteSchema">
+										<i class="glyphicon glyphicon-minus toolbar-icon"></i>
+									</button>
+									<button id="btnAddNewDataset" class="btn btn-primary pull-right" data-toggle="tooltip"
+										data-placement="top" title="Add New" data-bind="click : addNew">
+										<i class="glyphicon glyphicon-plus toolbar-icon"></i>
+									</button>
+								</div>
+								<div id="dataSetsSearchPanel" class="form-inline">
+									<input id="txtDatasetsSearch" class="form-control" style="width: 67%" type="text"
+										placeholder="Search…" data-bind="value: datasetFilter, valueUpdate: 'keyup' " />
+								</div>
+							</div>
+							<div id="dataSetsListView" class="panel-body draggable-datasources"
+								style="height: 416px; overflow-y: scroll; padding: 0">
+								<div data-bind="foreach: filteredDatasets">
+									<div class="dataset-listview"
+										data-bind="click: $parent.click.bind($data),  datasetHover : $data">
+										<label class="dataset-item-label">
+											<h4 data-bind="text: name, searchTextMatch : $data"></h4>
+											<a data-bind="attr: {href: 'http://' + url} ,text: url, searchTextMatch : $data"
+												style="margin-left: 10px" target="_blank"></a><br>
+											<span data-bind="text: description, searchTextMatch : $data"
+												style="margin-left: 10px"></span>
+										</label>
 									</div>
-								</li>
-							</ul> -->
-						</div>
-					</div>
-			</div>
-			<div id="searchHistoryPanel" class="panel panel-primary">
-				<div class="panel-heading">
-					<div class="row">
-						<div style="display : block">
-							<h4 class="col-sm-6">Saved Filters</h4>
-							<button class="btn btn-primary pull-left" data-toggle="tooltip" data-placement="top" title="About"
-								data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-							</button>
-						</div>
-					</div>
-				</div> 
-				<div class="panel-body" style="max-height: 200px; overflow-y: auto;" data-bind="foreach: savedFilters">
-					<div class="col savedfilter-item" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openSavedFilterDialog, 'To Editor': $parent.copyToEditor, 'Delete' : $parent.deleteSavedFilter}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
-						<span data-bind="text: name"></span>
-					</div>
-				</div>
-			</div>
-			<div id="runnableWorkflowsPanel" class="panel panel-primary">
-				<div class="panel-heading">
-					<div class="row">
-						<div>
-							<h4 class="col-sm-6">Job Histories</h4>
-						</div>
-					</div>
-					<div class="btn-group">
-						<div class="btn-group-sm">
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="About"
-								data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Restart Execution"
-								data-bind="click: restart">
-								<i class="glyphicon glyphicon-repeat toolbar-icon"></i>
-							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Stop Execution"
-								data-bind="click: stop">
-								<i class="glyphicon glyphicon-stop toolbar-icon"></i>
-							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Reload" data-bind="click: load">
-								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Deselect All"
-								data-bind="click: deselectAll">
-								<i class="glyphicon glyphicon-unchecked toolbar-icon"></i>
-							</button>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Select All"
-								data-bind="click: selectAll">
-								<i class="glyphicon glyphicon-check toolbar-icon"></i>
-							</button>
-						</div>
-					</div>
-				</div>
-				<div class="panel-body"
-					style="max-height: 200px; width: 100%; overflow-y: scroll;"
-					data-bind="foreach: items">
-					<div class="div-history-item row menu_button"
-						data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
-						>
-						<div class="col-md-auto" style="vertical-align: middle;" >
-							<input type="checkbox" class="form-check-input" style="margin-left: 10px"
-								data-bind="checked: selected" /> <img
-								class="history-item-img" width="16px" height="16px"
-								data-bind="attr:{src: statusImg}" />
-							<label data-bind="text: name" class="form-check-label label-checkbox" style="margin-top: 2px"></label>
-						</div>
-						
-						<div class="col" style="float: right;padding-right: 5px">
-							<span data-bind="text: modified" style="text-align: right"></span>
-						</div>
-						<div style="clear: both" ></div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-6 box-two" id="main">
-				<div class="panel panel-primary" id="codeeditor" style="margin: 2px">
-				
-					<div class="panel-heading text-center">
-					<h4 style="margin-bottom:10px">Bioinformatics Domain Specific Language (Bio-DSL)</h4>
-					
-					<div class="btn-group">
-						<div class="btn-group-sm">
-							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="New Workflow" id="newwf" onclick="samplesViewModel.newwf()">
-								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
-							</button>
-							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" data-bind="click: updateWorkflow.bind(true)">
-								<i class="glyphicon glyphicon-floppy-disk toolbar-icon"></i>
-							</button>
-							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save As Workflow..." id="saveaswf" onclick="samplesViewModel.beginAdd()">
-								<i class="glyphicon glyphicon-floppy-save toolbar-icon"></i>
-							</button>
-							
-							<div class="btn-group" role="group">
-							    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							      <span class="glyphicon glyphicon-text-size toolbar-icon" aria-hidden="true"></span>
-					                <span class="caret"></span>
-					                <span class="sr-only">Text size</span>
-							    </button>
-							    <ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupDrop1" id="panel-fontsize">
-							      <li><a class="dropdown-item" href="#">10</a></li>
-							      <li><a class="dropdown-item" href="#">11</a></li>
-							      <li><a class="dropdown-item" href="#">12</a></li>
-							      <li><a class="dropdown-item" href="#">14</a></li>
-							      <li><a class="dropdown-item" href="#">16</a></li>
-							      <li><a class="dropdown-item" href="#">18</a></li>
-							      <li><a class="dropdown-item" href="#">20</a></li>
-							      <li><a class="dropdown-item" href="#">24</a></li>							      
-							    </ul>
+								</div>
+								<!-- <ul data-bind="foreach: datasets">
+											<li>
+												<div class="dataset-listview">
+													<h2 data-bind="text: Title"></h2>
+													<label data-bind="text: Url"></label>
+													<label data-bind="text: UpdatedDate"></label>
+												</div>
+											</li>
+										</ul> -->
 							</div>
-							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="About Bio-DSL Syntax" id="panel-about">
-								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-							</button>
-							
-  							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="panel-fullscreen">
-								<i class="glyphicon glyphicon-resize-full toolbar-icon"></i>
-							</button>
-
-							<div class="btn-group" role="group">
-								<button id="btnEditorTabs" type="button" class="btn btn-primary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Show Tab">
-									<i class="glyphicon glyphicon-menu-hamburger"></i>
-								</button>
-								<ul class="dropdown-menu" role="menu" aria-labelledby="btnEditorTabs" id="editortabs-dropdown" >
-									<li><a class="btn btn-secondary"  href="#liGraphTab">Graph Tab</a></li>
-									<li> <a class="btn btn-secondary" href="#liMetadataTab">Metadata</a></li>
-									<li> <a class="btn btn-secondary" href="#liFilterHistoryTab">Filter History</a></li>
-									<li> <a class="btn btn-secondary" href="#liBrowserTab">Browser</a></li>
-									<li> <a class="btn btn-secondary" href="#liDataset">Dataset</a></li>
+						</div>
+					</div>
+				</div>
+			
+				<div class="grid-stack-item" data-gs-x="0" data-gs-y="12" data-gs-width="3" data-gs-height="4" id="searchHistoryStack">
+					<div id="searchHistoryPanel" class="grid-stack-item-content panel panel panel-primary">
+						<div class="panel-heading">
+							<button class="close closeComponent" type="button">×</button>
+							<div class="row">
+								<div style="display : block">
+									<h4 class="col-sm-6">Saved Filters</h4>
+									<button class="btn btn-primary pull-left" data-toggle="tooltip" data-placement="top"
+										title="About" data-bind="click: about">
+										<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+									</button>
+								</div>
+							</div>
+						</div>
+						<div class="panel-body" style="max-height: 200px; overflow-y: auto;" data-bind="foreach: savedFilters">
+							<div class="col savedfilter-item"
+								data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.filterByHistory}, contextMenu: { 'Apply': $parent.filterByHistory, 'Filter Dialog...': $parent.openSavedFilterDialog, 'To Editor': $parent.copyToEditor, 'Delete' : $parent.deleteSavedFilter}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+								<span data-bind="text: name"></span>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+				<div class="grid-stack-item" data-gs-x="0" data-gs-y="8" data-gs-width="3" data-gs-height="4" id="jobHistoriesStack">
+					<div id="runnableWorkflowsPanel" class="grid-stack-item-content panel panel-primary">
+						<div class="panel-heading">
+							<button class="close closeComponent" type="button">×</button>
+							<div class="row">
+								<div>
+									<h4 class="col-sm-6">Job Histories</h4>
+								</div>
+							</div>
+							<div class="btn-group">
+								<div class="btn-group-sm">
+									<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+										title="About" data-bind="click: about">
+										<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+									</button>
+									<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+										title="Restart Execution" data-bind="click: restart">
+										<i class="glyphicon glyphicon-repeat toolbar-icon"></i>
+									</button>
+									<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+										title="Stop Execution" data-bind="click: stop">
+										<i class="glyphicon glyphicon-stop toolbar-icon"></i>
+									</button>
+									<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+										title="Reload" data-bind="click: load">
+										<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+									</button>
+									<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+										title="Deselect All" data-bind="click: deselectAll">
+										<i class="glyphicon glyphicon-unchecked toolbar-icon"></i>
+									</button>
+									<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+										title="Select All" data-bind="click: selectAll">
+										<i class="glyphicon glyphicon-check toolbar-icon"></i>
+									</button>
+								</div>
+							</div>
+						</div>
+						<div class="panel-body" style="max-height: 200px; width: 100%; overflow-y: scroll;"
+							data-bind="foreach: items">
+							<div class="div-history-item row menu_button"
+								data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }">
+								<div class="col-md-auto" style="vertical-align: middle;">
+									<input type="checkbox" class="form-check-input" style="margin-left: 10px"
+										data-bind="checked: selected" /> <img class="history-item-img" width="16px" height="16px"
+										data-bind="attr:{src: statusImg}" />
+									<label data-bind="text: name" class="form-check-label label-checkbox"
+										style="margin-top: 2px"></label>
+								</div>
+			
+								<div class="col" style="float: right;padding-right: 5px">
+									<span data-bind="text: modified" style="text-align: right"></span>
+								</div>
+								<div style="clear: both"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+				<div class="grid-stack-item" data-gs-x="3" data-gs-y="0" data-gs-width="6" data-gs-height="11" id="main">
+					<div class="grid-stack-item-content panel panel-primary" id="codeeditor" style="margin: 2px">
+			
+						<div class="panel-heading text-center">
+							<h4 style="margin-bottom:10px">Bioinformatics Domain Specific Language (Bio-DSL)</h4>
+			
+							<div class="btn-group">
+								<div class="btn-group-sm">
+									<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="New Workflow"
+										id="newwf" onclick="samplesViewModel.newwf()">
+										<i class="glyphicon glyphicon-plus toolbar-icon"></i>
+									</button>
+									<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow"
+										id="savewf" data-bind="click: updateWorkflow.bind(true)">
+										<i class="glyphicon glyphicon-floppy-disk toolbar-icon"></i>
+									</button>
+									<button class="btn btn-primary" data-toggle="tooltip" data-placement="top"
+										title="Save As Workflow..." id="saveaswf" onclick="samplesViewModel.beginAdd()">
+										<i class="glyphicon glyphicon-floppy-save toolbar-icon"></i>
+									</button>
+			
+									<div class="btn-group" role="group">
+										<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle"
+											data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											<span class="glyphicon glyphicon-text-size toolbar-icon" aria-hidden="true"></span>
+											<span class="caret"></span>
+											<span class="sr-only">Text size</span>
+										</button>
+										<ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupDrop1" id="panel-fontsize">
+											<li><a class="dropdown-item" href="#">10</a></li>
+											<li><a class="dropdown-item" href="#">11</a></li>
+											<li><a class="dropdown-item" href="#">12</a></li>
+											<li><a class="dropdown-item" href="#">14</a></li>
+											<li><a class="dropdown-item" href="#">16</a></li>
+											<li><a class="dropdown-item" href="#">18</a></li>
+											<li><a class="dropdown-item" href="#">20</a></li>
+											<li><a class="dropdown-item" href="#">24</a></li>
+										</ul>
+									</div>
+									<button class="btn btn-primary" data-toggle="tooltip" data-placement="top"
+										title="About Bio-DSL Syntax" id="panel-about">
+										<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+									</button>
+			
+									<button class="btn btn-primary" data-toggle="tooltip" data-placement="top"
+										title="Toggle fullscreen" id="panel-fullscreen">
+										<i class="glyphicon glyphicon-resize-full toolbar-icon"></i>
+									</button>
+			
+									<div class="btn-group" role="group">
+										<button id="btnEditorTabs" type="button" class="btn btn-primary" data-toggle="dropdown"
+											aria-haspopup="true" aria-expanded="false" title="Show Tab">
+											<i class="glyphicon glyphicon-menu-hamburger"></i>
+										</button>
+										<ul class="dropdown-menu" role="menu" aria-labelledby="btnEditorTabs"
+											id="editortabs-dropdown">
+											<li><a class="btn btn-secondary" href="#liGraphTab">Graph Tab</a></li>
+											<li> <a class="btn btn-secondary" href="#liMetadataTab">Metadata</a></li>
+											<li> <a class="btn btn-secondary" href="#liFilterHistoryTab">Filter History</a></li>
+											<li> <a class="btn btn-secondary" href="#liBrowserTab">Browser</a></li>
+											<li> <a class="btn btn-secondary" href="#liDataset">Dataset</a></li>
+										</ul>
+									</div>
+									<!-- <div class="dropdown">
+										<button class="btn btn-secondary dropdown-toggle" type="button" id="btnEditorTabs" data-toggle="dropdown"
+											aria-haspopup="true" aria-expanded="false">
+											<i class="fa fa-ellipsis-h"></i>
+										</button>
+										<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+											<a class="dropdown-item" href="#">Graph</a>
+											<a class="dropdown-item" href="#">Metadata</a>
+											<a class="dropdown-item" href="#">Filter History</a>
+											<a class="dropdown-item" href="#">Browser</a>
+											<a class="dropdown-item" href="#">Dataset</a>
+										</div>
+									</div> -->
+								</div>
+								<h5 id='script-name'></h5>
+							</div>
+			
+						</div>
+						<div class="panel-body" style="">
+							<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
+								<ul class="nav nav-tabs marginBottom">
+									<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed"
+											data-toggle="tab">Script</a></li>
+									<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph <button class="close closeTab"
+												type="button">×</button></a></li>
+									<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button
+												class="close closeTab" type="button">×</button></a></li>
+									<!-- <button class="close closeTab" type="button">×</button> -->
+									<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History <button
+												class="close closeTab" type="button">×</button></a></li>
+									<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser <button
+												class="close closeTab" type="button">×</button></a></li>
+									<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button
+												class="close closeTab" type="button">×</button></a></li>
 								</ul>
-							</div>
-							<!-- <div class="dropdown">
-								<button class="btn btn-secondary dropdown-toggle" type="button" id="btnEditorTabs" data-toggle="dropdown"
-									aria-haspopup="true" aria-expanded="false">
-									<i class="fa fa-ellipsis-h"></i>
-								</button>
-								<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-									<a class="dropdown-item" href="#">Graph</a>
-									<a class="dropdown-item" href="#">Metadata</a>
-									<a class="dropdown-item" href="#">Filter History</a>
-									<a class="dropdown-item" href="#">Browser</a>
-									<a class="dropdown-item" href="#">Dataset</a>
-								</div>
-							</div> -->
-						</div>
-						<h5 id='script-name'></h5>
-					</div>
-					
-				</div>
-					<div class="panel-body" style="">
-						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
-							<ul class="nav nav-tabs marginBottom">
-								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
-								<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph <button class="close closeTab" type="button">×</button></a></li>
-								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" type="button">×</button></a></li>
-								<!-- <button class="close closeTab" type="button">×</button> -->
-								<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History <button class="close closeTab" type="button">×</button></a></li>
-								<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser <button class="close closeTab" type="button">×</button></a></li>
-								<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button class="close closeTab" type="button">×</button></a></li>
-							</ul>
-						<div class="tab-content">
-							<div class="tab-pane fade in active scriptstyle" id="scripttab">
-								<div id="editor" class="editorstyle"></div>
-							</div>
-							<div class="tab-pane fade" id="graphtab">
-								<div style="width: 100%; height: 100%" id="graph"></div>
-							</div>
-							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="metatab">
-							</div>
-							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="filterhistorytab">
-								
-							</div>
-							<div class="tab-pane fade in scriptstyle" id="browsertab">
-								<div class="browser-panel-heading">
-									<label class="radio-inline"> <input type="radio" name="browserTabView" value="0" checked="checked"
-											autocomplete="off">&nbsp; List View</label>
-									<label class="radio-inline"> <input type="radio" name="browserTabView" value="1"
-											autocomplete="off">&nbsp; Details View</label>
+								<div class="tab-content">
+									<div class="tab-pane fade in active scriptstyle" id="scripttab">
+										<div id="editor" class="editorstyle"></div>
+									</div>
+									<div class="tab-pane fade" id="graphtab">
+										<div style="width: 100%; height: 100%" id="graph"></div>
+									</div>
+									<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="metatab">
+									</div>
+									<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="filterhistorytab">
+			
+									</div>
+									<div class="tab-pane fade in scriptstyle" id="browsertab">
+										<div class="browser-panel-heading">
+											<label class="radio-inline"> <input type="radio" name="browserTabView" value="0"
+													checked="checked" autocomplete="off">&nbsp; List View</label>
+											<label class="radio-inline"> <input type="radio" name="browserTabView" value="1"
+													autocomplete="off">&nbsp; Details View</label>
+										</div>
+									</div>
+									<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="datasettab">
+			
+									</div>
 								</div>
 							</div>
-							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="datasettab">
-
-							</div>
-						</div>
-						</div>
-						<div class="row">
-							<div class="col-sm-1">
-								<span class="text-secondary ">Arguments:</span>
-							</div>
-							<div class="col-sm-11">
-								<textarea rows="1" class="args-area" id="args"></textarea>
+							<div class="row">
+								<div class="col-sm-1">
+									<span class="text-secondary ">Arguments:</span>
+								</div>
+								<div class="col-sm-11">
+									<textarea rows="1" class="args-area" id="args"></textarea>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div class="panel panel-primary"
-					style="padding: 0px; border: 0; margin: 4px">
-					<div class="panel-body" style="padding: 0">
-						<button id="runBioWL" class="btn pull-left btn-primary btn-lg"
-							style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
-						<button class="btn pull-left btn-primary btn-lg"
-							style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
-						<!-- <button class="btn pull-left btn-primary"
-							style="margin-right: 5px;" data-bind="click: provenance">Provenance</button> -->
-						<div style="margin-top: 8px">
-						<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
-							id="immediate"> <span class="label-immediate">Immediate</span>
-					    </label> 
-					    <span
-							class="badge badge-primary">Time: <span id="duration"
-							class="badge badge-light" style="vertical-align: baseline;">0s</span>
-						</span> <span
-							class="glyphicon glyphicon-repeat normal-right-spinner pull-right"
-							id="refresh"></span>
-						</div>
-					</div>
-				</div>
-				<div id="exTab2" class="panel panel-primary extab2">
-					<ul class="nav nav-tabs">
-						<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
-						<li><a href="#2" data-toggle="tab">Error</a></li>
-						<li><a href="#3" data-toggle="tab">Output</a></li>
-					</ul>
-					<span class="badge badge-pill badge-primary" style="float: left" id="reportid"></span>
-					<span class="badge badge-pill badge-primary" style="float: right" id="execstatus"></span>
-					<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
-					<div class="tab-content extab2-tab-content">
-						<div class="tab-pane fade in active" id="1">
-							<textarea rows="10" class="log-tab" id="output"></textarea>
-							<!-- <br> -->
-						</div>
-						<div class="tab-pane fade" id="2">
-							<textarea rows="10" class="log-tab" id="error"></textarea>
-							<!-- <br> -->
-						</div>
-						<div class="tab-pane fade" id="3">
-							<span id="executable-status"></span>
-							<div>
-								<table class="table table-striped" id="log" style="table-layout: fixed;">
-									<thead>
-										<tr>
-											<th class="report-header" scope="col" align="center" width="15%">Task</th>
-											<th class="report-header" scope="col" align="center" width="70%" style="text-align:center;">Data</th>
-											<th class="report-header" scope="col" align="center" width="15%" style="text-align:center;">Status</th>
-										</tr>
-									</thead>
-									<tbody>
-									</tbody>
-							</table>
+			
+				<div class="grid-stack-item" data-gs-x="3" data-gs-y="11" data-gs-width="6" data-gs-height="1" id="executeSectionStack">
+					<div class="grid-stack-item-content panel panel-primary" id="executeSection" style="padding: 0px; border: 0; margin: 4px">
+						<div class="panel-body" style="padding: 0">
+							<button id="runBioWL" class="btn pull-left btn-primary btn-lg" style="margin-right: 5px;"
+								data-bind="click: runBioWL">Run</button>
+							<button class="btn pull-left btn-primary btn-lg" style="margin-right: 5px;"
+								data-bind="click: clearResults">Clear</button>
+							<!-- <button class="btn pull-left btn-primary"
+										style="margin-right: 5px;" data-bind="click: provenance">Provenance</button> -->
+							<div style="margin-top: 8px">
+								<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
+										id="immediate"> <span class="label-immediate">Immediate</span>
+								</label>
+								<span class="badge badge-primary">Time: <span id="duration" class="badge badge-light"
+										style="vertical-align: baseline;">0s</span>
+								</span> <span class="glyphicon glyphicon-repeat normal-right-spinner pull-right"
+									id="refresh"></span>
 							</div>
 						</div>
 					</div>
 				</div>
-		</div>
-		<div class="col-md-3 box-three" style="padding: 2px;">
-			<div id="functions" class="panel panel-primary">
-				<div class="panel-heading">
-					<div class="row">
-						<div class="col-sm-6">
-							<h4 class="pull-left">Services</h4>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="About"
-								data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-							</button>
-						</div>
-					</div>
-					<div class="row panel-controlgroup">
-						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="0" data-bind="checked: access, click:click"
-								checked="checked" autocomplete="off">Public</label>
-						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="1" data-bind="checked: access, click:click"
-								autocomplete="off">Shared</label>
-						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="2" data-bind="checked: access, click:click"
-								autocomplete="off">Private</label>
-						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="3" data-bind="checked: access, click:click"
-								autocomplete="off">All</label>
-
-						<div class="input-group" style="margin-top: 10px;">
-							<span class="input-group-btn">
-								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
-									title="Reload" data-bind="click: reload">
-									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-								</button>
-								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
-									title="Add" data-bind="click: beginAddLibrary">
-									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
-								</button>
-							</span>
-							<input class="form-control" type="text" placeholder="Search…"
-								data-bind="value: taskFilter, valueUpdate: 'keyup'" />
-						</div>
-					</div>
-				</div>
-				<div class="panel-body draggable-functions"
-					style="max-height: 500px; overflow-y: scroll; padding: 3px">
-					<div class="row" style="width: 100%; margin: 0">
-						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: left; text-align: left; padding-left:5px; width: 60%"><strong>Name</strong></div>
-						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: right; padding-left: 4px; text-align: right; padding-right: 5px; width: 40%"><strong>Group(Package)</strong></div>
-					</div>
-					<div data-bind="foreach: filteredTasks">
-						<div class="row"
-							data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
-							style="width: 100%; margin: 0; display: block;">
-							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px; font-weight: bold;" data-bind="event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data">
-								<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
-								<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
-								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
-								&nbsp;
-								<span style="font-weight: bold;" data-bind="text: name"></span>
+			
+				<div class="grid-stack-item" data-gs-x="3" data-gs-y="12" data-gs-width="6" data-gs-height="3" id="exTab2Stack">
+					<div id="exTab2" class="grid-stack-item-content panel panel-primary extab2">
+						<button class="close closeComponent" type="button" style="padding-right: 15px;padding-top: 5px;">×</button>
+						<ul class="nav nav-tabs">
+							<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
+							<li><a href="#2" data-toggle="tab">Error</a></li>
+							<li><a href="#3" data-toggle="tab">Output</a></li>
+						</ul>
+						<span class="badge badge-pill badge-primary" style="float: left" id="reportid"></span>
+						<span class="badge badge-pill badge-primary" style="float: right" id="execstatus"></span>
+						<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
+						<div class="tab-content extab2-tab-content">
+							<div class="tab-pane fade in active" id="1">
+								<textarea rows="10" class="log-tab" id="output"></textarea>
+								<!-- <br> -->
 							</div>
-							<div class="col" style="float: right;padding-right: 5px">
-								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package_name" style="text-align: left"></span>)
+							<div class="tab-pane fade" id="2">
+								<textarea rows="10" class="log-tab" id="error"></textarea>
+								<!-- <br> -->
 							</div>
-							<div style="clear:both"></div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- 	            <div data-bind="stopBinding: true"> -->
-			<div id="samples" class="panel panel-primary" style="padding: 2px">
-				<div class="panel-heading">
-					<div class="row">
-						<div class="col-sm-6">
-							<h4 class="pull-left">Workflows</h4>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About"	data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-							</button>
-						</div>
-					</div>
-					<div class="row panel-controlgroup">
-						<label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked="checked" autocomplete="off">Public</label>
-						<label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click" autocomplete="off">Shared</label>
-						<label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click" autocomplete="off">Private</label>
-						<label class="radio-inline"> <input type="radio" name="access" value="3" data-bind="checked: access, click:click" autocomplete="off">All</label>
-						
-						<div class="input-group" style="margin-top: 10px">
-							<span class="input-group-btn">
-								<button style="margin-right: 10px;" class="btn btn-primary"
-									data-toggle="tooltip" data-placement="top" title="Reload"
-									data-bind="click: load">
-									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-								</button>
-								<button style="margin-right: 10px;" class="btn btn-primary"
-									data-toggle="tooltip" data-placement="top" title="Save"
-									data-bind="click: beginAdd">
-									<i class="glyphicon glyphicon-floppy-save toolbar-icon"></i>
-								</button>
-							</span> 
-							<input class="form-control" type="text" placeholder="Search…"
-								data-bind="value: workflowFilter, valueUpdate: 'keyup'" />
-						</div>
-					</div>
-				</div>
-				<div class="panel-body draggable-samples"
-					style="max-height: 200px; width: 100%; overflow-y: scroll; padding: 3px 3px 0 0">
-					<div class="row" style="width: 100%; margin: 0">
-						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: left; width: 80%; text-align: left; padding-left: 12px"><strong>Name</strong></div>
-						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: right; padding-left: 5px; width: 20%; text-align: center"><strong>Owner</strong></div>
-					</div>
-
-					<div data-bind="foreach: filteredWorkflows">
-						<div class="row draggable-workflow"
-							data-bind="event: {dblclick: $parent.saveCurrentLoadintoEditor, click : $parent.toggleExpand}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
-							style="width: 100%; margin: 0; display: block">
-							<div class="col-xm-6 menu_button"
-								style="float: left; margin: 7px 0px 7px 0px; padding-left: 10px; width: 80%;"
-								data-bind=" draggable : $data">
-								<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
-								<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
-								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
-								&nbsp;
-								<span style="font-weight: bold;" data-bind="text: name"></span>
+							<div class="tab-pane fade" id="3">
+								<span id="executable-status"></span>
+								<div>
+									<table class="table table-striped" id="log" style="table-layout: fixed;">
+										<thead>
+											<tr>
+												<th class="report-header" scope="col" align="center" width="15%">Task</th>
+												<th class="report-header" scope="col" align="center" width="70%"
+													style="text-align:center;">Data</th>
+												<th class="report-header" scope="col" align="center" width="15%"
+													style="text-align:center;">Status</th>
+											</tr>
+										</thead>
+										<tbody>
+										</tbody>
+									</table>
+								</div>
 							</div>
-							
-							<div class="col-xm-3 menu_button" style="float: right; margin: 7px 0 7px 0; padding-left: 20px; width: 20%"
-								data-bind="text: user"></div>
 						</div>
 					</div>
 				</div>
+			
+				<div class="grid-stack-item" data-gs-x="9" data-gs-y="0" data-gs-width="3" data-gs-height="9" id="servicesStack">
+					<div id="functions" class="grid-stack-item-content panel panel-primary">
+						<div class="panel-heading">
+							<button class="close closeComponent" type="button">×</button>
+							<div class="row">
+								<div class="col-sm-6">
+									<h4 class="pull-left">Services</h4>
+									<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+										title="About" data-bind="click: about">
+										<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+									</button>
+								</div>
+							</div>
+							<div class="row panel-controlgroup">
+								<label class="radio-inline"> <input type="radio" name="serviceAccess" value="0"
+										data-bind="checked: access, click:click" checked="checked" autocomplete="off">Public</label>
+								<label class="radio-inline"> <input type="radio" name="serviceAccess" value="1"
+										data-bind="checked: access, click:click" autocomplete="off">Shared</label>
+								<label class="radio-inline"> <input type="radio" name="serviceAccess" value="2"
+										data-bind="checked: access, click:click" autocomplete="off">Private</label>
+								<label class="radio-inline"> <input type="radio" name="serviceAccess" value="3"
+										data-bind="checked: access, click:click" autocomplete="off">All</label>
+			
+								<div class="input-group" style="margin-top: 10px;">
+									<span class="input-group-btn">
+										<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip"
+											data-placement="top" title="Reload" data-bind="click: reload">
+											<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+										</button>
+										<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip"
+											data-placement="top" title="Add" data-bind="click: beginAddLibrary">
+											<i class="glyphicon glyphicon-plus toolbar-icon"></i>
+										</button>
+									</span>
+									<input class="form-control" type="text" placeholder="Search…"
+										data-bind="value: taskFilter, valueUpdate: 'keyup'" />
+								</div>
+							</div>
+						</div>
+						<div class="panel-body draggable-functions" style="max-height: 500px; overflow-y: scroll; padding: 3px">
+							<div class="row" style="width: 100%; margin: 0">
+								<div class="p-3 mb-2 bg-primary text-white"
+									style="float: left; text-align: left; padding-left:5px; width: 60%"><strong>Name</strong></div>
+								<div class="p-3 mb-2 bg-primary text-white"
+									style="float: right; padding-left: 4px; text-align: right; padding-right: 5px; width: 40%">
+									<strong>Group(Package)</strong></div>
+							</div>
+							<div data-bind="foreach: filteredTasks">
+								<div class="row" data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+									style="width: 100%; margin: 0; display: block;">
+									<div class="col-md-auto draggable-func menu_button float: left;"
+										style="word-wrap: break-word; padding-left: 5px; font-weight: bold;"
+										data-bind="event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data">
+										<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
+										<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
+										<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
+										&nbsp;
+										<span style="font-weight: bold;" data-bind="text: name"></span>
+									</div>
+									<div class="col" style="float: right;padding-right: 5px">
+										<span data-bind="text: group" style="text-align: right"></span>(<span
+											data-bind="text: package_name" style="text-align: left"></span>)
+									</div>
+									<div style="clear:both"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			
+				<div class="grid-stack-item" data-gs-x="9" data-gs-y="9" data-gs-width="3" data-gs-height="5" id="workflowsStack">
+					<div id="samples" class="grid-stack-item-content panel panel-primary" style="padding: 2px">
+						<div class="panel-heading">
+							<button class="close closeComponent" type="button">×</button>
+							<div class="row">
+								<div class="col-sm-6">
+									<h4 class="pull-left">Workflows</h4>
+									<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+										title="About" data-bind="click: about">
+										<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+									</button>
+								</div>
+							</div>
+							<div class="row panel-controlgroup">
+								<label class="radio-inline"> <input type="radio" name="access" value="0"
+										data-bind="checked: access, click:click" checked="checked" autocomplete="off">Public</label>
+								<label class="radio-inline"> <input type="radio" name="access" value="1"
+										data-bind="checked: access, click:click" autocomplete="off">Shared</label>
+								<label class="radio-inline"> <input type="radio" name="access" value="2"
+										data-bind="checked: access, click:click" autocomplete="off">Private</label>
+								<label class="radio-inline"> <input type="radio" name="access" value="3"
+										data-bind="checked: access, click:click" autocomplete="off">All</label>
+			
+								<div class="input-group" style="margin-top: 10px">
+									<span class="input-group-btn">
+										<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip"
+											data-placement="top" title="Reload" data-bind="click: load">
+											<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+										</button>
+										<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip"
+											data-placement="top" title="Save" data-bind="click: beginAdd">
+											<i class="glyphicon glyphicon-floppy-save toolbar-icon"></i>
+										</button>
+									</span>
+									<input class="form-control" type="text" placeholder="Search…"
+										data-bind="value: workflowFilter, valueUpdate: 'keyup'" />
+								</div>
+							</div>
+						</div>
+						<div class="panel-body draggable-samples"
+							style="max-height: 200px; width: 100%; overflow-y: scroll; padding: 3px 3px 0 0">
+							<div class="row" style="width: 100%; margin: 0">
+								<div class="p-3 mb-2 bg-primary text-white"
+									style="float: left; width: 80%; text-align: left; padding-left: 12px"><strong>Name</strong>
+								</div>
+								<div class="p-3 mb-2 bg-primary text-white"
+									style="float: right; padding-left: 5px; width: 20%; text-align: center"><strong>Owner</strong>
+								</div>
+							</div>
+			
+							<div data-bind="foreach: filteredWorkflows">
+								<div class="row draggable-workflow"
+									data-bind="event: {dblclick: $parent.saveCurrentLoadintoEditor, click : $parent.toggleExpand}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+									style="width: 100%; margin: 0; display: block">
+									<div class="col-xm-6 menu_button"
+										style="float: left; margin: 7px 0px 7px 0px; padding-left: 10px; width: 80%;"
+										data-bind=" draggable : $data">
+										<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
+										<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
+										<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
+										&nbsp;
+										<span style="font-weight: bold;" data-bind="text: name"></span>
+									</div>
+			
+									<div class="col-xm-3 menu_button"
+										style="float: right; margin: 7px 0 7px 0; padding-left: 20px; width: 20%"
+										data-bind="text: user"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				
 			</div>
 		</div>
 	</div>
@@ -1721,6 +1773,32 @@
     </div>
 </div>
 
+
+<div class="modal" role="dialog" tabindex="-1" id="saveLayout">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Save new layout</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group row">
+					<label for="" class="col-sm-3 form-label">Layout Name:</label>
+					<div class="col-sm-8">
+						<input type="text" class="form-control" data-bind="value: newLayoutName">
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-primary" data-dismiss="modal" data-bind="click: addNewLayout"> Save</button>
+				<button class="btn btn-danger" data-dismiss="modal" > Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -1784,32 +1862,6 @@
 	
 		
     	$('#refresh').hide();
-        // $('.draggable-functions').each(function() {
-        //     // inner scope
-        //     var phrase = $(this);
-
-        //      $(this).find('div.draggable-func').each(function() {
-        //          // cache jquery object
-        //          var current = $(this);
-        //         current.addClass("draggable-func");
-                 
-        //          current.draggable({
-        //              revert : 'invalid',
-        //              stack : '.draggable-func',
-        //              helper : 'clone'
-        //          });
-                 
-                 
-        //         //  current.on("dragstart", function(e) {
-        //         // 	 e.originalEvent.dataTransfer.setData("text/plain", this.textContent)
-        //         //  });
-                 
-        //         //  current.bind('dragstart', function(e) {
-        //         //         e.dataTransfer.setData("text/plain", this.textContent)
-        //         //  });
-                 
-        //      });
-        //  });
         
         $('.draggable-samples').each(function() {
             // inner scope
@@ -1838,301 +1890,7 @@
 //     	});
     
     // Create the View Model.
-    var DataSourceViewModel = function() {
-      var self = this;
-      self.init = false;
-      self.dataSourcesURI = '/datasources';
-      self.dataSources = ko.observableArray();
-      self.expandedNodes = [];
-      self.searchDataSource = ko.observable();
-      self.waittime = 5000; // for throttle
-      self.tree = $('#tree');
-      
-      self.visualizers = ko.observableArray();
-      self.mimetypes = ko.observableArray(["xx-pp", "yy-qq"]);
-                  
-      self.findExpandibleNodes = function(text) {
-    	var options = {
-    		    ignoreCase: true,
-    		    exactMatch: false,
-    		    revealResults: true,
-    		  };
-        return $('#tree').treeview('search', [ text, options ]);
-      };
     
-      self.searchDataSource.subscribe(function () {
-    	  self.tree.jstree('search', self.searchDataSource());
-      });
-           
-      self.beginFileUpload = function() {
-          centerDialog($('#file-upload-dialog'));
-          self.loadMetadataProperties();
-          ko.cleanNode($("#file-upload-dialog")[0]);
-          ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
-          $('#file-upload-dialog').modal('show');
-      }
-      
-      self.beginUpdateMetadata= function() {
-    	  //centerDialog($('#update-metadata-dialog'));
-    	  var node = dataSourceViewModel.selectedNode().original;
-    	  if (node === undefined)
-    		  return;
-    	  
-    	  metadataViewModel.load(node.path);
-    	  $('#update-metadata-dialog').modal('show');
-      }
-      
-      self.loadMetadataProperties = function() {
-			
-          ajaxcalls.simple(metadataViewModel.metadataURI, 'GET', { 'properties': true }).done(function(data) {
-			  
-        	  self.visualizers = ko.observableArray();
-        	  $.each(data['visualizers'], function(key, value){
-        		  self.visualizers.push(ko.observable(key + ": " + value))
-        	  });
-        	  
-        	  self.mimetypes = ko.observableArray();
-        	  $.each(data['mimetypes'], function(key, value){
-        		  self.mimetypes.push(ko.observable(key + ": " + value))
-        	  });
-                        
-          }).fail(function(jqXHR, a, b) {
-              showXHRText(jqXHR);
-          });
-      }
-
-      self.loadFromJSON = function(datasources) {
-    	  self.dataSources(datasources);
-		  
-    	  ko.cleanNode($("#dataSourcesPanel")[0]);
-    	  ko.applyBindings(self, $("#dataSourcesPanel")[0]);   	  
-      }
-      
-      self.load = function(recursive) {
-    	  /*if (self.init) {
-	    	  node = self.selectedNode();
-	          if (node !== undefined) {
-	        	  self.loadItem(node, recursive)
-	        	  return;
-	          }
-    	  }*/
-
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'recursive': recursive }).done(function(data) {
-        	  
-        	  self.loadFromJSON(data.datasources);
-        	  
-        	 /*  self.tree.jstree(true).settings.core.data = self.dataSources();
-        	  self.tree.jstree(true).refresh(); */
-        	  
-              //ko.mapping.fromJS($("#dataSourcesPanel")[0], self);
-              
-              /*$('#tree').find('li.list-group-item').each(function() {
-                  // cache jquery object
-                  var current = $(this);
-                  current.draggable({
-                      revert : 'invalid',
-                      stack : '.draggable-data',
-                      helper : 'clone',
-                      zIndex:10000
-                  });
-              });*/
-              
-//               for (node in self.expandedNodes) {
-//               	$('#tree').treeview('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]);
-//               }
-                        
-          }).fail(function(jqXHR) {
-              showXHRText(jqXHR);
-          });
-      }
-      
-      self.getItemByPath = function(source, path) {
-    	  if (source.path === path)
-    		  return source;
-    	  
-    	  if (source.children !== undefined || source.children != null) {
-	    	  for(var i =0; i < source.children.length; ++i){
-	    		  
-	    		  var subNode = self.getItemByPath(source.children[i], path);
-	    		  if (subNode)
-	    			  return subNode;
-	    	  }
-    	  }
-    		
-    	  return null;	
-      }
-      
-      self.loadItem = function(node, recursive = true) {
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.original.path, 'recursive': recursive }).done(function(data) {
-              
-              var dataSources = self.dataSources();
-              
-              for(var i=0; i < dataSources.length; ++i){
-            	  
-            	  var item = self.getItemByPath(dataSources[i], data.path);
-            	  if (item != null) {
-                  	item.text = data.text;
-                  	item.nodes = data.nodes;
-                    item.loaded = data.loaded;
-                    
-                    ko.cleanNode($("#dataSourcesPanel")[0]);
-                    ko.applyBindings(self, $("#dataSourcesPanel")[0]);
-                    
-//                     for (node in self.expandedNodes)
-//                         $('#tree').jstree(true). ('expandNode', [ parseInt(self.expandedNodes[node]), { levels: 0, silent: true } ]);
-                        
-                  	break;
-            	  }
-              }
-          }).fail(function(jqXHR) {
-              showXHRText(jqXHR);
-          });
-      }
-      
-      self.loadNewItem = function(node, newItemName ,recursive = true) {
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'load': node.original.path, 'recursive': recursive }).done(function(data) {
-        	  var dataSources = self.dataSources();
-              var newAddedItemPath = data.path + "\/" + newItemName;
-              for(var i=0; i < dataSources.length; ++i){
-            	  
-            	  var item = self.getItemByPath(dataSources[i], data.path);
-            	  if (item != null) {
-                  	item.text = data.text;
-                  	item.nodes = data.children;
-                    item.loaded = data.loaded;
-                    for(var j = 0; j< item.nodes.length; ++j ){
-                    	var newAddedItem = self.getItemByPath(item.nodes[j], newAddedItemPath);
-                    	if(newAddedItem != null){
-                    		var newItemPositon = 'inside';
-                    		var newItemId = $("#tree").jstree().create_node(node, newAddedItem, newItemPositon);
-                    		$("#tree").jstree("deselect_all");
-                    		$("#tree").jstree(true).select_node(newItemId);
-                    		break;
-                    	}
-                    }  
-                  	break;
-            	  }
-              }
-          }).fail(function(jqXHR) {
-              showXHRText(jqXHR);
-          });
-      }
-      
-      
-      self.selectedNode = function()
-      {
-    	  node = $('#tree').jstree("get_selected")
-    	  return $('#tree').jstree().get_selected(true)[0];
-      }
-      
-      self.parentNode = function(node)
-      {
-    	  var parentNodeId = $("#"+node.id).parent().parent().attr('id');
-    	  var parentNode = $("#tree").jstree(true).get_node(parentNodeId);
-    	  return parentNode;
-    	  //return node.parentNode;
-      }
-      
-      self.upload = function() {
-
-     	  $('#file-upload-dialog').modal('hide');
-     	 
-          var files = $("#upload").get(0).files;
-          var formdata = new FormData();
-          formdata.append('upload', files[0]); //use get('files')[0]
-          node = self.selectedNode();
-          if (node === undefined)
-        	  return;
-          formdata.append('path', node.original.path);//you can append it to formdata with a proper parameter name
-          formdata.append('filename', $("#inputFilename").val());
-          var visualizer = $("#inputVisualizer").val();
-          if (visualizer) {
-          	visualizer = visualizer.split(": ");
-          	visualizer = {
-          			[visualizer[0]]: visualizer[1]
-          	};
-          	formdata.append('visualizer', JSON.stringify(visualizer));
-          }
-		  formdata.append('annotations', $("#inputAnnotations")[0].value);
-		  mimetype = $("#inputMimeType").val();
-		  if (mimetype) {
-			  mimetype = mimetype.split(": ");
-			  formdata.append('mimetype', JSON.stringify({ [mimetype[0].trim()]: mimetype[1].trim() }));
-		  }
-
-          ajaxcalls.form(self.dataSourcesURI, 'POST', formdata).done(function(data) {
-        	  var inputFileName = $("#inputFilename").val();
-        	  self.loadNewItem(node, inputFileName);
-          });
-       }
-      
-	  self.about = function() {
-
-		  window.open("static/biodsl-help.html#datasources", '_blank');
-      }
-	  
-      self.download = $.debounce(500, function() {
-    	  
-    	  node = self.selectedNode();
-          if (node === undefined){
-			return;
-		  }
-
-          $.redirect(self.dataSourcesURI, { 'download': node.original.path }, "POST", "_blank");
-      });
-            
-      self.addFolder = $.debounce(500, function() {
-    	  node = self.selectedNode();
-    	  
-          if (node === undefined)
-              return;
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'addfolder': node.original.path }).done(function(data) {
-        	  var newNodePosition = 'inside';
-        	  var parentNode = node;
-        	  var newNode = $('#tree').jstree().create_node(parentNode, data, newNodePosition, function(){
-        		  				$("#btnAddFolder").removeClass('active');
-        	  				});
-        	  $('#tree').jstree("deselect_all");
-        	  $("#tree").jstree(true).select_node(newNode);
-          });
-      });
-      
-      self.remove = $.debounce(500, function() {
-    	  node = self.selectedNode();
-          if (node === undefined)
-              return;
-          ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'delete': node.original.path }).done(function(data) {
-          	  var parentNode = self.parentNode(node);
-          	  if (parentNode === undefined)
-          	  	return;
-          	  
-          	  var siblings = parentNode.children;
-          	  if (siblings !== undefined && siblings.length > 0)
-          	  	sibling = siblings[0].path;
-        	  //self.loadItem(parentNode);
-        	  $('#tree').jstree().delete_node(node.id);
-        	  $('#tree').jstree(true).select_node(parentNode.id);
-        	  
-        	  if (sibling === undefined)
-        	  	$('#tree').jstree(true).select_node(node.nodeId);
-        	  else {
-        	  	siblingNode = self.getItemByPath(parentNode, sibling);
-        	  	$('#tree').treeview('selectNode', siblingNode.nodeId);
-        	  }
-          });
-      });
-      
-      self.openFilterDialog = function(isSave) {
-		var okText = isSave? "Save" : "Search";
-		filterViewModel.okText(okText);
-		$('#filter-dialog').modal('show');
-		// $('#filter-dialog .modal-body').css('max-height', $('#dataSourcesPanel').css('height'));
-		// $('#filter-dialog .modal-body').css('width', $('#dataSourcesPanel').css('width')+ '5');
-      }
-      self.load(true);
-      self.init = true;
-    }
-   
    // Last trigger node Id
    var lastSelectedNodeId = null;
    // Last time trigger 
@@ -3119,7 +2877,8 @@ function typeInTextarea(el, newText) {
         ko.applyBindings(sampleViewModel, $('#addSample')[0]);
         ko.applyBindings(editTaskViewModel, $('#edit')[0]);
         ko.applyBindings(metadataViewModel, $('#metadataView')[0]);
-        ko.applyBindings(metadataViewModel, $('#update-metadata-dialog')[0]);
+		ko.applyBindings(metadataViewModel, $('#update-metadata-dialog')[0]);
+		ko.applyBindings(tasksViewModel, $("#executeSection")[0]);
                 
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
     
@@ -3548,6 +3307,14 @@ function typeInTextarea(el, newText) {
   }
   
   registerCloseEvent();
+
+  var gridStackViewModel = new GridStackViewModel();
+//   gridStackViewModel.defaultLayout = gridStackViewModel.serialize();
+//   gridStackViewModel.load();
+ko.applyBindings(gridStackViewModel, $("#layoutSelection")[0]);
+ko.applyBindings(gridStackViewModel, $("#saveLayout")[0]);
+
+gridStackViewModel.savedLayouts.push({layoutName: 'Default', properties : gridStackViewModel.defaultLayout});
         
 </script>
 {{ pagedown.include_pagedown() }}

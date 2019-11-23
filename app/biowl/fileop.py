@@ -372,7 +372,12 @@ class PosixFileSystem(BaseFileSystem):
                
     def rename(self, oldpath, newpath):
         oldpath = self.normalize_path(oldpath)
+        newpath = self.join(self.dirname(oldpath), newpath)
         newpath = self.normalize_path(newpath)
+        
+        if oldpath == newpath:
+            return oldpath
+        
         os.rename(oldpath, newpath)
         return self.strip_root(newpath)
     

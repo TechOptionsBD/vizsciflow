@@ -752,6 +752,15 @@ class DataSourceAllocation(db.Model):
             db.session.rollback()
             raise
     
+    def update_url(self, url):
+        try:
+            self.url = url
+            db.session.commit()
+            return self
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
     @staticmethod
     def get(user_id, ds_id, url):
         return DataSourceAllocation.query.join(DataPermission, DataPermission.data_id == DataSourceAllocation.id).filter(and_(DataPermission.user_id == user_id, DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
@@ -759,7 +768,7 @@ class DataSourceAllocation(db.Model):
     @staticmethod
     def get_by_url(ds_id, url):
         return DataSourceAllocation.query.filter(and_(DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
-        
+    
     def has_right(self, user_id, checkRight):
         dataPermission = DataPermission.query.filter(and_(DataPermission.user_id == user_id, DataPermission.data_id == self.id)).first()
         return AccessRights.hasRight(dataPermission.rights, checkRight)

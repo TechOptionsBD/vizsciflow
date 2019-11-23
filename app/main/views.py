@@ -493,17 +493,21 @@ def load_metadata(path):
     return metadata
     
 def save_metadata(request):
-    path = request.form.get('metadatasave')
+    path = request.form.get('save')
     newname = request.form.get('filename')
-    
-    fs = Utility.fs_by_prefix_or_default(path)
-    if fs.basename(path) != newname:
-        fs.rename(path, newname)
-
-    DataSourceAllocation.check_access_rights(current_user.id, path, AccessRights.Read)
     
     ds = Utility.ds_by_prefix_or_default(path)
     data = DataSourceAllocation.get_by_url(ds.id, path)
+    
+    fs = Utility.fs_by_prefix_or_default(path)
+    if not fs:
+        raise ValueError("path not found")
+    newpath = fs.rename(path, newname)
+    if path != newpath:
+        data.update_url(newpath)
+        path = newpath    
+
+    DataSourceAllocation.check_access_rights(current_user.id, path, AccessRights.Read)
     
     if request.form.get('visualizers'):    
         visualizers = json.loads(request.form.get('visualizers'))

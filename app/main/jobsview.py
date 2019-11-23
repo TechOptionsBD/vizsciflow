@@ -381,7 +381,18 @@ def runnables():
 def get_functions(level, access):
     funcs = []
     for func in library.funcs:
-        if int(func['level']) <= level and func['access'] == str(access) and (access < 2 or (func['user'] and func['user'] == current_user.username)):
+        if int(func['level']) > level:
+            continue
+        elif access < 2:
+            if func['access'] == str(access):
+                funcs.append(func)
+        elif access == 3: 
+            if func['user']:
+                if func['user'] == current_user.username:
+                    funcs.append(func)
+            else:
+                funcs.append(func)
+        elif func['user'] and func['user'] == current_user.username:
             funcs.append(func)
             
     return json.dumps({'functions':  funcs})

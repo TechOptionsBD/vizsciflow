@@ -161,7 +161,7 @@ function SamplesViewModel(sampleViewModel) {
                     user:ko.observable(s.user),
                     name: ko.observable(s.name),
                     selected: ko.observable(false),
-                    access: ko.observable(self.access())
+                    access: ko.observable(s.access)
                 });
             });
             

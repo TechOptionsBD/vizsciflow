@@ -21,7 +21,7 @@ from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataType, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
+from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType
 from ..util import Utility
 from ..biowl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -725,21 +725,30 @@ class Samples():
                             samples.append(ds)
         finally:
             return samples
-        
+    
+    @staticmethod
+    def get_workflows_info(workflows, access):
+        workflow_list = []
+        for workflow in workflows:
+            json_info = workflow.to_json_info()
+            json_info["access"] = access
+            workflow_list.append(json_info)
+        return workflow_list
+
     @staticmethod
     def get_samples_as_list(access):
-        workflows = []
-        if access == 0:
-            workflows = Workflow.query.filter(Workflow.public == True)
-            #workflows=Workflow.query.join(User).filter(User.role != None).join(Role).filter(and_(Role.permissions != None, Role.permissions.op('&')(Permission.ADMINISTER) == Permission.ADMINISTER)).filter(Workflow.accesses.any(WorkflowAccess.user_id.is_(None)))
-        elif access == 1:
-            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id))) # TODO: Do we need or_ operator here? 
-        else:
-            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id)).filter(Workflow.accesses.any(WorkflowAccess.user_id != current_user.id) != True)
-        
         samples = []
-        for workflow in workflows:
-            samples.append(workflow.to_json_info())
+        if access == 0 or access == 3:
+            workflows = Workflow.query.filter(Workflow.public == True)
+            samples.extend(Samples.get_workflows_info(workflows, AccessType.PUBLIC))
+            #workflows=Workflow.query.join(User).filter(User.role != None).join(Role).filter(and_(Role.permissions != None, Role.permissions.op('&')(Permission.ADMINISTER) == Permission.ADMINISTER)).filter(Workflow.accesses.any(WorkflowAccess.user_id.is_(None)))
+        if access == 1 or access == 3:
+            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id))) # TODO: Do we need or_ operator here? 
+            samples.extend(Samples.get_workflows_info(workflows, AccessType.SHARED))
+        if access == 2 or access == 3:
+            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id)).filter(Workflow.accesses.any(WorkflowAccess.user_id != current_user.id) != True)
+            samples.extend(Samples.get_workflows_info(workflows, AccessType.PRIVATE))
+            
         return samples
     
     @staticmethod

@@ -109,11 +109,18 @@ class BasicGrammar():
         self.exprexpr << (self.stringaddexpr | self.string | self.funccall | self.listidx | self.numexpr)#.setParseAction(lambda x : x.asList())
         
         # Definitions of rules for logical expressions (these are without parenthesis support)
-        self.andexpr = Forward()
-        self.logexpr = Forward()
         self.relexpr = Group((Suppress(Optional(self.lpar)) + Group(self.exprexpr) + Optional(self.relop + Group(self.exprexpr)) + Suppress(Optional(self.rpar))).setParseAction(lambda t: ['RELEXPR'] + t.asList()))
+        
+        self.andexpr = Forward()
         self.andexpr << Group((self.relexpr("exp") + ZeroOrMore(Keyword("and") + self.relexpr("exp"))).setParseAction(lambda t : ["ANDEXPR"] + t.asList()))
-        self.logexpr << Group((self.andexpr("exp") + ZeroOrMore(Keyword("or") + self.andexpr("exp"))).setParseAction(lambda t : ["LOGEXPR"] + t.asList())) 
+
+        self.notexpr = Forward() 
+        self.notexpr << Group((Keyword("not") + self.relexpr("and")).setParseAction(lambda t : ["NOTEXPR"] + t.asList()))
+        
+        self.logexpr = Forward()
+        self.logexpr << Group(( ZeroOrMore(self.notexpr) +  ZeroOrMore(self.andexpr("exp") + ZeroOrMore(Keyword("or") + self.andexpr("exp"))) ).setParseAction(lambda t : ["LOGEXPR"] + t.asList()))
+        
+        
         #Group(self.andexpr("exp") + ZeroOrMore(Keyword("or") + self.andexpr("exp"))).setParseAction(lambda t : ["LOGEXPR"] + t.asList())
 
         # Definitions of rules for statements

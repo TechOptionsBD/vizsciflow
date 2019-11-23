@@ -83,6 +83,20 @@ class Interpreter(object):
         left = self.eval(left)
         return left and right
     
+    def donot(self, expr):
+        '''
+        Executes "and" expression.
+        :param expr:
+        '''
+        if not expr:
+            return True
+#        if len(expr) >= 1:
+#            raise ValueError("Invalid number of operands for not operator")
+        left = expr[-1:]
+        if len(left) > 1:
+            left = ['NOTEXPR'] + left
+        return not self.eval(left)
+    
     def dopar(self, expr):
         taskManager = TaskManager() 
         for stmt in expr:
@@ -381,6 +395,8 @@ class Interpreter(object):
             return self.dolog(expr[1:])
         elif expr[0] == "ANDEXPR":
             return self.doand(expr[1:])
+        elif expr[0] == "NOTEXPR":
+            return self.donot(expr[1:])
         elif expr[0] == "RELEXPR":
             return self.dorelexpr(expr[1:])
         elif expr[0] == "IF":

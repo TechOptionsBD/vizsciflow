@@ -10,6 +10,7 @@ from urllib.parse import urlparse, urlunparse, urlsplit, urljoin
 import uuid
 import urllib
 import re
+from datetime import datetime
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
@@ -107,14 +108,47 @@ class FilterManager:
     @staticmethod
     def Filter(fs, path, filename, filters):
         for fil in filters:
-            if fil['selected']:
-                name = fil['name'].lower()
-                if name == "name" and re.search(fil['value'], filename, re.RegexFlag.IGNORECASE):
-                    return filename
-#                 statinfo = os.stat(fs.normalize_path(fs.join(path, filename)))
-#                 if name == "size" and fil['value']:
-#                    if fil['value'].startswith('')
-    
+            if not fil['selected']:
+                continue
+            name = fil['name'].lower()
+            if name == "name":
+                if not FilterManager.CheckRegExValue(fil['value'], filename):
+                    return None
+            elif name == "created" or name == "modified" or name == "accessed":
+                stat = fs.stat(fs.join(path, filename))
+                t = None
+                if name == "created":
+                    t = stat.st_ctime
+                elif name == "modified":
+                    t = stat.st_mtime
+                else:
+                    t = stat.st_atime
+                if not FilterManager.DateInRange(t, fil['value']):
+                    return None
+            elif name == "key:value":
+                pass
+            
+        return filename
+
+    @staticmethod
+    def CheckRegExValue(regexvalue, value):
+        return re.search(regexvalue, value, flags=re.RegexFlag.IGNORECASE)
+        
+    @staticmethod
+    def DateInRange(dateV, dateR):
+        begin_end = FilterManager.SplitDateRange(dateR)
+        if not begin_end:
+            return True
+        if dateV < datetime.timestamp(begin_end[0]):
+            return False
+        if len(begin_end) > 1 and  dateV > datetime.timestamp(begin_end[1]):
+            return False
+        
+    @staticmethod
+    def SplitDateRange(dateR):
+        begin_end = dateR.split('-')
+        return [datetime.strptime(begin_end[0].strip(), '%m/%d/%Y'), datetime.strptime(begin_end[1].strip(), '%m/%d/%Y')] 
+
     @staticmethod
     def Sort(fs, filenames, filters):
         for fil in filters:
@@ -264,6 +298,9 @@ class BaseFileSystem(object):
     
     def download(self, path):
         raise ValueError("Not implemented error.")
+    
+    def stat(self, path):
+        raise ValueError("Not implemented error.")
 
 class PosixFileSystem(BaseFileSystem):
     
@@ -357,7 +394,10 @@ class PosixFileSystem(BaseFileSystem):
        
     def copyfile(self, src, dst):
         return shutil.copy2(self.normalize_path(src), self.normalize_path(dst))
-                
+    
+    def stat(self, path):
+        return os.stat(self.normalize_path(path))
+    
     def read(self, path):
         path = self.normalize_path(path)
         with open(path, 'rb') as reader:

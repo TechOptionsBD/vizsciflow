@@ -314,7 +314,7 @@ class PosixFileSystem(BaseFileSystem):
         path = os.path.normpath(path)
         if self.prefix:
             path = self.strip_prefix(path)
-        if not self.localdir or path.startswith(self.localdir):
+        if not self.localdir or path.startswith(self.localdir) or (self.localdir.endswith(os.sep) and path == self.localdir[:-1]):
             return path
         while path and path[0] == os.sep:
             path = path[1:]    

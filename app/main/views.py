@@ -654,7 +654,7 @@ def datasources():
     elif request.args.get('filecontent'):
         return get_filecontent(request.args.get('filecontent'))
     elif request.files and request.files['upload']:
-        upload_biowl(request.files['upload'], request)
+        return json.dumps({'path' : upload_biowl(request.files['upload'], request)})
     elif request.args.get('addfolder'):
         path = request.args['addfolder']
         fileSystem = Utility.fs_by_prefix_or_default(path)

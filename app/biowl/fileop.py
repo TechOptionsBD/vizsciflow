@@ -443,8 +443,14 @@ class PosixFileSystem(BaseFileSystem):
         path1 = self.normalize_path(path1)
         return self.make_url(os.path.join(path1, path2))
     
+    def get_json_name(self, path):
+        if (self.localdir and self.localdir == path) or path == os.sep:
+            return self.prefix if self.prefix else self.localdir 
+        
+        return self.basename(path)
+        
     def make_json_item(self, path):
-        data_json =  { 'path': self.make_url(path), 'text': os.path.basename(path) }
+        data_json =  { 'path': self.make_url(path), 'text': self.get_json_name(path) }
         if self.isdir(path):
             data_json['children'] = []
             data_json['type'] = 'folder'

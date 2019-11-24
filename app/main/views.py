@@ -312,7 +312,7 @@ def load_data_sources_biowl(recursive):
                 continue
             if not fs or fs.typename() != 'posix': # temporary code
                 continue
-            datasource = { 'path': ds.url, 'text': ds.name, 'type': 'folder', 'children': [], 'loaded': True}
+            datasource = fs.make_json_item(ds.url)# { 'path': ds.url, 'text': ds.name, 'type': 'folder', 'children': [], 'loaded': True}
             if current_user.is_authenticated:
                 if not fs.exists(current_user.username):
                     fs.makedirs(current_user.username)
@@ -323,6 +323,7 @@ def load_data_sources_biowl(recursive):
             if ds.public and fs.exists(ds.public):
                 datasource['children'].append(fs.make_json_r(ds.public) if recursive else fs.make_json(ds.public))
 
+            datasource["loaded"] = True
             datasource_tree.append(datasource)
         except:
             pass

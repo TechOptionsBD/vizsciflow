@@ -190,21 +190,57 @@ $(document).ready(function () {
         $(targetTab).removeClass('active');
     });
 
-    $('.grid-stack').gridstack({
-        animate: true
-    });
+    // $('.grid-stack').gridstack({
+    //     animate: true
+    // });
 
-    var grid = $('.grid-stack').data('gridstack');
+    // var grid = $('.grid-stack').data('gridstack');
 
-    grid.disable();
+    // grid.disable();
 
-    $('.closeComponent').click(function (e) {  
-        var componentId = $(this).parents('.grid-stack-item').attr('id');
-        $("#" + componentId).hide();
-    });
+    // $('.closeComponent').click(function (e) {  
+    //     var componentId = $(this).parents('.grid-stack-item').attr('id');
+    //     $("#" + componentId).hide();
+    // });
 
-    $('#viewComponents-dropdown li').click(function (e) {  
-        var component = $(this).children().attr('href');
-        $(component).show();
-    });
+    // $('#viewComponents-dropdown li').click(function (e) {  
+    //     var component = $(this).children().attr('href');
+    //     $(component).show();
+    // });
+
+    // $('.grid-stack-item').on('dragstop', function(event, ui) {
+    //     var grid = this;
+    //     var element = event.target;
+    //     var t = $(element).find('.content-area').css('height', '100%');
+    //   });
+
+      
+    // $('.grid-stack-item').on('change', function (event, items) {
+        
+    //     //serializeWidgetMap(items);
+    // });
+
+    // $('.grid-stack-item').on('dragstop', function(event, ui) {
+        
+    //     var grid = this;
+    //     var element = event.target;
+    //   });
+
+    //   $('.grid-stack-item').on('resizestart', function(event, ui) {
+        
+    //     var grid = this;
+    //     var element = event.target;
+    //   });
+
+    //   $('.grid-stack-item').on('resizestop', function(event, elem) {
+          
+    //     //var newHeight = $(elem).attr('data-gs-height');
+    //     var element = event.target;
+    //     var t = $(element).find('.content-area').css('height', '100%');
+    //   });
+
+    //   $('.grid-stack-item').change(function (e) { 
+    //       e.preventDefault();
+          
+    //   });
 });

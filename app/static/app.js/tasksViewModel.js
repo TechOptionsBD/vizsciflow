@@ -273,7 +273,7 @@ function TasksViewModel() {
                     group: ko.observable(f.group),
                     href: ko.observable(f.href),
                     expanded: ko.observable(false),
-                    access: ko.observable(self.access())
+                    access: ko.observable(f.access)
                 });
             });
         }).fail(function (jqXHR) {

@@ -3,12 +3,41 @@ function MetaDataViewModel() {
     
     self.metadataURI = '/metadata';
     self.path =  new ko.observable();
+    self.oldFileName = new ko.observable();
+    self.newPath = new ko.observable();
+    // self.node = new ko.observable();
     self.filename = new ko.observable();
     self.systemProperties = new ko.observableDictionary();
     self.visualizers = new ko.observableDictionary();
     self.annotations = new ko.observableDictionary(); // list of strings
     self.properties = new ko.observableDictionary(); // keyvalue
     self.mimetypes = new ko.observableDictionary();
+    self.isMetadataUpdated = new ko.observable(false);
+
+    self.selectNode = function () { 
+
+        if(self.isMetadataUpdated()){
+
+            var treeNodes = $("#tree").jstree(true).get_json('#', { 'flat': true });
+
+            for (var index = 0; index < treeNodes.length; index++) {
+                var node = treeNodes[index];
+                var targetNode = $("#tree").jstree(true).get_node(node.id);
+
+                if (targetNode.original.path == self.newPath()) {
+                    // $("#tree").jstree("deselect_all");
+                    $("#tree").jstree(true).select_node(targetNode);
+                    break;
+                }
+            }
+
+            self.isMetadataUpdated(false);
+        }
+        else{
+
+            return;
+        }
+    }
 
     self.save = function() {
         
@@ -22,7 +51,9 @@ function MetaDataViewModel() {
         formdata.append('properties', ko.toJSON(self.properties));
 
         ajaxcalls.form(self.metadataURI, 'POST', formdata).done(function(data) {
-
+            self.isMetadataUpdated(true);
+            self.newPath(self.path().replace(self.oldFileName(), self.filename()));
+            dataSourceViewModel.load(true);
         }).fail(function (jqXHR, a,b) {
                        
         });
@@ -37,7 +68,8 @@ function MetaDataViewModel() {
 
         self.path(path);
         self.filename(path.replace(/^.*[\\\/]/, ''));
-        ajaxcalls.simple(self.metadataURI, 'GET', {'load': path}).done(function(data) {
+        self.oldFileName(path.replace(/^.*[\\\/]/, ''))
+        ajaxcalls.simple(self.metadataURI, 'GET', {'load':path}).done(function(data) {
             if (data == undefined)
                 return;
             
@@ -121,4 +153,4 @@ function MetaDataViewModel() {
 
 }
 
-var metadataViewModel = new MetaDataViewModel();
+// var metadataViewModel = new MetaDataViewModel();

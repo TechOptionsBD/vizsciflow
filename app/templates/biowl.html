@@ -2172,6 +2172,8 @@ function typeInTextarea(el, newText) {
 				   var nodeData = "\""+node.original.path + "\"";
 				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
 			   });
+
+			   metadataViewModel.selectNode();
 		   });
 		   $(element).on('select_node.jstree', function (e, data) {
 
@@ -2819,7 +2821,7 @@ function typeInTextarea(el, newText) {
         var runnablesViewModel = new RunnablesViewModel();        
         runnablesViewModel.load();
         
-        // var metadataViewModel = new MetaDataViewModel();
+        var metadataViewModel = new MetaDataViewModel();
         
 		ko.applyBindings(datasetAddViewModel, $("#dataSets-addNew-dialog")[0]);
 		ko.applyBindings(datasetsViewModel , $("#dataSetsPanel")[0]);

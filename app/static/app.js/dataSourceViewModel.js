@@ -35,6 +35,7 @@ function DataSourceViewModel() {
     self.beginUpdateMetadata = function () {
         //centerDialog($('#update-metadata-dialog'));
         var node = dataSourceViewModel.selectedNode().original;
+        // var node = dataSourceViewModel.selectedNode();
         if (node === undefined)
             return;
 

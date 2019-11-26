@@ -90,7 +90,7 @@ function SamplesViewModel(sampleViewModel) {
                 tooltip += "</p>";
                 tooltip += "<p>Double click item to insert into code editor.</p></div>";
 
-                domItem.parent().append(tooltip);
+                domItem.parents('.draggable-workflow').append(tooltip);
             }
         }
          

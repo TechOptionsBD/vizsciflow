@@ -90,7 +90,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.Text, unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.Text)
-    confirmed = db.Column(db.Boolean, default=False)
+    confirmed = db.Column(db.Boolean, default=True)
     name = db.Column(db.Text)
     location = db.Column(db.Text)
     about_me = db.Column(db.Text())

@@ -3185,11 +3185,11 @@ function typeInTextarea(el, newText) {
 	
 	
 	$("#exTabBiowl").on('shown.bs.tab', function (e) {
-		var x = $(e.target).text();
-		if (x === "Graph") {
+		var x = $(e.target).attr('href');
+		if (x === "#graphtab") {
 			tasksViewModel.buildGraph();
 		}
-		else if (x === "Filter History") {
+		else if (x === "#filterhistorytab") {
 			showFilterHistory();
 		} 
 	})

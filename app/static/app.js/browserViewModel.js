@@ -26,7 +26,7 @@ function BrowserViewModel() {
             loop: false,
             margin: 10,
             nav: true,
-            center: true,
+            center: false,
             mouseDrag: true,
             dots: false,
             pagination: false,
@@ -35,8 +35,8 @@ function BrowserViewModel() {
                 0: {
                     items: 1
                 },
-                600: {
-                    items: 2
+                700: {
+                    items: 3
                 },
                 1000: {
                     items: 5

@@ -251,17 +251,18 @@
 					style="max-height: 200px; width: 100%; overflow-y: scroll;"
 					data-bind="foreach: items">
 					<div class="div-history-item row menu_button"
-						data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}, css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
+						data-bind=" css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }"
 						>
-						<div class="col-md-auto" style="vertical-align: middle;" >
+						<div class="col-md-1" style="padding-left: 0; margin-right: 5px;">
 							<input type="checkbox" class="form-check-input" style="margin-left: 10px"
-								data-bind="checked: selected" /> <img
-								class="history-item-img" width="16px" height="16px"
-								data-bind="attr:{src: statusImg}" />
+								data-bind="checked: selected" /> 
+						</div>
+						<div class="col-md-10" style="vertical-align: middle; padding-left: 0;" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}">
+							<img class="history-item-img" width="16px" height="16px" data-bind="attr:{src: statusImg}" />
 							<label data-bind="text: name" class="form-check-label label-checkbox" style="margin-top: 2px"></label>
 						</div>
 						
-						<div class="col" style="float: right;padding-right: 5px">
+						<div class="col" style="float: right;padding-right: 5px" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}">
 							<span data-bind="text: modified" style="text-align: right"></span>
 						</div>
 						<div style="clear: both" ></div>

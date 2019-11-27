@@ -23,9 +23,10 @@ function BrowserViewModel() {
     self.initiateSlider = function () {
 
         $("#browserTabCarousel").owlCarousel({
-            loop: true,
+            loop: false,
             margin: 10,
             nav: true,
+            center: true,
             mouseDrag: true,
             dots: false,
             pagination: false,
@@ -38,6 +39,9 @@ function BrowserViewModel() {
                     items: 2
                 },
                 1000: {
+                    items: 5
+                },
+                1200: {
                     items: 5
                 }
             }
@@ -116,7 +120,7 @@ function BrowserViewModel() {
     };
 
 
-    self.pushImage = function (data, imgUrl, isFolder = false) {  
+    self.pushImage = function (data, imgUrl, isStatic = false ,isFolder = false) {  
         if (self.isListView() || isFolder) {
             self.browserItems.push(
                 {
@@ -134,7 +138,8 @@ function BrowserViewModel() {
                 imgPath: ko.observable(imgUrl),
                 itemName: ko.observable(data.text),
                 originalPath: ko.observable(data.original.path),
-                dataType: ko.observable(data.type)
+                dataType: ko.observable(data.type),
+                isStatic : ko.observable(isStatic)
             }
         );
     };
@@ -170,7 +175,7 @@ function BrowserViewModel() {
             if(data.type == 'folder'){
                 
                 imgUrl =  self.folderImgPath;
-                self.pushImage(data, imgUrl, true);
+                self.pushImage(data, imgUrl, false ,true);
             }
 
             if (data.type == "file") {
@@ -181,7 +186,7 @@ function BrowserViewModel() {
                 }
                 else {
                     imgUrl = self.fileImgPath;
-                    self.pushImage(data, imgUrl, false);
+                    self.pushImage(data, imgUrl, true ,false);
                 }
             }
         }
@@ -191,7 +196,7 @@ function BrowserViewModel() {
                 var imgUrl = '';
                 if(childNode.type == 'folder'){
                     imgUrl = self.folderImgPath;
-                    self.pushImage(childNode, imgUrl, true);
+                    self.pushImage(childNode, imgUrl, false ,true);
                 }
                 if (childNode.type == "file") {
                     var fileType = self.getFileExtension(childNode.text);
@@ -202,7 +207,7 @@ function BrowserViewModel() {
                     }
                     else {
                         imgUrl = self.fileImgPath;
-                        self.pushImage(childNode, imgUrl)
+                        self.pushImage(childNode, imgUrl, true)
                     }
                 }
             });
@@ -273,7 +278,12 @@ function BrowserViewModel() {
         setTimeout(function () {
             $('#browserItemModal').modal('show');
         }, 200);
-    }
+    };
+
+    // self.figureClassHandler = function (data, ele) {  
+    //     var t = data;
+    //     return 'carousel-default-figure';
+    // };
 };
 
 ko.bindingHandlers.browserItemHover = {

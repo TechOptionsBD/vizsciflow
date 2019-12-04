@@ -102,6 +102,11 @@ $(document).ready(function () {
     $("#browserView").addClass('browser-list-view');
     $("#browserView").css('max-height', $("#browsertab").height() - $(".browser-panel-heading").height()-50);
     
+    
+    $("#browserItemDetails").on('load', function () {  
+        $(this).contents().find('body').find('img').css('display', 'block').css('margin', '0 auto');
+        $("#browserItemDetails").css('height', $("#browserViewDetails").height() - $("#browserViewDetailsHeader").height());
+    })
 
     $("input[name=browserTabView]").on('click', function (e) {
         var selectedNode = $('#tree').jstree().get_selected(true)[0];
@@ -117,10 +122,11 @@ $(document).ready(function () {
             case "1":
                 browserViewModel.isListView(false);
                 browserViewModel.loadItems(selectedNode);
-                $("#browserViewList").addClass('div-browser-items');
+                $("#browserViewDetails").addClass('div-browser-items');
                 $("#browserView").addClass('browser-details-view');
                 $("#browserView").removeClass('browser-list-view');
                 $("#browserView").css('max-height', '');
+                $("#browserItemDetails").css('height', $("#browserViewDetails").height() - $("#browserViewDetailsHeader").height());
                 break;
             default:
                 browserViewModel.isListView(true);

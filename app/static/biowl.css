@@ -832,6 +832,9 @@ border-radius: 50px;
   margin: auto;
 }
 
+#browserViewDetailsHeader > label {
+  margin-bottom: 0 !important;
+}
 /*
 .div-history-item > input[type="checkbox"] {
   margin-left: 10px;

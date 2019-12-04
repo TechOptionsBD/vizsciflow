@@ -12,6 +12,9 @@ function BrowserViewModel() {
         "asx", "wm", "wmv", "wmx", "wvx", "mpv", "mkv", "avi", "m1v", "mov", "movie", "mp4", "mpa", "mpe", "mpeg", "mpg", "webm"];
 
     // self.isNewSlider = false;
+    self.itemName = ko.observable();
+    self.itemSrc = ko.observable();
+    self.currentItemPath = ko.observable();
     self.isListView = ko.observable(true);
     self.sliderItems = ko.observableArray();
 
@@ -168,6 +171,11 @@ function BrowserViewModel() {
         self.browserItems([]);
         self.destroySlider();
         self.sliderItems([]);
+
+        self.itemName('Item Details');
+        self.itemSrc('');
+        self.currentItemPath('');
+
         $("#browserTabCarousel").empty();
 
         if (data.children.length == 0) {
@@ -211,6 +219,64 @@ function BrowserViewModel() {
                     }
                 }
             });
+        }
+    };
+
+    self.openIntoNewWindow = function () {  
+        $.redirect(self.dataSourcesURI, { 'download': ko.utils.unwrapObservable(self.currentItemPath) }, "POST", "_blank");
+    }
+
+    self.openInDetailsView = function (data, ele) {
+        var fileType = self.getFileExtension(data.itemName());
+
+        self.currentItemPath(data.originalPath());
+
+        if (self.imageTypes.includes(fileType)) {
+            // self.showModal(data);
+            self.itemSrc(data.imgPath());
+            self.itemName(data.itemName());
+        }
+
+        else if (self.videoTypes.includes(fileType)) {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
+            oReq.responseType = "arraybuffer";
+            var videoType = "video/" + fileType;
+            self.itemName(data.itemName());
+            oReq.send();
+
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: videoType });
+                    itemSrc = URL.createObjectURL(blob);
+
+                    self.itemSrc(itemSrc);
+                    // self.showModal(data, itemSrc);
+                }
+            };
+        }
+        else if (fileType == 'htm' || fileType == 'html') {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
+            oReq.responseType = "arraybuffer";
+
+            oReq.send();
+            self.itemName(data.itemName());
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: fileType });
+                    itemSrc = URL.createObjectURL(blob);
+
+                    self.itemSrc(itemSrc);
+                    
+                    // self.showModal(data, itemSrc);
+                }
+            };
+        }
+        else {
+            return;
         }
     };
 

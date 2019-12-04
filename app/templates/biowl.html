@@ -1336,7 +1336,7 @@
 </div>
 
 <div id="browserView" class="container-fluid" aria-hidden="true" style="display:none; ">
-	<div id="browserViewList" class="col-sm-12 border border-primary" data-bind="foreach : browserItems">
+	<div id="browserViewList" class="col-sm-12 border border-primary" data-bind="foreach : browserItems, visible : isListView()">
 		<div class="col-sm-6 form-group" data-bind="event : {dblclick: $parent.openInNewTab.bind($data)}, browserItemHover : $data">
 			<figure style="display: inline-block">
 				<img height="50rem" width="45rem" data-bind="attr: {src: imgPath, alt: itemName}">
@@ -1344,12 +1344,26 @@
 			</figure>
 		</div>
 	</div>
+	<div id="browserViewDetails" class="col-sm-12 border border-primary" data-bind="visible: !isListView()">
+		<div id="browserViewDetailsHeader" class="row" style="text-align: center; background-color: #B7DEFF;"> 
+			<label data-bind="text: itemName"> Item Details </label>
+			<!-- <button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen"
+				id="btnBrowserModalFullscreen">
+				<i class="glyphicon glyphicon-resize-full"></i>
+			</button> -->
+			<button class="btn btn-primary btn-xs pull-right" data-toggle="tooltip" data-placement="top" title="Open in new window"
+				data-bind="event: {click: openIntoNewWindow.bind($data)}">
+				<i class="glyphicon glyphicon-new-window"></i>
+			</button>
+		</div>
+		<iframe id="browserItemDetails" class="center" src="" frameborder="0" data-bind="attr:{src: itemSrc}" style="display: block" width="100%" height="100%"></iframe>
+	</div>
 	<div class="col-sm-12" data-bind="visible: !isListView()">
 		<hr>
 	</div>
 	<div id="browserTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="visible: !isListView(), foreach: {data: sliderItems , afterRender: sliderController.bind($data)}">
-		<div style="display: block;" data-bind="event: {dblclick : $parent.openInModal.bind($data)}, attr: {title: itemName}">
-			<figure style="display: inline-block" data-bind="event: {dblclick : $parent.openInModal.bind($data)}">
+		<div style="display: block;" data-bind="event: {dblclick : $parent.openInDetailsView.bind($data)}, attr: {title: itemName}">
+			<figure style="display: inline-block" data-bind="event: {dblclick : $parent.openInDetailsView.bind($data)}">
 				<img height="50px" width="45px" data-bind="attr: {src: imgPath, alt: itemName}, css: {'carousel-default-figure': isStatic }">
 				<figcaption class="figcaption-clipped" data-bind="text: itemName"></figcaption>
 			</figure>

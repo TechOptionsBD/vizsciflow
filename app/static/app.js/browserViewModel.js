@@ -266,12 +266,13 @@ function BrowserViewModel() {
             oReq.onload = function (oEvent) {
                 if (this.status == 200) {
                     var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: fileType });
-                    itemSrc = URL.createObjectURL(blob);
-
-                    self.itemSrc(itemSrc);
-                    
-                    // self.showModal(data, itemSrc);
+                    var blob = new Blob([arrayBuffer], { type: "text/html" });
+                    var reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onload = function () {
+                        var base64UrlString = reader.result;
+                        self.itemSrc(base64UrlString);
+                    }
                 }
             };
         }
@@ -350,6 +351,16 @@ function BrowserViewModel() {
     //     var t = data;
     //     return 'carousel-default-figure';
     // };
+
+    self.arrayBufferToBase64 = function (buffer) {
+        let binary = '';
+        let bytes = new Uint8Array(buffer);
+        let len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return binary;//window.btoa(binary);
+    };
 };
 
 ko.bindingHandlers.browserItemHover = {

@@ -167,16 +167,19 @@ function BrowserViewModel() {
         };
     };
 
-    self.loadItems = function (data) {
+    self.emptyBrowser = function () {
         self.browserItems([]);
         self.destroySlider();
         self.sliderItems([]);
-
         self.itemName('Item Details');
         self.itemSrc('');
         self.currentItemPath('');
-
         $("#browserTabCarousel").empty();
+    };
+
+    self.loadItems = function (data) {
+        
+        self.emptyBrowser();
 
         if (data.children.length == 0) {
             var imgUrl = '';
@@ -202,11 +205,11 @@ function BrowserViewModel() {
             data.children.forEach(function (child) {
                 var childNode = $("#tree").jstree(true).get_node(child);
                 var imgUrl = '';
-                if(childNode.type == 'folder'){
+                if(!childNode.state.hidden && childNode.type == 'folder'){
                     imgUrl = self.folderImgPath;
                     self.pushImage(childNode, imgUrl, false ,true);
                 }
-                if (childNode.type == "file") {
+                else if (!childNode.state.hidden && childNode.type == "file") {
                     var fileType = self.getFileExtension(childNode.text);
 
                     if (self.imageTypes.includes(fileType)) {
@@ -347,20 +350,6 @@ function BrowserViewModel() {
         }, 200);
     };
 
-    // self.figureClassHandler = function (data, ele) {  
-    //     var t = data;
-    //     return 'carousel-default-figure';
-    // };
-
-    self.arrayBufferToBase64 = function (buffer) {
-        let binary = '';
-        let bytes = new Uint8Array(buffer);
-        let len = bytes.byteLength;
-        for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return binary;//window.btoa(binary);
-    };
 };
 
 ko.bindingHandlers.browserItemHover = {

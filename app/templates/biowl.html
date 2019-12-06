@@ -2208,6 +2208,25 @@ function typeInTextarea(el, newText) {
 			   //    }
 
 		   });
+		   $(element).on("search.jstree", function () {
+			   var node = $('#tree').jstree().get_selected(true)[0];
+
+			   if (!node || node.state.hidden) {
+				   browserViewModel.emptyBrowser();
+			   }
+			   else if (node && !node.state.hidden) {
+				   showBrowser(node);
+			   }
+		   });
+
+		   $(element).on("clear_search.jstree", function (nodes, str, res) {
+			   var node = $('#tree').jstree().get_selected(true)[0];
+			   var searchString = ko.utils.unwrapObservable(dataSourceViewModel.searchDataSource);
+
+			   if(node && !searchString){
+			   		showBrowser(node);
+			   }
+		   });
 	    },
 	    update: function (element, valueAccessor) {
 	        var treeData = ko.unwrap(valueAccessor());

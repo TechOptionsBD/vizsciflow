@@ -160,6 +160,11 @@ function FilterViewModel() {
         });
     }
 
+    self.closeFilter = function () {  
+        $("#btnfilterToggle").trigger('click');
+        self.okText('');
+    };
+
     self.promptFilter = function (data, e) { 
 
         if (!data.value()) {
@@ -177,8 +182,8 @@ function FilterViewModel() {
     // apply the filters
       self.filter = function() {
           if (!dataSourceViewModel.selectedNode()){
-              self.selectedNodePath("/");
-              self.filterInternal("/", ko.toJSON(self.filters));
+              self.selectedNodePath("\/");
+              self.filterInternal("\/", ko.toJSON(self.filters));
           }
 
           else if(self.okText() == "Save") {
@@ -287,9 +292,13 @@ function FilterViewModel() {
       }
 
      self.filterByHistory = function(item) {
-         if (!dataSourceViewModel.selectedNode())
-             return;
+         if (!dataSourceViewModel.selectedNode()){
+            self.filterInternal('\/', ko.toJSON(item.value()));
+            self.selectedNodePath('\/');
+            return;
+         } 
          
+         self.selectedNodePath(dataSourceViewModel.selectedNode().original.path);
          self.filterInternal(dataSourceViewModel.selectedNode().original.path, ko.toJSON(item.value()));
       }
      

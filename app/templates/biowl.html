@@ -117,10 +117,6 @@
 					</table>
 				</div>
 				<div class="modal-footer">
-					<!-- <label class="control-label" data-bind="visible: okText() == 'Save'" for="filtername">Name</label>
-					<input class="" data-bind="value: name, visible: okText() == 'Save'" type="text" id="filtername"></input>
-					<button class="btn btn-primary"  data-bind="visible: okText() == 'Save', click: filter, text: okText" aria-hidden="true"></button>
-					<button class="btn btn-danger" data-bind="visible: okText() == 'Save'" aria-hidden="true">Cancel</button> -->
 					<form class="form-inline">
 						<div class="form-group">
 							<label class="control-label" data-bind="visible: okText() == 'Save'" for="filtername">Name</label>
@@ -128,7 +124,7 @@
 						</div>
 						<button class="btn btn-primary" data-bind="visible: okText() == 'Save', click: filter, text: okText"
 							aria-hidden="true"></button>
-						<button class="btn btn-danger" data-bind="visible: okText() == 'Save'" aria-hidden="true">Cancel</button>
+						<button class="btn btn-danger" data-bind="visible: okText() == 'Save', click: closeFilter" aria-hidden="true">Cancel</button>
 					</form>
 				</div>
 			</div>

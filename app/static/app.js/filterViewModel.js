@@ -162,6 +162,10 @@ function FilterViewModel() {
 
     self.promptFilter = function (data, e) { 
 
+        if (!data.value()) {
+            return;
+        }
+
         ko.utils.arrayForEach(self.filters(), function (filter) {  
             if(filter.name() == data.name()){
                 filter.selected(true);

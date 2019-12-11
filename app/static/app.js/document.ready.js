@@ -202,9 +202,11 @@ $(document).ready(function () {
         if (isFilterClosed) {
             $(".box-zero").show();
             $(".box-two").removeClass('col-md-6').addClass('col-md-4');
+            $("#browserViewList").find('figcaption').addClass('figcaption-clipped');
         } else {
             $(".box-zero").hide();
             $(".box-two").removeClass('col-md-4').addClass('col-md-6');
+            $("#browserViewList").find('figcaption').removeClass('figcaption-clipped');
         }
     });
 

@@ -177,6 +177,13 @@ function BrowserViewModel() {
         $("#browserTabCarousel").empty();
     };
 
+    self.browserItemCaptionCss = function () {
+        var isFilterClosed = $(".box-zero").is(":hidden");
+        if (!isFilterClosed) {
+            $("#browserViewList").find('figcaption').addClass('figcaption-clipped');
+        }
+    };
+
     self.loadItems = function (data) {
         
         self.emptyBrowser();

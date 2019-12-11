@@ -114,17 +114,21 @@ class FilterManager:
             if name == "name":
                 if not FilterManager.CheckRegExValue(fil['value'], filename):
                     return None
-            elif name == "created" or name == "modified" or name == "accessed":
+            elif name == "created" or name == "modified" or name == "accessed" or name == "size":
                 stat = fs.stat(fs.join(path, filename))
-                t = None
-                if name == "created":
-                    t = stat.st_ctime
-                elif name == "modified":
-                    t = stat.st_mtime
+                if name == "size":
+                    if not FilterManager.SizeInRange(stat.st_size, fil['value']):
+                        return None
                 else:
-                    t = stat.st_atime
-                if not FilterManager.DateInRange(t, fil['value']):
-                    return None
+                    t = None
+                    if name == "created":
+                        t = stat.st_ctime
+                    elif name == "modified":
+                        t = stat.st_mtime
+                    else:
+                        t = stat.st_atime
+                    if not FilterManager.DateInRange(t, fil['value']):
+                        return None
             elif name == "key:value":
                 pass
             
@@ -143,7 +147,20 @@ class FilterManager:
             return False
         if len(begin_end) > 1 and  dateV > datetime.timestamp(begin_end[1]):
             return False
-        
+        return True
+    
+    @staticmethod
+    def SizeInRange(sizeV, sizeR):
+        sizeR = sizeR.replace(" KB", "")
+        begin_end = sizeR.split(",")
+        if not begin_end:
+            return True
+        if sizeV < int(begin_end[0]) * 1024:
+            return False
+        if len(begin_end) > 1 and  sizeV > int(begin_end[1]) * 1024:
+            return False
+        return True
+    
     @staticmethod
     def SplitDateRange(dateR):
         begin_end = dateR.split('-')

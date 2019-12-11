@@ -69,6 +69,70 @@
 
 <div class="container-fluid">
 	<div class="row row-flex">
+		<div class="col-md-3 box-zero"> 
+			<div id="filter-area" class="panel panel-primary">
+				<div class="panel-heading">
+					<button id="btnfilterClose" type="button" class="close" title="Close Filter" aria-hidden="true">&times;</button>
+					<h4>Search & Filter</h4>
+				</div>
+				<div class="table-responsive">
+					<table class="table table-bordered " style="display: block;">
+						<thead>
+							<tr>
+								<th class="filter-dialog-modal-text" style="width: 5%; padding: 0 0 8px 0 ; text-align: center"><i class="fa fa-check-square-o" style="font-size: 2rem"></i></th>
+								<th class="filter-dialog-modal-text col-sm-2 " >Name</th>
+								<th class="filter-dialog-modal-text col-sm-5 " >Filter</th>
+								<th class="filter-dialog-modal-text col-sm-1 " >Sort</th>
+								<th class="filter-dialog-modal-text col-sm-4 " style=" text-align: center"><i
+										class="fa fa-sort" style="font-size: 2rem"></i></th>
+							</tr>
+						</thead>
+						<tbody data-bind="foreach: filters">
+							<tr>
+								<td>
+									<input type="checkbox" data-bind="checked: selected" />
+								</td>
+								<td class="filter-dialog-modal-text" data-bind="text: name"></td>
+								<td class="filter-dialog-modal-text filter-value-td"
+									data-bind="descendantsComplete: $parent.formControlCustomization.bind($data)">
+									<input type="text" class="form-control"
+										data-bind="value: value, valueUpdate: 'keyup', event: {change : $parent.promptFilter.bind($data)}">
+								</td>
+								<td class="filter-dialog-modal-text">
+									<button class="btn btn-xs btn-primary" style="background: transparent; border-color: transparent"
+										data-bind="value: sort, click: $parent.toggleSort;"><i data-bind="class : $parent.setSortClass(sort)"
+											class="fa fa-times fa-xs" style="background: transparent; color: black"></i></button>
+								</td>
+								<td class="filter-dialog-modal-text">
+									<div style="display: inline-block">
+										<button class="btn btn-xs fa fa-sort-up" style="border-radius: 2px; display: inline-block;"
+											data-bind="disable: $index() === 0, click: $parent.moveUp" title="Move Up"></button>
+										<button class="btn btn-xs fa fa-sort-down" style="border-radius: 2px; display: inline-block;"
+											data-bind="disable: $index() === $parent.filters().length - 1, click: $parent.moveDown"
+											title="Move Down"></button>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="modal-footer">
+					<!-- <label class="control-label" data-bind="visible: okText() == 'Save'" for="filtername">Name</label>
+					<input class="" data-bind="value: name, visible: okText() == 'Save'" type="text" id="filtername"></input>
+					<button class="btn btn-primary"  data-bind="visible: okText() == 'Save', click: filter, text: okText" aria-hidden="true"></button>
+					<button class="btn btn-danger" data-bind="visible: okText() == 'Save'" aria-hidden="true">Cancel</button> -->
+					<form class="form-inline">
+						<div class="form-group">
+							<label class="control-label" data-bind="visible: okText() == 'Save'" for="filtername">Name</label>
+							<input class="form-control" data-bind="value: name, visible: okText() == 'Save'" type="text" id="filtername">
+						</div>
+						<button class="btn btn-primary" data-bind="visible: okText() == 'Save', click: filter, text: okText"
+							aria-hidden="true"></button>
+						<button class="btn btn-danger" data-bind="visible: okText() == 'Save'" aria-hidden="true">Cancel</button>
+					</form>
+				</div>
+			</div>
+		</div>
 		<div class="col-md-3 box-one" style="padding: 0">
 			<div  class="panel panel-primary" style="position: relative;">
 				<div class="panel-heading" >
@@ -121,10 +185,10 @@
 						<div id="dataSourcesSearchPanel" class="form-inline">
 							<input class="form-control" style="width: 67%" type="text" placeholder="Search…"
 								data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
-							<button id="btnOpenFilterDialog" class="btn btn-primary" data-toggle="tooltip"
+							<!-- <button id="btnOpenFilterDialog" class="btn btn-primary" data-toggle="tooltip"
 								data-placement="top" title="Filter" data-bind="click: openFilterDialog.bind($data, false)">
 								<i class="glyphicon glyphicon-filter"></i>
-							</button>
+							</button> -->
 						</div>
 					</div>
 					<div id="dataSourcesTreeView" class="panel-body draggable-datasources"
@@ -975,7 +1039,7 @@
 				<table class="table table-bordered " style="display: block;">
 					<thead>
 						<tr>
-							<th class="filter-dialog-modal-text" style="width: 5%; padding: 0 0 8px 0 ; text-align: center"><i class="fa fa-check-square-o" style="font-size: 2rem"></i></th>
+							<!-- <th class="filter-dialog-modal-text" style="width: 5%; padding: 0 0 8px 0 ; text-align: center"><i class="fa fa-check-square-o" style="font-size: 2rem"></i></th> -->
 							<th class="filter-dialog-modal-text" style="width: 20%">Name</th>
 							<th class="filter-dialog-modal-text" style="width:35%">Filter</th>
 							<th class="filter-dialog-modal-text" style="width: 9%">Sort</th>
@@ -984,9 +1048,9 @@
 					</thead>
 					<tbody data-bind="foreach: filters">
 						<tr>
-							<td>
+							<!-- <td>
 								<input type="checkbox" data-bind="checked: selected" />
-							</td>
+							</td> -->
 							<td class="filter-dialog-modal-text" data-bind="text: name"></td>
 							<td class="filter-dialog-modal-text filter-value-td" data-bind="descendantsComplete: $parent.formControlCustomization.bind($data)">
 								<input type="text" class="form-control" data-bind="value: value">
@@ -2193,6 +2257,9 @@ function typeInTextarea(el, newText) {
 			   });
 
 			   metadataViewModel.selectNode();
+			   setTimeout(() => {
+				filterViewModel.selectNode();
+			   }, 100);
 		   });
 		   $(element).on('select_node.jstree', function (e, data) {
 
@@ -2882,7 +2949,8 @@ function typeInTextarea(el, newText) {
        	ko.applyBindings(filterViewModel, $('#filter-dialog')[0]);
        	ko.applyBindings(filterViewModel, $('#searchHistoryPanel')[0]);
        	ko.applyBindings(filterViewModel, $('#filterhistoryView')[0]);
-       	
+		ko.applyBindings(filterViewModel, $('#filter-area')[0]);
+
        	filterViewModel.loadHistory();
        	filterViewModel.loadSavedFilters();
        	showFilterHistory();

@@ -843,3 +843,8 @@ border-radius: 50px;
   margin-top: 4px;
 
 } */
+
+.box-zero{
+  padding-left: 0;
+  display: none;
+}

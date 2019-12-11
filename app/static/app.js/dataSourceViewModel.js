@@ -281,10 +281,20 @@ function DataSourceViewModel() {
         });
     });
 
+    self.openFilterArea = function () {  
+        var isClosed = $("#filter-area").is(":hidden");
+        if (isClosed) {
+            $(".box-zero").show();
+            $(".box-two").removeClass('col-md-6').addClass('col-md-4');
+        }
+    };
+
     self.openFilterDialog = function (isSave) {
         var okText = isSave ? "Save" : "Search";
         filterViewModel.okText(okText);
-        $('#filter-dialog').modal('show');
+        self.openFilterArea();
+        // $("#btnfilterToggle").trigger('click');
+        // $('#filter-dialog').modal('show');
         // $('#filter-dialog .modal-body').css('max-height', $('#dataSourcesPanel').css('height'));
         // $('#filter-dialog .modal-body').css('width', $('#dataSourcesPanel').css('width')+ '5');
     }

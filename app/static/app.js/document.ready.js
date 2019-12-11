@@ -196,6 +196,22 @@ $(document).ready(function () {
         $(targetTab).removeClass('active');
     });
 
+    $("#btnfilterToggle").click(function () {  
+        var isFilterClosed = $(".box-zero").is(":hidden");
+
+        if (isFilterClosed) {
+            $(".box-zero").show();
+            $(".box-two").removeClass('col-md-6').addClass('col-md-4');
+        } else {
+            $(".box-zero").hide();
+            $(".box-two").removeClass('col-md-4').addClass('col-md-6');
+        }
+    });
+
+    $("#btnfilterClose").click(function () {  
+        $("#btnfilterToggle").trigger('click');
+    });
+
     // $('.grid-stack').gridstack({
     //     animate: true
     // });

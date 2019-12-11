@@ -9,6 +9,7 @@ function FilterViewModel() {
     
     self.histories = ko.observableArray();
     self.savedFilters = ko.observableArray();
+    self.selectedNodePath = ko.observable();
     self.sortOrders = ko.observableArray([
       {
           name: "None",
@@ -37,46 +38,46 @@ function FilterViewModel() {
           }
       }
   }
+   
+    self.filters = ko.observableArray([
+        {
+            selected: ko.observable(false),
+            name: ko.observable("Name"),
+            value: ko.observable(""),
+            sort: ko.observable(0)
+        }, {
+            selected: ko.observable(false),
+            name: ko.observable("Size"),
+            value: ko.observable(""),
+            sort: ko.observable(0)
+        }, {
+            selected: ko.observable(false),
+            name: ko.observable("Permission"),
+            value: ko.observable(""),
+            sort: ko.observable(0)
+        }, {
+            selected: ko.observable(false),
+            name: ko.observable("Created"),
+            value: ko.observable(""),
+            sort: ko.observable(0),
+        }, {
+            selected: ko.observable(false),
+            name: ko.observable("Modified"),
+            value: ko.observable(""),
+            sort: ko.observable(0),
+        }, {
+            selected: ko.observable(false),
+            name: ko.observable("Accessed"),
+            value: ko.observable(""),
+            sort: ko.observable(0),
+        }, {
+            selected: ko.observable(false),
+            name: ko.observable("key:value"),
+            value: ko.observable(""),
+            sort: ko.observable(0),
+        }
+    ]);
     
-       self.filters = ko.observableArray([
-       {
-           selected: ko.observable(false),
-           name: ko.observable("Name"),
-           value: ko.observable(""),
-           sort: ko.observable(0)
-       }, {
-           selected: ko.observable(false),
-           name: ko.observable("Size"),
-           value: ko.observable(""),
-           sort: ko.observable(0)
-       }, {
-           selected: ko.observable(false),
-           name: ko.observable("Permission"),
-           value: ko.observable(""),
-           sort: ko.observable(0)
-       }, {
-           selected: ko.observable(false),
-           name: ko.observable("Created"),
-           value: ko.observable(""),
-           sort: ko.observable(0),
-       }, {
-           selected: ko.observable(false),
-           name: ko.observable("Modified"),
-           value: ko.observable(""),
-           sort: ko.observable(0),
-       }, {
-           selected: ko.observable(false),
-           name: ko.observable("Accessed"),
-           value: ko.observable(""),
-           sort: ko.observable(0),
-       }, {
-           selected: ko.observable(false),
-           name: ko.observable("key:value"),
-           value: ko.observable(""),
-           sort: ko.observable(0),
-       }
-       ]);
-       
   self.setSortClass = function (sort) {
          switch (sort()) {
              case 0:
@@ -107,7 +108,21 @@ function FilterViewModel() {
          self.filters.splice(idx + 1, 0, tmp[0]);
        };
 
- 
+    self.selectNode = function () {  
+        var treeNodes = $("#tree").jstree(true).get_json('#', { 'flat': true });
+
+        for (var index = 0; index < treeNodes.length; index++) {
+            var node = treeNodes[index];
+            var targetNode = $("#tree").jstree(true).get_node(node.id);
+
+            if (targetNode.original.path == self.selectedNodePath()) {
+                $("#tree").jstree("deselect_all");
+                $("#tree").jstree(true).select_node(targetNode);
+                self.selectedNodePath('');
+                break;
+            }
+        }
+    }
        // apply the filters
       self.filterInternal = function(node, jsonFilters) {
 
@@ -144,12 +159,25 @@ function FilterViewModel() {
                // Upon failure... set the tooltip content to error
         });
     }
+
+    self.promptFilter = function (data, e) { 
+
+        ko.utils.arrayForEach(self.filters(), function (filter) {  
+            if(filter.name() == data.name()){
+                filter.selected(true);
+            }
+        });
+        self.filter();
+    }
   
     // apply the filters
       self.filter = function() {
-          if (!dataSourceViewModel.selectedNode())
-              return;
-          if (self.okText() == "Save") {
+          if (!dataSourceViewModel.selectedNode()){
+              self.selectedNodePath("/");
+              self.filterInternal("/", ko.toJSON(self.filters));
+          }
+
+          else if(self.okText() == "Save") {
               // save the filters
           ajaxcalls.simple(self.filterURI, 'GET', { 'name': self.name(), 'savefilters': ko.toJSON(self.filters) }).done(function(data) {
                  self.loadSavedFilters();
@@ -159,6 +187,7 @@ function FilterViewModel() {
              });
           }
           else {
+              self.selectedNodePath(dataSourceViewModel.selectedNode().original.path);
               self.filterInternal(dataSourceViewModel.selectedNode().original.path, ko.toJSON(self.filters));
           }
       }

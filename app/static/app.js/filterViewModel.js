@@ -400,7 +400,7 @@ function FilterViewModel() {
     self.intitiateRangeSlider = function (frmControl) {
 
         frmControl.bootstrapSlider({
-            tooltip: 'always',
+            tooltip: 'show',
             range: 'true',
             min: 0,
             max: 1024,

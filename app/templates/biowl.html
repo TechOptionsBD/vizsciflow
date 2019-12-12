@@ -96,7 +96,7 @@
 								<td class="filter-dialog-modal-text filter-value-td"
 									data-bind="descendantsComplete: $parent.formControlCustomization.bind($data)">
 									<input type="text" class="form-control"
-										data-bind="value: value, valueUpdate: 'keyup', event: {change : $parent.promptFilter.bind($data)}">
+										data-bind="value: value, valueUpdate: 'keyup', event: {change : $parent.promptFilter.bind($data), keyup : $parent.promptFilter.bind($data)}">
 								</td>
 								<td class="filter-dialog-modal-text">
 									<button class="btn btn-xs btn-primary" style="background: transparent; border-color: transparent"

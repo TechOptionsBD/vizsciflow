@@ -167,6 +167,10 @@ function FilterViewModel() {
 
     self.promptFilter = function (data, e) { 
 
+        if(e.type == 'change' && (data.name()=='Name' || data.name() == 'Permission' || data.name()== 'key:value')){
+            return;
+        }
+
         if (!data.value()) {
             return;
         }

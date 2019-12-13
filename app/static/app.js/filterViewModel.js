@@ -52,11 +52,6 @@ function FilterViewModel() {
             sort: ko.observable(0)
         }, {
             selected: ko.observable(false),
-            name: ko.observable("Permission"),
-            value: ko.observable(""),
-            sort: ko.observable(0)
-        }, {
-            selected: ko.observable(false),
             name: ko.observable("Created"),
             value: ko.observable(""),
             sort: ko.observable(0),

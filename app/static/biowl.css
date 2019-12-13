@@ -847,4 +847,5 @@ border-radius: 50px;
 .box-zero{
   padding-left: 0;
   display: none;
+  max-width: 400px;
 }

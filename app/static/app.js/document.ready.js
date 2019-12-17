@@ -210,9 +210,9 @@ $(document).ready(function () {
         }
     });
 
-    $("#btnfilterClose").click(function () {  
-        $("#btnfilterToggle").trigger('click');
-    });
+    // $("#btnfilterClose").click(function () {  
+    //     $("#btnfilterToggle").trigger('click');
+    // });
 
     // $('.grid-stack').gridstack({
     //     animate: true

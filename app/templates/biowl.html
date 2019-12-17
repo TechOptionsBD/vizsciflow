@@ -72,7 +72,7 @@
 		<div class="col-md-3 box-zero"> 
 			<div id="filter-area" class="panel panel-primary">
 				<div class="panel-heading">
-					<button id="btnfilterClose" type="button" class="close" title="Close Filter" aria-hidden="true">&times;</button>
+					<button id="btnfilterClose" type="button" class="close" title="Close Filter" data-bind="click: closeFilter"ia-hidden="true">&times;</button>
 					<h4>Search & Filter</h4>
 				</div>
 				<div class="table-responsive">
@@ -90,7 +90,7 @@
 						<tbody data-bind="foreach: filters">
 							<tr>
 								<td>
-									<input type="checkbox" data-bind="checked: selected" />
+									<input type="checkbox" data-bind="checked: selected, event: {change: $parent.filterOnSelection.bind($data)}" />
 								</td>
 								<td class="filter-dialog-modal-text" data-bind="text: name"></td>
 								<td class="filter-dialog-modal-text filter-value-td"

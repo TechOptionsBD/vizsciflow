@@ -160,22 +160,30 @@ function FilterViewModel() {
         self.okText('');
     };
 
+    self.filterOnSelection  = function (data, e) {  
+        self.filter();
+    };
+
     self.promptFilter = function (data, e) { 
+
+        var selectionCheckBox = $(e.currentTarget).parent('td').prev().prev('td').find('input[type="checkbox"]');
 
         if(e.type == 'change' && (data.name()=='Name' || data.name() == 'Permission' || data.name()== 'key:value')){
             return;
         }
 
         if (!data.value()) {
+            self.filter();
             return;
         }
 
         ko.utils.arrayForEach(self.filters(), function (filter) {  
             if(filter.name() == data.name()){
                 filter.selected(true);
+                $(selectionCheckBox).trigger('change');
             }
         });
-        self.filter();
+        // self.filter();
     }
   
     // apply the filters

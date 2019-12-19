@@ -62,6 +62,7 @@
 <script src="/static/app.js/tasksViewModel.js"></script>
 <script src="/static/app.js/samplesViewModel.js"></script>
 <script src="/static/app.js/gridStackViewModel.js"></script>
+<script src="/static/app.js/uiComponentsControl.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 {% endblock %}
@@ -141,9 +142,10 @@
 			</div>
 		</div>
 		<div class="col-md-3 box-one" style="padding: 0">
-			<div  class="panel panel-primary" style="position: relative;">
+			<div id="datasourceStack" class="panel panel-primary" style="position: relative;">
 				<div class="panel-heading" >
 						<!-- checked: access, -->
+					<button class="close closeComponent" type="button">×</button>
 					<div class="row" style="padding-left: 15px">
 							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="0"  checked="checked" autocomplete="off">Data Sources</label>
 							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Datasets</label>
@@ -265,6 +267,7 @@
 			</div>
 			<div id="searchHistoryPanel" class="panel panel-primary">
 				<div class="panel-heading">
+					<button class="close closeComponent" type="button">×</button>
 					<div class="row">
 						<div style="display : block">
 							<h4 class="col-sm-6">Saved Filters</h4>
@@ -283,6 +286,7 @@
 			</div>
 			<div id="runnableWorkflowsPanel" class="panel panel-primary">
 				<div class="panel-heading">
+					<button class="close closeComponent" type="button">×</button>
 					<div class="row">
 						<div>
 							<h4 class="col-sm-6">Job Histories</h4>
@@ -526,6 +530,7 @@
 		<div class="col-md-3 box-three" style="padding: 2px;">
 			<div id="functions" class="panel panel-primary">
 				<div class="panel-heading">
+					<button class="close closeComponent" type="button">×</button>
 					<div class="row">
 						<div class="col-sm-6">
 							<h4 class="pull-left">Services</h4>
@@ -592,6 +597,7 @@
 			<!-- 	            <div data-bind="stopBinding: true"> -->
 			<div id="samples" class="panel panel-primary" style="padding: 2px">
 				<div class="panel-heading">
+					<button class="close closeComponent" type="button">×</button>
 					<div class="row">
 						<div class="col-sm-6">
 							<h4 class="pull-left">Workflows</h4>

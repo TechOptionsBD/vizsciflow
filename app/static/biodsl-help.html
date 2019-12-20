@@ -9,9 +9,11 @@
 </head>
 
 <body>
-<h1>VizSciFlow</h1>
+<h1>VizSciFlow Manual</h1>
 
-<p>VizSciFlow is a workflow management system with a domain-specific language. It has a simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting. Scientists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>  
+<p>VizSciFlow is a workflow management system with a domain-specific language (DSL).</p>
+<p>The DSL has simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting.</p> 
+<p>Scientists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>  
 
 <h3><a name="keywords">Keywords:</a></h3>
 The keywords of VizSciFlow are listed below:
@@ -104,18 +106,18 @@ AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1
 <h3>The VizSciFlow <a name="webui">web interface</a></h3>
 The domain experts can use VizSciFlow web interface to quickly create a workflow. The IDE looks as below:
 <img alt>
-<p>
+
 A typical set of events are:
 <ul>
 	<li>Search the desired service from the Services panel to the right.</li>
-	<li>Double click the service to insert into the code editor.</li>
-	<li>Alternatively, you can also start typing the service name on code editor and press Ctrl+Space for code completion.</li>
+	<li>Drag the service to insert into the code editor.</li>
+	<li>Alternatively, you can also start typing the service name on code editor and press Ctrl+Space for automatic code completion.</li>
 	<li>Search the data item from the DataSources panel to the left.</li>
-	<li>Replace the data argument on the code editor by double clicking the desired data source on this panel.</li>
+	<li>Replace the data argument on the code editor by dragging the desired data source and dropping on this panel.</li>
 	<li>Run the workflow from command panel.</li>
 	<li>An item is added to the left-bottom panel for the execution job. Check it for automatic status update of each step or double click for instant load.</li>
 </ul>
-</p>
+
 
 <h3><a name="datasources">Data Sources Panel</a></h3>
 <p>
@@ -149,7 +151,7 @@ The services/tools for the workflows are listed on the right-top corner of the U
 	<li>Private: Accessible only by the logged on user himself.</li>
 </ol>
 
-<p>There are two operation modes of the services shown by a dropdown list. If basic is selected, some advanced operations for experienced users are hidden from the service list.</p>
+<!-- <p>There are two operation modes of the services shown by a dropdown list. If basic is selected, some advanced operations for experienced users are hidden from the service list.</p> -->
 
 <h4><a name="addservice">Add New Service</a></h4>
 <p>Experienced users can extend the capabilities of the system by adding new services to it. They can write a new python module or call external program from python code.</p>

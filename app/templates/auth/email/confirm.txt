@@ -1,6 +1,6 @@
 Dear {{ user.username }},
 
-Welcome to PhenoProc! Thanks for registration.
+Welcome to VizSciFlow! Thanks for registration.
 
 To confirm your account please click on the following link:
 
@@ -8,4 +8,4 @@ To confirm your account please click on the following link:
 
 Sincerely,
 
-The PhenoProc Team
+The VizSciFlow Team

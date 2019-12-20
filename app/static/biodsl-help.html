@@ -2,19 +2,19 @@
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>Bio-DSL Manual</title>
+	<title>VizSciFlow Manual</title>
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 <body>
-<h1>Bio-DSL</h1>
+<h1>VizSciFlow</h1>
 
-<p>Bio-DSL is a domain-specific language for Bioinformatics domain. It has a simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting. Biologists can write a workflow script using the visual elements offered in Bio-DSL web interface.</p>  
+<p>VizSciFlow is a workflow management system with a domain-specific language. It has a simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting. Biologists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>  
 
 <h3><a name="keywords">Keywords:</a></h3>
-The keywords of Bio-DSL are listed below:
+The keywords of VizSciFlow are listed below:
 
 <table>
   <tr>
@@ -68,9 +68,9 @@ AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1
 
 
 <h3><a name="syntax">Syntax:</a></h3>
-Bio-DSL uses simple pythonic syntax and indenting. Advanced syntaxes like lambda, class, iterators, generators, annotation are not allowed. Here is a complete example of a Bio-DSL script:
-<p>Like Python, Bio-DSL is structured with <a href="">indentation</a> i.e. the statements within a block line up vertically. The block ends at a line less indented or the end of the file. If a block has to be more deeply nested, it is simply indented further to the right.</p>
-Here is a Bio-DSL indenting example:
+VizSciFlow uses simple pythonic syntax and indenting. Advanced syntaxes like lambda, class, iterators, generators, annotation are not allowed. Here is a complete example of a VizSciFlow script:
+<p>Like Python, VizSciFlow is structured with <a href="">indentation</a> i.e. the statements within a block line up vertically. The block ends at a line less indented or the end of the file. If a block has to be more deeply nested, it is simply indented further to the right.</p>
+Here is a VizSciFlow indenting example:
 <pre><code class="python">
 task AlignSequences(ref, data, data2):
     CheckQuality(data)
@@ -84,7 +84,7 @@ task AlignSequences(ref, data, data2):
 AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq')
 </code></pre>
 
-<p>Bio-DSL is a dynamic language. The type of a literal is inferred from the value. For example:</p>
+<p>VizSciFlow is a dynamic language. The type of a literal is inferred from the value. For example:</p>
 <table>
 <tr>
 <td>Integer </td>
@@ -101,8 +101,8 @@ AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1
 </table>
 
 
-<h3>The Bio-DSL <a name="webui">web interface</a></h3>
-The domain experts can use Bio-DSL web interface to quickly create a workflow. The IDE looks as below:
+<h3>The VizSciFlow <a name="webui">web interface</a></h3>
+The domain experts can use VizSciFlow web interface to quickly create a workflow. The IDE looks as below:
 <img alt>
 <p>
 A typical set of events are:

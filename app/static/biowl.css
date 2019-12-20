@@ -849,3 +849,9 @@ border-radius: 50px;
   display: none;
   max-width: 400px;
 }
+
+#btnfilterClose, .closeComponent{
+  font-size: 1.3vw;
+  color: #141313;
+  opacity: .5;
+}

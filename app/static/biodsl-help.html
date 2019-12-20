@@ -11,7 +11,7 @@
 <body>
 <h1>VizSciFlow</h1>
 
-<p>VizSciFlow is a workflow management system with a domain-specific language. It has a simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting. Biologists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>  
+<p>VizSciFlow is a workflow management system with a domain-specific language. It has a simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting. Scientists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>  
 
 <h3><a name="keywords">Keywords:</a></h3>
 The keywords of VizSciFlow are listed below:
@@ -153,8 +153,9 @@ The services/tools for the workflows are listed on the right-top corner of the U
 
 <h4><a name="addservice">Add New Service</a></h4>
 <p>Experienced users can extend the capabilities of the system by adding new services to it. They can write a new python module or call external program from python code.</p>
-<img alt="Add New Service" src="biodsl-addservice.png" />
 In the service pane, the "+" button opens the dialog for Service Mapping. There is a coding tab to write the service code and a JSON tab to map the python code with DSL vocabulary. Here is a lean and thin service code:
+
+<img alt="Add New Service" src="biodsl-addservice.png" />
 
 <pre><code class="python">
 def run_myservice(context, *args, *kwargs):

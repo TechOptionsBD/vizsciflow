@@ -86,7 +86,7 @@ flex-grow: 1;
 
 .box-one {
 /*  background-color: red; */
-max-width: 400px;
+/* max-width: 400px; */
 /*   min-width: 200px; */
 }
 
@@ -96,7 +96,7 @@ max-width: 400px;
 
 .box-three {
 /*  background-color: red; */
-max-width: 400px;
+/* max-width: 400px; */
 /*   min-width: 200px;   */
 }
 
@@ -847,7 +847,7 @@ border-radius: 50px;
 .box-zero{
   padding-left: 0;
   display: none;
-  max-width: 400px;
+  /* max-width: 400px; */
 }
 
 #btnfilterClose, .closeComponent{

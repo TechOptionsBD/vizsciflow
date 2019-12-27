@@ -82,7 +82,6 @@ class BasicGrammar():
         
         pi = CaselessKeyword( "PI" )
         fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?")
-        plus, minus, mult, div = map(Literal, "+-*/")
         self.lpar, self.rpar = map(Suppress, "()")
         expop = Literal( "**" )
         
@@ -165,7 +164,7 @@ class PythonGrammar(BasicGrammar):
         self.taskdefstmt = (Suppress("task") + Optional(self.identifier, None) + Suppress("(")  + Group(Optional(self.params)) + Suppress(")") + Suppress(":") + self.compoundstmt).setParseAction(lambda t : ['TASK'] + t.asList())         
         super().build_program()                                 
                                  
-class PhenoWLGrammar(BasicGrammar):
+class VizSciFlowGrammar(BasicGrammar):
     '''
     The PhenoWL grammar.
     '''

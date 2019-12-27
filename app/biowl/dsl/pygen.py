@@ -1,4 +1,3 @@
-from .func_resolver import Library
 from .context import Context
 
 class CodeGenerator(object):

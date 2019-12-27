@@ -1,24 +1,17 @@
-from sys import stdin, stdout, stderr, argv, exit
-import os
-import json
+from sys import exit
 import sys
-
-import code
 
 from pyparsing import *
 
-from .grammar import PythonGrammar
-from .context import Context
-from .interpreter import Interpreter
-from .pygen import CodeGenerator
+from .grammar import PythonGrammar, VizSciFlowGrammar
  
-class BioDSLParser(object):
+class VizSciFlowParser(object):
     '''
     The parser for Bio-DSL.
     '''
 
     def __init__(self, grammar = None):
-        self.grammar = grammar if grammar else PhenoWLGrammar()
+        self.grammar = grammar if grammar else VizSciFlowGrammar()
         self.tokens = ParseResults()
         self.err = []
     
@@ -54,7 +47,7 @@ class BioDSLParser(object):
 if __name__ == "__main__":
     from ..timer import Timer
     with Timer() as t:
-        p = BioDSLParser(PythonGrammar())
+        p = VizSciFlowParser(PythonGrammar())
         if len(sys.argv) > 1:
             tokens = p.parse_file(sys.argv[1])
         else:

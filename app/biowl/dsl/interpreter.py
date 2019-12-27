@@ -6,7 +6,6 @@ import _thread
 from .func_resolver import Library
 from ..tasks import TaskManager
 from .context import Context
-from .provenance import BioProv
 from ..fileop import FolderItem
 
 logging.basicConfig(level=logging.DEBUG)
@@ -40,10 +39,10 @@ class Interpreter(object):
         if package is None and function in self.context.library.tasks:
             return self.context.library.run_task(function, v, self.dotaskstmt)
 
-        if not self.context.library.check_function(function, package):
+        if not Library.check_function(function, package):
             raise Exception(r"Function '{0}' doesn't exist.".format(function))
             
-        return self.context.library.call_func(self.context, package, function, v)
+        return Library.call_func(self.context, package, function, v)
 
     def dorelexpr(self, expr):
         '''
@@ -345,12 +344,7 @@ class Interpreter(object):
                 self.context.append_dci(local_symtab.get_var('server'), local_symtab.get_var('user'), local_symtab.get_var('password'))
                 dci_added = True
                 
-            if local_symtab.var_exists('provenance') and local_symtab.get_var('provenance'):
-                prov = BioProv(lambda: self.eval(expr[1]))
-                result = prov.run()
-                return result[0].ref if result else None
-            else:
-                return self.eval(expr[1])
+            return self.eval(expr[1])
             
         finally:
             if dci_added:

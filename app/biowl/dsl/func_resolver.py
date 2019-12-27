@@ -6,7 +6,7 @@ import pathlib
 
 from ...util import Utility
 from ..exechelper import func_exec_run
-from ...models import Task, Status, DataType, AccessRights, DataSourceAllocation, DataProperty, Runnable
+from ...models import Task, DataType, AccessRights, DataSourceAllocation, Service
 from ..fileop import FilterManager, FolderItem
 
 # import_module can't load the following modules in the NGINX server
@@ -44,46 +44,9 @@ def load_module(modulename):
     #name = "package." + modulename
     #return __import__(modulename, fromlist=[''])
     return import_module(modulename)
-        
-class Function():
-    def __init__(self, name, internal, package = None, module = None, params = [], example = None, desc = None, runmode = None, level = 0, group = None, user = None, access = 0, example2 = None, returns = None, href = None):
-        self.name = name
-        self.internal = internal
-        self.package = package
-        self.module = module
-        self.params = params
-        self.example = example
-        self.desc = desc
-        self.runmode = runmode
-        self.level = level
-        self.group = group
-        self.user = user
-        self.access = access
-        self.example2 = example2
-        self.returns = returns
-        self.href = href
-    
-    def to_json(self):
-        access = "public"
-        if self.access == 1:
-            access = "shared"
-        elif self.access == 2:
-            access = "private"
-            
-        return {
-            'name': self.name,
-            'package_name': self.package if self.package else '',
-            'example': self.example if self.example else '',
-            'example2': self.example2 if self.example2 else '',
-            'desc': self.desc if self.desc else '',
-            'returns': self.returns if self.returns else '',
-            'href': self.href if self.href else '',
-            'access': access
-        }
-        
+      
 class Library():
-    def __init__(self, funcs = {}):
-        self.funcs = funcs # dictionary of <func_name, Function> 
+    def __init__(self):
         self.tasks = {}
         self.localdir = path.join(path.abspath(path.dirname(__file__)), 'storage')
     
@@ -97,102 +60,7 @@ class Library():
     def code_run_task(self, name, args, dotaskstmt):
         if name in self.tasks:
             return dotaskstmt(self.tasks[name], args), set()
-            
-    @staticmethod
-    def load(library_def_file):
-        library = Library()
-        
-#         datafiles = []
-#         for r, d, f in os.walk(library_def_file):
-#             datafiles.extend([os.path.join(r, file) for file in f if file.endswith(".json")])
-            
-        all_funcs = {}
-        for f in os.listdir(library_def_file):
-            fsitem = os.path.join(library_def_file, f)
-            if os.path.isdir(fsitem) and f == 'users':
-                for fuser in os.listdir(fsitem):
-                    Library.merge_funcs(all_funcs, Library.load_funcs_recursive(os.path.join(fsitem, fuser), fuser))
-            else:
-                Library.merge_funcs(all_funcs, Library.load_funcs_recursive(fsitem, None))
-
-        library.funcs = all_funcs
-        return library
-    
-    # only new functions (unique package.function name) are added
-    def load_new_funcs(self, library_def_file, user):
-        funcs = Library.load_funcs_recursive(library_def_file, user)
-        self.append_new_funcs(self.funcs, funcs)
-        
-    @staticmethod
-    def merge_funcs(all_funcs, funcs):
-        for k,v in funcs.items():
-            if k in all_funcs:
-                all_funcs[k].extend(v)
-            else:
-                all_funcs[k] = v if isinstance(v, list) else [v]
-        
-    @staticmethod
-    def append_new_funcs(all_funcs, funcs):
-        for k,v in funcs.items():
-            if Library.check_library_functions(all_funcs, v):
-                continue
-            if k in all_funcs:
-                all_funcs[k].extend(v)
-            else:
-                all_funcs[k] = v if isinstance(v, list) else [v]
-                        
-    @staticmethod
-    def load_funcs_recursive(library_def_file, user):
-        if os.path.isfile(library_def_file):
-            return Library.load_funcs(library_def_file, user) if pathlib.Path(library_def_file).suffix == ".json" else {}
-
-        all_funcs = {}
-        for f in os.listdir(library_def_file):
-            Library.merge_funcs(all_funcs, Library.load_funcs_recursive(os.path.join(library_def_file, f), user))
-        return all_funcs
-       
-    @staticmethod
-    def load_funcs(library_def_file, user):
-        funcs = {}
-        try:
-            if not os.path.isfile(library_def_file) or not library_def_file.endswith(".json"):
-                return funcs
-            
-            with open(library_def_file, 'r') as json_data:
-                d = json.load(json_data)
-                libraries = d["functions"]
-                libraries = sorted(libraries, key = lambda k : k['package'].lower() if 'package' in k and k['package'] else '')
-                for f in libraries:
-                    name = f["name"] if f.get("name") else f["internal"]
-                    internal = f["internal"] if f.get("internal") else f["name"]
-                    module = f["module"] if f.get("module") else None
-                    package = f["package"] if f.get("package") else ""
-                    example = f["example"] if f.get("example") else ""
-                    example2 = f["example2"] if f.get("example2") else ""
-                    desc = f["desc"] if f.get("desc") else ""
-                    runmode = f["runmode"] if f.get("runmode") else ""
-                    level = int(f["level"]) if f.get("level") else 0
-                    group = f["group"] if f.get("group") else ""
-                    access = int(f["access"]) if f.get("access") else 0
-                    returns = f["returns"] if f.get("returns") else ""
-                    href = f["href"] if f.get("href") else ""
-                    params = []
-                    if f.get("params"):
-                        for param in f["params"]:
-                            params.append(param)
-                    func = Function(name, internal, package, module, params, example, desc, runmode, level, group, user, access, example2, returns, href)
-                    if name.lower() in funcs:
-                        funcs[name.lower()].extend([func])
-                    else:
-                        funcs[name.lower()] = [func]
-        finally:
-            return funcs
-    
-    def func_to_internal_name(self, funcname):
-        for f in self.funcs:
-            if f.get("name") and self.iequal(f["name"], funcname):
-                return f["internal"]
-            
+           
     def get_function(self, name, package = None):
         if package:
             for func in self.funcs[name.lower()]:
@@ -201,32 +69,17 @@ class Library():
         else:
             return self.funcs[name.lower()]
     
-    def check_function(self, name, package = None):
-        return Library.check_library_function(self.funcs, name, package)
-
     @staticmethod
-    def check_library_function(funcs, name, package = None):
-        if package and name.lower() in funcs:
-            for func in funcs[name.lower()]:
-                if func.package == package:
-                    return True
-            return False
-        else:
-            return name.lower() in funcs
+    def check_function(name, package = None):
+        return Service.check_function(name, package)
     
     @staticmethod
-    def check_library_functions(funcs, v): # v is a list of Function here
+    def check_functions(v):
         for f in v:
-            if Library.check_library_function(funcs, f.name, f.package):
+            if Library.check_function(f.name, f.package):
                 return True
         return False
             
-        
-    def funcs_flat(self):
-        funcs = []
-        for v in self.funcs.values():
-            funcs.extend(v)
-        return funcs
         
     @staticmethod
     def split_args(arguments):
@@ -267,7 +120,8 @@ class Library():
             pass # don't propagate the exceptions
         return datatype
 
-    def call_func(self, context, package, function, args):
+    @staticmethod
+    def call_func(context, package, function, args):
         '''
         Call a function from a module.
         :param context: The context for output and error
@@ -278,9 +132,9 @@ class Library():
         task = None
         try:
             arguments, kwargs = Library.split_args(args)
-            func = self.get_function(function, package)
+            func = Service.get_first_service_by_name_package(function, package)
     
-            task = Task.create_task(context.runnable, func[0].name)
+            task = Task.create_task(context.runnable, func["name"])
             context.task_id = task.id
             task.start()
         
@@ -293,7 +147,6 @@ class Library():
             elif function.lower() == "read":
                 if not arguments:
                     raise ValueError("Read must have one argument.")
-                
                 DataSourceAllocation.check_access_rights(context.user_id, arguments[0], AccessRights.Read)
                 fs = Utility.fs_by_prefix_or_default(arguments[0])
                 result = fs.read(arguments[0])
@@ -366,8 +219,8 @@ class Library():
                 result = fs.remove(arguments[0])
                 task.succeeded(DataType.File, str(result))
             else:
-                module_obj = load_module(func[0].module)
-                function = getattr(module_obj, func[0].internal)
+                module_obj = load_module(func["module"])
+                function = getattr(module_obj, func["internal"])
                 
                 result = function(context, *arguments, **kwargs)
                 

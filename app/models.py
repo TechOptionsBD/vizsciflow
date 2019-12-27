@@ -16,7 +16,9 @@ from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, cast
+from sqlalchemy.types import Unicode
+from sqlalchemy import func
 
 from app.exceptions import ValidationError
 
@@ -638,68 +640,129 @@ class Workflow(db.Model):
     
 #db.event.listen(Workflow.body, 'set', Workflow.on_changed_body)
 
-class Param(db.Model):
-    __tablename__ = 'params'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text)
-    service_id = db.Column(db.Integer, ForeignKey('services.id'))
-    type = db.Column(db.Integer)
-             
-class Service(db.Model):
-    __tablename__ = 'services'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, ForeignKey('users.id'))
-    name = db.Column(db.Text)
-    internal_name = db.Column(db.Text)
-    package = db.Column(db.Text)
-    module = db.Column(db.Text)
-    example = db.Column(JSON, nullable=True)
-    desc = db.Column(db.Text)
-    runmode = db.Column(db.Text)
-    level = db.Column(db.Integer)
-    group = db.Column(db.Text)
-    returns = db.Column(db.Text)
-    example2 = db.Column(JSON, nullable=True)
-    
-    accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
-    params = db.relationship('Param', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan",
-    
-    def to_json(self):
-        json_post = {
-            'id': self.id,
-            'user': self.user.username,
-            'name': self.name,
-            'desc': self.desc,
-            'example': json.loads(self.example),
-            'example2': json.loads(self.example2)
-        }
-        return json_post
-    
-    def to_json_info(self):
-        json_post = {
-            'id': self.id,
-            'user': self.user.username,
-            'name': self.name,
-            'desc': self.desc
-        }
-        return json_post
-    
-class ServiceAccess(db.Model):
-    __tablename__ = 'serviceaccesses'
-    id = db.Column(db.Integer, primary_key=True)
-    service_id = db.Column(db.Integer, ForeignKey('services.id'))
-    user_id = db.Column(db.Integer, ForeignKey('users.id'))
-    rights = db.Column(db.Integer, default = 0)
-    
-    def hasRight(self, checkRight):
-        return AccessRights.hasRight(self.rights, checkRight)
-    
 class WorkflowAccess(db.Model):
     __tablename__ = 'workflowaccesses'
     id = db.Column(db.Integer, primary_key=True)
     workflow_id = db.Column(db.Integer, ForeignKey('workflows.id'), nullable=False)
     user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
     rights = db.Column(db.Integer, default = 0)
+    
+class Param(db.Model):
+    __tablename__ = 'params'
+    id = db.Column(db.Integer, primary_key=True)
+    service_id = db.Column(db.Integer, ForeignKey('services.id'))
+    value = db.Column(JSON, nullable = False)
+    
+    #service = db.relationship("Service", foreign_keys=service_id)
+    
+class Service(db.Model):
+    __tablename__ = 'services'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
+    value = db.Column(JSON, nullable = False)
+    public = db.Column(db.Boolean, default=False)
+    active = db.Column(db.Boolean, default=True)
+    
+    #accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
+    accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
+    params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
+    
+    def to_json_info(self):
+        json_post = {
+            'id': self.id,
+            'user': self.user.username,
+            'name': self.value["name"],
+            'desc': self.value["desc"]
+        }
+        return json_post
+   
+    @staticmethod
+    def get_first_service_by_name_package(name, package = None):
+        services = Service.get_service_by_name_package(name, package)
+        if services and services.first():
+            return services.first().value
+        
+    @staticmethod
+    def get_service_by_name_package(name, package = None):
+#         if package:
+#             return Service.query.filter(and_(func.lower(Service.value["name"].astext).cast(Unicode) == name.lower(), func.lower(Service.value["package"].astext).cast(Unicode) == package.lower()))
+#         else:
+#             return Service.query.filter(func.lower(Service.value["name"].astext).cast(Unicode) == name.lower())
+        
+        return Service.query.filter(and_(func.lower(Service.value["name"].astext).cast(Unicode) == name.lower(), not package or func.lower(Service.value["package"].astext).cast(Unicode) == package.lower()))
+    
+    @staticmethod
+    def add_access_to_json(services, access):
+        for s in services:
+            s['access'] = access
+        return services
+        
+    @staticmethod
+    def get_by_user(user_id, access):
+        samples = []
+        if access == 0 or access == 3:
+            services = Service.query.filter(and_(Service.public == True, Service.active == True))
+            samples.extend([s.value for s in services])
+            samples = Service.add_access_to_json(samples, "public")
+        if access == 1 or access == 3:
+            services = Service.query.filter(and_(Service.public != True, Service.active == True)).filter(Service.accesses.any(and_(ServiceAccess.user_id == user_id, Service.user_id != user_id)))
+            samples.extend([s.value for s in services])
+            samples = Service.add_access_to_json(samples, "shared")
+        if access == 2 or access == 3:
+            services = Service.query.filter(and_(Service.public != True, Service.active == True, Service.user_id == user_id)).filter(Service.accesses.any(ServiceAccess.user_id != user_id) != True)
+            samples.extend([s.value for s in services])
+            samples = Service.add_access_to_json(samples, "private")
+        return samples
+        
+    @staticmethod
+    def get_first_by_name_package_with_access(user_id, name, package = None):
+        services = Service.get_service_by_name_package(name, package)
+        if services:
+            service = services.first()
+            value = service.value
+            if service.public:
+                value["access"] = "public"
+            else:
+                for access in service.accesses:
+                    if access.user_id == user_id:
+                        value["access"] = "shared" if service.user_id != user_id else "private"
+                        break;
+            return value
+        
+    @staticmethod
+    def check_function(name, package = None):
+        services = Service.get_service_by_name_package(name, package)
+        return services and services.count() > 0
+                
+    @staticmethod
+    def get_by_user1(username, access):
+        #fields = ['name', 'addr', 'phone', 'url']
+        #companies = session.query(SomeModel).options(load_only(*fields)).all()
+        #session.query(SomeModel.col1.label('some alias name'))
+        #return Service.query.options(db.joinedload(Service.accesses))
+        #Service.query.all().join(Service.accesses).filter_by(user_id == username)
+        #Service.query.filter(Service.accesses.contains())
+        q1 = []
+        if access == 0 or access == 3:
+            q1 = Service.query.filter(and_(Service.public == True, Service.active == True))
+        if access > 0: 
+            q2 = Service.query.join(Service.accesses).join(ServiceAccess.user).filter(and_(Service.public == False, Service.active == True, User.username == username, or_(access == 3, ServiceAccess.rights == rights )))
+        q1list = [q for q in q1]
+        q1list.extend([q for q in q2])
+        return q1list
+        
+class ServiceAccess(db.Model):
+    __tablename__ = 'serviceaccesses'
+    id = db.Column(db.Integer, primary_key=True)
+    service_id = db.Column(db.Integer, ForeignKey('services.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
+    rights = db.Column(db.Integer, default = 0)
+    
+    user = db.relationship("User", foreign_keys=user_id)
+#     service = db.relationship("Service", foreign_keys=service_id)
+    
+    def hasRight(self, checkRight):
+        return AccessRights.hasRight(self.rights, checkRight)
     
 class DataType:
     Unknown = 0x00

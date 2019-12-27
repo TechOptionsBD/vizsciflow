@@ -16,44 +16,14 @@ import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user, generate_graph
-from ..models import Runnable, Workflow, AccessType
+from ..models import Runnable, Workflow, AccessType, Service, ServiceAccess
 from . import main
 from .views import Samples
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 
-from ..biowl.dsl.func_resolver import Library
-
 basedir = os.path.dirname(os.path.abspath(__file__))
-
-class LibraryHelper():
-    librariesdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../biowl/libraries')
-
-    def __init__(self):
-        self.funcs = []
-        self.library = Library()
-        self.reload()
-    
-    def reload(self):
-        self.funcs.clear()
-        self.library = Library.load(LibraryHelper.librariesdir)
-        self.refresh()
-                 
-    def refresh(self):
-        funclist = []
-        functions = self.library.funcs.values()
-        for func in functions:
-            funclist.extend(func)
-        #
-        funclist.sort(key=lambda x: (x.group, x.name))
-        self.funcs = []
-        for f in funclist:
-            example = f.example if f.example else f.example2 if f.example2 else ""
-            example2 = f.example2 if f.example2 else example
-            self.funcs.append({"package_name": f.package if f.package else "", "name": f.name, "internal": f.internal, "example": example, "example2": example2, "level": f.level, "group": f.group if f.group else "", "user": f.user if f.user else "", "access": str(f.access) if f.access else "0"})
-        
-library = LibraryHelper()
 
 def update_workflow(user_id, workflow_id, script):
     try:
@@ -76,9 +46,9 @@ def run_biowl(workflow_id, script, args, immediate = True):
         runnable = Runnable.create(workflow_id, script if script else workflow.script, args)
                 
         if immediate:
-            run_script(library.library, runnable.id, args)
+            run_script(runnable.id, args)
         else:
-            run_script.delay(library.library, runnable.id, args)
+            run_script.delay(runnable.id, args)
             
         return jsonify(runnableId = runnable.id)
     except Exception as e:
@@ -86,7 +56,7 @@ def run_biowl(workflow_id, script, args, immediate = True):
 
 def build_graph(workflow_id):
     try:
-        return generate_graph(library.library, workflow_id)
+        return generate_graph(workflow_id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
 
@@ -234,9 +204,6 @@ def functions():
                 with open(base, 'w') as f:
                     f.write(json.dumps(data, indent=4))
                 
-                library.library.load_new_funcs(path, current_user.username)
-                library.refresh()
-                
                 result['out'].append("Library successfully added.")
             except Exception as e:
                 result['err'].append(str(e))
@@ -246,7 +213,7 @@ def functions():
             mime = mimetypes.guess_type(fullpath)[0]
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
     elif 'check_function' in request.args:
-        success = library.library.check_function(request.args.get('name'), request.args.get('package'))
+        success = Service.get_service_by_name_package(request.args.get('name'), request.args.get('package'))
         if success:
             return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
         if 'script' in request.args and request.args.get('script') and 'mapper' in request.args and request.args.get('mapper'):
@@ -265,21 +232,18 @@ def functions():
         return json.dumps("")
     
     elif 'tooltip' in request.args:
-        if library.library.check_function(request.args.get('name'), request.args.get('package')):
-            func = library.library.get_function(request.args.get('name'), request.args.get('package'))
-            if func:
-                return json.dumps(func[0].to_json())
-        return json.dumps("")
+        func = Service.get_first_by_name_package_with_access(current_user.id, request.args.get('name'), request.args.get('package'))
+        return json.dumps(func) if func else json.dumps("")
     elif 'codecompletion' in request.args:
-        keywords = [{"package_name": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package_name": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package_name": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package_name": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
+        keywords = [{"package": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
         funcs = []
         codecompletion = request.args.get('codecompletion')
-        for func in library.funcs:
-            if int(func['access']) < 2 or (func['user'] and func['user'] == current_user.username):
+        for func in Service.get_by_user(current_user.username):
+            if int(func.value['access']) < 2 or (func['user'] and func['user'] == current_user.username):
                 if codecompletion:
                     if not regex.match(codecompletion, func['name'], regex.IGNORECASE):
                         continue
-                funcs.append({"package_name": func['package_name'], "name": func['name'], "example": func['example'], "group": func['group']})
+                funcs.append({"package": func['package'], "name": func['name'], "example": func['example'], "group": func['group']})
         if not codecompletion:
             funcs.extend(keywords)
         else:
@@ -297,12 +261,10 @@ def functions():
             demoservice['mapper'] = f.read()
         return jsonify(demoservice= demoservice)
     elif 'reload' in request.args:
-        library.reload()
+        #library.reload()
         return json.dumps("")
     else:
-        level = int(request.args.get('level')) if request.args.get('level') else 0
-        access = int(request.args.get('access')) if request.args.get('access') else 0
-        return get_functions(level, access)
+        return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
 
 @main.route('/graphs', methods=['GET', 'POST'])
 @login_required
@@ -378,21 +340,5 @@ def runnables():
         current_app.logger.error("Unhandled Exception at executables: {0}".format(e))
         return json.dumps({})
 
-def get_functions(level, access):
-    funcs = []
-    for func in library.funcs:
-        if int(func['level']) > level:
-            continue
-        elif access < 2:
-            if func['access'] == str(access):
-                funcs.append(func)
-        elif access == 3: 
-            if func['user']:
-                if func['user'] == current_user.username:
-                    funcs.append(func)
-            else:
-                funcs.append(func)
-        elif func['user'] and func['user'] == current_user.username:
-            funcs.append(func)
-            
-    return json.dumps({'functions':  funcs})
+def get_functions(access):
+    return json.dumps({'functions':  Service.get_by_user(current_user.id, access)})

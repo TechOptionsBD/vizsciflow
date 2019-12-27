@@ -588,7 +588,7 @@
 								<span style="font-weight: bold;" data-bind="text: name"></span>
 							</div>
 							<div class="col" style="float: right;padding-right: 5px">
-								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package_name" style="text-align: left"></span>)
+								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package" style="text-align: left"></span>)
 							</div>
 							<div style="clear:both"></div>
 						</div>
@@ -2025,7 +2025,7 @@ function typeInTextarea(el, newText) {
             	},
 				content: {
 	                text: function(event, api) {
-	                	var url = "/functions?tooltip&name=" + viewModel.name() + "&package=" + viewModel.package_name();
+	                	var url = "/functions?tooltip&name=" + viewModel.name() + "&package=" + viewModel.package();
 	                    $.ajax({
 	                        url: url
 	                    })
@@ -2036,7 +2036,7 @@ function typeInTextarea(el, newText) {
 	                        }
 	                        else {
 		                        content = JSON.parse(content);
-		                        tooltip = "<p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
+		                        tooltip = "<p>Name: " + content.name + (content.package && content.package.length ? "<br>Package: " + content.package : "") + "<br>Access: " + content.access + "</p>"
 		                        if (content.example) {
 		                        	tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 0); return false;">Add: </a>' + content.example;	
 		                        }
@@ -2377,7 +2377,7 @@ function typeInTextarea(el, newText) {
  	    $.getJSON('/functions?codecompletion=' + prefix,
  	      function(tagList) {
  	        callback(null, tagList.functions.map(function(qtag) {
- 	          return { caption: qtag.name + '(' + qtag.package_name + ')', value: qtag.example, meta: qtag.group}
+ 	          return { caption: qtag.name + '(' + qtag.package + ')', value: qtag.example, meta: qtag.group}
  	      }));
  	    })
  	   }
@@ -2597,10 +2597,10 @@ function typeInTextarea(el, newText) {
 					return false;
 				}
 				
-				var package_name = (self.name() && self.name().length ? self.name() : "");
+				var package = (self.name() && self.name().length ? self.name() : "");
 				
 				var success = false;
-				ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package_name, 'name': func, 'script': self.codeEditor.getSession().getValue(), 'mapper': self.mapperEditor.getSession().getValue()}, false).done(function(data) {
+				ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package, 'name': func, 'script': self.codeEditor.getSession().getValue(), 'mapper': self.mapperEditor.getSession().getValue()}, false).done(function(data) {
             		
 					if (data === undefined) {
 						$("#add-library-info").text("Can't retrieve service information. Check your internet connection.");
@@ -2666,7 +2666,7 @@ function typeInTextarea(el, newText) {
         
         function EditTaskViewModel() {
             var self = this;
-            self.package_name = ko.observable();
+            self.package = ko.observable();
             self.name = ko.observable();
             self.internal = ko.observable();
             self.example = ko.observable();
@@ -2674,7 +2674,7 @@ function typeInTextarea(el, newText) {
  
             self.setTask = function(task) {
                 self.task = task;
-                self.package_name(task.package_name());
+                self.package(task.package());
                 self.name(task.name());
                 self.internal(task.internal());
                 self.example(task.example());
@@ -2685,7 +2685,7 @@ function typeInTextarea(el, newText) {
             self.editTask = function() {
                 $('#edit').modal('hide');
                 tasksViewModel.edit(self.task, {
-                	package_name: self.package_name(),
+                	package: self.package(),
                 	name: self.name(),
                     internal: self.internal(),
                     example: self.example(),

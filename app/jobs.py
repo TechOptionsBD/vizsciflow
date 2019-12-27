@@ -13,7 +13,7 @@ from pyparsing import ParseException
 from config import Config
 
 from . import celery
-from .biowl.dsl.parser import BioDSLParser, PythonGrammar
+from .biowl.dsl.parser import VizSciFlowParser, PythonGrammar
 from .biowl.dsl.interpreter import Interpreter
 from .biowl.dsl.graphgen import GraphGenerator
 from .biowl.timer import Timer
@@ -131,7 +131,7 @@ class RequestContextTask(AbortableTask):
         kwargs[self.GLOBALS_ARG_NAME] = d
              
 @celery.task(bind=True, base=RequestContextTask)#, base = AbortableTask
-def run_script(self, library, runnable_id, args):
+def run_script(self, runnable_id, args):
     
     runnable = Runnable.query.get(runnable_id)
     workflow = Workflow.query.get(runnable.workflow_id)
@@ -143,7 +143,6 @@ def run_script(self, library, runnable_id, args):
     os.chdir(parserdir) #set dir of this file to current directory
 
     try:
-        machine.context.library = library
         machine.context.runnable = runnable.id
         machine.context.user_id = workflow.user_id
         
@@ -152,7 +151,7 @@ def run_script(self, library, runnable_id, args):
         runnable.update_status(Status.STARTED)
 
         with Timer() as t:
-            parser = BioDSLParser(PythonGrammar())   
+            parser = VizSciFlowParser(PythonGrammar())   
             if args:
                 args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
                 if args_tokens:
@@ -201,8 +200,7 @@ def sync_task_status_with_db_for_user(user_id):
         if not task.completed():
             sync_task_status_with_db(task)
             
-def generate_graph(library, workflow_id):
+def generate_graph(workflow_id):
     workflow = Workflow.query.get(workflow_id)
     graphgen = GraphGenerator(Config.GRAPHDB, Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD)
-    graphgen.context.library = library
     return graphgen.run_workflow(workflow)

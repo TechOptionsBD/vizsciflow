@@ -149,25 +149,26 @@ class Context:
     '''
     The context for parsing and interpretation.
     '''
-    def __init__(self):
+    def __init__(self, tempdirs = {}):
         '''
         Initializes this object.
-        :param parent:
+        :param tempdirs: {datasource_type: tempdir}
         '''
         self.library = Library()
         self.runnable = None
-        self.user_id = 0
-        self.tempdirs = {}
+        self.user_id = None
+        self.tempdirs = tempdirs
         self.reload()
     
     def get_temp_dir(self, typename = "posix"):
         '''
         The user directory for a fs type is the temp directory.
         '''
-        if not typename in self.tempdirs:
-            fs = Utility.fs_by_typename(typename)
-            self.tempdirs[typename] = fs.make_unique_dir(User.query.get(self.user_id).username)
-        return self.tempdirs[typename]
+        if self.user_id:
+            if not typename in self.tempdirs:
+                fs = Utility.fs_by_typename(typename)
+                self.tempdirs[typename] = fs.make_unique_dir(User.query.get(self.user_id).username)
+            return self.tempdirs[typename]
         
     def reload(self):
         '''

@@ -9,7 +9,7 @@ from ..tasks import TaskManager
 from .context import Context
 from ...models import Workflow
 from .grammar import PythonGrammar
-from .parser import BioDSLParser
+from .parser import VizSciFlowParser
 
 from py2neo import Graph, Subgraph
 from py2neo.data import Node, Relationship
@@ -454,7 +454,7 @@ class GraphGenerator(object):
             self.context.err.append("Error at line {0}: {1}".format(self.line, err))
     
     def run_workflow(self, workflow):
-        parser = BioDSLParser(PythonGrammar())
+        parser = VizSciFlowParser(PythonGrammar())
         prog = parser.parse(workflow.script)
         
         graph_id= str(workflow.id) +'#' + str(workflow.user_id)

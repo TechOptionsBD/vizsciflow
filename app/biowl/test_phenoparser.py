@@ -1,5 +1,5 @@
 import unittest
-from phenoparser import BioDSLParser, PythonGrammar
+from phenoparser import VizSciFlowParser, PythonGrammar
 
 class TestGrammar(unittest.TestCase):
     @classmethod
@@ -11,7 +11,7 @@ class TestGrammar(unittest.TestCase):
         pass
     
     def setUp(self):
-        self.parser = BioDSLParser(PythonGrammar())
+        self.parser = VizSciFlowParser(PythonGrammar())
     
     def tearDown(self):
         pass

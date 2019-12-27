@@ -11,7 +11,7 @@ function TasksViewModel() {
     this.filteredTasks = ko.computed(function () {
         return this.tasks().filter(function (task) {
             if (!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
-                || task.package_name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
+                || task.package().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
                 || task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
                 return task;
         });
@@ -75,7 +75,7 @@ function TasksViewModel() {
 
     self.updateTask = function (task, newTask) {
         var i = self.tasks.indexOf(task);
-        self.tasks()[i].package_name(newTask.package_name);
+        self.tasks()[i].package(newTask.package);
         self.tasks()[i].name(newTask.name);
         self.tasks()[i].internal(newTask.internal);
         self.tasks()[i].example(newTask.example);
@@ -263,7 +263,7 @@ function TasksViewModel() {
             self.tasks([]);
             $.each(data.functions, function (i, f) {
                 self.tasks.push({
-                    package_name: ko.observable(f.package_name),
+                    package: ko.observable(f.package),
                     name: ko.observable(f.name),
                     //internal: ko.observable(f.internal),
                     example: ko.observable(f.example),
@@ -325,7 +325,7 @@ function TasksViewModel() {
                     candidateSample.expanded(item === candidateSample);
                     if (item === candidateSample) {
 
-                        var url = "/functions?tooltip&name=" + item.name() + "&package=" + item.package_name();
+                        var url = "/functions?tooltip&name=" + item.name() + "&package=" + item.package();
                         $.ajax({
                             url: url
                         })
@@ -334,7 +334,7 @@ function TasksViewModel() {
                                 if (content) {
                                     content = JSON.parse(content);
 
-                                    tooltip = "<div class=\'expandedtask\'> <p>Name: " + content.name + (content.package_name && content.package_name.length ? "<br>Package: " + content.package_name : "") + "<br>Access: " + content.access + "</p>"
+                                    tooltip = "<div class=\'expandedtask\'> <p>Name: " + content.name + (content.package && content.package.length ? "<br>Package: " + content.package : "") + "<br>Access: " + content.access + "</p>"
                                     if (content.example) {
                                         tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 0); return false;">Add: </a>' + content.example;
                                     }

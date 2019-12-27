@@ -702,16 +702,13 @@ class Service(db.Model):
         samples = []
         if access == 0 or access == 3:
             services = Service.query.filter(and_(Service.public == True, Service.active == True))
-            samples.extend([s.value for s in services])
-            samples = Service.add_access_to_json(samples, "public")
+            samples.extend(Service.add_access_to_json([s.value for s in services], 0))
         if access == 1 or access == 3:
             services = Service.query.filter(and_(Service.public != True, Service.active == True)).filter(Service.accesses.any(and_(ServiceAccess.user_id == user_id, Service.user_id != user_id)))
-            samples.extend([s.value for s in services])
-            samples = Service.add_access_to_json(samples, "shared")
+            samples.extend(Service.add_access_to_json([s.value for s in services], 1))
         if access == 2 or access == 3:
             services = Service.query.filter(and_(Service.public != True, Service.active == True, Service.user_id == user_id)).filter(Service.accesses.any(ServiceAccess.user_id != user_id) != True)
-            samples.extend([s.value for s in services])
-            samples = Service.add_access_to_json(samples, "private")
+            samples.extend(Service.add_access_to_json([s.value for s in services], 2))
         return samples
         
     @staticmethod

@@ -667,6 +667,24 @@ class Service(db.Model):
     accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     
+    @staticmethod
+    def add(user_id, value, access):
+        try:
+            service = Service()
+            service.user_id = user_id
+            service.value = value
+            service.active = True
+            service.public = False
+            
+            #access = service.accesses.add()
+            #access.user_id = 
+            db.session.add(service)
+            db.session.commit()
+            return service
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
     def to_json_info(self):
         json_post = {
             'id': self.id,

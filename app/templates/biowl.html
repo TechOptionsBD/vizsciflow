@@ -2587,11 +2587,21 @@ function typeInTextarea(el, newText) {
 				}
 				
 				var mapper = JSON.parse(json);
-				if (!mapper || !mapper.functions || !mapper.functions.length) {
+				if (!mapper) {
 					$("#add-library-info").text("No valid service is defined for mapping in JSON.");
 					return false;
 				}
-				mapper = mapper.functions[0];
+				 
+				if (mapper.functions) {
+					
+					if (mapper.functions.length)
+						mapper = mapper.functions[0];
+					else {
+						$("#add-library-info").text("No valid service is defined for mapping in JSON.");
+						return false;
+					}
+				}
+				
 				var func = (mapper.name && mapper.name.length ? mapper.name : mapper.internal);
 				if (!func || !func.length) {
 					$("#add-library-info").text("No valid service name is given.");

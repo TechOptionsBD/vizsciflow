@@ -4,7 +4,8 @@ hdfs==2.0.15
 biopython 
 bioblend
 pysam
-celery==3.1.25
+kombu
+celery
 redis
 paramiko==2.4.1
 jsonpickle

@@ -129,6 +129,7 @@ def functions():
                     os.makedirs(path)
                 
                 filename = ''
+                scriptname = ''
                 if file:
                     # Make the filename safe, remove unsupported chars
                     filename = secure_filename(file.filename)
@@ -148,8 +149,10 @@ def functions():
                             tar_ref.extractall(path)
                     else:
                         shutil.move(temppath, path)
-                elif request.form.get('script'):
-                    filename = unique_filename(path, pkg_or_default, 'py')
+                if request.form.get('script'):
+                    scriptname = unique_filename(path, pkg_or_default, 'py')
+                    with open(scriptname, 'a+') as script:
+                        script.write(request.form.get('script'))
                     
                 base = unique_filename(path, pkg_or_default, 'json')
                 with open(base, 'w') as mapper:
@@ -159,11 +162,8 @@ def functions():
                 pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
                 pkgpath = os.path.join(pkgpath, os.path.basename(filename))
                 pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
-                
-                if request.form.get('script'):
-                    with open(filename, 'a+') as script:
-                        script.write(request.form.get('script'))
-                
+
+                # create an empty __init__.py to make the directory a module                
                 initpath = os.path.join(path, "__init__.py")
                 if not os.path.exists(initpath):
                     with open(initpath, 'a'):
@@ -173,15 +173,24 @@ def functions():
                 
                 with open(base, 'r') as json_data:
                     data = json.load(json_data)
-                    libraries = data["functions"]
+                    libraries = data["functions"] if "functions" in data else [data]
+                    
                     for f in libraries:
                         try:
+                            # if internal not given, parse the code and use the first function name as internal (adaptor name) 
                             if not 'internal' in f:
-                                with open(filename, 'r') as r:
-                                    tree = ast.parse(r.read())
+                                if scriptname:
+                                    tree = ast.parse(request.form.get('script'))
                                     funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
                                     if funcDefs:
                                         f['internal'] = funcDefs[0]
+                                        
+                                if not 'internal' in f and not filename:        
+                                    with open(filename, 'r') as r:
+                                        tree = ast.parse(r.read())
+                                        funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
+                                        if funcDefs:
+                                            f['internal'] = funcDefs[0]
                         except:
                             pass
                                 
@@ -193,16 +202,19 @@ def functions():
                                 f['internal'] = f['name']
                         if not f['internal'] and not f['name']:
                             continue
-                        f['access'] = access
+                        #f['access'] = access
                         f['module'] = pkgpath
                         if package:
                             f['package'] = package
                         if org:
                             f['org'] = org
+                        
+                        #func = json.dumps(f, indent=4)
+                        Service.add(current_user.id, f, access)
                             
-                os.remove(base)
-                with open(base, 'w') as f:
-                    f.write(json.dumps(data, indent=4))
+#                 os.remove(base)
+#                 with open(base, 'w') as f:
+#                     f.write(json.dumps(data, indent=4))
                 
                 result['out'].append("Library successfully added.")
             except Exception as e:
@@ -213,18 +225,22 @@ def functions():
             mime = mimetypes.guess_type(fullpath)[0]
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
     elif 'check_function' in request.args:
-        success = Service.get_service_by_name_package(request.args.get('name'), request.args.get('package'))
-        if success:
+        if Service.check_function(request.args.get('name'), request.args.get('package')):
             return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
         if 'script' in request.args and request.args.get('script') and 'mapper' in request.args and request.args.get('mapper'):
             try:
                 mapper = json.loads(request.args.get('mapper'))
-                if mapper['functions'] and 'internal' in mapper['functions'][0]:
+                internal = None
+                if 'functions' in mapper and 'internal' in mapper['functions'][0]:
+                    internal = mapper['functions'][0]['internal'].lower()
+                elif 'internal' in mapper:
+                    internal = mapper['internal'].lower()
+                
+                if internal:    
                     tree = ast.parse(request.args.get('script'))
                     funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
-                    internal = mapper['functions'][0]['internal'].lower()
                     if not any(s.lower() == internal for s in funcDefs):
-                        return json.dumps({'error': str(e)})
+                        return json.dumps({'error': "{0} internal name not found in the code.".format(internal)})
             except json.decoder.JSONDecodeError as e:
                 return json.dumps({'error': str(e)})
             except Exception as e:

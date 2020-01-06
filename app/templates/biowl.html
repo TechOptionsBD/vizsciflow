@@ -64,6 +64,7 @@
 <script src="/static/app.js/gridStackViewModel.js"></script>
 <script src="/static/app.js/uiComponentsControl.js"></script>
 <script src="/static/app.js/runnablesViewModel.js"></script>
+<script src="/static/app.js/addLibraryViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl-span-rules.css')}}">
@@ -668,7 +669,7 @@
 <div id="add" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="overflow-y: auto;">
 	<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
 	  <div class="modal-content">
-		<div class="modal-header addsService-modal-header">
+		<div class="modal-header">
 		  <h3 id="addDialogLabel" class="modal-title">Add Service</h3>
 		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 			<span aria-hidden="true">&times;</span>
@@ -676,7 +677,7 @@
 		</div>
 		<div class="modal-body">
 			<form role="form">
-				<div class="row service-form-group">
+				<!-- <div class="row service-form-group">
 					<label class="col-sm-2" for="package">Package</label>
 					<div class="col-sm-6">
 						<input type="text" class="form-control" id="package" data-bind="value: name" placeholder="{{username}}">
@@ -687,15 +688,33 @@
 					<div class="col-sm-6">
 						<input id="organization" class="form-control" type="text" data-bind="value: org" placeholder="Organization">
 					</div>
-				</div>
-				<div class="row service-form-group">
-					<label class="col-sm-2" for="module">Module</label>
-					<div class="col-sm-6">
-						<input type="file" class="form-control-file" id="module">
+				</div> -->
+				<div class="span-sm-20">
+					<div class="span-sm-10">
+						<div class="row service-form-group">
+							<label class="span-sm-5" for="pippkgs">pip Install</label>
+							<div class="span-sm-15">
+								<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
+							</div>
+						</div>
+						<div class="row service-form-group">
+							<label class="span-sm-5" for="access">Shared</label>
+							<div class="span-sm-4">
+								<input type="checkbox" id="access" data-bind="checked: access">
+							</div>
+						</div>
+					</div>
+					<div class="span-sm-10">
+						<div class="row service-form-group">
+							<label class="span-sm-4" for="module">Module</label>
+							<div class="span-sm-16">
+								<input type="file" class="form-control-file" id="module">
+							</div>
+						</div>
 					</div>
 				</div>
 			</form>
-			<br>
+			<br> <br>
 			<div id="exTabService" class="controls">
 				<ul class="nav nav-tabs">
 					<li class="active"><a href="#service1" data-toggle="tab">Script</a></li>
@@ -707,20 +726,55 @@
 						<br>
 					</div>
 					<div class="tab-pane fade" id="service2">
-						<div style="width: inherit;" id="mapper"></div>
+						<div class="span-sm-20">
+							<div class="span-sm-6">
+								<h3>Function:</h3>
+								<form role="form" data-bind="foreach: service.items">
+									<div class="row service-form-group">
+										<label class="span-sm-6" data-bind="text: key"></label>
+										<div class="span-sm-14">
+											<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="span-sm-6">
+								<h3>Parameters:</h3>
+								<button class="btn btn-primary" data-bind="click: addParam, visible: serviceParams().length == 0">Add</button>
+								<form role="form" data-bind="foreach: serviceParams">
+									<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;" >
+										<a style="float: right;" class="btn btn-sm btn-primary" title="Add" data-bind="click: $parent.addParam, visible: $index() === ($parent.serviceParams().length-1)"><i class="fa fa-plus"></i></a>
+										<a style="float: right;" class="btn btn-sm btn-danger" title="Remove" data-bind="click: $parent.removeParam.bind($data)"><i class="fa fa-minus"></i></a>
+									</div>
+									<div data-bind="foreach: $data.items">
+										<div class="row service-form-group">
+											<label class="span-sm-6" data-bind="text: key"></label>
+											<div class="span-sm-14">
+												<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+											</div>
+										</div>
+									</div>
+									<hr data-bind="visible: $index() != ($parent.serviceParams().length-1)">
+								</form>
+							</div>
+							<div class="col-sm-4">
+								<h3>JSON Preview:</h3>
+								<div style="width: inherit;" id="mapper"></div>
+							</div>
+						</div>
 						<br>
 					</div>
 				</div>
 			</div>
 			<div class="row service-form-group">
-				<label class="col-sm-2" for="pippkgs">pip Install</label>
+				<!-- <label class="col-sm-2" for="pippkgs">pip Install</label>
 				<div class="col-sm-4">
 					<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
 				</div>
 				<label class="col-sm-1" for="access">Shared</label>
 				<div class="col-sm-4">
 					<input type="checkbox" id="access" data-bind="checked: access">
-				</div>
+				</div> -->
 			</div>
 		</div>
 		<div class="modal-footer">
@@ -2565,115 +2619,6 @@ function typeInTextarea(el, newText) {
             return (typeof item === "object" && item !== null);
         }
         
-        function AddLibraryViewModel() {
-            var self = this;
-            self.tasksURI = '/functions';
-            
-            self.name = ko.observable("{{username}}");
-            self.org = ko.observable();
-            self.access = ko.observable();
-            self.pippkgs = ko.observable();
- 			
-			self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 350);
-			self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
-			
-			self.checkFunction = function() {
-				var formdata = new FormData();
-				
-				var json = self.mapperEditor.getSession().getValue();
-				if (!isJson(json)) {
-					$("#add-library-info").text("Not a valid JSON mapper.");
-					return false;
-				}
-				
-				var mapper = JSON.parse(json);
-				if (!mapper) {
-					$("#add-library-info").text("No valid service is defined for mapping in JSON.");
-					return false;
-				}
-				 
-				if (mapper.functions) {
-					
-					if (mapper.functions.length)
-						mapper = mapper.functions[0];
-					else {
-						$("#add-library-info").text("No valid service is defined for mapping in JSON.");
-						return false;
-					}
-				}
-				
-				var func = (mapper.name && mapper.name.length ? mapper.name : mapper.internal);
-				if (!func || !func.length) {
-					$("#add-library-info").text("No valid service name is given.");
-					return false;
-				}
-				
-				var package = (self.name() && self.name().length ? self.name() : "");
-				
-				var success = false;
-				ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package, 'name': func, 'script': self.codeEditor.getSession().getValue(), 'mapper': self.mapperEditor.getSession().getValue()}, false).done(function(data) {
-            		
-					if (data === undefined) {
-						$("#add-library-info").text("Can't retrieve service information. Check your internet connection.");
-						return;
-					}
-					
-					success = data['error'] === undefined;
-					if (!success) {
-						$("#add-library-info").text(data['error']);
-					}
-				});
-				
-				return success;
-			}
-			
-            self.addLibrary = function(task) {
-            	
-            	if (!self.checkFunction()) {            		
-            		return;
-            	}
-            	
-            	$("#add-library-info").text("");
-            	$('#add').modal('hide');
-            	
-            	var files = $("#module").get(0).files;
-            	var formdata = new FormData();
-            	formdata.append('library', files[0]); //use get('files')[0]
-            	formdata.append('mapper', self.mapperEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
-				formdata.append('script', self.codeEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
-            	
-            	if (self.name() !== undefined)
-            		formdata.append('package', self.name());
-            	if (self.org() !== undefined)
-            		formdata.append('org', self.org());
-            	if (self.access() !== undefined)
-            		formdata.append('access', self.access());
-            	if (self.pippkgs() !== undefined)
-            		formdata.append('pippkgs', self.pippkgs());
-
-                ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
-                                   	
-                    $("#output").val(data.out !== undefined ? data.out : "");
-                    $("#error").val(data.err !== undefined ? data.err : "");
-                    $("#log tbody").empty();
-                    
-                    if (tasksViewModel !== undefined) {
-                    	tasksViewModel.load();
-                    }
-                    
-                    if (data.err !== undefined && data.err.length != 0) {
-                    	printExecStatus("Service cannot be added.");
-                    	activateTab(2);
-                    }
-                    else {
-                    	activateTab(1);
-                    }
-                });
-            }
-            
-            self.getMapperEditor = function() { return self.mapperEditor; }
-			self.getCodeEditor = function() { return self.codeEditor; }
-        }
         
         function EditTaskViewModel() {
             var self = this;
@@ -2757,7 +2702,7 @@ function typeInTextarea(el, newText) {
 	   
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var datasetsViewModel = new DatasetsViewModel();
-        var addLibraryViewModel = new AddLibraryViewModel();
+        var addLibraryViewModel = new AddLibraryViewModel(username, ace);
         var sampleViewModel = new SampleViewModel();
         var editTaskViewModel = new EditTaskViewModel();
 //         var loginViewModel = new LoginViewModel();
@@ -3049,12 +2994,12 @@ function typeInTextarea(el, newText) {
     	localStorage.setItem(username.concat('_inputVals'), JSON.stringify(script) );
 	});
 	
-	$(window).on('keypress', function(event){
-		if(event.keyCode=='27'){
-          $("#add").modal('hide');
-		  $("#addSample").modal('hide');
-      }
-	});
+	// $(window).on('keypress', function(event){
+	// 	if(event.keyCode=='27'){
+    //       $("#add").modal('hide');
+	// 	  $("#addSample").modal('hide');
+    //   }
+	// });
 
 	
 	$("#exTabBiowl").on("click", "a", function (e) {

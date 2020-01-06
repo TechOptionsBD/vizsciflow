@@ -9,17 +9,31 @@ function AddLibraryViewModel(userName) {
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
 
+    self.isFuncExpanded = ko.observable(false);
+    self.textToggleFuncArea = ko.observable('More..');
+
+    self.toggleFuncArea = function () {  
+        if (!self.isFuncExpanded()) {
+            self.isFuncExpanded(true);
+            self.textToggleFuncArea('Less');
+        }
+        else{
+            self.isFuncExpanded(false);
+            self.textToggleFuncArea('More..');
+        }
+    };
+
     self.service = ko.observableDictionary(
         {   
             package: '',
-            name: userName,
+            name: 'MyService',
             internal: '',
-            returns:'',      
+            returns:'file',      
             org: '',
             group: '',
             desc: '',
             href: '',
-            example: ''
+            example: 'data = MyService(data)'
         }
     );
 
@@ -35,8 +49,7 @@ function AddLibraryViewModel(userName) {
                 }
             )
         );
-
-        self.liveJsonView();
+        // self.liveJsonView();
     };
 
     self.removeParam = function (data, e) {  

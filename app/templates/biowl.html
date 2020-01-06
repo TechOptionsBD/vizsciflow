@@ -716,13 +716,14 @@
 							<div class="span-sm-6">
 								<h3>Function:</h3>
 								<form role="form" data-bind="foreach: service.items">
-									<div class="row service-form-group">
+									<div class="row service-form-group" data-bind="visible: ($index() < 4 || $parent.isFuncExpanded)">
 										<label class="span-sm-6" data-bind="text: key"></label>
 										<div class="span-sm-14">
 											<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 										</div>
 									</div>
 								</form>
+								<button class="btn btn-sm" style="float: right;" data-bind="click: toggleFuncArea, text: textToggleFuncArea, css: { 'btn-primary' : !isFuncExpanded() , 'btn-danger' : isFuncExpanded}"></button>
 							</div>
 							<div class="span-sm-6">
 								<h3>Parameters:</h3>

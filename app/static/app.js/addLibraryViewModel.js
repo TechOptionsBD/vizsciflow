@@ -10,18 +10,16 @@ function AddLibraryViewModel(userName) {
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
 
     self.service = ko.observableDictionary(
-        {         
-            org: '',
+        {   
             package: '',
-            group: '',
             name: userName,
             internal: '',
-            runmode: '',
+            returns:'',      
+            org: '',
+            group: '',
             desc: '',
             href: '',
-            returns:'',
-            example: '',
-            example2: ''
+            example: ''
         }
     );
 

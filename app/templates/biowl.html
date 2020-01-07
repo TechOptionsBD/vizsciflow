@@ -678,18 +678,6 @@
 		</div>
 		<div class="modal-body">
 			<form role="form">
-				<!-- <div class="row service-form-group">
-					<label class="col-sm-2" for="package">Package</label>
-					<div class="col-sm-6">
-						<input type="text" class="form-control" id="package" data-bind="value: name" placeholder="{{username}}">
-					</div>
-				</div>
-				<div class="row service-form-group">
-					<label class="col-sm-2" for="organization">Organization</label>
-					<div class="col-sm-6">
-						<input id="organization" class="form-control" type="text" data-bind="value: org" placeholder="Organization">
-					</div>
-				</div> -->
 				<div class="span-sm-20">
 					<div class="span-sm-10">
 						<div class="row service-form-group">
@@ -714,7 +702,7 @@
 					</div>
 					<div class="tab-pane fade" id="service2">
 						<div class="span-sm-20">
-							<div class="span-sm-6">
+							<div class="span-sm-7">
 								<h3>Function:</h3>
 								<form role="form" data-bind="foreach: service.items">
 									<div class="row service-form-group" data-bind="visible: ($index() < 4 || $parent.isFuncExpanded)">
@@ -745,7 +733,7 @@
 									<hr data-bind="visible: $index() != ($parent.serviceParams().length-1)">
 								</form>
 							</div>
-							<div class="col-sm-4">
+							<div class="span-sm-7">
 								<h3>JSON Preview:</h3>
 								<div style="width: inherit;" id="mapper"></div>
 							</div>

@@ -49,7 +49,7 @@ function AddLibraryViewModel(userName) {
                 }
             )
         );
-        // self.liveJsonView();
+        self.liveJsonView();
     };
 
     self.removeParam = function (data, e) {  
@@ -58,8 +58,16 @@ function AddLibraryViewModel(userName) {
     };
 
     self.liveJsonView = function () {  
-        var jsonPreview = JSON.parse(JSON.stringify(self.service)) ;
-        jsonPreview.params = self.serviceParams;
+        var jsonPreview = Object.entries(JSON.parse(JSON.stringify(self.service))).reduce(( obj ,[key,value])=>{
+            if(value.length) 
+                obj[key] = value;
+            return obj;
+        }, {});
+        
+        if(self.serviceParams().length){
+            jsonPreview.params = self.serviceParams;
+        }
+
         var jsonPrettyText = ko.toJSON(jsonPreview, null, 4);
         self.mapperEditor.session.setValue(jsonPrettyText);
     };

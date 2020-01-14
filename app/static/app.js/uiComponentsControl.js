@@ -103,20 +103,8 @@ $(function(){
     $("#exTabService").on('shown.bs.tab', function (e) {  
         var targetTab = $(e.target).attr('href');
 
-        switch (targetTab) {
-            case "#service2":
-                $("#add").find('.modal-dialog').addClass('modal-wide');
-                $("#add").find("#service2").find(".ace_text-input").attr('readonly', true);
-                addLibraryViewModel.liveJsonView();
-                break;
-            
-             case "#service1":
-                $("#add").find('.modal-dialog').removeClass('modal-wide');
-                break;
-        
-            default:
-                $("#add").find('.modal-dialog').removeClass('modal-wide');
-                break;
+        if (targetTab == "#service2") {
+            addLibraryViewModel.liveJsonView();
         }
     });
 })

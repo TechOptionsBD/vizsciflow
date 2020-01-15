@@ -1,4 +1,4 @@
-function CreateAceEditor(editorId, mode, height) {
+function CreateAceEditor(editorId, mode, height, readonly = false) {
     // configure ace.js for code editor
     var mapperArea = $(editorId);
 
@@ -19,7 +19,7 @@ function CreateAceEditor(editorId, mode, height) {
     mapperEditor.renderer.setShowGutter(false);
     mapperEditor.getSession().setValue(mapperArea.val());
     mapperEditor.getSession().setMode(mode);
-    mapperEditor.setOptions({ highlightSelectedWord: true, enableBasicAutocompletion: true });
+    mapperEditor.setOptions({ highlightSelectedWord: true, enableBasicAutocompletion: true, readOnly : readonly });
     mapperEditor.renderer.setOptions({ showGutter: true, displayIndentGuides: true });
     //editor.setKeyboardHandler("ace/keyboard/vim");
     //editor.setTheme("ace/theme/idle_fingers");

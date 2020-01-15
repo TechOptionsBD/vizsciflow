@@ -6,7 +6,7 @@ function AddLibraryViewModel(userName) {
     self.access = ko.observable();
     self.pippkgs = ko.observable();
      
-    self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430);
+    self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
 
     self.isFuncExpanded = ko.observable(false);

@@ -13,6 +13,8 @@ function DatasetsViewModel() {
         });
     }, this);
 
+    self.currentSelection = ko.observable(0);
+
     self.selectedSchema = {};
 
     self.addNew = function () {
@@ -26,6 +28,7 @@ function DatasetsViewModel() {
             return;
         }
         dataset.id = self.selectedSchema.id;
+        self.currentSelection(dataset.id);
 
         ajaxcalls.simple(self.datasetsURI, 'GET', { 'update': ko.toJSON(dataset), 'update_id': self.selectedSchema.id }).done(function () {
             self.load();
@@ -36,6 +39,7 @@ function DatasetsViewModel() {
 
         ajaxcalls.simple(self.datasetsURI, 'GET', { 'save': ko.toJSON(dataset) })
             .done(function (data) {
+                self.currentSelection(data.dataset.id);
                 self.load();
             });
     }
@@ -62,8 +66,9 @@ function DatasetsViewModel() {
     };
 
     self.click = function (schema, element) {
-        $('.dataset-listview').removeClass('dataset-listview-selected');
-        $(element.currentTarget).addClass('dataset-listview-selected');
+        // $('.dataset-listview').removeClass('dataset-listview-selected');
+        // $(element.currentTarget).addClass('dataset-listview-selected');
+        self.currentSelection(schema.id); 
         self.selectedSchema = schema;
         showDatasetTab(schema);
     };
@@ -140,3 +145,17 @@ ko.bindingHandlers.datasetHover = {
         });
     }
 };
+
+
+ko.bindingHandlers.trigAddUpdateDataset = {
+    init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {  
+        if (viewModel.id == bindingContext.$parent.currentSelection()) {
+            datasetviewViewModel.load(viewModel);
+        }
+    },
+    update: function (element, valueAccessor, allBindings, viewModel, bindingContext) {  
+        if (viewModel.id == bindingContext.$parent.currentSelection()) {
+            datasetviewViewModel.load(viewModel);
+        }
+    }
+}

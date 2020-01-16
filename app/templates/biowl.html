@@ -249,7 +249,7 @@
 						<div id="dataSetsListView" class="panel-body draggable-datasources"
 							style="height: 416px; overflow-y: scroll; padding: 0" >
 							<div data-bind="foreach: filteredDatasets">
-                                <div class="dataset-listview" data-bind="click: $parent.click.bind($data),  datasetHover : $data">
+                                <div class="dataset-listview" data-bind="click: $parent.click.bind($data),  datasetHover : $data, css: {'dataset-listview-selected' : $data.id == $parent.currentSelection()}, trigAddUpdateDataset: $data">
 									<label class="dataset-item-label">
 										<h4 data-bind="text: name, searchTextMatch : $data"></h4>
 										<a data-bind="attr: {href: 'http://' + url} ,text: url, searchTextMatch : $data" style="margin-left: 10px" target="_blank"></a><br>

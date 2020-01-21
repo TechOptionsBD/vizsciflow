@@ -276,40 +276,6 @@ function TasksViewModel() {
         });
     }
 
-	$("#exTabBiowl").on('shown.bs.tab', function (e) {
-		var x = $(e.target).attr('href');
-		if (x === "#graphtab") {
-			
-            //to select graph view
-            $("input[name=graphTabView]").on('click', function (k) {            	
-                switch (k.currentTarget.value) {   
-                	// Simple view
-                    case "0":
-                    	if(activeView == k.currentTarget.value)
-                    		break;
-                    	tasksViewModel.buildGoSimpleGraph();
-                    	activeView = k.currentTarget.value ;
-                    	break;
-                    // Details view
-                    case "1":
-                    	if(activeView == k.currentTarget.value)
-                    		break;
-                    	tasksViewModel.buildGoDetailGraph();
-                    	activeView = k.currentTarget.value ;
-                    	break;
-                    default:
-                    	activeView = k.currentTarget.value ;
-                		tasksViewModel.buildGoSimpleGraph();
-                    	break;
-                }
-            });            
-            
-            // for loading first time
-			tasksViewModel.buildGoSimpleGraph();
-			activeView = 0;
-		}
-	})
-
     self.provenance = function () {
         $.redirect(self.tasksURI, { 'provenance': true }, "POST", "_blank");
     }

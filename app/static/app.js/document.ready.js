@@ -140,11 +140,12 @@ $(document).ready(function () {
 
 
     $("#graphtab").css('height', $("#scripttab").css('height'));
+    $("#graph").css('max-height', $("#graphtab").height() - $(".graph-panel-heading").height()-30);
 
     $('.menu_button').click(function () {
         $(this).addClass('selected').siblings().removeClass('selected')
     });
-
+   
     var runBioWL = $("#runBioWL");
     $(runBioWL).on('click', function () {
         $(".extab2-tab-content").css("min-height", "168px");

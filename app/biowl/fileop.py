@@ -158,6 +158,8 @@ class FilterManager:
         if sizeV < int(begin_end[0]) * 1024:
             return False
         if len(begin_end) > 1 and  sizeV > int(begin_end[1]) * 1024:
+            #print_len = len(begin_end)
+            #print_endSize = int(begin_end[1]) * 1024
             return False
         return True
     

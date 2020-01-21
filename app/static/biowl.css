@@ -605,6 +605,14 @@ hr {
   padding-right: 15px;
 }
 
+.graph-panel-heading{
+  color: white;
+  background-color: #8AC5F8;
+  text-align: right;
+  margin-bottom: 10px;
+  padding-right: 15px;
+}
+
 .browser-details-view{
   position: relative; 
   height: inherit; 
@@ -856,6 +864,15 @@ border-radius: 50px;
   opacity: .5;
 }
 
+#DiagramOverview{
+	position: absolute; 
+	right: 10px; 
+	bottom: 10px; 
+	border: solid 2px #337ab7; 
+	width: 130px; 
+	height: 100px; 
+	z-index: 1;	
+}
 
 /* responsive component box in very large screens */
 

@@ -31,6 +31,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ace.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/ace-builds/src-min-noconflict/ext-language_tools.js') }}"></script>
 <script src="https://cdn.rawgit.com/mgalante/jquery.redirect/master/jquery.redirect.js"></script>
+<script src="/static/library/gojs/go.js"></script>
 <script src="/static/library/d3/d3.min.js"></script>
 <script src="/static/library/d3/d3-selection-multi.min.js"></script>
 <!-- <script src="http://d3js.org/d3.v4.min.js" type="text/javascript"></script>
@@ -66,6 +67,9 @@
 <script src="/static/app.js/runnablesViewModel.js"></script>
 <script src="/static/app.js/addLibraryViewModel.js"></script>
 <script src="/static/app.js/aceEditor.js"></script>
+<script src="/static/app.js/simpleGraphViewModel.js"></script>
+<script src="/static/app.js/detailGraphViewModel.js"></script>
+<!-- <script src="/static/app.js/controlFlowViewModel.js"></script> -->
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl-span-rules.css')}}">
@@ -441,8 +445,15 @@
 							<div class="tab-pane fade in active scriptstyle" id="scripttab">
 								<div id="editor" class="editorstyle"></div>
 							</div>
-							<div class="tab-pane fade" id="graphtab">
-								<div style="width: 100%; height: 100%" id="graph"></div>
+							<div class="tab-pane fade" id="graphtab" style="position: relative;">
+								<div class="graph-panel-heading">
+									<label class="radio-inline"> <input type="radio" name="graphTabView" value="0" checked="checked"
+											autocomplete="off">&nbsp; Simplified</label>
+									<label class="radio-inline"> <input type="radio" name="graphTabView" value="1"
+											autocomplete="off">&nbsp; Detailed</label>
+								</div>
+								<div style="width: 100%; height: 100%; z-index: 0;" id="graph"></div>
+								<div id="DiagramOverview"></div>
 							</div>
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="metatab">
 							</div>
@@ -601,6 +612,9 @@
 							<div style="clear:both"></div>
 						</div>
 					</div>
+					<!-- newly added for control flow diagram -->		
+					
+					<!-- <a href="#" draggable="true" class="pipeline_modules" id="Galaxy_Pear"> Galaxy_Pear</a> -->
 				</div>
 			</div>
 			<!-- 	            <div data-bind="stopBinding: true"> -->
@@ -2698,217 +2712,7 @@ function typeInTextarea(el, newText) {
 
        	filterViewModel.loadHistory();
        	filterViewModel.loadSavedFilters();
-       	showFilterHistory();
-       	
-    function D3Graph()
-    {
-    	var self = this;
-   		self.width = 960;
-   		self.height = 500;
-   		self.colors = d3.scaleOrdinal(d3.schemeCategory10);
-
-		self.show = function(rels) {
-			self.nodes = [];
-			self.links = [];
-			
-			rels.forEach(function(rel){
-				var exists = self.nodes.filter(function(n)
-					{
-						return rel.source.id === n.id; 
-					});
-				if (exists.length == 0)
-					self.nodes.push(rel.source);
-				
-				exists = self.nodes.filter(function(n)
-					{
-						return rel.target.id === n.id; 
-					});
-				if (exists.length == 0)
-					self.nodes.push(rel.target);
-			});
-			
-			rels.forEach(function(rel) { 
-			    var sourceNode = self.nodes.filter(function(n) { return n.id === rel.source.id; })[0];
-			    var targetNode = self.nodes.filter(function(n) { return n.id === rel.target.id; })[0];
-			    self.links.push({source: sourceNode, target: targetNode, value: rel.type});
-			});
-			
-// 			// Compute the distinct nodes from the links.
-// 	   		self.links.forEach(function(link) {
-// 	   		  link.source = self.nodes[link.source] || (self.nodes[link.source] = link.source);
-// 	   		  link.target = self.nodes[link.target] || (self.nodes[link.target] = link.target);
-// 	   		});
-			
-			self.width = $("#graph").width();
-			self.height = $("#graph").height();
-			
-// 			var force = d3.layout.force()
-// 	   		    .nodes(d3.values(self.nodes))
-// 	   		    .links(self.links)
-// 	   		    .size([self.width, self.height])
-// 	   		    .linkDistance(60)
-// 	   		    .charge(-300)
-// 	   		    .friction(0.9)
-// 	   		    .on("tick", self.tick)
-// 	   		    .start();
-			
-			if (self.svg !== undefined && self.svg != null) {
-				d3.select("svg")
-					.selectAll("*")
-					.remove();
-				d3.select("svg").remove();
-			}
-			
-			self.svg = d3.select("#graph").append("svg")
-   		    	.attr("width", self.width)
-   		    	.attr("height", self.height);
-			
-			self.svg.append('defs').append('marker')
-		        .attrs({'id':'arrowhead',
-		            'viewBox':'-0 -5 10 10',
-		            'refX':13,
-		            'refY':0,
-		            'orient':'auto',
-		            'markerWidth':13,
-		            'markerHeight':13,
-		            'xoverflow':'visible'})
-		        .append('svg:path')
-		        .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
-		        .attr('fill', '#999')
-		        .style('stroke','none');
-			
-			self.simulation = d3.forceSimulation()
-		        .force("link", d3.forceLink().id(function (d) {return d.id;}).distance(100).strength(1))
-		        .force("charge", d3.forceManyBody())
-		        .force("center", d3.forceCenter(self.width / 2, self.height / 2));
-			
-			self.link = self.svg.selectAll(".link")
-            .data(self.links)
-            .enter()
-            .append("line")
-            .attr("class", "link")
-            .attr('marker-end','url(#arrowhead)');
-				
-	        self.link.append("title")
-	            .text(function (d) {return d.type;});
-        	
-			self.edgepaths = self.svg.selectAll(".edgepath")
-	            .data(self.links)
-	            .enter()
-	            .append('path')
-	            .attrs({
-	                'class': 'edgepath',
-	                'fill-opacity': 0,
-	                'stroke-opacity': 0,
-	                'id': function (d, i) {return 'edgepath' + i}
-	            })
-            	.style("pointer-events", "none");
-
-        	self.edgelabels = self.svg.selectAll(".edgelabel")
-	            .data(self.links)
-	            .enter()
-	            .append('text')
-	            .style("pointer-events", "none")
-	            .attrs({
-	                'class': 'edgelabel',
-	                'id': function (d, i) {return 'edgelabel' + i},
-	                'font-size': 10,
-	                'fill': '#aaa'
-	            });
-
-	        self.edgelabels.append('textPath')
-	            .attr('xlink:href', function (d, i) {return '#edgepath' + i})
-	            .style("text-anchor", "middle")
-	            .style("pointer-events", "none")
-	            .attr("startOffset", "50%")
-	            .text(function (d) {return d.value});
-	        
-	       self.node = self.svg.selectAll(".node")
-		        .data(self.nodes)
-		        .enter()
-		        .append("g")
-		        .attr("class", "node")
-		   	    .on("mouseover", self.mouseover)
-			    .on("mouseout", self.mouseout)
-		        .call(d3.drag()
-		                .on("start", self.dragstarted)
-		                .on("drag", self.dragged)
-		                //.on("end", self.dragended)
-		        );
-
-		    self.node.append("circle")
-		        .attr("r", 5)
-		        .style("fill", function (d, i) {return self.colors(i);})
-		
-		    self.node.append("title")
-		        .text(function (d) {return d.id;});
-		
-		    self.node.append("text")
-		        .attr("dy", -3)
-		        .text(function (d) {return d.name+":"+d.label;});
-
-		    self.simulation
-   				.nodes(self.nodes)
-            	.on("tick", self.tick);
-
-	        self.simulation.force("link")
-	            .links(self.links);
-		}
-   		
-   		self.tick = function() {
-   			self.link
-            .attr("x1", function (d) {return d.source.x;})
-            .attr("y1", function (d) {return d.source.y;})
-            .attr("x2", function (d) {return d.target.x;})
-            .attr("y2", function (d) {return d.target.y;});
-
-        	self.node.attr("transform", function (d) {return "translate(" + d.x + ", " + d.y + ")";});
-
-	        self.edgepaths.attr('d', function (d) {
-	            return 'M ' + d.source.x + ' ' + d.source.y + ' L ' + d.target.x + ' ' + d.target.y;
-	        });
-
-	        self.edgelabels.attr('transform', function (d) {
-	            if (d.target.x < d.source.x) {
-	                /* var bbox = this.getBBox();
-	                rx = bbox.x + bbox.width / 2;
-	                ry = bbox.y + bbox.height / 2; */
-	                rx=0;
-	                ry=0;
-	                return 'rotate(180 ' + rx + ' ' + ry + ')';
-	            }
-	            else {
-	                return 'rotate(0)';
-	            }
-	        });
-  	  	}
-
-   		self.mouseover = function() {
-   		  d3.select(this).select("circle").transition()
-   		      .duration(750)
-   		      .attr("r", 16);
-   		}
-
-   		self.mouseout = function() {
-   		  d3.select(this).select("circle").transition()
-   		      .duration(750)
-   		      .attr("r", 8);
-   		}
-   		
-   		self.dragstarted = function(d) {
-   	        if (!d3.event.active)
-   	        	self.simulation.alphaTarget(0.3).restart()
-   	        d.fx = d.x;
-   	        d.fy = d.y;
-   	    }
-
-   	    self.dragged = function(d) {
-   	        d.fx = d3.event.x;
-   	        d.fy = d3.event.y;
-   	    }
-    }
-    
-    d3graph = new D3Graph();
+       	showFilterHistory();           
     
     $(window).on('unload', function() {
         if (refreshId != 0)
@@ -3037,10 +2841,10 @@ function typeInTextarea(el, newText) {
 	
 	$("#exTabBiowl").on('shown.bs.tab', function (e) {
 		var x = $(e.target).attr('href');
-		if (x === "#graphtab") {
+/* 		if (x === "#graphtab") {
 			tasksViewModel.buildGraph();
-		}
-		else if (x === "#filterhistorytab") {
+		} else if*/ 
+		if (x === "#filterhistorytab") {
 			showFilterHistory();
 		} 
 	})

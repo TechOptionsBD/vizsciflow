@@ -173,15 +173,25 @@ function TasksViewModel() {
             self.runBioWLInternal(task);
     }
 
-    self.buildGraph = function (task) {
+    self.buildGoSimpleGraph = function (task) {
         var updateDlg = self.updateWorkflow();
         if (updateDlg) {
             updateDlg.on('hidden.bs.modal', function () { self.buildGraphInternal(task); });
         }
         else
-            self.buildGraphInternal(task);
+            self.buildSimpleGraphInternal(task);
     }
-    self.buildGraphInternal = function (task) {
+    
+    self.buildGoDetailGraph = function (task) {
+        var updateDlg = self.updateWorkflow();
+        if (updateDlg) {
+            updateDlg.on('hidden.bs.modal', function () { self.buildGraphInternal(task); });
+        }
+        else
+            self.buildDetailGraphInternal(task);
+    }
+    
+    self.buildSimpleGraphInternal = function (task) {
         if (!$.trim(editor.getSession().getValue()))
             return;
 
@@ -190,19 +200,115 @@ function TasksViewModel() {
         formdata.append('workflowId', parseInt(workflowId));
         ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function (data) {
 
-            if (data === undefined)
+        	data = JSON.parse(data);
+            
+        	 //if JSON is empty, clear both canvas
+            if ($.isEmptyObject(data)){
+            	var graphdiv = document.getElementById("graph");
+            	var overviewdiv = document.getElementById("DiagramOverview");
+    			if (graphdiv !== null) {
+    				graph = document.querySelector('canvas');
+    				context = graph.getContext('2d');
+    				context.clearRect(0, 0, graph.width, graph.height);
+    			}
+    			else
+    				return;
+    			
+    			if (overviewdiv !== null) {
+    				overview = overviewdiv.querySelector('canvas');
+    				context = overview.getContext('2d');
+    				context.clearRect(0, 0, overview.width, overview.height);
+    			}
                 return;
-            data = JSON.parse(data);
-            if ($.isEmptyObject(data))
+            }
+        	
+        	else if (data === undefined)
                 return;
 
-            d3graph.show(data);
+            simplegojsGraph.show(data);
+            //d3graph.show(data);
 
         }).fail(function (jqXHR, textStatus) {
             $('#refresh').hide();
             showXHRText(jqXHR);
         });
     }
+    
+    self.buildDetailGraphInternal = function (task) {
+        if (!$.trim(editor.getSession().getValue()))
+            return;
+
+        var formdata = new FormData();
+
+        formdata.append('workflowId', parseInt(workflowId));
+        ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function (data) {
+                    	
+            data = JSON.parse(data);
+            
+            //if JSON is empty, clear both canvas
+            if ($.isEmptyObject(data)){
+            	var graphdiv = document.getElementById("graph");
+            	var overviewdiv = document.getElementById("DiagramOverview");
+    			if (graphdiv !== null) {
+    				graph = document.querySelector('canvas');
+    				context = graph.getContext('2d');
+    				context.clearRect(0, 0, canvas.width, canvas.height);
+    			}
+    			
+    			if (overviewdiv !== null) {
+    				overview = overviewdiv.querySelector('canvas');
+    				context = overview.getContext('2d');
+    				context.clearRect(0, 0, canvas.width, canvas.height);
+    			}
+    			
+                return;
+            }
+        	
+        	else if (data === undefined)
+                return;
+            
+            detailgojsGraph.show(data);
+            //d3graph.show(data);
+
+        }).fail(function (jqXHR, textStatus) {
+            $('#refresh').hide();
+            showXHRText(jqXHR);
+        });
+    }
+
+	$("#exTabBiowl").on('shown.bs.tab', function (e) {
+		var x = $(e.target).attr('href');
+		if (x === "#graphtab") {
+			
+            //to select graph view
+            $("input[name=graphTabView]").on('click', function (k) {            	
+                switch (k.currentTarget.value) {   
+                	// Simple view
+                    case "0":
+                    	if(activeView == k.currentTarget.value)
+                    		break;
+                    	tasksViewModel.buildGoSimpleGraph();
+                    	activeView = k.currentTarget.value ;
+                    	break;
+                    // Details view
+                    case "1":
+                    	if(activeView == k.currentTarget.value)
+                    		break;
+                    	tasksViewModel.buildGoDetailGraph();
+                    	activeView = k.currentTarget.value ;
+                    	break;
+                    default:
+                    	activeView = k.currentTarget.value ;
+                		tasksViewModel.buildGoSimpleGraph();
+                    	break;
+                }
+            });            
+            
+            // for loading first time
+			tasksViewModel.buildGoSimpleGraph();
+			activeView = 0;
+		}
+	})
 
     self.provenance = function () {
         $.redirect(self.tasksURI, { 'provenance': true }, "POST", "_blank");

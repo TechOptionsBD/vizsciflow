@@ -11,8 +11,8 @@ function TasksViewModel() {
     this.filteredTasks = ko.computed(function () {
         return this.tasks().filter(function (task) {
             if (!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
-                || task.package().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
-                || task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
+                || task.package().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
+//                || task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
                 return task;
         });
     }, this);

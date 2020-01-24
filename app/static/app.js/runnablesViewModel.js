@@ -64,11 +64,11 @@ function RunnablesViewModel() {
                     activateTab(2);
                 }
                 else {
-                    activateTab(1)
-                    // if (!$.isEmptyObject(data['log']))
-                    //     activateTab(3);
-                    // else
-                    //     activateTab(1);
+
+                    if (!$.isEmptyObject(data['log']))
+                        activateTab(3);
+                    else
+                        activateTab(1);
                 }
             }
 

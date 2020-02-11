@@ -9,6 +9,12 @@ import pathlib
 import mimetypes
 import pip
 import ast
+#I have improted subprocess and sys to active alternative install fuction
+import subprocess
+import sys
+
+from .. import db
+
 from datetime import timedelta
 from datetime import datetime
 
@@ -16,9 +22,9 @@ import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user, generate_graph
-from ..models import Runnable, Workflow, AccessType, Service, ServiceAccess
+from ..models import Runnable, Workflow, AccessType, Service, ServiceAccess, User
 from . import main
-from .views import Samples
+from .views import Samples, AlchemyEncoder
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
@@ -76,10 +82,16 @@ def unique_filename(path, prefix, ext):
         uni_fn = make_fn(path, prefix, ext, i)
         if not os.path.exists(uni_fn):
             return uni_fn
-
+'''
 def install(package):
     pip.main(['install', package])
-                    
+'''
+     
+
+#Previous function did not work for pip version greater then 10
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+                          
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -279,6 +291,12 @@ def functions():
     elif 'reload' in request.args:
         #library.reload()
         return json.dumps("")
+    
+    elif 'users' in request.args:
+        result = User.query.with_entities(User.id, User.username)
+        j = json.dumps([r for r in result], cls=AlchemyEncoder)        
+        return jsonify(j)
+
     else:
         return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
 

@@ -1,7 +1,28 @@
 from pyparsing import *
 from pyparsing import _bslash
 
+#
+# global helpers
+#
+def delimitedMustOneList( expr, delim=",", combine=False ):
+    """
+    Helper to define a delimited list of expressions - the delimiter defaults to ','.
+    By default, the list elements and delimiters can have intervening whitespace, and
+    comments, but this can be overridden by passing C{combine=True} in the constructor.
+    If C{combine} is set to C{True}, the matching tokens are returned as a single token
+    string, with the delimiters included; otherwise, the matching tokens are returned
+    as a list of tokens, with the delimiters suppressed.
 
+    Example::
+        delimitedList(Word(alphas)).parseString("aa,bb,cc") # -> ['aa', 'bb', 'cc']
+        delimitedList(Word(hexnums), delim=':', combine=True).parseString("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
+    """
+    dlName = str(expr)+" ["+ str(delim)+" "+ str(expr)+"]..."
+    if combine:
+        return Combine( expr + Suppress( delim ) + expr + ZeroOrMore( delim + expr ) ).setName(dlName)
+    else:
+        return ( expr + Suppress( delim ) + expr + ZeroOrMore( Suppress( delim ) + expr ) ).setName(dlName)
+    
 def myIndentedBlock(blockStatementExpr, indentStack, indent=True):
     '''
     Modifies the pyparsing indentedBlock to build the AST correctly
@@ -129,8 +150,11 @@ class BasicGrammar():
 #       
         self.listdecl << (Suppress("[") + Optional(delimitedList(Group(self.expr))) + Suppress("]")).setParseAction(lambda t: ["LISTEXPR"] + t.asList())
         self.dictdecl << (Suppress("{") + Optional(delimitedList(Group(self.expr + Suppress(Literal(":")) + Group(self.dictdecl | self.expr)))) + Suppress("}")).setParseAction(lambda t: ["DICTEXPR"] + t.asList())
-
-        self.assignstmt = (Group(self.listidx | self.identifier) + Suppress(Literal("=")) + Group(self.expr | self.listidx | self.listdecl | self.dictdecl)).setParseAction(lambda t: ['ASSIGN'] + t.asList())
+        
+        self.tupdecl = Forward()
+        self.tupdecl << (delimitedMustOneList(Group(self.expr))).setParseAction(lambda t: ["TUPEXPR"] + t.asList())
+        
+        self.assignstmt = (Group(self.tupdecl | self.listidx | self.identifier) + Suppress(Literal("=")) + Group(self.tupdecl | self.expr | self.listidx | self.listdecl | self.dictdecl)).setParseAction(lambda t: ['ASSIGN'] + t.asList())
         
         self.funccallstmt = self.funccall
         

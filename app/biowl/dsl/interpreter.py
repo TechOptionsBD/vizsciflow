@@ -180,14 +180,14 @@ class Interpreter(object):
         with self.context.symtab.get_var(expr[0]):
             self.eval(expr[1])
         pass
-        
+
     def doassign(self, left, right):
         '''
         Evaluates an assignment expression.
         :param expr:
         '''
         if len(left) == 1:
-            self.context.add_var(left[0], self.eval(right))
+            self.context.add_var(self.eval(left), self.eval(right))
         elif left[0] == 'LISTIDX':
             left = left[1]
             idx = self.eval(left[1])
@@ -207,7 +207,13 @@ class Interpreter(object):
                     v.append(None)
                 v[int(idx)] = self.eval(right)
                 self.context.add_var(left[0], v)
-        
+        elif left[0] == 'TUPEXPR':
+            if right[0] != 'TUPEXPR':
+                raise ValueError("Syntax Error: only tuple can be put into a tuple")
+            
+            for i in range(1, len(left)):
+                if left[i] != '_':
+                    self.doassign(left[i], right[i])
         
     def dofor(self, expr):
         '''

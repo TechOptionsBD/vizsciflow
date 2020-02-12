@@ -62,12 +62,8 @@ class Library():
             return dotaskstmt(self.tasks[name], args), set()
            
     def get_function(self, name, package = None):
-        if package:
-            for func in self.funcs[name.lower()]:
-                if func.package == package:
-                    return [func]
-        else:
-            return self.funcs[name.lower()]
+        services = Service.get_service_by_name_package(name, package)
+        return services.first().value
     
     @staticmethod
     def check_function(name, package = None):

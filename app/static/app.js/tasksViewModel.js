@@ -91,6 +91,7 @@ function TasksViewModel() {
         $.getJSON('/functions?demoserviceadd', function (demoservice) {
             addLibraryViewModel.getCodeEditor().setValue(demoservice.demoservice.script, 1);
             addLibraryViewModel.getMapperEditor().setValue(demoservice.demoservice.mapper, 1);
+            addLibraryViewModel.getUsers();
             centerDialog($('#add'));
             $('#add').modal('show');
         })
@@ -291,7 +292,7 @@ function TasksViewModel() {
             if (data === undefined)
                 return;
 
-            data = JSON.parse(data)
+            data = JSON.parse(data);
 
             $("#output").val(data.out);
             $("#error").val(data.err);

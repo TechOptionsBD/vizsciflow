@@ -5,6 +5,8 @@ function AddLibraryViewModel(userName) {
     self.org = ko.observable();
     self.access = ko.observable();
     self.pippkgs = ko.observable();
+    self.userList = ko.observableArray();
+    self.selectedSharingUsers = ko.observableArray();
      
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
@@ -101,6 +103,32 @@ function AddLibraryViewModel(userName) {
         return success;
     }
     
+    self.initiateMultiselectUser = function () {  
+        $("#userSelection").multiselect({
+            includeSelectAllOption: true,
+            inheritClass: true,
+            buttonWidth: '100%',
+            enableFiltering: true,
+            dropUp: true,
+            maxHeight: 200
+        });
+    }
+
+    self.getUsers = function () { 
+        self.userList([]);
+        self.selectedSharingUsers([]); 
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 1 }).done(function (data) {
+            
+            JSON.parse(data).forEach(element => {
+                self.userList.push({id: element[0], name:  element[1]});
+            });
+
+            self.initiateMultiselectUser()
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    }
+
     self.addLibrary = function(task) {
         
         if (!self.checkFunction()) {            		
@@ -123,6 +151,9 @@ function AddLibraryViewModel(userName) {
             formdata.append('access', self.access());
         if (self.pippkgs() !== undefined)
             formdata.append('pippkgs', self.pippkgs());
+        if (self.selectedSharingUsers().length > 0) {
+            formdata.append('sharedusers', ko.toJSON(self.selectedSharingUsers));
+        }
 
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                                

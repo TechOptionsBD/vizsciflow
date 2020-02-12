@@ -20,11 +20,13 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/css/bootstrap-slider.min.css"> 
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/0.4.0/gridstack.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css">
 
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/js/bootstrap-multiselect.min.js"></script>
 <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jstree/3.3.8/jstree.min.js"></script> -->
 <script src="/static/library/jstree/jstree.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js"></script>
@@ -530,21 +532,21 @@
 								<!-- <br> -->
 							</div>
 							<div class="tab-pane fade" id="3">
-								<span id="executable-status"></span>
-								<div>
-									<table class="table table-striped" id="log" style="table-layout: fixed;">
-										<thead>
-											<tr>
-												<th class="report-header" scope="col" width="15%">Task</th>
-												<th class="report-header" scope="col" width="65%" style="text-align:center;">Data</th>
-												<th class="report-header" scope="col" width="15%" style="text-align:center;">Status</th>
-											</tr>
-										</thead>
-										<tbody>
-										</tbody>
-									</table>
+									<span id="executable-status"></span>
+									<div>
+										<table class="table table-striped" id="log" style="table-layout: fixed;">
+											<thead>
+												<tr>
+													<th class="report-header" scope="col" width="15%">Task</th>
+													<th class="report-header" scope="col" width="65%" style="text-align:center;">Data</th>
+													<th class="report-header" scope="col" width="15%" style="text-align:center;">Status</th>
+												</tr>
+											</thead>
+											<tbody>
+											</tbody>
+										</table>
+									</div>
 								</div>
-							</div>
 						</div>
 					</div>
 				</div>
@@ -773,8 +775,16 @@
 						</div>
 					</div>
 					<div class="row service-form-group">
-						<label class="span-sm-5" for="access">Shared</label>
-						<div class="span-sm-3">
+						<label for="" class="span-sm-5">Share with</label>
+						<div class="span-sm-10">
+							<select id="userSelection" multiple="multiple" class="form-control" data-bind="options: userList, 
+								 optionsText: 'name', 
+								 optionsValue: 'id', 
+								 selectedOptions: selectedSharingUsers">
+							</select>
+						</div>
+						<label class="span-sm-3" for="access">Shared</label>
+						<div class="span-sm-2">
 							<input type="checkbox" id="access" data-bind="checked: access">
 						</div>
 					</div>

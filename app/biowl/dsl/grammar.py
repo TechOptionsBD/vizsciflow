@@ -154,7 +154,9 @@ class BasicGrammar():
         self.tupdecl = Forward()
         self.tupdecl << (delimitedMustOneList(Group(self.expr))).setParseAction(lambda t: ["TUPEXPR"] + t.asList())
         
-        self.assignstmt = (Group(self.tupdecl | self.listidx | self.identifier) + Suppress(Literal("=")) + Group(self.tupdecl | self.expr | self.listidx | self.listdecl | self.dictdecl)).setParseAction(lambda t: ['ASSIGN'] + t.asList())
+        self.tupassign = Forward()
+        self.tupassign << (delimitedMustOneList(Group(self.identifier))).setParseAction(lambda t: ["TUPASSIGN"] + t.asList())
+        self.assignstmt = (Group(self.tupassign | self.listidx | self.identifier) + Suppress(Literal("=")) + Group(self.tupdecl | self.expr | self.listidx | self.listdecl | self.dictdecl)).setParseAction(lambda t: ['ASSIGN'] + t.asList())
         
         self.funccallstmt = self.funccall
         

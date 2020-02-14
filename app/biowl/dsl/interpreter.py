@@ -180,14 +180,47 @@ class Interpreter(object):
         with self.context.symtab.get_var(expr[0]):
             self.eval(expr[1])
         pass
-        
+
+    def dotupexpr(self, expr):
+        t = ()
+        for e in expr:
+            t += (self.eval(e),)
+        return t
+    
+    def doassign_noeval(self, left, right):
+        '''
+        Evaluates an assignment expression.
+        :param expr:
+        '''
+        if len(left) == 1:
+            self.context.add_var(left[0], right)
+        elif left[0] == 'LISTIDX':
+            left = left[1]
+            idx = self.eval(left[1])
+            if self.context.var_exists(left[0]):
+                v = self.context.get_var(left[0])
+                if isinstance(v, list):
+                    while len(v) <= idx:
+                        v.append(None)
+                    v[int(idx)] = right
+                elif isinstance(v, dict):
+                    v[idx] = right
+                else:
+                    raise ValueError("Not a list or dictionary")
+            else:
+                v = []
+                while len(v) <= idx:
+                    v.append(None)
+                v[int(idx)] = right
+                self.context.add_var(left[0], v)
+                
     def doassign(self, left, right):
         '''
         Evaluates an assignment expression.
         :param expr:
         '''
         if len(left) == 1:
-            self.context.add_var(left[0], self.eval(right))
+            self.context.add_var(self.eval(left), self.eval(right))
         elif left[0] == 'LISTIDX':
             left = left[1]
             idx = self.eval(left[1])
@@ -207,8 +240,13 @@ class Interpreter(object):
                     v.append(None)
                 v[int(idx)] = self.eval(right)
                 self.context.add_var(left[0], v)
-        
-        
+                
+        elif left[0] == 'TUPASSIGN':
+            right = self.eval(right)
+            for i in range(1, len(left)):
+                if left[i] != '_':
+                    self.doassign_noeval(left[i], right[i - 1])
+
     def dofor(self, expr):
         '''
         Execute a for expression.
@@ -373,6 +411,8 @@ class Interpreter(object):
                 return dict()
             else:
                 return self.eval(expr[0])
+        if expr[0] == "TUPEXPR":
+            return self.dotupexpr(expr[1:])
         if expr[0] == "FOR":
             return self.dofor(expr[1])
         elif expr[0] == "ASSIGN":

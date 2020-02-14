@@ -209,6 +209,22 @@ $(document).ready(function () {
     $("input[name=graphTabView]").on('click', function (k) {
         toggleGraphView(k.currentTarget.value);
     }); 
+
+
+    $("input[name=logTabView]").on('click', function (e) {  
+        switch (e.currentTarget.value) {
+            
+            case '0':
+                tasksViewModel.isListLog(true);
+                break;
+            case '1':
+                tasksViewModel.isListLog(false);
+                break;
+
+            default:
+                break;
+        }
+    });
     
     
     // $("#btnfilterClose").click(function () {  

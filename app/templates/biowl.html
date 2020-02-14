@@ -411,6 +411,7 @@
 									<li> <a class="btn btn-secondary" href="#liMetadataTab">Metadata</a></li>
 									<li> <a class="btn btn-secondary" href="#liFilterHistoryTab">Filter History</a></li>
 									<li> <a class="btn btn-secondary" href="#liBrowserTab">Browser</a></li>
+									<!-- <li> <a class="btn btn-secondary"  href="#liOutputVizTab">Visual Output</a></li> -->
 									<li> <a class="btn btn-secondary" href="#liDataset">Dataset</a></li>
 								</ul>
 							</div>
@@ -441,6 +442,7 @@
 								<!-- <button class="close closeTab" type="button">×</button> -->
 								<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<!-- <li id="liOutputVizTab"><a href="#outputVizTab" data-toggle="tab">Visual Output<button class="close closeTab" title="Close" type="button">×</button></a></li> -->
 								<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button class="close closeTab" title="Close" type="button">×</button></a></li>
 							</ul>
 						<div class="tab-content">
@@ -470,6 +472,9 @@
 											autocomplete="off">&nbsp; Preview</label>
 								</div>
 							</div>
+							<!-- <div class="tab-pane fade in scriptstyle" id="outputVizTab" style="overflow-y: scroll;">
+
+							</div> -->
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="datasettab">
 
 							</div>
@@ -532,6 +537,13 @@
 								<!-- <br> -->
 							</div>
 							<div class="tab-pane fade" id="3">
+								<div class="browser-panel-heading">
+									<label class="radio-inline"> <input type="radio" name="logTabView" value="0" checked="checked"
+											autocomplete="off">&nbsp; List</label>
+									<label class="radio-inline"> <input type="radio" name="logTabView" value="1"
+											autocomplete="off">&nbsp; Preview</label>
+								</div>
+								<div id="logListView" data-bind="visible: isListLog">
 									<span id="executable-status"></span>
 									<div>
 										<table class="table table-striped" id="log" style="table-layout: fixed;">
@@ -547,6 +559,17 @@
 										</table>
 									</div>
 								</div>
+								<div id="logSliderView" class="container-fluid" aria-hidden="true" data-bind="visible: !isListLog()">
+									<div id="logTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="foreach: {data: logData , afterRender: sliderController.bind($data)}">
+										<div style="display: block;" data-bind=" attr: {title: name}">
+											<figure style="display: inline-block" >
+												<img  width="auto" style="width: auto; height: 50px;" data-bind="attr: {src: imgUrl, alt: name}">
+												<figcaption class="figcaption-clipped" data-bind="text: name"></figcaption>
+											</figure>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

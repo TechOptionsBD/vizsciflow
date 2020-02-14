@@ -8,6 +8,9 @@ function TasksViewModel() {
     self.tasks = ko.observableArray();
     self.taskFilter = ko.observable("");
     self.access = ko.observable("0");
+    self.isListLog = ko.observable(true);
+    self.fileImgPath = '/static/file_icon_blue.png';
+    self.folderImgPath = '/static/folder_Icon_blue.png';
     this.filteredTasks = ko.computed(function () {
         return this.tasks().filter(function (task) {
             if (!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
@@ -16,6 +19,15 @@ function TasksViewModel() {
                 return task;
         });
     }, this);
+
+    self.logData = ko.observableArray();
+
+    self.imageTypes = ["png", "jpg", "jpeg", "bmp", "gif", "ico", "ief", "jpe", "pbm", "pgm", "jng", "nef",
+        "orf", "psd", "art", "pnm", "ppm", "rab", "rgb", "svg", "tif", "tiff", "xbm", "xpm", "xwd", "jp2",
+        "jpm", "jpx", "jpf", "pcx", "svgz", "djvu", "djv", "pat", "cr2", "crw", "cdr", "cdt", "erf", "wbmp"];
+
+    self.videoTypes = ["3gp", "axv", "dl", "dif", "dv", "fli", "gl", "ts", "ogv", "mxu", "flv", "lsf", "lsx", "mng", "asf",
+        "asx", "wm", "wmv", "wmx", "wvx", "mpv", "mkv", "avi", "m1v", "mov", "movie", "mp4", "mpa", "mpe", "mpeg", "mpg", "webm"];
 
     self.serviceaccesstypes = ko.observableArray([
         {
@@ -434,5 +446,254 @@ function TasksViewModel() {
                 });
             }
         }, 300);
+    };
+
+    self.destroySlider = function () {
+        $('#logTabCarousel').trigger('destroy.owl.carousel');
+    };
+
+    self.emptyCarousel = function () {
+        self.logData([]);
+        self.destroySlider();
+        $("#logTabCarousel").empty();
+    };
+
+    self.initiateSlider = function () {
+
+        $("#logTabCarousel").owlCarousel({
+            loop: false,
+            margin: 10,
+            nav: true,
+            center: false,
+            mouseDrag: true,
+            dots: false,
+            pagination: false,
+            navText : ['<i class="fa fa-caret-left" aria-hidden="true"></i>','<i class="fa fa-caret-right" aria-hidden="true"></i>'],
+            responsive: {
+                0: {
+                    items: 1
+                },
+                700: {
+                    items: 3
+                },
+                1000: {
+                    items: 3
+                },
+                1200: {
+                    items: 3
+                },
+                1600: {
+                    items: 5
+                }
+            }
+        });
+    };
+
+    self.getFileExtension = function (filename) {
+        return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
+    };
+
+    self.pushLogData = function (element, datatype ) {  
+        // let fileType = self.getFileExtension(element);
+        // if (self.imageTypes.includes(fileType)) {
+
+        // }
+        // else {
+        //     self.logData.push(
+        //         {
+        //             name: element,
+        //             data: element,
+        //             imgUrl: self.fileImgPath
+        //         }
+        //     );
+        // }
+
+        switch (datatype) {
+            case 0: //unknown
+                break;
+            case 1: //folder
+                self.logData.push(
+                    {
+                        name: element,
+                        data: element,
+                        imgUrl: self.folderImgPath
+                    }
+                );
+                break;
+            case 2: //file
+                self.logData.push(
+                    {
+                        name: element,
+                        data: element,
+                        imgUrl: self.fileImgPath
+                    }
+                );
+                break;
+            case 4: // image
+
+                break;
+            case 8: // video
+                self.logData.push(
+                    {
+                        name: element,
+                        data: element,
+                        imgUrl: self.fileImgPath
+                    }
+                );
+                break;
+            case 16: //binary
+                break;
+            case 32: // text
+                break;
+            case 64: //csv
+                self.logData.push(
+                    {
+                        name: element,
+                        data: element,
+                        imgUrl: self.fileImgPath
+                    }
+                );
+                break;
+            case 128: //sql
+                self.logData.push(
+                    {
+                        name: element,
+                        data: element,
+                        imgUrl: self.fileImgPath
+                    }
+                );
+                break;
+            case 256: //custom
+                break;
+            case 512: //root
+                break;
+            case 1024: //fileList
+                self.logData.push(
+                    {
+                        name: element,
+                        data: element,
+                        imgUrl: self.fileImgPath
+                    }
+                );
+                break;
+            case 2048: //folderlist
+                self.logData.push(
+                    {
+                        name: element,
+                        data: element,
+                        imgUrl: self.folderImgPath
+                    }
+                );
+                break;
+            case 4096: //value type
+                break;
+            default:
+                break;
+        }
+    };
+
+    self.loadLogData = function (data) {  
+        self.emptyCarousel();
+        data.forEach(element => {
+            let datatype = parseInt(element.datatype)
+
+            switch (datatype) {
+                case 0: //unknown
+                    break;
+                case 1: //folder
+                    self.pushLogData(element.data, 1);
+                    break;
+                case 2: //file
+                    self.pushLogData(element.data, 2);
+                    break;
+                case 4: // image
+                    self.pushLogData(element.data, 4);
+                    break;
+                case 8: // video
+                    self.pushLogData(element.data, 8);
+                    break;
+                case 16: //binary
+                    break;
+                case 32: // text
+                    break;
+                case 64: //csv
+                    self.pushLogData(element.data, 64);
+                    break;
+                case 128: //sql
+                    self.pushLogData(element.data, 128);
+                    break;
+                case 256: //custom
+                    break;
+                case 512: //root
+                    break;
+                case 1024: //fileList
+                    element.data.forEach(ele => {
+                        self.pushLogData(ele, 1024);
+                    });
+                    break;
+                case 2048: //folderlist
+                    element.data.forEach(ele => {
+                        self.pushLogData(ele, 2048);
+                    });
+                    break;
+                case 4096: //value type
+                    break;
+                default:
+                    break;
+            }
+        });
+    };
+
+    self.sliderController = function (data, element) { 
+        self.destroySlider();
+        self.initiateSlider();
     }
+
+    // self.loadItems = function (data) {
+        
+    //     self.emptyBrowser();
+
+    //     if (data.children.length == 0) {
+    //         var imgUrl = '';
+    //         if(data.type == 'folder'){
+                
+    //             imgUrl =  self.folderImgPath;
+    //             self.pushImage(data, imgUrl, false ,true);
+    //         }
+
+    //         if (data.type == "file") {
+    //             var fileType = self.getFileExtension(data.text);
+
+    //             if (self.imageTypes.includes(fileType)) {
+    //                 self.getImage(data, fileType);
+    //             }
+    //             else {
+    //                 imgUrl = self.fileImgPath;
+    //                 self.pushImage(data, imgUrl, true ,false);
+    //             }
+    //         }
+    //     }
+    //     else {
+    //         data.children.forEach(function (child) {
+    //             var childNode = $("#tree").jstree(true).get_node(child);
+    //             var imgUrl = '';
+    //             if(!childNode.state.hidden && childNode.type == 'folder'){
+    //                 imgUrl = self.folderImgPath;
+    //                 self.pushImage(childNode, imgUrl, false ,true);
+    //             }
+    //             else if (!childNode.state.hidden && childNode.type == "file") {
+    //                 var fileType = self.getFileExtension(childNode.text);
+
+    //                 if (self.imageTypes.includes(fileType)) {
+
+    //                     self.getImage(childNode, fileType);
+    //                 }
+    //                 else {
+    //                     imgUrl = self.fileImgPath;
+    //                     self.pushImage(childNode, imgUrl, true)
+    //                 }
+    //             }
+    //         });
+    //     }
+    // };
 };

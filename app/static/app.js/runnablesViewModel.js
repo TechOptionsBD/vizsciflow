@@ -78,6 +78,7 @@ function RunnablesViewModel() {
             jsonArray2Table($("#log"), data['log']);
             $("#duration").html(data['duration'] + 's');
             printExecStatus(data['status']);
+            tasksViewModel.loadLogData(data.log);
         }).fail(function (jqXHR, textStatus) {
             $('#refresh').hide();
             showXHRText(jqXHR);

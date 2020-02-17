@@ -490,7 +490,25 @@
 						</div>
 					</div>
 				</div>
-				
+				<div class="panel-body" style="padding: 0; margin: 1vh 0 1vh 0;">
+					<button id="runBioWL" class="btn pull-left btn-primary btn-lg"
+						style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
+					<button class="btn pull-left btn-primary btn-lg"
+						style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
+					<!-- <button class="btn pull-left btn-primary"
+						style="margin-right: 5px;" data-bind="click: provenance">Provenance</button> -->
+					<div style="margin-top: 8px">
+					<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
+						id="immediate"> <span class="label-immediate">Immediate</span>
+					</label> 
+					<span
+						class="badge badge-primary">Time: <span id="duration"
+						class="badge badge-light" style="vertical-align: baseline;">0s</span>
+					</span> <span
+						class="glyphicon glyphicon-repeat normal-right-spinner pull-right"
+						id="refresh"></span>
+					</div>
+				</div>
 				<div id="outputPanel" class="panel panel-primary">
 					<div class="panel-heading">
 						<button class="close closeComponent" title="Close" type="button">×</button>
@@ -498,25 +516,7 @@
 					</div>
 					<div class="panel panel-primary"
 					style="padding: 0px; border: 0; margin: 4px">
-					<div class="panel-body" style="padding: 0">
-						<button id="runBioWL" class="btn pull-left btn-primary btn-lg"
-							style="margin-right: 5px;" data-bind="click: runBioWL">Run</button>
-						<button class="btn pull-left btn-primary btn-lg"
-							style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
-						<!-- <button class="btn pull-left btn-primary"
-							style="margin-right: 5px;" data-bind="click: provenance">Provenance</button> -->
-						<div style="margin-top: 8px">
-						<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
-							id="immediate"> <span class="label-immediate">Immediate</span>
-					    </label> 
-					    <span
-							class="badge badge-primary">Time: <span id="duration"
-							class="badge badge-light" style="vertical-align: baseline;">0s</span>
-						</span> <span
-							class="glyphicon glyphicon-repeat normal-right-spinner pull-right"
-							id="refresh"></span>
-						</div>
-					</div>
+					
 				</div>
 					<div id="exTab2" class="extab2">
 						<ul class="nav nav-tabs">

@@ -112,7 +112,17 @@ function AddLibraryViewModel(userName) {
             dropUp: true,
             maxHeight: 200
         });
-    }
+    };
+
+    self.access.subscribe(function(newVal){
+        if (newVal) {
+            // $("#userSelection").multiselect('deselectAll');
+            // $("#userSelection").multiselect('updateButtonText');
+            $("#userSelection").multiselect('disable');
+        } else {
+            $("#userSelection").multiselect('enable');
+        }
+    });
 
     self.getUsers = function () { 
         self.userList([]);
@@ -148,7 +158,7 @@ function AddLibraryViewModel(userName) {
         formdata.append('script', self.codeEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
         
         if (self.access() !== undefined)
-            formdata.append('access', self.access());
+            formdata.append('publicaccess', self.access());
         if (self.pippkgs() !== undefined)
             formdata.append('pippkgs', self.pippkgs());
         if (self.selectedSharingUsers().length > 0) {

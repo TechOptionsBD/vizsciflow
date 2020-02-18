@@ -824,48 +824,62 @@
 	</div>
   </div>
 
-<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true" style="width: 580px; height: 700px; background: #fff; overflow-y: auto; max-height: calc(100vh - 210px);">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 id="addSampleDialogLabel">Add Workflow</h4>
-    </div>
-    <div class="modal-body">
-        <form class="form-horizontal">
-            <div class="control-group">
-                <div class="controls">
-                	<label class="control-label" for="sampleName">Name                 
-                    	<input data-bind="value: name" type="text" id="sampleName" placeholder="Name" style="width: 300px;">
-                    </label>
-                 <label class="control-label" for="sampleDesc">Description                    
-                    	<input data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description" style="width: 300px;">
-                    </label>
-                </div>
-                
-                <label class="control-label" for="sample">Script:</label>
-                <div class="controls">
-                    <textarea rows="18" style="width: 540px;" id="sample"></textarea>
-                </div>
-                </div>
-                <div class="btn-group-vertical">
-                <label class="btn btn-light-blue form-check-label active">
-    				<input class="form-check-input" style="align:left" type="radio" name="wfaccess" value="2" data-bind="checked: access" autocomplete="off" checked>Private
-				</label>
-				<label class="btn btn-light-blue form-check-label active">
-    				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="0" data-bind="checked: access" autocomplete="off">Public
-				</label>
-				<label class="btn btn-light-blue form-check-label active">
-    				<input class="form-check-input" style="horizonal-align:left"  type="radio" name="wfaccess" value="1" data-bind="checked: access" autocomplete="off">Shared
-    				<input type="text" id="wfusers" placeholder="Users" style="width: 300px;" data-bind="value: users">
-				</label>
-                  
-             </div>
-            
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button data-bind="click: addSample" class="btn btn-primary">Add</button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-    </div>
+<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 id="addSampleDialogLabel">Add Workflow</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal">
+					<div class="control-group">
+						<div class="span-sm-20">
+							<div class="row service-form-group">
+								<label class="span-sm-4" for="sampleName">Name</label>
+								<div class="span-sm-16">
+									<input class="form-control" data-bind="value: name" type="text" id="sampleName" placeholder="Name">
+								</div>
+							</div>
+						</div>
+						<div class="span-sm-20">
+							<div class="row service-form-group">
+								<label class="span-sm-4" for="sampleDesc">Description</label>
+								<div class="span-sm-16">
+									<input class="form-control" data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description">
+								</div>
+							</div>
+						</div>
+						<div class="span-sm-20">
+							<hr>
+						</div>
+						<label for="sample">Script:</label>
+						<div class="controls">
+							<textarea rows="18" style="width: 540px;" id="sample"></textarea>
+						</div>
+					</div>
+					<div class="row service-form-group">
+						<label class="span-sm-2" for="access">Public</label>
+						<div class="span-sm-2">
+							<input type="checkbox" id="access" data-bind="checked: access">
+						</div>
+						<label for="" class="span-sm-4">Share with</label>
+						<div class="span-sm-12">
+							<select id="wfUserSelection" multiple="multiple" class="form-control" data-bind="options: userList, 
+								 optionsText: 'name', 
+								 optionsValue: 'id', 
+								 selectedOptions: selectedSharingUsers">
+							</select>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button data-bind="click: addSample" class="btn btn-primary">Add</button>
+				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 <div class="modal fade" id="file-upload-dialog" tabindex="-1"

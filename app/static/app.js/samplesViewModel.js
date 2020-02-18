@@ -44,8 +44,8 @@ function SamplesViewModel(sampleViewModel) {
             scriptname = "No Name";
         }
         self.sampleViewModel.name(scriptname);
-        centerDialog($('#addSample'));
-        return $('#addSample').modal('show');
+        sampleViewModel.getUsers();
+        $('#addSample').modal('show');
     }
     
     self.firstSelectedItem = function() {

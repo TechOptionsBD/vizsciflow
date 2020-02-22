@@ -19,9 +19,9 @@ def delimitedMustOneList( expr, delim=",", combine=False ):
     """
     dlName = str(expr)+" ["+ str(delim)+" "+ str(expr)+"]..."
     if combine:
-        return Combine( expr + Suppress( delim ) + expr + ZeroOrMore( delim + expr ) ).setName(dlName)
+        return Combine( expr + Suppress( delim ) + ZeroOrMore( expr ) ).setName(dlName)
     else:
-        return ( expr + Suppress( delim ) + expr + ZeroOrMore( Suppress( delim ) + expr ) ).setName(dlName)
+        return ( expr + Suppress( delim ) + ZeroOrMore(expr ) ).setName(dlName)
     
 def myIndentedBlock(blockStatementExpr, indentStack, indent=True):
     '''

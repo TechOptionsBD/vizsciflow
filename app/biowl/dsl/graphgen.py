@@ -13,6 +13,7 @@ from .parser import VizSciFlowParser
 
 from py2neo import Graph, Subgraph
 from py2neo.data import Node, Relationship
+from py2neo import RelationshipMatcher
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -51,14 +52,26 @@ class GraphGenerator(object):
         if not funcInstances:
             raise ValueError(r"'{0}' doesn't exist.".format(function))
         
-        node = Node("Service", package=package, name=function)
+        node = Node("Service", package=package, name=function, wid=self.graph_id)
         for arg in v:
-            self.graph.create(Relationship(arg, "Input", node))
+            if isinstance(arg, Node):
+                self.graph.create(Relationship(arg, "INPUT", node))
+            elif isinstance(arg, tuple):
+                for a in arg:
+                    self.graph.create(Relationship(a, "INPUT", node))
         
-        outnode = Node('Data', type=funcInstances[0].returns, name="output")
-        self.graph.create(Relationship(node, "Output", outnode))
-        
-        return outnode
+        outnodes = ()
+        if funcInstances["returns"]:
+            if isinstance(funcInstances["returns"], list):
+                for r in funcInstances["returns"]:
+                    outnode = Node('Data', type=r['type'], name=r['name'], wid=self.graph_id)
+                    self.graph.create(Relationship(node, "OUTPUT", outnode))
+                    outnodes += (outnode, )
+            else:
+                outnodes = Node('Data', type=funcInstances["returns"], name="output", wid=self.graph_id)
+                self.graph.create(Relationship(node, "OUTPUT", outnodes))
+                
+        return outnodes
 
     def dorelexpr(self, expr):
         '''
@@ -67,17 +80,8 @@ class GraphGenerator(object):
         '''
         left = self.eval(expr[0])
         right = self.eval(expr[2])
-        operator = expr[1]
-        if operator == '<':
-            return left < right
-        elif operator == '>':
-            return left > right
-        elif operator == '<=':
-            return left <= right
-        elif operator == '>=':
-            return left >= right
-        else:
-            return left == right
+        
+        return self.createbinarynode(left, right, expr[1])
     
     def doand(self, expr):
         '''
@@ -93,7 +97,8 @@ class GraphGenerator(object):
         if len(left) > 1:
             left = ['ANDEXPR'] + left
         left = self.eval(left)
-        return left and right
+        
+        return self.createbinarynode(left, right, "and")
     
     def dopar(self, expr):
         taskManager = TaskManager() 
@@ -144,11 +149,11 @@ class GraphGenerator(object):
         return self.createbinarynode(left, right, expr[-2])
     
     def createbinarynode(self, left, right, name):
-        node = Node("Service", package="built-in", name=name)
-        self.graph.create(Relationship(left, "Input", node))
-        self.graph.create(Relationship(right, "Input", node))
-        outnode = Node('Data', type='primitive', name="{0} output".format(name))
-        self.graph.create(Relationship(node, "Output", outnode))
+        node = Node("Operator", name=name, wid=self.graph_id)
+        self.graph.create(Relationship(left, "INPUT", node))
+        self.graph.create(Relationship(right, "INPUT", node))
+        outnode = Node('Data', wid=self.graph_id)
+        self.graph.create(Relationship(node, "OUTPUT", outnode))
         return outnode
             
     def doarithmetic(self, expr):
@@ -183,7 +188,40 @@ class GraphGenerator(object):
         with self.context.symtab.get_var(expr[0]):
             self.eval(expr[1])
         pass
-        
+    
+    def dotupexpr(self, expr):
+        t = ()
+        for e in expr:
+            t += (self.eval(e),)
+        return t
+    
+    def doassign_noeval(self, left, right):
+        '''
+        Evaluates an assignment expression.
+        :param expr:
+        '''
+        if len(left) == 1:
+            self.context.add_var(left[0], right)
+        elif left[0] == 'LISTIDX':
+            left = left[1]
+            idx = self.eval(left[1])
+            if self.context.var_exists(left[0]):
+                v = self.context.get_var(left[0])
+                if isinstance(v, list):
+                    while len(v) <= idx:
+                        v.append(None)
+                    v[int(idx)] = right
+                elif isinstance(v, dict):
+                    v[idx] = right
+                else:
+                    raise ValueError("Not a list or dictionary")
+            else:
+                v = []
+                while len(v) <= idx:
+                    v.append(None)
+                v[int(idx)] = right
+                self.context.add_var(left[0], v)
+                        
     def doassign(self, left, right):
         '''
         Evaluates an assignment expression.
@@ -215,7 +253,12 @@ class GraphGenerator(object):
                 v[int(idx)] = self.eval(right)
                 self.context.add_var(left[0], v)
         
-        
+        elif left[0] == 'TUPASSIGN':
+            right = self.eval(right)
+            for i in range(1, len(left)):
+                if left[i] != '_':
+                    self.doassign_noeval(left[i], right[i - 1])
+                    
     def dofor(self, expr):
         '''
         Execute a for expression.
@@ -227,9 +270,10 @@ class GraphGenerator(object):
             self.eval(expr[2])
     
     def eval_value_node(self, typename, value):
-        node = Node("Data", type=typename, name=value)
-        relationship = Relationship(self.workflow_node, "Dataset", node)
-        self.graph.create(relationship)
+        node = Node("Data", datatype=typename, name=value, wid=self.graph_id)
+        #relationship = Relationship(self.workflow_node, "DATASET", node)
+        #self.graph.create(relationship)
+        self.graph.create(node)
         return node
     
     def eval_value(self, str_value):
@@ -256,7 +300,7 @@ class GraphGenerator(object):
         except ValueError:
             if self.context.var_exists(str_value):
                 return self.context.get_var(str_value)
-            return self.graph.create(Relationship(Node('Data', type(str_value), name=str_value), "Dataset", self.workflow_node))
+            return self.graph.create(Relationship(Node('Data', type(str_value), name=str_value, wid=self.graph_id), "DATASET", self.workflow_node))
     
     def dolist(self, expr):
         '''
@@ -394,6 +438,8 @@ class GraphGenerator(object):
                 return dict()
             else:
                 return self.eval(expr[0])
+        if expr[0] == "TUPEXPR":
+            return self.dotupexpr(expr[1:])
         if expr[0] == "FOR":
             return self.dofor(expr[1])
         elif expr[0] == "ASSIGN":
@@ -457,23 +503,55 @@ class GraphGenerator(object):
         parser = VizSciFlowParser(PythonGrammar())
         prog = parser.parse(workflow.script)
         
-        graph_id= str(workflow.id) +'#' + str(workflow.user_id)
-        self.workflow_node = self.graph.nodes.match("Workflow", wid=graph_id).first()
-        if self.workflow_node:
-            self.graph.delete(self.workflow_node)
-            
-        self.graph.create(Node("Workflow", wid=graph_id, name=workflow.name))
-        self.workflow_node = self.graph.nodes.match("Workflow", wid=graph_id).first()
-        if not self.workflow_node:
-            raise ValueError("Graph is not created")
+        self.graph_id= str(workflow.id) +'#' + str(workflow.user_id)
+        cypher = "MATCH (n) WHERE n.wid='{0}' DETACH DELETE n".format(self.graph_id)
+        self.graph.run(cypher)
+        
+#         self.workflow_node = self.graph.nodes.match("Workflow", wid=self.graph_id).first()
+#         if self.workflow_node:
+#             self.graph.delete(self.workflow_node)
+        
+        #MATCH (n) WHERE n.wid='358#2' DETACH DELETE n    
+#         self.graph.create(Node("Workflow", wid=self.graph_id, name=workflow.name))
+#         self.workflow_node = self.graph.nodes.match("Workflow", wid=self.graph_id).first()
+#         if not self.workflow_node:
+#             raise ValueError("Graph is not created")
         self.run(prog)
         #wf_graph = self.graph.run("MATCH (w:Workflow)-[r*]->(x) WHERE w.id='{0}' RETURN *".format(graph_id))
         #cypher = "MATCH (a)-[r]->(b) WITH collect({ source: id(a), target: id(b), type: type(r) }) AS links RETURN links"
         #cypher = "MATCH(w:Workflow{wid:'{0}'})-[r*]-() WITH last(r) AS rx RETURN {source:startNode(rx), type: type(rx), target:endNode(rx)}".format(graph_id)
         #cypher = "MATCH(w:Workflow{wid:'" + graph_id + "'})-[r*]-() WITH last(r) AS rx RETURN {source:{label: labels(startNode(rx))[0], id: ID(startNode(rx))}, type: type(rx), target:{label: labels(endNode(rx))[0], id: ID(endNode(rx))}} AS links"
-        cypher = "MATCH(w:Workflow{wid:'" + graph_id + "'})-[r*]-() WITH last(r) AS rx RETURN {source:{label: labels(startNode(rx))[0], id: ID(startNode(rx)), name: startNode(rx).name}, type: type(rx), target:{label: labels(endNode(rx))[0], id: ID(endNode(rx)), name: endNode(rx).name}}"
+        #cypher = "MATCH(w:Workflow{wid:'" + self.graph_id + "'})-[r*]-() WITH last(r) AS rx RETURN {source:{label: labels(startNode(rx))[0], id: ID(startNode(rx)), name: startNode(rx).name}, type: type(rx), target:{label: labels(endNode(rx))[0], id: ID(endNode(rx)), name: endNode(rx).name}}"
+        cypher = "MATCH (n) WHERE n.wid='{0}' return n".format(self.graph_id)
+        
         wf_graph = self.graph.run(cypher).data()
         links = []
+        nodes = []
         for g in wf_graph:
-            links.extend(g.values())         
-        return json.dumps(links)
+            node = g['n']
+            labels = list(node.labels)
+            if 'Data' in labels:
+                outrels = self.graph.run("MATCH (n)<-[:OUTPUT]-() WHERE ID(n)={0} return n".format(node.identity))
+                if not outrels.data():
+                    nodes.append({"key": node.identity, "type": "Data", "name": node.__name__})  
+#                 relmatcher = RelationshipMatcher(self.graph)
+#                 rels = relmatcher.match(node if isinstance(node, list) else (node,), r_type = 'OUTPUT')
+#                 rels = list(rels)
+            elif 'Service' in labels:
+                nodes.append({"key": node.identity, "type": "Service", "name": node.__name__})
+                outrels = self.graph.run("MATCH (n)<-[:INPUT]-(m) WHERE ID(n)={0} return m".format(node.identity))
+                for rel in outrels.data():
+                    # check till the service which generated the data, otherwise the data direct
+                    prevdatanode = rel['m']
+                    outfromprevservice = self.graph.run("MATCH (n)<-[:OUTPUT]-(s) WHERE ID(n)={0} return s".format(prevdatanode.identity))
+                    for outservice in outfromprevservice.data():
+                        prevdatanode = outservice['s']
+                        break
+                    
+                    links.append({ "from": prevdatanode.identity, "frompid": prevdatanode.__name__, "to": node.identity, "topid": node.__name__, "value": "Input"})               
+                
+#                 relmatcher = RelationshipMatcher(self.graph)
+#                 rels = relmatcher.match(node if isinstance(node, list) else [node], r_type = 'INPUT')
+#                 rels = list(rels)
+            
+        return json.dumps({ "nodeDataArray" : nodes, "linkDataArray":links})

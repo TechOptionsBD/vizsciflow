@@ -2055,8 +2055,12 @@
    
    // Custom business method 
    function copyDataPathToEditor(data){
-       var pos = editor.selection.getCursor();             
-       editor.session.insert(pos,  "'" + data.path + "'");
+       var pos = editor.selection.getCursor();
+       text = editor.session.getLine(pos);
+       if (text !== undefined && text.length != 0)
+    	   editor.session.insert(pos,  "'" + data.path + "'");
+       else
+    	   editor.session.insert(pos,  "data = '" + data.path + "'\r\n");
        editor.focus();
    }
    
@@ -2364,7 +2368,7 @@ function typeInTextarea(el, newText) {
 				   e.stopPropagation();
 				   var nodeId = e.target.id.replace("_anchor", "");
 				   var node = $("#tree").jstree(true).get_node(nodeId);
-				   var nodeData = "\""+node.original.path + "\"";
+				   var nodeData = "\'"+node.original.path + "\'";
 				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
 			   });
 		   });
@@ -2373,7 +2377,7 @@ function typeInTextarea(el, newText) {
 				   e.stopPropagation();
 				   var nodeId = e.target.id.replace("_anchor", "");
 				   var node = $("#tree").jstree(true).get_node(nodeId);
-				   var nodeData = "\""+node.original.path + "\"";
+				   var nodeData = "\'"+node.original.path + "\'";
 				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
 			   });
 

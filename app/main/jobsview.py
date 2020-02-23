@@ -28,6 +28,8 @@ from .views import Samples, AlchemyEncoder
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
+from operator import add
+
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -181,8 +183,18 @@ def functions():
                     with open(initpath, 'a'):
                         pass
                     
-                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
-                
+#                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
+                if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
+                    access = 0
+                    sharedusers = False 
+                else:
+                    if request.form.get('sharedusers'):
+                        sharedusers = request.form.get('sharedusers')
+                        access = 1
+                    else:
+                        access = 2
+                        sharedusers = False              
+                               
                 with open(base, 'r') as json_data:
                     data = json.load(json_data)
                     libraries = data["functions"] if "functions" in data else [data]
@@ -215,6 +227,10 @@ def functions():
                         if not f['internal'] and not f['name']:
                             continue
                         #f['access'] = access
+#                         if sharedusers:
+#                             users = sharedusers.split(";")
+#                         else:
+#                             users = []
                         f['module'] = pkgpath
                         if package:
                             f['package'] = package
@@ -222,7 +238,8 @@ def functions():
                             f['org'] = org
                         
                         #func = json.dumps(f, indent=4)
-                        Service.add(current_user.id, f, access)
+
+                        Service.add(current_user.id, f, access, sharedusers)
                             
 #                 os.remove(base)
 #                 with open(base, 'w') as f:
@@ -236,6 +253,7 @@ def functions():
             fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
             mime = mimetypes.guess_type(fullpath)[0]
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
+            
     elif 'check_function' in request.args:
         if Service.check_function(request.args.get('name'), request.args.get('package')):
             return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
@@ -262,6 +280,23 @@ def functions():
     elif 'tooltip' in request.args:
         func = Service.get_first_by_name_package_with_access(current_user.id, request.args.get('name'), request.args.get('package'))
         return json.dumps(func) if func else json.dumps("")
+
+    elif 'service_id' in request.args:
+        service_id = request.args.get("service_id")
+        if 'confirm' in request.args:
+            if request.args.get("confirm") == "true":
+                ServiceAccess.remove(service_id)
+                Service.remove(current_user.id, service_id)       
+                return json.dumps({'return':'true'})
+        else:
+            shared_service_check = ServiceAccess.check(service_id) 
+            if shared_service_check:  
+                return json.dumps({'return':'shared'})
+            else:
+                Service.remove(current_user.id, service_id)
+                return json.dumps({'return':'true'})
+        return json.dumps({'return':'error'})
+    
     elif 'codecompletion' in request.args:
         keywords = [{"package": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
         funcs = []
@@ -293,12 +328,56 @@ def functions():
         return json.dumps("")
     
     elif 'users' in request.args:
-        result = User.query.with_entities(User.id, User.username)
-        j = json.dumps([r for r in result], cls=AlchemyEncoder)        
+        result = User.query.filter(current_user.id != User.id).with_entities(User.id, User.username)
+        j = json.dumps([r for r in result], cls=AlchemyEncoder)
         return jsonify(j)
-
+    
+    elif 'share_service' in request.args:
+        share_service = request.args.get("share_service")
+        shared_check = ServiceAccess.check(share_service) 
+        if shared_check: 
+            result = ServiceAccess.query.filter(ServiceAccess.service_id == share_service).with_entities(ServiceAccess.user_id)
+            lst = json.dumps([r for r in result], cls=AlchemyEncoder)
+            lst = lst.replace('[', '').replace(']', '').replace(' ', '')
+            user_list = list(lst.split(","))
+            if 'sharing_users' in request.args:
+                sharing_users = request.args.get("sharing_users")
+                for user in user_list:
+                    if user not in sharing_users:
+                        ServiceAccess.remove_user(user)
+                    else:
+                        sharing_users.remove(user)
+                
+                ServiceAccess.add(share_service, sharing_users)
+                
+            return jsonify(user_list)
+            
+        else:
+            return json.dumps("")
+        
     else:
         return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
+
+# @main.route('/delete_service/<service_id>', methods=['DELETE'])
+# @login_required
+# def delete_service(service_id):
+#     """ If the collection exists, delete it 
+#     if collection in stock:
+#         del stock[collection]
+#         res = make_response(jsonify({}), 204)
+#         return res
+#     res = make_response(jsonify({"error": "Collection not found"}), 404)
+#     return res
+#     """
+#       
+#     #if request.method == "DELETE":
+#     try:
+#         Service.remove(current_user.id, service_id)
+#         return True
+#       
+#     except Exception as e:
+#         return json.dumps({'error': str(e)})
+
 
 @main.route('/graphs', methods=['GET', 'POST'])
 @login_required
@@ -330,6 +409,12 @@ def get_task_status(task_id):
 def get_task_full_status(task_id):
     runnable = Runnable.query.get(task_id)
     return json.dumps(runnable.to_json_tooltip())
+def get_task_output(path):
+    remotepath = os.path.join('/home/mishuk/biowl/storage/', path)
+    file_extension = os.path.splitext(file_path)
+    with open(remotepath, "rb") as data:
+        b64_text = base64.b64encode(data.read())
+    return json.dumps( { "payload": b64_text, "extention": file_extension} )
     
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
@@ -339,6 +424,8 @@ def runnables():
             return get_task_full_status(int(request.args.get('tooltip')))
         elif request.args.get('id'):
             return get_task_status(int(request.args.get('id')))
+        elif request.args.get('output'):
+            return get_task_output(int(request.args.get('output')))
         elif request.args.get('stop'):
             ids = request.args.get('stop')
             ids = ids.split(",")
@@ -366,7 +453,6 @@ def runnables():
         sync_task_status_with_db_for_user(current_user.id)
     #     runnables_db = Runnable.query.filter(Runnable.user_id == current_user.id)
     #     rs = []
-    
     #     for r in runnables_db:
     #       rs.append(r.to_json())
     #     return jsonify(runnables = rs)

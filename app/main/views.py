@@ -40,7 +40,6 @@ def after_request(response):
     return response
 
 
-
 @main.route('/shutdown')
 def server_shutdown():
     if not current_app.testing:
@@ -738,6 +737,7 @@ class Samples():
         for workflow in workflows:
             json_info = workflow.to_json_info()
             json_info["access"] = access
+            json_info["is_owner"] = json_info["user"] == current_user.username
             workflow_list.append(json_info)
         return workflow_list
 
@@ -752,7 +752,7 @@ class Samples():
             workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id))) # TODO: Do we need or_ operator here? 
             samples.extend(Samples.get_workflows_info(workflows, AccessType.SHARED))
         if access == 2 or access == 3:
-            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id)).filter(Workflow.accesses.any(WorkflowAccess.user_id != current_user.id) != True)
+            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id))
             samples.extend(Samples.get_workflows_info(workflows, AccessType.PRIVATE))
             
         return samples
@@ -782,10 +782,19 @@ class Samples():
         #return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
 
     @staticmethod
-    def create_workflow(user, name, desc, script, access, users, temp, derived = 0):
+    def create_workflow(user, name, desc, script, publicaccess, users, temp, derived = 0):
+        access = 9
         if script and name:
-            users = users.split(";") if users else []
-            return Workflow.create(user, name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
+            if publicaccess == 'true':
+                access = 0
+                users = False 
+            else:
+                if users:
+                    access = 1
+                else:
+                    access = 2
+                    users = False   
+            return Workflow.create(user, name, desc if desc else '', script, access, users, temp, derived)
 
     @staticmethod
     def add_workflow(user, name, desc, script, access, users, temp):
@@ -833,13 +842,29 @@ class Samples():
 @login_required
 def samples():
     if request.form.get('sample'):
-        return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('access'), request.form.get('users'), False)
+        return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
     elif request.args.get('sample_id'):
         workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
         return json.dumps(workflow.to_json())
     elif request.args.get('tooltip'):
         workflow = Workflow.query.filter_by(id = request.args.get('tooltip')).first_or_404()
         return json.dumps(workflow.to_json_tooltip())
-               
+    
+    elif 'workflow_id' in request.args:
+        workflow_id = request.args.get("workflow_id")
+        if 'confirm' in request.args:
+            if request.args.get("confirm") == "true":
+                WorkflowAccess.remove(workflow_id)
+                Workflow.remove(current_user.id, workflow_id)       
+                return json.dumps({'return':'true'})
+        else:
+            shared_Workflow_check = WorkflowAccess.check(workflow_id) 
+            if shared_Workflow_check:  
+                return json.dumps({'return':'shared'})
+            else:
+                Workflow.remove(current_user.id, workflow_id)
+                return json.dumps({'return':'true'})
+        return json.dumps({'return':'error'})
+    
     access = int(request.args.get('access')) if request.args.get('access') else 0
     return json.dumps({'samples': Samples.get_samples_as_list(access)})

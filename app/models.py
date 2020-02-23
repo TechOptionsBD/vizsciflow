@@ -12,6 +12,7 @@ from markdown import markdown
 from sqlalchemy.engine import default
 from sqlalchemy.orm import backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.sql import exists
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -282,7 +283,6 @@ class User(UserMixin, db.Model):
         }
         return json_user
 
-
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
                        expires_in=expiration)
@@ -299,6 +299,9 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.username
+        #return '%r , %i' %(self.username, self.id)
+        #return "<User(id='%s', username='%s')>" %(self.id, self.username)
+        #'{'id' : self.id, 'username' : self.username}' #
 
 
 class AnonymousUser(AnonymousUserMixin):
@@ -578,20 +581,39 @@ class Workflow(db.Model):
             wf.name = name
             wf.desc = desc
             wf.script = script
-            wf.public = (access == AccessType.PUBLIC)
+            wf.public = True if access == 0 else False
+                
+            
             wf.temp = temp
+            if users: users = list(users.split(","))
             if (access == AccessType.SHARED and users):
-                for username in users:
-                    user = User.query.filter(User.username == username).first()
+                for user_id in users:
+                    user = User.query.filter(User.id == user_id).first()
                     if user:
                         wf.accesses.append(WorkflowAccess(user_id = user.id, rights = 0x01))
-            
+#             if (access == AccessType.SHARED and user):
+#                 for user_id in user:
+# #                 for usr in user:
+# #                     print(usr)
+# #                     user_id, rights = usr.split(":")
+#                     user = User.query.filter(User.id == user_id).first()
+#                     if user:
+#                         service.accesses.append(ServiceAccess(user_id = user.id, rights = 0x01))
             db.session.add(wf)
             db.session.commit()
             return wf
         except SQLAlchemyError:
             db.session.rollback()
             raise
+    
+    def remove(current_user_id, workflow_id):
+        try:
+            Workflow.query.filter(and_(Workflow.id == workflow_id, Workflow.user_id == current_user_id)).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+     
     
     def update_script(self, script):
         try:
@@ -647,6 +669,26 @@ class WorkflowAccess(db.Model):
     workflow_id = db.Column(db.Integer, ForeignKey('workflows.id'), nullable=False)
     user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False)
     rights = db.Column(db.Integer, default = 0)
+        
+    def remove(Workflowed_id):
+        try:
+            WorkflowAccess.query.filter(WorkflowAccess.workflow_id == Workflowed_id).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
+    def check(Workflowed_id):
+        try:
+            val = db.session.query(exists().where(WorkflowAccess.workflow_id == Workflowed_id)).scalar()
+            if val:
+                return True 
+            else:
+                return False
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise  
+     
     
 class Param(db.Model):
     __tablename__ = 'params'
@@ -669,16 +711,28 @@ class Service(db.Model):
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     
     @staticmethod
-    def add(user_id, value, access):
+    def add(user_id, value, access, users):
         try:
             service = Service()
             service.user_id = user_id
             service.value = value
             service.active = True
-            service.public = False
+            service.public = True if access == AccessType.PUBLIC else False
+
+            if users != False:
+                user = list(users[1:-1].split(",")) 
+                        
+            if (access == AccessType.SHARED and user):
+                for user_id in user:
+#                 for usr in user:
+#                     print(usr)
+#                     user_id, rights = usr.split(":")
+                    user = User.query.filter(User.id == user_id).first()
+                    if user:
+                        service.accesses.append(ServiceAccess(user_id = user.id, rights = 0x01))
+            
             
             #access = service.accesses.add()
-            #access.user_id = 
             db.session.add(service)
             db.session.commit()
             return service
@@ -686,6 +740,38 @@ class Service(db.Model):
             db.session.rollback()
             raise
         
+    @staticmethod
+    def add_users(service_id, users):
+        try:
+            service =  Service.query.filter(Service.id == service_id)
+            if users:
+                for user_id in user:
+                    user = User.query.filter(User.id == user_id).first()
+                    if user:
+                        service.accesses.append(ServiceAccess(user_id = user.id, rights = 0x01))
+
+        except SQLAlchemyError:
+            db.session.rollback
+    
+    def remove(current_user_id, service_id):
+        try:
+            Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id)).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
+#     def remove_all(currect_user_id, service_id, shared_services):
+#         try:
+#             service = Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id))
+#             if service:
+#                 ServiceAccess.remove(shared_services)
+#             Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id)).delete()
+#             db.session.commit()
+#         except SQLAlchemyError:
+#             db.session.rollback()
+#             raise
+    
     def to_json_info(self):
         json_post = {
             'id': self.id,
@@ -711,9 +797,14 @@ class Service(db.Model):
         return Service.query.filter(and_(func.lower(Service.value["name"].astext).cast(Unicode) == name.lower(), not package or func.lower(Service.value["package"].astext).cast(Unicode) == package.lower()))
     
     @staticmethod
-    def add_access_to_json(services, access):
+    def add_access_to_json(id, services, access, is_owner):
+        i=0
         for s in services:
             s['access'] = access
+            s['service_id'] =  id[i]
+            s['is_owner'] = is_owner[i]
+            i+=1
+            
         return services
         
     @staticmethod
@@ -721,13 +812,13 @@ class Service(db.Model):
         samples = []
         if access == 0 or access == 3:
             services = Service.query.filter(and_(Service.public == True, Service.active == True))
-            samples.extend(Service.add_access_to_json([s.value for s in services], 0))
+            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 0, [True if s.user_id == user_id else False for s in services]))
         if access == 1 or access == 3:
             services = Service.query.filter(and_(Service.public != True, Service.active == True)).filter(Service.accesses.any(and_(ServiceAccess.user_id == user_id, Service.user_id != user_id)))
-            samples.extend(Service.add_access_to_json([s.value for s in services], 1))
+            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 1, [True if s.user_id == user_id else False for s in services]))
         if access == 2 or access == 3:
-            services = Service.query.filter(and_(Service.public != True, Service.active == True, Service.user_id == user_id)).filter(Service.accesses.any(ServiceAccess.user_id != user_id) != True)
-            samples.extend(Service.add_access_to_json([s.value for s in services], 2))
+            services = Service.query.filter(and_(Service.public != True, Service.active == True, Service.user_id == user_id))
+            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 2, [True if s.user_id == user_id else False for s in services]))#[ x if x%2 else x*100 for x in range(1, 10) ]
         return samples
         
     @staticmethod
@@ -776,6 +867,49 @@ class ServiceAccess(db.Model):
     
     user = db.relationship("User", foreign_keys=user_id)
 #     service = db.relationship("Service", foreign_keys=service_id)
+
+    @staticmethod
+    def add(service_id, users):
+        try:
+            serviceaccess = ServiceAccess()
+            for user in users:
+                serviceaccess.service_id = service_id
+                serviceaccess.user_id = user
+                serviceaccess.rights = 0x01
+        
+                db.session.add(serviceaccess)
+            db.session.commit()
+            return serviceaccess
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    def remove(serviced_id):
+        try:
+            ServiceAccess.query.filter(ServiceAccess.service_id == serviced_id).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
+    def remove_user(user):
+        try:
+            ServiceAccess.query.filter(ServiceAccess.user_id == user).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    def check(serviced_id):
+        try:
+            val = db.session.query(exists().where(ServiceAccess.service_id == serviced_id)).scalar()
+            if val:
+                return True 
+            else:
+                return False
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise    
     
     def hasRight(self, checkRight):
         return AccessRights.hasRight(self.rights, checkRight)
@@ -1047,7 +1181,7 @@ class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)
     workflow_id  = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     celery_id = db.Column(db.String(64))
     #name = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
@@ -1136,6 +1270,7 @@ class Runnable(db.Model):
     def to_json_info(self):
         return {
             'id': self.id,
+            'user_id': self.workflow.user_id,
             'name': self.workflow.name,
             'modified': self.modified_on.strftime("%d-%m-%Y %H:%M:%S") if self.modified_on else '',
             'status': self.status

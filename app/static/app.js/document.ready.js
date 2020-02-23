@@ -142,6 +142,8 @@ $(document).ready(function () {
     $("#graphtab").css('height', $("#scripttab").css('height'));
     $("#graph").css('max-height', $("#graphtab").height() - $(".graph-panel-heading").height()-30);
 
+    $("#visualtab").css('height', $("#scripttab").css('height'));
+    
     $('.menu_button').click(function () {
         $(this).addClass('selected').siblings().removeClass('selected')
     });
@@ -203,12 +205,66 @@ $(document).ready(function () {
 		if (x === "#graphtab") {
             var checked = $('input[name="graphTabView"]:checked').val();
             toggleGraphView(checked);
+        }
+        else if (x === "#visualtab") {
+            var visualdiv = visualtab.querySelector('canvas');
+            if(visualdiv == null)
+                gojsControlFlow.show();   			
+            else 
+                return;
 		}
     });
-    
+      
+    //handling any service addition on click
+    $("#visual").droppable({
+
+		activeClass: "ui-state-default",
+		hoverClass: "ui-state-hover",
+		accept: ":not(.ui-sortable-helper)",
+
+		drop: function (event, ui) {
+			event.preventDefault();
+			event.stopPropagation();
+			var v = ko.dataFor(ui.draggable[0]);
+            inputParam = '';
+            defaultOutputParam = '';
+            outputParam = [];
+            serviceName = '';
+			if (v) {
+				if (v.params() !== undefined) {	 
+                    inputParam = JSON.stringify(v.params());	                    
+                }
+                if (v.returnData() !== undefined) {
+                    defaultOutputParam = JSON.stringify(v.returnData());
+                }                
+                if (v.returns() !== undefined) {	   
+                    outputParam.push({type: v.returns()});	
+                }
+                if (v.name() !== undefined) {
+                    serviceName = v.name();
+                }
+            }
+            if(defaultOutputParam == '')
+                outputParam = JSON.stringify(outputParam);
+            else
+                outputParam = defaultOutputParam;
+
+			gojsControlFlow.addNewNode(serviceName, inputParam, outputParam);			
+			return true;
+		}
+    });
+    //handling any service addition on click
+
     $("input[name=graphTabView]").on('click', function (k) {
         toggleGraphView(k.currentTarget.value);
     }); 
+   
+    //service delete button on hovar
+    $(document).on('mouseenter', '.deleteService', function () {
+        $(this).find(":button").show();
+    }).on('mouseleave', '.deleteService', function () {
+        $(this).find(":button").hide();
+    });
 
 
     $("input[name=logTabView]").on('click', function (e) {  

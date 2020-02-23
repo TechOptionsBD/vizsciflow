@@ -218,21 +218,22 @@ function TasksViewModel() {
         	 //if JSON is empty, clear both canvas
             if ($.isEmptyObject(data)){
             	var graphdiv = document.getElementById("graph");
-            	var overviewdiv = document.getElementById("DiagramOverview");
-    			if (graphdiv !== null) {
+            	var overviewdiv = document.getElementById("DiagramOverview");                
+                if(graphdiv == null)
+    				return;    			
+                else {
     				graph = document.querySelector('canvas');
     				context = graph.getContext('2d');
     				context.clearRect(0, 0, graph.width, graph.height);
     			}
-    			else
-    				return;
     			
-    			if (overviewdiv !== null) {
+    			if(overviewdiv == null)
+    				return;    			
+                else {
     				overview = overviewdiv.querySelector('canvas');
     				context = overview.getContext('2d');
     				context.clearRect(0, 0, overview.width, overview.height);
     			}
-                return;
             }
         	
         	else if (data === undefined)
@@ -261,20 +262,22 @@ function TasksViewModel() {
             //if JSON is empty, clear both canvas
             if ($.isEmptyObject(data)){
             	var graphdiv = document.getElementById("graph");
-            	var overviewdiv = document.getElementById("DiagramOverview");
-    			if (graphdiv !== null) {
+            	var overviewdiv = document.getElementById("DiagramOverview");                
+                if(graphdiv == null)
+    				return;    			
+                else {
     				graph = document.querySelector('canvas');
     				context = graph.getContext('2d');
-    				context.clearRect(0, 0, canvas.width, canvas.height);
+    				context.clearRect(0, 0, graph.width, graph.height);
     			}
     			
-    			if (overviewdiv !== null) {
+    			if(overviewdiv == null)
+    				return;    			
+                else {
     				overview = overviewdiv.querySelector('canvas');
     				context = overview.getContext('2d');
-    				context.clearRect(0, 0, canvas.width, canvas.height);
+    				context.clearRect(0, 0, overview.width, overview.height);
     			}
-    			
-                return;
             }
         	
         	else if (data === undefined)
@@ -358,7 +361,14 @@ function TasksViewModel() {
                     group: ko.observable(f.group),
                     href: ko.observable(f.href),
                     expanded: ko.observable(false),
-                    access: ko.observable(f.access)
+                    access: ko.observable(f.access),
+                    isOwner: ko.observable(f.is_owner),
+                    serviceID: ko.observable(f.service_id),
+
+                    // internal: ko.observable(f.internal),
+                    returns: ko.observable(f.returns),
+                    params: ko.observable(f.params),                    
+                    returnData: ko.observable(f.returnData),                    
                 });
             });
         }).fail(function (jqXHR) {
@@ -382,7 +392,63 @@ function TasksViewModel() {
 
     self.clicks = 0;
     self.timer = null;
+    
+    
+    
+  //service delete button
+    self.serviceToolbar = function (item, event) {
+	    event.stopPropagation();
+	    
+	    function serviceDeleted(){
+            alert("SERVICE DELETED!");            
+            index = self.tasks.indexOf(item);
+            if (self.tasks()[index].serviceID()== item.serviceID()){
+                self.tasks.splice( index, 1 );            //delete this service from obsarevalbe array                                                                
+            }  
+	    }
+	
+	    var x = $(event.target).attr('id');
+	    if (x === "delete") {
+	    	ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID() }).done(function (data) {            
+                console.log(data);    
+        		if (data === undefined)
+                        return;                
+                data = data.return;
+                
+                if(data == 'shared'){
+                	confirmation = confirm("This is a shared service. You still want to delete "+item.name()+"()?");
+                	if(confirmation == true){
+                		ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){                	          
+                    		if (data === undefined)
+                                    return;
+                    		
+                            if (data.return == 'true'){
+                            	serviceDeleted();
+                            }
+                    		else if (data.return == 'error')
+                    			alert("ERROR");
+                    		
+                		}).fail(function (jqXHR) {
+                            alert("status="+jqXHR.status);
+                        });  
+                	}
+                	else
+                		return;
+                }
+                else if (data == 'true'){
+                	serviceDeleted();
+                }        			
+        		else if (data == 'error')
+        			alert("ERROR");
+        		                                
+                }).fail(function (jqXHR) {
+                        alert("status="+jqXHR.status);
+                }); 
+		    }
+    }
 
+    
+    
     self.copyToEditorDblClick = function (itme, event) {
         event.preventDefault();
     }

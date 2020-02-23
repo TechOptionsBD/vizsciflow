@@ -1,3 +1,36 @@
+/* for service delete button */
+.serviceToolbar{
+	position: absolute;
+	padding-top: 0px;
+	padding-right: 120px;
+	right: 0;
+	top: 0;
+	display: block;
+	color: #337ab7;
+}
+.even-row:hover .serviceToolbar, .odd-row:hover .serviceToolbar {
+	display:block;
+	color: #337ab7;
+}
+#delete:hover, #serviceShareDropdown:hover {
+	color: red;
+}
+#serviceAccess li a{
+	text-decoration: none;
+}
+
+/* .workflowToolbar{
+	position: absolute;
+	padding-top: 0px;
+	padding-right: 100px;
+	right: 0;
+	top: 0;
+	display: block;
+	color: #337ab7;
+} */
+
+/* for service delete button */
+
 .nav-tabs > li .close {
   margin: -2px 0 0 10px;
   font-size: 18px;
@@ -19,9 +52,14 @@
     
 .odd-row {
 background-color: LightGray;
+position: relative;  
+display: inline-block;
+
 }
 .even-row {
 background-color: White;
+position: relative;  
+display: inline-block;
 }
 
 .panel-actions {

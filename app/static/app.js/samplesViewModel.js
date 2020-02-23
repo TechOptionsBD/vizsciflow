@@ -161,12 +161,66 @@ function SamplesViewModel(sampleViewModel) {
                     user:ko.observable(s.user),
                     name: ko.observable(s.name),
                     selected: ko.observable(false),
-                    access: ko.observable(s.access)
+                    access: ko.observable(s.access),
+                    isOwner: ko.observable(s.is_owner)
                 });
             });
             
         }).fail(function(jqXHR) {
             showXHRText(jqXHR);
         });
+    }
+    
+  //service delete button
+    self.workflowToolbar = function (item, event) {
+	    event.stopPropagation();
+		
+	    function workflowDeleted(){
+	    	alert("WORKFLOW DELETED!");
+            
+            //delete this service from obsarevalbe array                                                                
+            index = self.items.indexOf(item);
+            if (self.items()[index].id()== item.id()){
+                self.items.splice( index, 1 );
+            } 
+	    }
+	    
+	    var x = $(event.target).attr('id');
+	    if (x === "delete") {
+	    	ajaxcalls.simple(self.samplesURI, 'GET', { 'workflow_id': item.id() }).done(function (data) {            
+                console.log(data);    
+        		if (data === undefined)
+                        return;                
+                data = data.return;
+                
+                if(data == 'shared'){
+                	confirmation = confirm("This is a shared workflow. You still want to delete "+item.name()+"?");
+                	if(confirmation == true){
+                		ajaxcalls.simple(self.samplesURI, 'GET', { 'workflow_id': item.id(), 'confirm':'true' }).done(function (data){                	          
+                    		if (data === undefined)
+                                    return;
+                    		
+                            if (data.return == 'true'){
+                                workflowDeleted();                                                                                        
+                            }
+                    		else if (data.return == 'error')
+                    			alert("ERROR");
+                    		
+                		}).fail(function (jqXHR) {
+                            alert("status="+jqXHR.status);
+                        });  
+                	}
+                	else
+                		return;
+                }
+                else if (data == 'true'){
+                	workflowDeleted();
+                }        			
+        		else if (data == 'error')
+        			alert("ERROR");
+                }).fail(function (jqXHR) {
+                        alert("status="+jqXHR.status);
+                }); 
+		    }
     }
 }

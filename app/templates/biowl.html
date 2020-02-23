@@ -72,7 +72,7 @@
 <script src="/static/app.js/simpleGraphViewModel.js"></script>
 <script src="/static/app.js/detailGraphViewModel.js"></script>
 <script src="/static/app.js/sampleViewModel.js"></script>
-<!-- <script src="/static/app.js/controlFlowViewModel.js"></script> -->
+<script src="/static/app.js/controlFlowViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl-span-rules.css')}}">
@@ -409,6 +409,7 @@
 								</button>
 								<ul class="dropdown-menu" role="menu" aria-labelledby="btnEditorTabs" id="editortabs-dropdown" >
 									<li><a class="btn btn-secondary"  href="#liGraphTab">Graph Tab</a></li>
+									<li><a class="btn btn-secondary"  href="#liVisualTab">Visual Tab</a></li>
 									<li> <a class="btn btn-secondary" href="#liMetadataTab">Metadata</a></li>
 									<li> <a class="btn btn-secondary" href="#liFilterHistoryTab">Filter History</a></li>
 									<li> <a class="btn btn-secondary" href="#liBrowserTab">Browser</a></li>
@@ -439,6 +440,7 @@
 							<ul class="nav nav-tabs marginBottom">
 								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
 								<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
 								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<!-- <button class="close closeTab" type="button">×</button> -->
 								<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History <button class="close closeTab" title="Close" type="button">×</button></a></li>
@@ -460,6 +462,15 @@
 								<div style="width: 100%; height: 100%; z-index: 0;" id="graph"></div>
 								<div id="DiagramOverview"></div>
 							</div>
+
+
+							<!-- visualtab -->
+							<div class="tab-pane fade ui-droppable" id="visualtab" style="position: relative;">								
+								<div style="width: 100%; height: 100%; z-index: 0;" id="visual"></div>
+								<div id="visualDiagramOverview"></div>
+							</div>
+
+
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="metatab">
 							</div>
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="filterhistorytab">
@@ -633,6 +644,18 @@
 								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
 								&nbsp;
 								<span style="font-weight: bold;" data-bind="text: name"></span>
+
+								<!-- service delete button for owner only -->
+								<span onclick='alert("Service")' id='serviceDropdown' class='serviceToolbar' data-bind="visible: isOwner() == true">									
+									<!-- <span id="serviceShareDropdown" data-bind="event: {click: $parent.serviceToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Share &#x25BC;
+																				
+									</span> -->
+									
+								
+									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.serviceToolbar} "></span>											
+							</span>
+							
 							</div>
 							<div class="col" style="float: right;padding-right: 5px">
 								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package" style="text-align: left"></span>)
@@ -640,9 +663,6 @@
 							<div style="clear:both"></div>
 						</div>
 					</div>
-					<!-- newly added for control flow diagram -->		
-					
-					<!-- <a href="#" draggable="true" class="pipeline_modules" id="Galaxy_Pear"> Galaxy_Pear</a> -->
 				</div>
 			</div>
 			<!-- 	            <div data-bind="stopBinding: true"> -->
@@ -702,6 +722,17 @@
 								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
 								&nbsp;
 								<span style="font-weight: bold;" data-bind="text: name"></span>
+								
+								<!-- workflow toolbar for owner only -->
+								<span onclick='alert("workflow")' id='workflowDropdown' class='serviceToolbar' data-bind="visible: isOwner() == true">
+									<!-- <span id="workflowShareDropdown" data-bind="event: {click: $parent.workflowToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									Share &#x25BC;
+									
+									</span> -->									
+									
+									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.workflowToolbar} "></span>
+								</span>
+								
 							</div>
 							
 							<div class="col-xm-3 menu_button" style="float: right; margin: 7px 0 7px 0; padding-left: 20px; width: 20%"
@@ -2849,9 +2880,9 @@ function typeInTextarea(el, newText) {
 	
 	$("#exTabBiowl").on('shown.bs.tab', function (e) {
 		var x = $(e.target).attr('href');
-/* 		if (x === "#graphtab") {
-			tasksViewModel.buildGraph();
-		} else if*/ 
+ 		// if (x === "#visualtab") {
+		// 	//gojsControlFlow;
+		// } else if 
 		if (x === "#filterhistorytab") {
 			showFilterHistory();
 		} 

@@ -282,6 +282,7 @@ class User(UserMixin, db.Model):
         }
         return json_user
 
+
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
                        expires_in=expiration)

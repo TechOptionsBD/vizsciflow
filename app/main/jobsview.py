@@ -366,6 +366,7 @@ def runnables():
         sync_task_status_with_db_for_user(current_user.id)
     #     runnables_db = Runnable.query.filter(Runnable.user_id == current_user.id)
     #     rs = []
+    
     #     for r in runnables_db:
     #       rs.append(r.to_json())
     #     return jsonify(runnables = rs)

@@ -171,7 +171,7 @@ function SamplesViewModel(sampleViewModel) {
         });
     }
     
-  //service delete button
+    //workflow delete button
     self.workflowToolbar = function (item, event) {
 	    event.stopPropagation();
 		
@@ -221,6 +221,12 @@ function SamplesViewModel(sampleViewModel) {
                 }).fail(function (jqXHR) {
                         alert("status="+jqXHR.status);
                 }); 
-		    }
+            }
+
+        else if (x === "shareDropdown") {
+            alert('workflow share button hit');
+            id = item.id();
+                // api_call                
+        }
     }
 }

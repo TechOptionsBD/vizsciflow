@@ -285,7 +285,7 @@ def functions():
         service_id = request.args.get("service_id")
         if 'confirm' in request.args:
             if request.args.get("confirm") == "true":
-                ServiceAccess.remove(service_id)
+                #ServiceAccess.remove(service_id)
                 Service.remove(current_user.id, service_id)       
                 return json.dumps({'return':'true'})
         else:
@@ -409,13 +409,13 @@ def get_task_status(task_id):
 def get_task_full_status(task_id):
     runnable = Runnable.query.get(task_id)
     return json.dumps(runnable.to_json_tooltip())
-def get_task_output(path):
-    remotepath = os.path.join('/home/mishuk/biowl/storage/', path)
-    file_extension = os.path.splitext(file_path)
-    with open(remotepath, "rb") as data:
-        b64_text = base64.b64encode(data.read())
-    return json.dumps( { "payload": b64_text, "extention": file_extension} )
-    
+# def get_task_output(path):
+#      remotepath = os.path.join('/home/mishuk/biowl/storage/', path)
+#      file_extension = os.path.splitext(file_path)
+#      with open(remotepath, "rb") as data:
+#          b64_text = base64.b64encode(data.read())
+#      return json.dumps( { "payload": b64_text, "extention": file_extension} )
+     
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
 def runnables():
@@ -424,8 +424,8 @@ def runnables():
             return get_task_full_status(int(request.args.get('tooltip')))
         elif request.args.get('id'):
             return get_task_status(int(request.args.get('id')))
-        elif request.args.get('output'):
-            return get_task_output(int(request.args.get('output')))
+#          elif request.args.get('path'):
+#              return get_task_output(int(request.args.get('path')))
         elif request.args.get('stop'):
             ids = request.args.get('stop')
             ids = ids.split(",")

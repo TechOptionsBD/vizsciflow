@@ -990,3 +990,12 @@ border-radius: 50px;
 .modal-wide{
   width: 70%;
 }
+
+.multiselect-container > li > a > label.checkbox{
+  padding-top: 2px;
+}
+
+.multiselect-container > li > a > label > input[type="checkbox"] {
+  margin-top: 4px;
+  margin-left: -23px;
+}

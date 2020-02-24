@@ -854,7 +854,7 @@ def samples():
         workflow_id = request.args.get("workflow_id")
         if 'confirm' in request.args:
             if request.args.get("confirm") == "true":
-                WorkflowAccess.remove(workflow_id)
+                #WorkflowAccess.remove(workflow_id)
                 Workflow.remove(current_user.id, workflow_id)       
                 return json.dumps({'return':'true'})
         else:

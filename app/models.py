@@ -608,7 +608,8 @@ class Workflow(db.Model):
     
     def remove(current_user_id, workflow_id):
         try:
-            Workflow.query.filter(and_(Workflow.id == workflow_id, Workflow.user_id == current_user_id)).delete()
+            #Workflow.query.filter(and_(Workflow.id == workflow_id, Workflow.user_id == current_user_id)).delete()
+            db.session.delete(Workflow.query.filter(and_(Workflow.id == workflow_id, Workflow.user_id == current_user_id)).first())
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
@@ -705,7 +706,6 @@ class Service(db.Model):
     value = db.Column(JSON, nullable = False)
     public = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
-    
     #accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
     accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
@@ -730,9 +730,7 @@ class Service(db.Model):
                     user = User.query.filter(User.id == user_id).first()
                     if user:
                         service.accesses.append(ServiceAccess(user_id = user.id, rights = 0x01))
-            
-            
-            #access = service.accesses.add()
+                        
             db.session.add(service)
             db.session.commit()
             return service
@@ -755,22 +753,12 @@ class Service(db.Model):
     
     def remove(current_user_id, service_id):
         try:
-            Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id)).delete()
+            #Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id)).delete()
+            db.session.delete(Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id)).first())
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
             raise
-        
-#     def remove_all(currect_user_id, service_id, shared_services):
-#         try:
-#             service = Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id))
-#             if service:
-#                 ServiceAccess.remove(shared_services)
-#             Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id)).delete()
-#             db.session.commit()
-#         except SQLAlchemyError:
-#             db.session.rollback()
-#             raise
     
     def to_json_info(self):
         json_post = {
@@ -866,7 +854,7 @@ class ServiceAccess(db.Model):
     rights = db.Column(db.Integer, default = 0)
     
     user = db.relationship("User", foreign_keys=user_id)
-#     service = db.relationship("Service", foreign_keys=service_id)
+    #service = db.relationship("Service", backref=backref("serviceaccesses", cascade="all, delete-orphan"))
 
     @staticmethod
     def add(service_id, users):
@@ -1180,8 +1168,8 @@ class TaskLog(db.Model):
 class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)
-    workflow_id  = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    workflow_id  = db.Column(db.Integer, db.ForeignKey('workflows.id', ondelete='CASCADE'), nullable=True)
+    #user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     celery_id = db.Column(db.String(64))
     #name = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)

@@ -395,7 +395,7 @@ function TasksViewModel() {
     
     
     
-  //service delete button
+    //service delete button
     self.serviceToolbar = function (item, event) {
 	    event.stopPropagation();
 	    
@@ -444,7 +444,27 @@ function TasksViewModel() {
                 }).fail(function (jqXHR) {
                         alert("status="+jqXHR.status);
                 }); 
-		    }
+            }
+
+            else if (x === "shareDropdown") {
+                alert('service share button hit');
+                serviceID = item.serviceID();
+                ajaxcalls.simple('/functions', 'GET', { 'share_service': item.serviceID() }).done(function (data) {
+                    if (data === undefined)
+                        return; 
+    
+                    console.log(data);
+                    data = data.return;
+                    
+                    if(data !== undefined){
+                        
+                        //for selecting shared user                    
+                    }
+                    
+                }).fail(function (jqXHR) {
+                    alert("status="+jqXHR.status);
+                });                 
+            }
     }
 
     

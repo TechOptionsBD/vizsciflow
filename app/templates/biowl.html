@@ -646,11 +646,11 @@
 								<span style="font-weight: bold;" data-bind="text: name"></span>
 
 								<!-- service delete button for owner only -->
-								<span onclick='alert("Service")' id='serviceDropdown' class='serviceToolbar' data-bind="visible: isOwner() == true">									
-									<!-- <span id="serviceShareDropdown" data-bind="event: {click: $parent.serviceToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span id='serviceDropdown' class='serviceToolbar' data-bind="visible: isOwner() == true">									
+									<span id="shareDropdown" data-bind="event: {click: $parent.serviceToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Share &#x25BC;
 																				
-									</span> -->
+									</span>
 									
 								
 									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.serviceToolbar} "></span>											
@@ -724,11 +724,11 @@
 								<span style="font-weight: bold;" data-bind="text: name"></span>
 								
 								<!-- workflow toolbar for owner only -->
-								<span onclick='alert("workflow")' id='workflowDropdown' class='serviceToolbar' data-bind="visible: isOwner() == true">
-									<!-- <span id="workflowShareDropdown" data-bind="event: {click: $parent.workflowToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span id='workflowDropdown' class='serviceToolbar' data-bind="visible: isOwner() == true">
+									<span id="shareDropdown" data-bind="event: {click: $parent.workflowToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									Share &#x25BC;
 									
-									</span> -->									
+									</span>									
 									
 									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.workflowToolbar} "></span>
 								</span>

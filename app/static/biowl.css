@@ -1,34 +1,52 @@
 /* for service delete button */
 .serviceToolbar{
-	position: absolute;
-	padding-top: 0px;
-	padding-right: 120px;
-	right: 0;
-	top: 0;
-	display: block;
-	color: #337ab7;
+  position: absolute;
+  padding-top: 0px;
+  padding-right: 120px;
+  right: 0;
+  top: 0;
+  display: block;
+  color: #337ab7;
 }
 .even-row:hover .serviceToolbar, .odd-row:hover .serviceToolbar {
-	display:block;
-	color: #337ab7;
+  display:block;
+  color: #337ab7;
 }
-#delete:hover, #serviceShareDropdown:hover {
-	color: red;
+#delete {
+  position : relative;
+  display : inline-block;
+  width : 25px;
+  height : 25px;
+  text-align : center;
+  line-height : 25px;
+  background : rgba(51, 122, 183, 0.21);
+  border-radius : 50%;
+  z-index: 1;
+  transition : .3s;
 }
-#serviceAccess li a{
-	text-decoration: none;
+#delete:hover, #shareDropdown:hover {
+  color: red;
+  transition: .4s;
+  box-shadow: 0 0 5px red;
+}
+#shareDropdown{
+  position : relative;
+  display : inline-block;
+  height : 15px;
+  width : 60px;
+  bottom: 3px;
+  padding-bottom: 22%;
+  padding-left: 5%;
+  text-align : center;
+  background : rgba(51, 122, 183, 0.21);
+  border-radius : 20%;
+  z-index: 1;
+  transition : .3s;
 }
 
-/* .workflowToolbar{
-	position: absolute;
-	padding-top: 0px;
-	padding-right: 100px;
-	right: 0;
-	top: 0;
-	display: block;
-	color: #337ab7;
-} */
-
+.multiselect-dropdown{
+  display: inline-flex; 
+}
 /* for service delete button */
 
 .nav-tabs > li .close {

@@ -2400,7 +2400,14 @@ function typeInTextarea(el, newText) {
 				   var nodeId = e.target.id.replace("_anchor", "");
 				   var node = $("#tree").jstree(true).get_node(nodeId);
 				   var nodeData = "\'"+node.original.path + "\'";
-				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
+				   var cursorPos = editor.selection.getCursor();
+				   var editorText = editor.session.getLine(cursorPos);
+				   if (!editorText) {
+					   e.originalEvent.dataTransfer.setData('text/plain', "data = " + nodeData + "\r\n")
+				   }
+				   else {
+					   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
+				   }
 			   });
 		   });
 		   $(element).on("redraw.jstree", function(e, data){
@@ -2409,7 +2416,14 @@ function typeInTextarea(el, newText) {
 				   var nodeId = e.target.id.replace("_anchor", "");
 				   var node = $("#tree").jstree(true).get_node(nodeId);
 				   var nodeData = "\'"+node.original.path + "\'";
-				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
+				   var cursorPos = editor.selection.getCursor();
+				   var editorText = editor.session.getLine(cursorPos);
+				   if (!editorText) {
+					   e.originalEvent.dataTransfer.setData('text/plain', "data = " + nodeData + "\r\n")
+				   }
+				   else {
+					   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
+				   }
 			   });
 
 			   metadataViewModel.selectNode();
@@ -2579,7 +2593,6 @@ function typeInTextarea(el, newText) {
 		}
 	});
 
-     
 		ko.bindingHandlers.draggable = {
 			init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
 				$(element).draggable(

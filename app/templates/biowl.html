@@ -646,15 +646,13 @@
 								<span style="font-weight: bold;" data-bind="text: name"></span>
 
 								<!-- service delete button for owner only -->
-								<span id='serviceDropdown' class='serviceToolbar' data-bind="visible: isOwner() == true">									
-									<span id="shareDropdown" data-bind="event: {click: $parent.serviceToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								<span id='serviceDropdown' class='serviceToolbar' data-bind="visible: isOwner()">
+									<!-- <span id="shareDropdown" data-bind="event: {click: $parent.serviceToolbar} "
+										class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Share &#x25BC;
-																				
-									</span>
-									
-								
-									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.serviceToolbar} "></span>											
-							</span>
+									</span> -->
+									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.serviceToolbar} "></span>
+								</span>
 							
 							</div>
 							<div class="col" style="float: right;padding-right: 5px">
@@ -725,10 +723,10 @@
 								
 								<!-- workflow toolbar for owner only -->
 								<span id='workflowDropdown' class='serviceToolbar' data-bind="visible: isOwner() == true">
-									<span id="shareDropdown" data-bind="event: {click: $parent.workflowToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<!-- <span id="shareDropdown" data-bind="event: {click: $parent.workflowToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									Share &#x25BC;
 									
-									</span>									
+									</span>									 -->
 									
 									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.workflowToolbar} "></span>
 								</span>
@@ -2400,7 +2398,14 @@ function typeInTextarea(el, newText) {
 				   var nodeId = e.target.id.replace("_anchor", "");
 				   var node = $("#tree").jstree(true).get_node(nodeId);
 				   var nodeData = "\'"+node.original.path + "\'";
-				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
+				   var cursorPos = editor.selection.getCursor();
+				   var editorText = editor.session.getLine(cursorPos);
+				   if (!editorText) {
+					   e.originalEvent.dataTransfer.setData('text/plain', "data = " + nodeData + "\r\n")
+				   }
+				   else {
+					   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
+				   }
 			   });
 		   });
 		   $(element).on("redraw.jstree", function(e, data){
@@ -2409,7 +2414,14 @@ function typeInTextarea(el, newText) {
 				   var nodeId = e.target.id.replace("_anchor", "");
 				   var node = $("#tree").jstree(true).get_node(nodeId);
 				   var nodeData = "\'"+node.original.path + "\'";
-				   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
+				   var cursorPos = editor.selection.getCursor();
+				   var editorText = editor.session.getLine(cursorPos);
+				   if (!editorText) {
+					   e.originalEvent.dataTransfer.setData('text/plain', "data = " + nodeData + "\r\n")
+				   }
+				   else {
+					   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
+				   }
 			   });
 
 			   metadataViewModel.selectNode();
@@ -2579,7 +2591,6 @@ function typeInTextarea(el, newText) {
 		}
 	});
 
-     
 		ko.bindingHandlers.draggable = {
 			init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
 				$(element).draggable(

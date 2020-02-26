@@ -2085,7 +2085,7 @@
    // Custom business method 
    function copyDataPathToEditor(data){
        var pos = editor.selection.getCursor();
-       text = editor.session.getLine(pos);
+       text = editor.session.getLine(pos.row);
        if (text !== undefined && text.length != 0)
     	   editor.session.insert(pos,  "'" + data.path + "'");
        else
@@ -2399,7 +2399,7 @@ function typeInTextarea(el, newText) {
 				   var node = $("#tree").jstree(true).get_node(nodeId);
 				   var nodeData = "\'"+node.original.path + "\'";
 				   var cursorPos = editor.selection.getCursor();
-				   var editorText = editor.session.getLine(cursorPos);
+				   var editorText = editor.session.getLine(cursorPos.row);
 				   if (!editorText) {
 					   e.originalEvent.dataTransfer.setData('text/plain', "data = " + nodeData + "\r\n")
 				   }
@@ -2415,7 +2415,7 @@ function typeInTextarea(el, newText) {
 				   var node = $("#tree").jstree(true).get_node(nodeId);
 				   var nodeData = "\'"+node.original.path + "\'";
 				   var cursorPos = editor.selection.getCursor();
-				   var editorText = editor.session.getLine(cursorPos);
+				   var editorText = editor.session.getLine(cursorPos.row);
 				   if (!editorText) {
 					   e.originalEvent.dataTransfer.setData('text/plain', "data = " + nodeData + "\r\n")
 				   }

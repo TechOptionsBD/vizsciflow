@@ -20,6 +20,8 @@ function TasksViewModel() {
         });
     }, this);
 
+    self.userList = ko.observableArray();
+
     self.logData = ko.observableArray();
 
     self.imageTypes = ["png", "jpg", "jpeg", "bmp", "gif", "ico", "ief", "jpe", "pbm", "pgm", "jng", "nef",
@@ -374,6 +376,8 @@ function TasksViewModel() {
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });
+
+        self.getUsers();
     });
 
     self.reload = $.debounce(500, function () {
@@ -735,51 +739,18 @@ function TasksViewModel() {
         self.initiateSlider();
     }
 
-    // self.loadItems = function (data) {
-        
-    //     self.emptyBrowser();
+    self.getUsers = function () { 
+        self.userList([]);
+        // self.selectedSharingUsers([]); 
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 1 }).done(function (data) {
+            
+            JSON.parse(data).forEach(element => {
+                self.userList.push({id: element[0], name:  element[1]});
+            });
 
-    //     if (data.children.length == 0) {
-    //         var imgUrl = '';
-    //         if(data.type == 'folder'){
-                
-    //             imgUrl =  self.folderImgPath;
-    //             self.pushImage(data, imgUrl, false ,true);
-    //         }
-
-    //         if (data.type == "file") {
-    //             var fileType = self.getFileExtension(data.text);
-
-    //             if (self.imageTypes.includes(fileType)) {
-    //                 self.getImage(data, fileType);
-    //             }
-    //             else {
-    //                 imgUrl = self.fileImgPath;
-    //                 self.pushImage(data, imgUrl, true ,false);
-    //             }
-    //         }
-    //     }
-    //     else {
-    //         data.children.forEach(function (child) {
-    //             var childNode = $("#tree").jstree(true).get_node(child);
-    //             var imgUrl = '';
-    //             if(!childNode.state.hidden && childNode.type == 'folder'){
-    //                 imgUrl = self.folderImgPath;
-    //                 self.pushImage(childNode, imgUrl, false ,true);
-    //             }
-    //             else if (!childNode.state.hidden && childNode.type == "file") {
-    //                 var fileType = self.getFileExtension(childNode.text);
-
-    //                 if (self.imageTypes.includes(fileType)) {
-
-    //                     self.getImage(childNode, fileType);
-    //                 }
-    //                 else {
-    //                     imgUrl = self.fileImgPath;
-    //                     self.pushImage(childNode, imgUrl, true)
-    //                 }
-    //             }
-    //         });
-    //     }
-    // };
+            // self.initiateMultiselectUser()
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    }
 };

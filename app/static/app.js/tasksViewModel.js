@@ -398,45 +398,51 @@ function TasksViewModel() {
     //service delete button
     self.serviceToolbar = function (item, event) {
 	    event.stopPropagation();
-	    
+
+        function areYouSure(confirmation){
+            if(confirmation == true){
+                ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){                	          
+                    if (data === undefined)
+                            return;
+                    
+                    if (data.return == 'deleted'){
+                        serviceDeleted();
+                    }
+                    else if (data.return == 'error')
+                        alert("ERROR");
+                    
+                }).fail(function (jqXHR) {
+                    alert("status="+jqXHR.status);
+                });  
+            }
+            else
+                return;
+        }
+ 
 	    function serviceDeleted(){
-            alert("SERVICE DELETED!");            
+            alert("SERVICE DELETED!");          
+
             index = self.tasks.indexOf(item);
             if (self.tasks()[index].serviceID()== item.serviceID()){
                 self.tasks.splice( index, 1 );            //delete this service from obsarevalbe array                                                                
             }  
-	    }
+        }
 	
 	    var x = $(event.target).attr('id');
 	    if (x === "delete") {
-	    	ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID() }).done(function (data) {            
-                console.log(data);    
+	    	ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID() }).done(function (data) {
         		if (data === undefined)
-                        return;                
+                        return;    
+
                 data = data.return;
-                
+
                 if(data == 'shared'){
-                	confirmation = confirm("This is a shared service. You still want to delete "+item.name()+"()?");
-                	if(confirmation == true){
-                		ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){                	          
-                    		if (data === undefined)
-                                    return;
-                    		
-                            if (data.return == 'true'){
-                            	serviceDeleted();
-                            }
-                    		else if (data.return == 'error')
-                    			alert("ERROR");
-                    		
-                		}).fail(function (jqXHR) {
-                            alert("status="+jqXHR.status);
-                        });  
-                	}
-                	else
-                		return;
+                    confirmation = confirm("This is a shared service. You still want to delete "+item.name()+"()?");
+                    areYouSure(confirmation);
                 }
-                else if (data == 'true'){
-                	serviceDeleted();
+                else if (data == 'not_shared'){
+                    confirmation = confirm("Do you want to delete "+item.name()+"()?");
+                	areYouSure(confirmation);
                 }        			
         		else if (data == 'error')
         			alert("ERROR");

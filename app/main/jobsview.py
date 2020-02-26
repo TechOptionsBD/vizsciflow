@@ -285,16 +285,14 @@ def functions():
         service_id = request.args.get("service_id")
         if 'confirm' in request.args:
             if request.args.get("confirm") == "true":
-                #ServiceAccess.remove(service_id)
                 Service.remove(current_user.id, service_id)       
-                return json.dumps({'return':'true'})
+                return json.dumps({'return':'deleted'})
         else:
             shared_service_check = ServiceAccess.check(service_id) 
             if shared_service_check:  
                 return json.dumps({'return':'shared'})
             else:
-                Service.remove(current_user.id, service_id)
-                return json.dumps({'return':'true'})
+                return json.dumps({'return':'not_shared'})
         return json.dumps({'return':'error'})
     
     elif 'codecompletion' in request.args:
@@ -357,26 +355,6 @@ def functions():
         
     else:
         return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
-
-# @main.route('/delete_service/<service_id>', methods=['DELETE'])
-# @login_required
-# def delete_service(service_id):
-#     """ If the collection exists, delete it 
-#     if collection in stock:
-#         del stock[collection]
-#         res = make_response(jsonify({}), 204)
-#         return res
-#     res = make_response(jsonify({"error": "Collection not found"}), 404)
-#     return res
-#     """
-#       
-#     #if request.method == "DELETE":
-#     try:
-#         Service.remove(current_user.id, service_id)
-#         return True
-#       
-#     except Exception as e:
-#         return json.dumps({'error': str(e)})
 
 
 @main.route('/graphs', methods=['GET', 'POST'])

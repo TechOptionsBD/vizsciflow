@@ -174,7 +174,27 @@ function SamplesViewModel(sampleViewModel) {
     //workflow delete button
     self.workflowToolbar = function (item, event) {
 	    event.stopPropagation();
-		
+        
+        function areYouSure(confirmation){
+            if(confirmation == true){
+                ajaxcalls.simple(self.samplesURI, 'GET', { 'workflow_id': item.id(), 'confirm':'true' }).done(function (data){               	          
+                    if (data === undefined)
+                            return;
+                    
+                    if (data.return == 'deleted'){
+                        workflowDeleted();
+                    }
+                    else if (data.return == 'error')
+                        alert("ERROR");
+                    
+                }).fail(function (jqXHR) {
+                    alert("Status: "+jqXHR.status);
+                });  
+            }
+            else
+                return;
+        }
+ 
 	    function workflowDeleted(){
 	    	alert("WORKFLOW DELETED!");
             
@@ -188,38 +208,24 @@ function SamplesViewModel(sampleViewModel) {
 	    var x = $(event.target).attr('id');
 	    if (x === "delete") {
 	    	ajaxcalls.simple(self.samplesURI, 'GET', { 'workflow_id': item.id() }).done(function (data) {            
-                console.log(data);    
+                // console.log(data);    
         		if (data === undefined)
-                        return;                
+                        return;        
+
                 data = data.return;
                 
                 if(data == 'shared'){
-                	confirmation = confirm("This is a shared workflow. You still want to delete "+item.name()+"?");
-                	if(confirmation == true){
-                		ajaxcalls.simple(self.samplesURI, 'GET', { 'workflow_id': item.id(), 'confirm':'true' }).done(function (data){                	          
-                    		if (data === undefined)
-                                    return;
-                    		
-                            if (data.return == 'true'){
-                                workflowDeleted();                                                                                        
-                            }
-                    		else if (data.return == 'error')
-                    			alert("ERROR");
-                    		
-                		}).fail(function (jqXHR) {
-                            alert("status="+jqXHR.status);
-                        });  
-                	}
-                	else
-                		return;
+                    confirmation = confirm("This is a shared workflow. You still want to delete "+item.name()+" workflow?");
+                    areYouSure(confirmation);
                 }
-                else if (data == 'true'){
-                	workflowDeleted();
-                }        			
+                else if (data == 'not_shared'){
+                    confirmation = confirm("Do you want to delete "+item.name()+" workflow?");
+                	areYouSure(confirmation);
+                }       			
         		else if (data == 'error')
         			alert("ERROR");
                 }).fail(function (jqXHR) {
-                        alert("status="+jqXHR.status);
+                        alert("Status: "+jqXHR.status);
                 }); 
             }
 

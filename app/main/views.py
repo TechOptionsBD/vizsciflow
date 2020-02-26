@@ -848,22 +848,19 @@ def samples():
         return json.dumps(workflow.to_json())
     elif request.args.get('tooltip'):
         workflow = Workflow.query.filter_by(id = request.args.get('tooltip')).first_or_404()
-        return json.dumps(workflow.to_json_tooltip())
-    
+        return json.dumps(workflow.to_json_tooltip())   
     elif 'workflow_id' in request.args:
         workflow_id = request.args.get("workflow_id")
         if 'confirm' in request.args:
             if request.args.get("confirm") == "true":
-                #WorkflowAccess.remove(workflow_id)
                 Workflow.remove(current_user.id, workflow_id)       
-                return json.dumps({'return':'true'})
+                return json.dumps({'return':'deleted'})
         else:
             shared_Workflow_check = WorkflowAccess.check(workflow_id) 
             if shared_Workflow_check:  
                 return json.dumps({'return':'shared'})
             else:
-                Workflow.remove(current_user.id, workflow_id)
-                return json.dumps({'return':'true'})
+                return json.dumps({'return':'not_shared'})
         return json.dumps({'return':'error'})
     
     access = int(request.args.get('access')) if request.args.get('access') else 0

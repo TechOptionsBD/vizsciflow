@@ -5,7 +5,7 @@
   padding-right: 120px;
   right: 0;
   top: 0;
-  display: block;
+  display: none;
   color: #337ab7;
 }
 .even-row:hover .serviceToolbar, .odd-row:hover .serviceToolbar {
@@ -920,7 +920,7 @@ border-radius: 50px;
   opacity: .5;
 }
 
-#DiagramOverview{
+#DiagramOverview, #DiagramOverview{
 	position: absolute; 
 	right: 10px; 
 	bottom: 10px; 

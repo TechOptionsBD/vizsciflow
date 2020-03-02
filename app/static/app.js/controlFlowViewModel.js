@@ -20,16 +20,17 @@ function GojsControlFlow() {
 
 
 	self.show = function () {	
-		//initialize the canvas
+
 		canvasIntialize();
 		
-		// validate if the linking modules have the same (compatible) data type
 		controlDiagram.toolManager.linkingTool.linkValidation = validateSameDataTypeOfModules;
 
-		//make node & port
+		//init node & port
 		makeTemplate("Project", "white",
 					[makePort("xml", "Potential Clones", true)],
 					[makePort("xml", "XML ", false)]);	
+		
+		linkTemplate();
 		
 		//starts diagram events
 		diagramEvents();
@@ -187,20 +188,20 @@ function GojsControlFlow() {
 		controlDiagram.nodeTemplateMap.add(typename, node);
 	}
 
+	function linkTemplate(){
+		controlDiagram.linkTemplate =
+			$$(go.Link,
+				{
+					routing: go.Link.AvoidsNodes, corner: 10,
+					relinkableFrom: false, relinkableTo: false, curve: go.Link.JumpGap
+				},				
+				$$(go.Shape, { stroke: "#00bfff", name: "datalink", strokeWidth: 2.5 }),
+				$$(go.Shape, { stroke: "#00bfff", name: "datalinkArrow", fill: "#00bfff", toArrow: "Standard" })
 
-	controlDiagram.linkTemplate =
-		$$(go.Link,
-			{
-				routing: go.Link.AvoidsNodes, corner: 10,
-				relinkableFrom: false, relinkableTo: false, curve: go.Link.JumpGap
-			},
-			$$(go.Shape, { stroke: "gray", name: "datalink", strokeWidth: 2 }),
-			$$(go.Shape, { stroke: "gray", name: "datalinkArrow", fill: "gray", toArrow: "Standard" })
-			
-			// $$(go.Shape, { stroke: "#00bfff", name: "datalink", strokeWidth: 2.5 }),
-			// $$(go.Shape, { stroke: "#00bfff", name: "datalinkArrow", fill: "#00bfff", toArrow: "Standard" })
-		);
-
+				// $$(go.Shape, { stroke: "gray", name: "datalink", strokeWidth: 2 }),
+				// $$(go.Shape, { stroke: "gray", name: "datalinkArrow", fill: "gray", toArrow: "Standard" })
+			);
+		}
 
 	function addNewLinkToWorkflowObject(newLinkInformation) {
 		controlDiagram.startTransaction("add link");

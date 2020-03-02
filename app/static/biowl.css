@@ -920,7 +920,7 @@ border-radius: 50px;
   opacity: .5;
 }
 
-#DiagramOverview, #DiagramOverview{
+#DiagramOverview, #visualDiagramOverview{
 	position: absolute; 
 	right: 10px; 
 	bottom: 10px; 

@@ -7,6 +7,7 @@ from .func_resolver import Library
 from ..tasks import TaskManager
 from .context import Context
 from ..fileop import FolderItem
+from .wfobj import WfWorkflow, WfModule, WfData, WfProperty
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,11 +20,24 @@ class Interpreter(object):
         self.line = 0
     
     def get_args(self, expr):
-        v = []
+        v = ()
         for e in expr:
-            v.append(self.eval(e))
+            v += (self.eval(e),)
         return v
+    
+    def domember(self, expr):
+        objs = expr[0].split('.')
+        objs = [i for i in objs if i]
+        objs.append(expr[1]) # add the member to the attributes
         
+        if not self.context.var_exists(objs[0]):
+            raise ValueError("Object doesn't exist: {0}")
+        
+        obj = self.context.get_var(objs[0])
+        for i in range(1, len(objs)):
+            obj = getattr(obj, expr[i])
+        return obj
+    
     def dofunc(self, expr):
         '''
         Execute func expression.
@@ -35,6 +49,15 @@ class Interpreter(object):
         params = expr[1] if len(expr) < 3 else expr[2]
         v = self.get_args(params)
         
+        if package:
+            if self.context.var_exists(package):
+                obj = self.context.get_var(package)
+                return getattr(obj, function)(*v)
+            
+            registry = {'Workflow':WfWorkflow, 'Module':WfModule, 'Data':WfData, 'Property':WfProperty}
+            if package in registry:
+                return getattr(registry[package], function)(*v)
+           
         # call task if exists
         if package is None and function in self.context.library.tasks:
             return self.context.library.run_task(function, v, self.dotaskstmt)
@@ -43,6 +66,7 @@ class Interpreter(object):
             raise Exception(r"Function '{0}' doesn't exist.".format(function))
             
         return Library.call_func(self.context, package, function, v)
+
 
     def dorelexpr(self, expr):
         '''
@@ -441,6 +465,8 @@ class Interpreter(object):
             return self.dodict(expr[1:])
         elif expr[0] == "FUNCCALL":
             return self.dofunc(expr[1])
+        elif expr[0] == "OBJMEMBER":
+            return self.domember(expr[1])
         elif expr[0] == "LISTIDX":
             return self.dolistidx(expr[1])
         elif expr[0] == "PAR":

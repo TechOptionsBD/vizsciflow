@@ -100,6 +100,7 @@ class BasicGrammar():
         self.listidx = Group(self.identifier + Suppress("[") + self.expr + Suppress("]")).setParseAction(lambda t : ['LISTIDX'] + t.asList())
         self.dictdecl = Forward()
         self.listdecl = Forward() 
+        self.objmember = Group(modpref + self.identifier).setParseAction(lambda t : ['OBJMEMBER'] + t.asList())
         
         pi = CaselessKeyword( "PI" )
         fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?")
@@ -118,7 +119,7 @@ class BasicGrammar():
         self.numexpr << Group((self.multexpr + ZeroOrMore(self.addop + self.multexpr)).setParseAction(lambda t: ['NUMEXPR'] + t.asList()))
         self.stringaddexpr << Group((self.string + ZeroOrMore(Literal("+") + (self.identifier | self.string))).setParseAction(lambda t: ['CONCAT'] + t.asList()))
                 
-        self.expr << (self.stringaddexpr | self.string | self.funccall | self.listidx | self.listdecl | self.dictdecl | self.numexpr).setParseAction(lambda x : x.asList())
+        self.expr << (self.stringaddexpr | self.string | self.funccall | self.objmember | self.listidx | self.listdecl | self.dictdecl | self.numexpr).setParseAction(lambda x : x.asList())
         
         self.namedarg = Group(self.identifier + Literal("=") + Group(self.expr)).setParseAction(lambda t: ['NAMEDARG'] + t.asList())
         self.arguments << delimitedList(Group(self.namedarg | self.expr))
@@ -126,7 +127,7 @@ class BasicGrammar():
         self.params = delimitedList(Group(self.namedarg | self.identifier))
         
         self.exprexpr = Forward()
-        self.exprexpr << (self.stringaddexpr | self.string | self.funccall | self.listidx | self.numexpr)#.setParseAction(lambda x : x.asList())
+        self.exprexpr << (self.stringaddexpr | self.string | self.funccall | self.objmember | self.listidx | self.numexpr)#.setParseAction(lambda x : x.asList())
         
         # Definitions of rules for logical expressions (these are without parenthesis support)
         self.relexpr = Group((Suppress(Optional(self.lpar)) + Group(self.exprexpr) + Optional(self.relop + Group(self.exprexpr)) + Suppress(Optional(self.rpar))).setParseAction(lambda t: ['RELEXPR'] + t.asList()))
@@ -159,9 +160,10 @@ class BasicGrammar():
         self.assignstmt = (Group(self.tupassign | self.listidx | self.identifier) + Suppress(Literal("=")) + Group(self.tupdecl | self.expr | self.listidx | self.listdecl | self.dictdecl)).setParseAction(lambda t: ['ASSIGN'] + t.asList())
         
         self.funccallstmt = self.funccall
+        self.objmemberstmt = self.objmember
         
     def build_program(self):
-        self.stmt << Group((self.taskdefstmt | self.parstmt | self.retstmt | self.ifstmt | self.forstmt | self.lockstmt | self.funccallstmt | self.assignstmt | self.expr).setParseAction(lambda s,l,t :  ['STMT'] + [lineno(l, s)] + [t]))
+        self.stmt << Group((self.taskdefstmt | self.parstmt | self.retstmt | self.ifstmt | self.forstmt | self.lockstmt | self.funccallstmt | self.objmemberstmt | self.assignstmt | self.expr).setParseAction(lambda s,l,t :  ['STMT'] + [lineno(l, s)] + [t]))
         self.stmtlist << ZeroOrMore(self.stmt)
         self.program = self.stmtlist
 

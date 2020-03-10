@@ -435,7 +435,7 @@
 					</div>
 					
 				</div>
-					<div class="panel-body" style="">
+					<div class="panel-body">
 						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
 							<ul class="nav nav-tabs marginBottom">
 								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
@@ -647,10 +647,10 @@
 
 								<!-- service delete button for owner only -->
 								<span id='serviceDropdown' class='serviceToolbar' data-bind="visible: isOwner()">
-									<!-- <span id="shareDropdown" data-bind="event: {click: $parent.serviceToolbar} "
+									<span id="shareDropdown" data-bind="event: {click: $parent.shareWithUsers} "
 										class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										Share &#x25BC;
-									</span> -->
+										Share
+									</span>
 									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.serviceToolbar} "></span>
 								</span>
 							
@@ -1985,6 +1985,39 @@
 	</div>
 </div>
 
+<div id="modalShareService" class="modal fade" tabindex="=1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 id="addSampleDialogLabel">Service Sharing</h4>
+			</div>
+			<div class="modal-body">
+				<div class="container-fluid">
+					<div class="row service-form-group">
+						<label class="span-sm-2" for="access">Public</label>
+						<div class="span-sm-2">
+							<input type="checkbox" data-bind="checked: access">
+						</div>
+						<label for="" class="span-sm-4">Share with</label>
+						<div class="span-sm-12">
+							<select id="ddlShareService" multiple="multiple" class="form-control" data-bind="options: userList, 
+																 optionsText: 'name', 
+																 optionsValue: 'id', 
+																 selectedOptions: selectedSharedUsers">
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button data-bind="click: saveServiceSharing" class="btn btn-primary">Save</button>
+				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -2726,8 +2759,11 @@ function typeInTextarea(el, newText) {
         var sampleViewModel = new SampleViewModel();
         var editTaskViewModel = new EditTaskViewModel();
 //         var loginViewModel = new LoginViewModel();
+
+		var taskSharingViewModel = new TaskSharingViewModel();
+		taskSharingViewModel.getUsers();
         var tasksViewModel = new TasksViewModel();
-        tasksViewModel.load();
+		tasksViewModel.load();
         
         var samplesViewModel = new SamplesViewModel(sampleViewModel);
         samplesViewModel.load();
@@ -2748,6 +2784,7 @@ function typeInTextarea(el, newText) {
         ko.applyBindings(metadataViewModel, $('#metadataView')[0]);
 		ko.applyBindings(metadataViewModel, $('#update-metadata-dialog')[0]);
 		// ko.applyBindings(tasksViewModel, $("#executeSection")[0]);
+		ko.applyBindings(taskSharingViewModel, $('#modalShareService')[0]);
                 
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
     

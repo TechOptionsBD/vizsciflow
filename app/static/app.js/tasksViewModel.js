@@ -370,14 +370,13 @@ function TasksViewModel() {
                     // internal: ko.observable(f.internal),
                     returns: ko.observable(f.returns),
                     params: ko.observable(f.params),                    
-                    returnData: ko.observable(f.returnData),                    
+                    returnData: ko.observable(f.returnData),
+                    sharedWith: ko.observableArray(f.sharedWith || [])                    
                 });
             });
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });
-
-        self.getUsers();
     });
 
     self.reload = $.debounce(500, function () {
@@ -745,18 +744,77 @@ function TasksViewModel() {
         self.initiateSlider();
     }
 
+
+
+    self.shareWithUsers = function (data, e) {  
+        taskSharingViewModel.shareWithUsers(data);
+    }
+    
+};
+
+function TaskSharingViewModel() {
+    var self = this;
+    self.tasksURI = '/functions';
+    self.selectedSharedUsers = ko.observableArray();
+    self.selectedTask = ko.observable();
+    self.access = ko.observable();
+    self.userList = ko.observableArray();
+    self.access.subscribe(function(newVal){
+        if (newVal) {
+            $("#ddlShareService").multiselect('disable');
+        } else {
+            $("#ddlShareService").multiselect('enable');
+        }
+    });
+
+    self.saveServiceSharing = function () {  
+        self.selectedTask().access= self.access();
+        self.selectedTask().sharedWith = ko.toJS(self.selectedSharedUsers);
+        ajaxcalls.simple(self.tasksURI, 'POST', ko.toJSON(self.selectedTask)).done(function (res) {
+            
+
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });;
+    }
+
     self.getUsers = function () { 
         self.userList([]);
-        // self.selectedSharingUsers([]); 
+        
         ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 1 }).done(function (data) {
             
             JSON.parse(data).forEach(element => {
                 self.userList.push({id: element[0], name:  element[1]});
             });
 
-            // self.initiateMultiselectUser()
+            $("#ddlShareService").multiselect(
+                {
+                    includeSelectAllOption: true,
+                    inheritClass: true,
+                    buttonWidth: '100%',
+                    enableFiltering: true,
+                    dropUp: false,
+                    maxHeight: 200
+                }
+            );
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });
     }
-};
+
+    self.shareWithUsers = function (selectedTask) {  
+        self.getUsers();
+        self.selectedTask(selectedTask);
+        $("#ddlShareService").multiselect('deselectAll', false);
+        $("#ddlShareService").multiselect('updateButtonText');
+        self.selectedSharedUsers([]);
+        self.selectedSharedUsers(ko.toJS(selectedTask.shareWithUsers));
+        if (selectedTask.access == 0) {
+            self.access(true);
+        } else {
+            self.access(false);
+        }
+        
+        $('#modalShareService').modal('show'); 
+    }
+} 

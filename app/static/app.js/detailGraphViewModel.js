@@ -1,73 +1,23 @@
 function detailGojsGraph()
-        {			
+        {
         	var self = this;
 
-       		//refactoring data for gojs graph
     		self.show = function(rels) {
-    			self.nodes = [];
-    			self.links = [];			
-    			self.nodeDataArray = [];
-    			self.linkDataArray = [];
-
-    			//remove duplicate values 
-    			rels = rels.filter((rels, index, self) =>
-    			  index === self.findIndex((t) => (
-    			    t.source.id === rels.source.id && t.target.id === rels.target.id
-    			  ))
-    			)
-    			
-    			rels.forEach(function(rel){
-    				var exists = self.nodes.filter(function(n)
-    					{
-    						return rel.source.id === n.id; 
-    					});
-    				if (exists.length == 0)
-    					{
-    						self.nodes.push(rel.source);
-    						self.nodeDataArray.push({key: rel.source.id, type: rel.source.label, name: rel.source.name});
-    					}
-    				
-    				exists = self.nodes.filter(function(n)
-    					{
-    						return rel.target.id === n.id; 
-    					});
-    				if (exists.length == 0)
-    					{
-    						self.nodes.push(rel.target);
-    						self.nodeDataArray.push({key: rel.target.id, type: rel.target.label, name: rel.target.name});
-    					}					
-    			});
-    			
-    			rels.forEach(function(rel) {
-    				
-    				var sourceNode = self.nodes.filter(function(n) { return n.id === rel.source.id; })[0];
-    			    var targetNode = self.nodes.filter(function(n) { return n.id === rel.target.id; })[0];
-    			    self.links.push({source: sourceNode, target: targetNode, value: rel.type});
-    			    self.linkDataArray.push({from: sourceNode.id, frompid: 'OUT', to: targetNode.id, topid: 'IN', value: rel.type});
-    			});
-    						
-//    			console.log(JSON.stringify(self.linkDataArray))
-//    			console.log(JSON.stringify(self.nodeDataArray))
-    			
-		    	//reload the graph
-    			var graphdiv = document.getElementById("graph");
-    			if (graphdiv !== null) {
-    			    var olddiag = go.Diagram.fromDiv(graphdiv);
-    			    if (olddiag !== null) 
-    			    	olddiag.div = null;
+				
+				//diagram reload function
+    			function diagramReload(diagramName){
+    				var diagramDiv = document.getElementById(diagramName);
+        			if (diagramDiv !== null) {
+        			    var olddiag = go.Diagram.fromDiv(diagramDiv);
+        			    if (olddiag !== null)
+        			    	olddiag.div = null;
+        			}
     			}
-  		      
-  		    	//reload the overview
-      			var overviewdiv = document.getElementById("DiagramOverview");
-      			if (overviewdiv !== null) {
-      			    var oldoverview = go.Diagram.fromDiv(overviewdiv);
-      			    if (oldoverview !== null) 
-      			    	oldoverview.div = null;
-      			}      			
+    			diagramReload("graph");					//reload the graph
+    			diagramReload("DiagramOverview");		//reload the overview
       			
     			//gojs graph
     			var $$ = go.GraphObject.make;
-
     			Diagram =
     		        $$(go.Diagram, "graph",
     		          {   		        	
@@ -75,207 +25,132 @@ function detailGojsGraph()
     		            initialAutoScale: go.Diagram.UniformToFill,
     		            layout: $$(go.LayeredDigraphLayout,				//graph layout is Layered
     		              { direction: 0,								//graph will extend towards Right direction
-    		            	layeringOption: go.LayeredDigraphLayout.LayerLongestPathSource
-    		              }),							
+							layeringOption: go.LayeredDigraphLayout.LayerLongestPathSource,
+							setsPortSpots: false
+    		              }),
     		            "undoManager.isEnabled": true,
     		            "animationManager.isEnabled": true
     		          }
-    		        );    		      
-    		      
-    		      // create the Overview and initialize it to show the main Diagram
-    			  var myOverview =
-    			    $$(go.Overview, "DiagramOverview",
-    			      { observed: Diagram });
-    			    myOverview.grid.visible = true;
-    			    
-    		      function makePort(name, leftside) {
-    		        var port = $$(go.Shape, "Rectangle",					//shape of "port"
-    		          {
-    		            fill: "gray",
-    		            desiredSize: new go.Size(8, 8),					//size of "port"
-    		            //portId: name,  									//declare this object to be a "port"
-                        toMaxLinks: 1,  								// don't allow more than one link into a port
-    		            cursor: "pointer"  								// show a different cursor to indicate valid link point
-    		          });
-    		        var lab = $$(go.TextBlock, name,						// the name of the port is empty
-    		          { 
-    		        	stroke: "white", 								//port text color
-    		        	font: "bold 6pt arial" 							//port text font
-    		           }); 					
-    		        var panel = $$(go.Panel, "Horizontal",
-    		          { margin: new go.Margin(2, 0) });
-    		        
-    		        // set up the port/panel based on which side of the node it will be on
-    		        if (leftside) {
-    		          port.toSpot = go.Spot.Left;
-    		          port.toLinkable = true;
-    		          port.portId = name;
-    		          port.fill = 'orange';
-    		          lab.margin = new go.Margin(1, 0, 0, 1);
-    		          panel.alignment = go.Spot.TopLeft;
-    		          panel.add(port);
-    		          panel.add(lab);
-    		        } else {
-    		          port.fromSpot = go.Spot.Right;
-    		          port.fromLinkable = true;
-    		          port.portId = name;
-    		          lab.margin = new go.Margin(1, 1, 0, 0);
-    		          panel.alignment = go.Spot.TopRight;
-    		          panel.add(lab);
-    		          panel.add(port);
-    		        }
-    		        return panel;
-    		      }
-    		      
-    		      function makeTemplate(typename, background, inports, outports) {
-    		        var node = $$(go.Node, "Spot",
-    		           { selectionAdorned: false },  
-    		          $$(go.Panel, "Auto",
-    		            { width: 120, height: 90,								//size of nodes
-    		              minSize: new go.Size(100, 70), maxSize: new go.Size(150,10)},							
-    		            $$(go.Shape, "RoundedRectangle",						//shape of nodes
-    		              {
-    		                fill: background, stroke: null, strokeWidth: 0, 
-    		                spot1: go.Spot.TopLeft, spot2: go.Spot.BottomRight
-    		              }),
-    		            $$(go.Panel, "Table",
-    		              $$(go.TextBlock, 
-    		                {
-    		                  row: 0,
-    		                  margin: 3,
-    		                  maxSize: new go.Size(80, NaN),
-    		                  stroke: "white",								//node value color
-    		                  font: "bold 9pt sans-serif"					//node value font
-    		                },
-    		                new go.Binding("text", "name").makeTwoWay()
-    		                ),
-    		                //add an extra blank row in middle 
-   		                	$$(go.TextBlock, 
-    		                {
-   		                	  text : "",
-    		                  row: 1,
-    		                  margin: 3,
-    		                  maxSize: new go.Size(80, NaN)
-    		                }),
-    		              $$(go.TextBlock, typename,
-    		                {
-    		                  row: 2,
-    		                  margin: 3,
-    		                  maxSize: new go.Size(80, 40),
-    		                  stroke: "white",								//node title color
-    		                  font: "bold 6pt sans-serif"					//node title font
-    		                },
-    		                //new go.Binding("text", "name").makeTwoWay()),
-    		                )
-    		            )
-    		          ),
-    		          $$(go.Panel, "Vertical",
-    		            {
-    		              alignment: go.Spot.Left,
-    		              alignmentFocus: new go.Spot(0, 0.5, 8, 0)
-    		            },
-    		            inports),
-    		          $$(go.Panel, "Vertical",
-    		            {
-    		              alignment: go.Spot.Right,
-    		              alignmentFocus: new go.Spot(1, 0.5, -8, 0)
-    		            },
-    		            outports)
-    		        );
-    		        Diagram.nodeTemplateMap.set(typename, node);
-    		      }
-    		      
-    		      //making nodes with data binding (label, color, inports, outports) 
-    		      makeTemplate("Workflow", "CadetBlue",
-    		    	[makePort("IN", true)],									//no inport
-        	        [makePort("OUT", false)]);
-        	      makeTemplate("Data", "SteelBlue",
-        	        [makePort("IN 1", true)],
-        	        [makePort("OUT 1", false)]);
-//        	      makeTemplate("Service", "Teal",
-//        	        [makePort("IN", true)],
-//        	        [makePort("OUT", false)]);
-//    		      makeTemplate("Output", "forestgreen",
-//    		    	[makePort("", true)],
-//    		        []);													//no outport
+					);   
 
-    		      Diagram.linkTemplate =
-    		        $$(go.Link,
-    		          {
-    		            routing: go.Link.AvoidsNodes,							//link routing style 
-    		            corner: 5,
-    		            relinkableFrom: true, 
-    		            relinkableTo: true
-    		          },
-    		          $$(go.Shape, { stroke: "gray", strokeWidth: 2 }),
-    		          $$(go.Shape, { stroke: "gray", fill: "gray", toArrow: "Standard" }),
-    			      $$(go.TextBlock,                        
-    			        new go.Binding("text", "value"), 					//link label data binding
-    			        {font: "bold 6pt sans-serif"})						//link label font
-    		        );
-    		      
-    		      	var outport = 0;
-    		      	var inport = 0;
-    	            var listOfInputPorts = [];
-    	            var listOfOutputPorts = [];
-    	            
-    		      	//create nodes using model data
-    	            self.nodes.forEach(function(node) {
-    		      		label = node.label;
-    		      		name = node.name;
-    		      		
-    		      		switch(label) {
-	    		      	  case "Workflow":
-	    		      		color = 'CadetBlue';
-	    		      	    break;
-	    		      	  case "Data":
-	    		      		color = 'SteelBlue';
-	    		      	    break;
-	    		      	case "Service":
-	    		      		color = 'Teal';
-	    		      		break;
-	    		      	default:
-	    		      		color = 'SteelBlue';
-	    		      	}
-    		      		
-    		      		self.linkDataArray.forEach(function(link) {
-    		      		//input port definition
-    		      			if(node.id == link.to){
-		      					inport++;
-		      					inport_lable = 'IN ' + inport;
-		      					link.topid = inport_lable;
-		      					var aNewInputPort = makePort(inport_lable,true);
-		      	                listOfInputPorts.push(aNewInputPort);
-		      				}
-        		      		//output port definition
-        		      			if(node.id == link.from){
-        		      				outport++;
-        		      				outport_lable = 'OUT ' + outport;
-        		      				link.frompid = outport_lable;
-        		      				var aNewOutputPort = makePort(outport_lable,false);
-    		      	                listOfOutputPorts.push(aNewOutputPort);
-        		      			}
-        		      		});    		      		
-    		      		    		      		
-	    		      	//creating model for graph data 
-	    		  		var graph_model_data = ({class: 'go.GraphLinksModel', nodeCategoryProperty: 'type', linkFromPortIdProperty: 'frompid', linkToPortIdProperty: 'topid', nodeDataArray: self.nodeDataArray, linkDataArray: self.linkDataArray});
-	
-	    		  		Diagram.model = go.Model.fromJson(JSON.stringify(graph_model_data));  //load()
-	    		  		Diagram.model.isReadOnly = true;  									 // Disable adding or removing parts
-    		      		
-    		      		makeTemplate(label, color,
-    		      				listOfInputPorts,
-    		                    listOfOutputPorts);
-    		      		
-    		      		listOfInputPorts = [];
-	                    listOfOutputPorts = [];
-    		      		outport = 0; 
-    		      		inport = 0;
-      			  });   	    	
-    		    }		
-    		}
+				// create the Overview and initialize it to show the main Diagram
+				var myOverview =
+				$$(go.Overview, "DiagramOverview",
+					{ observed: Diagram });
+				myOverview.grid.visible = true;
+
+
+				Diagram.nodeTemplate = $$(go.Node, "Spot",
+					{ selectionAdorned: false },  
+					$$(go.Panel, "Auto",
+						{ width: 120, height: 90,								//size of nodes
+						  name: 'node', minSize: new go.Size(100, 70), maxSize: new go.Size(150,10)},							
+						$$(go.Shape, "RoundedRectangle",						//shape of nodes
+							{
+								fill: "white", stroke: null, strokeWidth: 0,  
+								spot1: go.Spot.TopLeft, spot2: go.Spot.BottomRight,
+								portId: ""
+							},
+							new go.Binding("fill", "color"),
+							new go.Binding("figure", "shape")),
+						$$(go.Panel, "Table",
+							$$(go.TextBlock, 
+								{
+									name: 'nodeName',
+									row: 0,
+									margin: 3,
+									maxSize: new go.Size(80, NaN),
+									stroke: "white",								//node name color
+									font: "bold 9pt sans-serif",					//node name font	
+								},
+							new go.Binding("text", "name").makeTwoWay(),
+								{
+									toolTip:
+									$$("ToolTip",
+										$$(go.TextBlock, { margin: 4 },
+										new go.Binding("text", "name"))
+									)
+								}
+							),
+							$$(go.TextBlock,
+							{
+								row: 2,
+								margin: 3,
+								maxSize: new go.Size(80, 40),
+								stroke: "white",							//node type color
+								font: "bold 6pt sans-serif"					//node type font
+							},
+							new go.Binding("text", "type").makeTwoWay()),
+							)
+						)
+					);
+
+				Diagram.linkTemplate =
+				$$(go.Link,
+					{
+						routing: go.Link.AvoidsNodes,						//link routing style 
+						corner: 5,
+						relinkableFrom: true, 
+						relinkableTo: true,
+						fromSpot: go.Spot.RightSide, toSpot: go.Spot.LeftSide,
+					},
+					$$(go.Shape, { stroke: "gray", strokeWidth: 2 }),
+					$$(go.TextBlock,                        
+					new go.Binding("text", "value"), 						//link label data binding
+					{font: "bold 6pt sans-serif"}),							//link label font
+					
+					$$(go.Shape, { fromArrow: "Block", fill: "gray" }),
+					$$(go.TextBlock,
+					{
+						segmentIndex: 0, alignmentFocus: new go.Spot(1, 0.5, 2, 0),
+						stroke: "white", 									//outport text color
+    		         	font: "bold 6pt arial" 								//outport text font
+					},
+					new go.Binding("text", "frompid")),
+
+					$$(go.Shape, { toArrow: "RoundedTriangle", fill: "orange" }),
+					$$(go.TextBlock,
+					{
+						segmentIndex: -1, alignmentFocus: new go.Spot(0, 0.5, -2, 0),
+						stroke: "white", 									//inport text color
+    		         	font: "bold 6pt arial" 								//inport text font
+					},
+					new go.Binding("text", "topid"))
+				); 	
+
+				//edit color value for each node
+				rels['nodeDataArray'].forEach(function(node) {
+					type = node.type;
+					
+					switch(type) {
+						case "Operator":
+							color = 'CadetBlue';
+							break;
+						case "Data":
+							color = 'SteelBlue';
+							break;
+						case "Service":
+							color = 'Teal';
+							break;
+						default:
+							color = 'SteelBlue';
+					}
+
+					node.color = color;								//assign node color
+					node.name += '\n';								//add a new line after node name
+					// console.log(node);
+				});
+
+				//creating graph using model data 
+				var modelData = ({class: 'go.GraphLinksModel', nodeDataArray: rels['nodeDataArray'], linkDataArray: rels['linkDataArray']});
+				Diagram.model = go.Model.fromJson(JSON.stringify(modelData));  //load()
+				
+				Diagram.model.isReadOnly = true;
+				
+			}		
+    	}
         
-			detailgojsGraph = new detailGojsGraph(); 
+		detailgojsGraph = new detailGojsGraph(); 
       //=======================================
       //=============gojs graph end============
       //=======================================

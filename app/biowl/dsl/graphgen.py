@@ -3,6 +3,7 @@ import logging
 import threading
 import _thread
 import json
+import random
 
 from .func_resolver import Library
 from ..tasks import TaskManager
@@ -547,8 +548,9 @@ class GraphGenerator(object):
                     for outservice in outfromprevservice.data():
                         prevdatanode = outservice['s']
                         break
-                    
-                    links.append({ "from": prevdatanode.identity, "frompid": prevdatanode.__name__, "to": node.identity, "topid": node.__name__, "value": "Input"})               
+
+                    links.append({ "from": prevdatanode.identity, "frompid": random.randint(1,1000), "to": node.identity, "topid": random.randint(1,1000), "value": "Input"})
+                    # links.append({ "from": prevdatanode.identity, "frompid": prevdatanode.__name__, "to": node.identity, "topid": node.__name__, "value": "Input"})               
                 
 #                 relmatcher = RelationshipMatcher(self.graph)
 #                 rels = relmatcher.match(node if isinstance(node, list) else [node], r_type = 'INPUT')

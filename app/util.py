@@ -2,9 +2,10 @@ from __future__ import print_function
 
 import os
 from os import path
-from .models import DataSource, DataSourceAllocation, AccessRights, DataProperty, Runnable, DataType, Task
+from .models import DataSource
 
-from app.biowl.fileop import PosixFileSystem, HadoopFileSystem, GalaxyFileSystem
+from app.biowl.fileop import HadoopFileSystem, GalaxyFileSystem
+from dsl.fileop import PosixFileSystem
 
 class Utility:
     @staticmethod
@@ -143,17 +144,3 @@ class Utility:
     def strip_root(path):
         fs = Utility.fs_by_prefix_or_default(path)
         return fs.strip_root(str(path))
-
-    @staticmethod
-    def add_meta_data(data, user_id, runnable_id, task_id, rights = AccessRights.Owner, datatype = DataType.Text):
-        ds = Utility.ds_by_prefix_or_default(data)
-        data_alloc = DataSourceAllocation.get(user_id, ds.id, data)
-        if not data_alloc:
-            data_alloc = DataSourceAllocation.add(user_id, ds.id, data, rights)
-        
-        if task_id:
-            task = Task.query.get(task_id)
-            task.succeeded(datatype, str(data) if data else '')
-            
-        workflow_id = Runnable.query.get(runnable_id).workflow_id
-        DataProperty.add(data_alloc.id, "execution {0}".format(task_id), { 'workflow': { 'task_id': task_id, 'job_id': runnable_id, 'workflow_id': workflow_id, 'inout': 'out'} })   

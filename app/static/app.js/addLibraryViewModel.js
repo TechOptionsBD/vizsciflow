@@ -29,8 +29,7 @@ function AddLibraryViewModel(userName) {
         {   
             package: '',
             name: 'MyService',
-            internal: '',
-            returns:'file',      
+            internal: '',   
             org: '',
             group: '',
             desc: '',
@@ -40,6 +39,8 @@ function AddLibraryViewModel(userName) {
     );
 
     self.serviceParams = ko.observableArray();
+
+    self.serviceReturns = ko.observableArray();
 
     self.addParam = function () {  
         self.serviceParams.push(
@@ -54,10 +55,27 @@ function AddLibraryViewModel(userName) {
         self.liveJsonView();
     };
 
+    self.addServiceReturns = function () {
+        self.serviceReturns.push(
+            ko.observableDictionary(
+                {
+                    name: '',
+                    type: ''
+                }
+            )
+        );
+        self.liveJsonView();
+    }
+
     self.removeParam = function (data, e) {  
         self.serviceParams.remove(data);
         self.liveJsonView();
     };
+
+    self.removeServiceReturns = function(data, e){
+        self.serviceReturns.remove(data);
+        self.liveJsonView();
+    }
 
     self.liveJsonView = function () {  
         var jsonPreview = Object.entries(JSON.parse(JSON.stringify(self.service))).reduce(( obj ,[key,value])=>{
@@ -68,6 +86,10 @@ function AddLibraryViewModel(userName) {
         
         if(self.serviceParams().length){
             jsonPreview.params = self.serviceParams;
+        }
+
+        if (self.serviceReturns().length) {
+            jsonPreview.returns = self.serviceReturns;
         }
 
         var jsonPrettyText = ko.toJSON(jsonPreview, null, 4);
@@ -85,7 +107,8 @@ function AddLibraryViewModel(userName) {
         var package = (self.service.get('package') ? self.service.get('package') : "");
         var serviceFormatted = JSON.parse(JSON.stringify(self.service)) ;
         serviceFormatted.params = self.serviceParams;
-        
+        serviceFormatted.returns = self.serviceReturns;
+
         var success = false;
         ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package, 'name': serviceName, 'script': self.codeEditor.getSession().getValue(), 'mapper': ko.toJSON(serviceFormatted)}, false).done(function(data) {
             
@@ -149,7 +172,8 @@ function AddLibraryViewModel(userName) {
         $('#add').modal('hide');
 
         var serviceFormatted = JSON.parse(JSON.stringify(self.service)) ;
-        serviceFormatted.params = self.serviceParams; 
+        serviceFormatted.params = self.serviceParams;
+        serviceFormatted.returns = self.serviceReturns; 
         
         var files = $("#module").get(0).files;
         var formdata = new FormData();

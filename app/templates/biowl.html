@@ -791,23 +791,52 @@
 								<button class="btn btn-sm" style="float: right;" data-bind="click: toggleFuncArea, text: textToggleFuncArea, css: { 'btn-primary' : !isFuncExpanded() , 'btn-danger' : isFuncExpanded}"></button>
 							</div>
 							<div class="span-sm-6">
-								<h3>Parameters:</h3>
-								<button class="btn btn-primary" data-bind="click: addParam, visible: serviceParams().length == 0">Add</button>
-								<form role="form" data-bind="foreach: serviceParams">
-									<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;" >
-										<a style="float: right;" class="btn btn-sm btn-primary" title="Add" data-bind="click: $parent.addParam, visible: $index() === ($parent.serviceParams().length-1)"><i class="fa fa-plus"></i></a>
-										<a style="float: right;" class="btn btn-sm btn-danger" title="Remove" data-bind="click: $parent.removeParam.bind($data)"><i class="fa fa-minus"></i></a>
-									</div>
-									<div data-bind="foreach: $data.items">
-										<div class="row service-form-group">
-											<label class="span-sm-6" data-bind="text: key"></label>
-											<div class="span-sm-14">
-												<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+								<div>
+									<h3>Parameters:</h3>
+									<button class="btn btn-primary" data-bind="click: addParam, visible: serviceParams().length == 0">Add</button>
+									<form role="form" data-bind="foreach: serviceParams" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
+										<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;">
+											<a style="float: right;" class="btn btn-sm btn-primary" title="Add"
+												data-bind="click: $parent.addParam, visible: $index() === ($parent.serviceParams().length-1)"><i
+													class="fa fa-plus"></i></a>
+											<a style="float: right;" class="btn btn-sm btn-danger" title="Remove"
+												data-bind="click: $parent.removeParam.bind($data)"><i class="fa fa-minus"></i></a>
+										</div>
+										<div data-bind="foreach: $data.items">
+											<div class="row service-form-group">
+												<label class="span-sm-6" data-bind="text: key"></label>
+												<div class="span-sm-14">
+													<input type="text" class="form-control" id="package"
+														data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+												</div>
 											</div>
 										</div>
-									</div>
-									<hr data-bind="visible: $index() != ($parent.serviceParams().length-1)">
-								</form>
+										<hr data-bind="visible: $index() != ($parent.serviceParams().length-1)">
+									</form>
+								</div>
+								<div>
+									<h3>Returns:</h3>
+									<button class="btn btn-primary" data-bind="click: addServiceReturns, visible: serviceReturns().length == 0">Add</button>
+									<form role="form" data-bind="foreach: serviceReturns" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
+										<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;">
+											<a style="float: right;" class="btn btn-sm btn-primary" title="Add"
+												data-bind="click: $parent.addServiceReturns, visible: $index() === ($parent.serviceReturns().length-1)"><i
+													class="fa fa-plus"></i></a>
+											<a style="float: right;" class="btn btn-sm btn-danger" title="Remove"
+												data-bind="click: $parent.removeServiceReturns.bind($data)"><i class="fa fa-minus"></i></a>
+										</div>
+										<div data-bind="foreach: $data.items">
+											<div class="row service-form-group">
+												<label class="span-sm-6" data-bind="text: key"></label>
+												<div class="span-sm-14">
+													<input type="text" class="form-control" id="package"
+														data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+												</div>
+											</div>
+										</div>
+										<hr data-bind="visible: $index() != ($parent.serviceReturns().length-1)">
+									</form>
+								</div>
 							</div>
 							<div class="span-sm-7">
 								<h3>JSON Preview:</h3>

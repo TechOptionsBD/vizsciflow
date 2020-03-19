@@ -13,10 +13,14 @@ from pyparsing import ParseException
 from config import Config
 
 from . import celery
-from .biowl.dsl.parser import VizSciFlowParser, PythonGrammar
-from .biowl.dsl.interpreter import Interpreter
-from .biowl.dsl.graphgen import GraphGenerator
-from .biowl.timer import Timer
+from dsl.grammar import PythonGrammar
+from dsl.parser import WorkflowParser
+from dsl.interpreter import Interpreter
+from  dsl.graphgen import GraphGenerator
+from dsl.wftimer import Timer
+from dsl.context import Context
+from app.biowl.vizsciflowlib import Library
+
 from .models import Runnable, Status, Workflow
 
 
@@ -136,7 +140,7 @@ def run_script(self, runnable_id, args):
     runnable = Runnable.query.get(runnable_id)
     workflow = Workflow.query.get(runnable.workflow_id)
     
-    machine = Interpreter()
+    machine = Interpreter(Context(Library()))
     
     parserdir = Config.BIOWL
     curdir = os.getcwd()
@@ -151,7 +155,7 @@ def run_script(self, runnable_id, args):
         runnable.update_status(Status.STARTED)
 
         with Timer() as t:
-            parser = VizSciFlowParser(PythonGrammar())   
+            parser = WorkflowParser(PythonGrammar())   
             if args:
                 args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
                 if args_tokens:

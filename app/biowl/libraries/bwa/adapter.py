@@ -3,10 +3,9 @@ from os import path
 from pathlib import Path
 
 from ...exechelper import func_exec_run
-from ...argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args, get_posix_output_folder_args
-from ....util import Utility
-from app.models import AccessRights, DataType, DataSourceAllocation
-from ...fileop import FolderItem
+from ...argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args, get_posix_output_folder_args, get_temp_dir
+from app.models import AccessRights, DataSourceAllocation
+from dsl.fileop import FolderItem
 
 bwa = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'bwa'))
 
@@ -43,7 +42,7 @@ def run_bwa(context, *args, **kwargs):
         
         if not fs.exists(indexpath):
             if not DataSourceAllocation.has_access_rights(context.user_id, fs.dirname(ref), AccessRights.Write):
-                ref = fs.copyfile(ref, fs.join(context.get_temp_dir(fs.typename()), fs.basename(ref)))
+                ref = fs.copyfile(ref, fs.join(get_temp_dir(context, fs.typename()), fs.basename(ref)))
                 indexpath = Path(ref).stem + ".bwt"
                 indexpath = fs.join(fs.dirname(ref), indexpath)
             build_bwa_index(ref)
@@ -63,7 +62,5 @@ def run_bwa(context, *args, **kwargs):
     stripped_path = fs.strip_root(output)
     if not fs.exists(output):
         raise ValueError("bwa could not generate the file " + stripped_path + " due to error " + err)
-    
-    Utility.add_meta_data(stripped_path, context.user_id, context.runnable, context.task_id, AccessRights.Owner, DataType.File if fs.isfile(output) else DataType.Folder)
     
     return FolderItem(stripped_path)

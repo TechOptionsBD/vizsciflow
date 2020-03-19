@@ -1,8 +1,18 @@
 import os
 from pathlib import Path
 from ..util import Utility
-from ..models import DataSourceAllocation, AccessRights
+from ..models import DataSourceAllocation, AccessRights, User
 
+def get_temp_dir(context, typename = "posix"):
+    '''
+    The user directory for a fs type is the temp directory.
+    '''
+    if context.user_id:
+        if not typename in context.tempdirs:
+            fs = Utility.fs_by_typename(typename)
+            context.tempdirs[typename] = fs.make_unique_dir(User.query.get(context.user_id).username)
+        return context.tempdirs[typename]
+        
 def get_input_from_args(paramindex, keyname, *args, **kwargs):
     
     barcode = ''
@@ -38,7 +48,7 @@ def get_optional_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     
     fs = None
     if Utility.fs_type_by_prefix(data) != 'posix':
-        tempdir = context.get_temp_dir('posix')
+        tempdir = get_temp_dir(context, 'posix')
         fssrc = Utility.fs_by_prefix(data)
         if not fssrc:
             raise ValueError("Data doesn't exist: " + str(data))
@@ -61,7 +71,7 @@ def get_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     
     fs = None
     if Utility.fs_type_by_prefix(data) != 'posix':
-        tempdir = context.get_temp_dir('posix')
+        tempdir = get_temp_dir(context, 'posix')
         fssrc = Utility.fs_by_prefix(data)
         if not fssrc:
             raise ValueError("Data doesn't exist: " + str(data))
@@ -91,7 +101,7 @@ def get_posix_output_folder_args(paramindex, keyname, fs, context, *args, **kwar
         if not fs.exists(outdir):
             fs.makedirs(outdir)
     else:
-        outdir = context.get_temp_dir('posix')
+        outdir = get_temp_dir(context, 'posix')
     
     return outdir
 
@@ -106,7 +116,7 @@ def get_posix_output_args(paramindex, keyname, fs, data, context, ext, *args, **
     
     data_path = Path(os.path.basename(data))
     if not output:
-        output = fs.join(context.get_temp_dir(fs.typename()), data_path.stem)
+        output = fs.join(get_temp_dir(context, fs.typename()), data_path.stem)
         output += ext if ext else "_output" + data_path.suffix
     else:
         DataSourceAllocation.check_access_rights(context.user_id, output, AccessRights.Write)

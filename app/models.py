@@ -25,6 +25,7 @@ from app.exceptions import ValidationError
 
 from . import db, login_manager
 from sqlalchemy.sql.expression import desc
+from dsl.datatype import DataType
 
 class Permission:
     FOLLOW = 0x01
@@ -901,23 +902,7 @@ class ServiceAccess(db.Model):
     
     def hasRight(self, checkRight):
         return AccessRights.hasRight(self.rights, checkRight)
-    
-class DataType:
-    Unknown = 0x00
-    Folder = 0x01
-    File = 0x02
-    Image = 0x04
-    Video = 0x08
-    Binary = 0x10
-    Text = 0x20
-    CSV = 0x40
-    SQL = 0x80
-    Custom = 0x100
-    Root = 0x200
-    FileList = 0x400
-    FolderList = 0x800,
-    Value = 0x1000
-    
+       
 class DataSourceAllocation(db.Model):
     __tablename__ = 'datasource_allocations'  
     id = db.Column(db.Integer, primary_key=True)

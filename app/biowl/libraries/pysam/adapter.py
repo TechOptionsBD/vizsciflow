@@ -2,10 +2,8 @@ import os
 import pysam
 from pathlib import Path
 
-from ...fileop import FolderItem
+from dsl.fileop import FolderItem
 from ...argshelper import get_posix_data_args, get_posix_output_args, get_posix_output_folder_args
-from ....util import Utility
-from app.models import AccessRights, DataType
 
 def exec_sam_to_bam(fs, data, output):
 
@@ -13,10 +11,13 @@ def exec_sam_to_bam(fs, data, output):
         fs.makedirs(fs.dirname(output))
 
     if fs.exists(output):
-        output = fs.unique_filename(fs.dirname(output), Path(output).stem, Path(output).suffix)
+        ext = Path(output).suffix
+        if ext:
+            ext = ext[1:] # remove the .
+        output = fs.unique_filename(fs.dirname(output), Path(output).stem, ext)
            
     infile = pysam.AlignmentFile(data, "r")
-    outfile = pysam.AlignmentFile(output, "wb", template=infile)
+    outfile = pysam.AlignmentFile(fs.normalize_path(output), "wb", template=infile)
     for s in infile:
         outfile.write(s)
     return output
@@ -39,7 +40,5 @@ def run_sam_to_bam(context, *args, **kwargs):
     stripped_path = fs.strip_root(output)
     if not fs.exists(output):
         raise ValueError("pysam could not generate the file: " + stripped_path)
-    
-    Utility.add_meta_data(stripped_path, context.user_id, context.runnable, context.task_id, AccessRights.Owner, DataType.File if fs.isfile(output) else DataType.Folder)
     
     return FolderItem(stripped_path)

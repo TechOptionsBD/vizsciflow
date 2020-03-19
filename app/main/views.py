@@ -23,7 +23,7 @@ from ..decorators import admin_required, permission_required
 
 from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType
 from ..util import Utility
-from ..biowl.fileop import FilterManager
+from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 
 app = Flask(__name__)

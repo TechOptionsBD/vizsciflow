@@ -206,5 +206,5 @@ def sync_task_status_with_db_for_user(user_id):
             
 def generate_graph(workflow_id):
     workflow = Workflow.query.get(workflow_id)
-    graphgen = GraphGenerator(Config.GRAPHDB, Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD)
+    graphgen = GraphGenerator(Context(Library()), Config.GRAPHDB, Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD)
     return graphgen.run_workflow(workflow)

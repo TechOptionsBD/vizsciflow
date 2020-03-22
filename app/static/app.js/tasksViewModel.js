@@ -770,7 +770,7 @@ function TaskSharingViewModel() {
     self.saveServiceSharing = function () {  
         self.selectedTask().access= self.access();
         self.selectedTask().sharedWith = ko.toJS(self.selectedSharedUsers);
-        ajaxcalls.simple(self.tasksURI, 'POST', ko.toJSON(self.selectedTask)).done(function (res) {
+        ajaxcalls.simple(self.tasksURI, 'GET', {'share_service': ko.toJSON(self.selectedTask)}).done(function (res) {
             
 
         }).fail(function (jqXHR) {

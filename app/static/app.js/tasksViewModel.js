@@ -371,7 +371,7 @@ function TasksViewModel() {
                     returns: ko.observable(f.returns),
                     params: ko.observable(f.params),                    
                     returnData: ko.observable(f.returnData),
-                    sharedWith: ko.observableArray(f.sharedWith || [])                    
+                    sharedWith: ko.observableArray(f.sharedWith? JSON.parse(f.sharedWith): [])                    
                 });
             });
         }).fail(function (jqXHR) {

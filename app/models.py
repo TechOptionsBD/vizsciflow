@@ -814,8 +814,7 @@ class Service(db.Model):
                 sharedWith = ServiceAccess.get_by_service_id(id[i])
                 #ServiceAccess.query.filter(ServiceAccess.service_id == id[i]).with_entities(ServiceAccess.id, ServiceAccess.user_id)
                 s['sharedWith'] = sharedWith
-            else:
-                s['sharedWith'] = []
+            
             i+=1
             
         return services

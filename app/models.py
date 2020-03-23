@@ -27,6 +27,24 @@ from . import db, login_manager
 from sqlalchemy.sql.expression import desc
 from dsl.datatype import DataType
 
+
+class AlchemyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj.__class__, DeclarativeMeta):
+            # an SQLAlchemy class
+            fields = {}
+            for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                data = obj.__getattribute__(field)
+                try:
+                    json.dumps(data) # this will fail on non-encodable values, like other classes
+                    fields[field] = data
+                except TypeError:
+                    fields[field] = None
+            # a json-encodable dict
+            return fields
+    
+        return json.JSONEncoder.default(self, obj)
+
 class Permission:
     FOLLOW = 0x01
     COMMENT = 0x02
@@ -786,12 +804,18 @@ class Service(db.Model):
         return Service.query.filter(and_(func.lower(Service.value["name"].astext).cast(Unicode) == name.lower(), not package or func.lower(Service.value["package"].astext).cast(Unicode) == package.lower()))
     
     @staticmethod
-    def add_access_to_json(id, services, access, is_owner):
+    def add_access_to_json(id, services, access, is_owner, accesses):
         i=0
         for s in services:
             s['access'] = access
             s['service_id'] =  id[i]
             s['is_owner'] = is_owner[i]
+            if accesses[i] != []:
+                sharedWith = ServiceAccess.get_by_service_id(id[i])
+                #ServiceAccess.query.filter(ServiceAccess.service_id == id[i]).with_entities(ServiceAccess.id, ServiceAccess.user_id)
+                s['sharedWith'] = sharedWith
+            else:
+                s['sharedWith'] = []
             i+=1
             
         return services
@@ -801,13 +825,13 @@ class Service(db.Model):
         samples = []
         if access == 0 or access == 3:
             services = Service.query.filter(and_(Service.public == True, Service.active == True))
-            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 0, [True if s.user_id == user_id else False for s in services]))
+            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 0, [True if s.user_id == user_id else False for s in services], [s.accesses for s in services]))
         if access == 1 or access == 3:
             services = Service.query.filter(and_(Service.public != True, Service.active == True)).filter(Service.accesses.any(and_(ServiceAccess.user_id == user_id, Service.user_id != user_id)))
-            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 1, [True if s.user_id == user_id else False for s in services]))
+            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 1, [True if s.user_id == user_id else False for s in services], [s.accesses for s in services]))
         if access == 2 or access == 3:
             services = Service.query.filter(and_(Service.public != True, Service.active == True, Service.user_id == user_id))
-            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 2, [True if s.user_id == user_id else False for s in services]))#[ x if x%2 else x*100 for x in range(1, 10) ]
+            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 2, [True if s.user_id == user_id else False for s in services], [s.accesses for s in services]))#[ x if x%2 else x*100 for x in range(1, 10) ]
         return samples
         
     @staticmethod
@@ -872,6 +896,17 @@ class ServiceAccess(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+        
+    def get_by_service_id(service_id):
+        try:
+            shared = ServiceAccess.query.filter(ServiceAccess.service_id == service_id).with_entities(ServiceAccess.id, ServiceAccess.user_id)
+            shared_user = json.dumps([r.user_id for r in shared], cls=AlchemyEncoder)
+            return shared_user
+
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
     
     def remove(serviced_id):
         try:

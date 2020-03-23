@@ -22,9 +22,9 @@ import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user, generate_graph
-from ..models import Runnable, Workflow, AccessType, Service, ServiceAccess, User
+from ..models import Runnable, AlchemyEncoder, Workflow, AccessType, Service, ServiceAccess, User
 from . import main
-from .views import Samples, AlchemyEncoder
+from .views import Samples
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
@@ -330,28 +330,57 @@ def functions():
         j = json.dumps([r for r in result], cls=AlchemyEncoder)
         return jsonify(j)
     
+#     elif 'share_service' in request.args:
+#         share_service = request.args.get("share_service")
+#         shared_check = ServiceAccess.check(share_service) 
+#         if shared_check: 
+#             result = ServiceAccess.query.filter(ServiceAccess.service_id == share_service).with_entities(ServiceAccess.user_id)
+#             lst = json.dumps([r for r in result], cls=AlchemyEncoder)
+#             lst = lst.replace('[', '').replace(']', '').replace(' ', '')
+#             user_list = list(lst.split(","))
+#             if 'sharing_users' in request.args:
+#                 sharing_users = request.args.get("sharing_users")
+#                 for user in user_list:
+#                     if user not in sharing_users:
+#                         ServiceAccess.remove_user(user)
+#                     else:
+#                         sharing_users.remove(user)
+#                  
+#                 ServiceAccess.add(share_service, sharing_users)
+#                  
+#             return jsonify(user_list)
+#              
+#         else:
+#             return json.dumps("")
+        
     elif 'share_service' in request.args:
-        share_service = request.args.get("share_service")
-        shared_check = ServiceAccess.check(share_service) 
-        if shared_check: 
-            result = ServiceAccess.query.filter(ServiceAccess.service_id == share_service).with_entities(ServiceAccess.user_id)
-            lst = json.dumps([r for r in result], cls=AlchemyEncoder)
-            lst = lst.replace('[', '').replace(']', '').replace(' ', '')
-            user_list = list(lst.split(","))
-            if 'sharing_users' in request.args:
-                sharing_users = request.args.get("sharing_users")
-                for user in user_list:
-                    if user not in sharing_users:
-                        ServiceAccess.remove_user(user)
-                    else:
-                        sharing_users.remove(user)
-                
-                ServiceAccess.add(share_service, sharing_users)
-                
-            return jsonify(user_list)
-            
+        service_id = request.args.get("share_service")
+        share_list = ServiceAccess.get_by_service_id(service_id)
+        if 'sharedWith' in request.args:
+            sharing_with = request.args.get("sharedWith")
+            for user in share_list:
+                if user not in sharing_with:
+                    ServiceAccess.remove_user(user)
+                else:
+                    sharing_with.remove(user)
+
+            ServiceAccess.add(share_service, sharing_with)      
+            return json.dumps({'return':'shared'})
+        elif 'accesstype' in request.args:
+            pass
         else:
-            return json.dumps("")
+            pass
+#             shared_service_check = ServiceAccess.check(share_service) 
+#             if shared_service_check:
+#                 result = ServiceAccess.query.filter(ServiceAccess.service_id == share_service).with_entities(ServiceAccess.user_id)
+#                 lst = json.dumps([r for r in result], cls=AlchemyEncoder)
+#                 lst = lst.replace('[', '').replace(']', '').replace(' ', '')
+#                 user_list = list(lst.split(","))
+#                 return jsonify(user_list)
+#             else:
+#                 return json.dumps({'return':'not_shared'})
+        return json.dumps({'return':'error'})
+    
         
     else:
         return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)

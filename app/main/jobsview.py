@@ -374,7 +374,7 @@ def functions():
                         sharing_with.remove(int(user))
             Service.update_access(service_id, access) 
             if sharing_with != []: 
-                share_ServiceAccess.add(service_id, sharing_with)      
+                ServiceAccess.add(service_id, sharing_with)      
                 return json.dumps({'return':'shared'})
             else:
                 return json.dumps({'return':'private'})

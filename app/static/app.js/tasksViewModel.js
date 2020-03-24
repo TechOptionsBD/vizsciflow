@@ -757,16 +757,8 @@ function TaskSharingViewModel() {
         });;
     }
 
-    self.getUsers = function () { 
-        self.userList([]);
-        
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 1 }).done(function (data) {
-            
-            JSON.parse(data).forEach(element => {
-                self.userList.push({id: element[0], name:  element[1]});
-            });
-
-            $("#ddlShareService").multiselect(
+    self.initiateMultiselect = function () {  
+        $("#ddlShareService").multiselect(
                 {
                     includeSelectAllOption: true,
                     inheritClass: true,
@@ -776,6 +768,17 @@ function TaskSharingViewModel() {
                     maxHeight: 200
                 }
             );
+    }
+
+    self.getUsers = function () { 
+        self.userList([]);
+        
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 1 }).done(function (data) {
+            
+            JSON.parse(data).forEach(element => {
+                self.userList.push({id: element[0], name:  element[1]});
+            });
+            self.initiateMultiselect();
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });
@@ -787,8 +790,8 @@ function TaskSharingViewModel() {
         $("#ddlShareService").multiselect('deselectAll', false);
         $("#ddlShareService").multiselect('updateButtonText');
         self.selectedSharedUsers([]);
-        self.selectedSharedUsers(ko.toJS(selectedTask.shareWithUsers));
-        if (selectedTask.access == 0) {
+        self.selectedSharedUsers(selectedTask.sharedWith());
+        if (selectedTask.access() == 0) {
             self.access(true);
         } else {
             self.access(false);

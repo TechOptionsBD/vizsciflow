@@ -1,22 +1,29 @@
-/* for service delete button */
+/* floating toolbar */
 .serviceToolbar{
   position: absolute;
   padding-top: 0px;
-  padding-right: 120px;
+  padding-right: 10px;
   right: 0;
   top: 0;
   display: none;
   color: #337ab7;
+  z-index: 1;
 }
+
+.workflowToolbar{
+  padding-right: 18%;
+}
+
 .even-row:hover .serviceToolbar, .odd-row:hover .serviceToolbar {
-  display:block;
+  display: block;
   color: #337ab7;
 }
+
 #delete {
   position : relative;
   display : inline-block;
-  width : 25px;
-  height : 25px;
+  width : 22px;
+  height : 22px;
   text-align : center;
   line-height : 25px;
   background : rgba(51, 122, 183, 0.21);
@@ -24,30 +31,28 @@
   z-index: 1;
   transition : .3s;
 }
+
 #delete:hover, #shareDropdown:hover {
   color: red;
   transition: .4s;
   box-shadow: 0 0 5px red;
 }
+
 #shareDropdown{
   position : relative;
   display : inline-block;
-  height : 15px;
-  width : 60px;
-  bottom: 3px;
+  height : 18px;
+  width : 50px;
+  bottom: 2px;
   padding-bottom: 22%;
-  padding-left: 5%;
   text-align : center;
   background : rgba(51, 122, 183, 0.21);
-  border-radius : 20%;
+  border-radius : 10%;
   z-index: 1;
   transition : .3s;
+  font-weight: normal;
 }
-
-.multiselect-dropdown{
-  display: inline-flex; 
-}
-/* for service delete button */
+/* floating toolbar */
 
 .nav-tabs > li .close {
   margin: -2px 0 0 10px;
@@ -69,15 +74,15 @@
 }
     
 .odd-row {
-background-color: LightGray;
-position: relative;  
-display: inline-block;
-
+  background-color: LightGray;
+  position: relative;  
+  display: inline-block;
+  z-index: 0;
 }
 .even-row {
-background-color: White;
-position: relative;  
-display: inline-block;
+  background-color: White;
+  position: relative;  
+  display: inline-block;
 }
 
 .panel-actions {
@@ -653,7 +658,7 @@ hr {
   font-weight: bold;
 }
 
-.browser-panel-heading{
+.browser-panel-heading, .graph-panel-heading, .visual-panel-heading{
   color: white;
   background-color: #8AC5F8;
   text-align: right;
@@ -661,12 +666,8 @@ hr {
   padding-right: 15px;
 }
 
-.graph-panel-heading{
-  color: white;
-  background-color: #8AC5F8;
-  text-align: right;
-  margin-bottom: 10px;
-  padding-right: 15px;
+.visual-panel-heading > button, .visual-panel-heading > input{
+  color: black;
 }
 
 .browser-details-view{

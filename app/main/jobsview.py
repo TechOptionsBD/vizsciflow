@@ -22,14 +22,13 @@ import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user, generate_graph
-from ..models import Workflow, AccessType, Service, ServiceAccess, User
+from ..models import Runnable, AlchemyEncoder, Workflow, AccessType, Service, ServiceAccess, User
 from . import main
-from .views import Samples, AlchemyEncoder
+from .views import Samples
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 from operator import add
-from ..runmgr import runnableManager
 
 
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -52,7 +51,7 @@ def update_workflow(user_id, workflow_id, script):
 def run_biowl(workflow_id, script, args, immediate = True):
     try:
         workflow = Workflow.query.get(workflow_id)
-        runnable = runnableManager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, args)
+        runnable = Runnable.create(workflow_id, script if script else workflow.script, args)
                 
         if immediate:
             run_script(runnable.id, args)
@@ -331,28 +330,55 @@ def functions():
         j = json.dumps([r for r in result], cls=AlchemyEncoder)
         return jsonify(j)
     
+#     elif 'share_service' in request.args:
+#         share_service = request.args.get("share_service")
+#         shared_check = ServiceAccess.check(share_service) 
+#         if shared_check: 
+#             result = ServiceAccess.query.filter(ServiceAccess.service_id == share_service).with_entities(ServiceAccess.user_id)
+#             lst = json.dumps([r for r in result], cls=AlchemyEncoder)
+#             lst = lst.replace('[', '').replace(']', '').replace(' ', '')
+#             user_list = list(lst.split(","))
+#             if 'sharing_users' in request.args:
+#                 sharing_users = request.args.get("sharing_users")
+#                 for user in user_list:
+#                     if user not in sharing_users:
+#                         ServiceAccess.remove_user(user)
+#                     else:
+#                         sharing_users.remove(user)
+#                  
+#                 ServiceAccess.add(share_service, sharing_users)
+#                  
+#             return jsonify(user_list)
+#              
+#         else:
+#             return json.dumps("")
+        
     elif 'share_service' in request.args:
-        share_service = request.args.get("share_service")
-        shared_check = ServiceAccess.check(share_service) 
-        if shared_check: 
-            result = ServiceAccess.query.filter(ServiceAccess.service_id == share_service).with_entities(ServiceAccess.user_id)
-            lst = json.dumps([r for r in result], cls=AlchemyEncoder)
-            lst = lst.replace('[', '').replace(']', '').replace(' ', '')
-            user_list = list(lst.split(","))
-            if 'sharing_users' in request.args:
-                sharing_users = request.args.get("sharing_users")
-                for user in user_list:
-                    if user not in sharing_users:
-                        ServiceAccess.remove_user(user)
-                    else:
-                        sharing_users.remove(user)
-                
-                ServiceAccess.add(share_service, sharing_users)
-                
-            return jsonify(user_list)
-            
+        share_service = json.loads(request.args.get("share_service"))
+        service_id, access = share_service["serviceID"], share_service["access"]
+        string = ServiceAccess.get_by_service_id(service_id)
+        share_list = string.strip('][').split(', ') if string != '[]' else None#.replace("'", "") 
+        if access:
+            if share_list:
+                for user in share_list:
+                    ServiceAccess.remove_user(service_id, user)
+            Service.update_access(service_id, access)
+            return json.dumps({'return':'public'})         
         else:
-            return json.dumps("")
+            sharing_with = share_service["sharedWith"] if "sharedWith" in share_service.keys() else []
+            if share_list:
+                for user in share_list:
+                    if int(user) not in sharing_with:
+                        ServiceAccess.remove_user(service_id, user)
+                    else:
+                        sharing_with.remove(int(user))
+            Service.update_access(service_id, access) 
+            if sharing_with != []: 
+                share_ServiceAccess.add(service_id, sharing_with)      
+                return json.dumps({'return':'shared'})
+            else:
+                return json.dumps({'return':'private'})
+    
         
     else:
         return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
@@ -372,7 +398,7 @@ def graphs():
 
 def get_user_status(user_id):
     logs = []
-    runnables = runnableManager.runnables_of_user(user_id)
+    runnables = Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.id.desc())
     for r in runnables:
         log = r.to_json_info()
         if (r.created_on + timedelta(minutes=5) > datetime.utcnow()):
@@ -381,12 +407,12 @@ def get_user_status(user_id):
         
     return jsonify(runnables = logs)
 
-def get_task_status(runnable_id):
-    runnable = runnableManager.get_runnable(runnable_id)
+def get_task_status(task_id):
+    runnable = Runnable.query.get(task_id)
     return json.dumps(runnable.to_json_log())
 
-def get_task_full_status(runnable_id):
-    runnable = runnableManager.get_runnable(runnable_id)
+def get_task_full_status(task_id):
+    runnable = Runnable.query.get(task_id)
     return json.dumps(runnable.to_json_tooltip())
 # def get_task_output(path):
 #      remotepath = os.path.join('/home/mishuk/biowl/storage/', path)
@@ -410,7 +436,7 @@ def runnables():
             ids = ids.split(",")
             new_status = []
             for runnable_id in ids:
-                runnable = runnableManager.get_runnable(int(runnable_id))
+                runnable = Runnable.query.get(int(runnable_id))
                 if runnable:
                     stop_script(runnable.celery_id)
                     new_status.append(runnable)
@@ -421,7 +447,7 @@ def runnables():
             ids = ids.split(",")
             new_status = []
             for runnable_id in ids:
-                runnable = runnableManager.get_runnable(int(runnable_id))
+                runnable = Runnable.query.get(int(runnable_id))
                 if runnable:
                     if not runnable.completed():
                         stop_script(runnable.celery_id)

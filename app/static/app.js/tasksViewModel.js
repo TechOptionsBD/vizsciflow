@@ -371,7 +371,7 @@ function TasksViewModel() {
                     returns: ko.observable(f.returns),
                     params: ko.observable(f.params),                    
                     returnData: ko.observable(f.returnData),
-                    sharedWith: ko.observableArray(f.sharedWith || [])                    
+                    sharedWith: ko.observableArray(f.sharedWith? JSON.parse(f.sharedWith): [])                    
                 });
             });
         }).fail(function (jqXHR) {
@@ -453,26 +453,6 @@ function TasksViewModel() {
                 }).fail(function (jqXHR) {
                         alert("status="+jqXHR.status);
                 }); 
-            }
-
-            else if (x === "shareDropdown") {
-                alert('service share button hit');
-                serviceID = item.serviceID();
-                ajaxcalls.simple('/functions', 'GET', { 'share_service': item.serviceID() }).done(function (data) {
-                    if (data === undefined)
-                        return; 
-    
-                    console.log(data);
-                    data = data.return;
-                    
-                    if(data !== undefined){
-                        
-                        //for selecting shared user                    
-                    }
-                    
-                }).fail(function (jqXHR) {
-                    alert("status="+jqXHR.status);
-                });                 
             }
     }
 
@@ -744,9 +724,8 @@ function TasksViewModel() {
         self.initiateSlider();
     }
 
-
-
     self.shareWithUsers = function (data, e) {  
+        event.stopPropagation();
         taskSharingViewModel.shareWithUsers(data);
     }
     
@@ -770,12 +749,25 @@ function TaskSharingViewModel() {
     self.saveServiceSharing = function () {  
         self.selectedTask().access= self.access();
         self.selectedTask().sharedWith = ko.toJS(self.selectedSharedUsers);
-        ajaxcalls.simple(self.tasksURI, 'POST', ko.toJSON(self.selectedTask)).done(function (res) {
+        ajaxcalls.simple(self.tasksURI, 'GET', {'share_service': ko.toJSON(self.selectedTask)}).done(function (res) {
             
 
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });;
+    }
+
+    self.initiateMultiselect = function () {  
+        $("#ddlShareService").multiselect(
+                {
+                    includeSelectAllOption: true,
+                    inheritClass: true,
+                    buttonWidth: '100%',
+                    enableFiltering: true,
+                    dropUp: false,
+                    maxHeight: 200
+                }
+            );
     }
 
     self.getUsers = function () { 
@@ -786,17 +778,7 @@ function TaskSharingViewModel() {
             JSON.parse(data).forEach(element => {
                 self.userList.push({id: element[0], name:  element[1]});
             });
-
-            $("#ddlShareService").multiselect(
-                {
-                    includeSelectAllOption: true,
-                    inheritClass: true,
-                    buttonWidth: '100%',
-                    enableFiltering: true,
-                    dropUp: false,
-                    maxHeight: 200
-                }
-            );
+            self.initiateMultiselect();
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });
@@ -808,8 +790,8 @@ function TaskSharingViewModel() {
         $("#ddlShareService").multiselect('deselectAll', false);
         $("#ddlShareService").multiselect('updateButtonText');
         self.selectedSharedUsers([]);
-        self.selectedSharedUsers(ko.toJS(selectedTask.shareWithUsers));
-        if (selectedTask.access == 0) {
+        self.selectedSharedUsers(selectedTask.sharedWith());
+        if (selectedTask.access() == 0) {
             self.access(true);
         } else {
             self.access(false);

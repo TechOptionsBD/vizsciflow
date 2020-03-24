@@ -21,7 +21,7 @@ from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import Permission, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType
+from ..models import Permission, AlchemyEncoder, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType
 from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -273,23 +273,6 @@ def about():
 @main.route('/contact')
 def contact():
     return render_template('contact.html')
-
-class AlchemyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj.__class__, DeclarativeMeta):
-            # an SQLAlchemy class
-            fields = {}
-            for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
-                data = obj.__getattribute__(field)
-                try:
-                    json.dumps(data) # this will fail on non-encodable values, like other classes
-                    fields[field] = data
-                except TypeError:
-                    fields[field] = None
-            # a json-encodable dict
-            return fields
-    
-        return json.JSONEncoder.default(self, obj)
 
 @main.route('/tasklogs', methods=['POST'])
 @login_required

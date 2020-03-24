@@ -354,32 +354,30 @@ def functions():
 #             return json.dumps("")
         
     elif 'share_service' in request.args:
-        service_id = request.args.get("share_service")
-        share_list = ServiceAccess.get_by_service_id(service_id)
-        if 'sharedWith' in request.args:
-            sharing_with = request.args.get("sharedWith")
-            for user in share_list:
-                if user not in sharing_with:
-                    ServiceAccess.remove_user(user)
-                else:
-                    sharing_with.remove(user)
-
-            ServiceAccess.add(share_service, sharing_with)      
-            return json.dumps({'return':'shared'})
-        elif 'accesstype' in request.args:
-            pass
+        share_service = json.loads(request.args.get("share_service"))
+        service_id, access = share_service["serviceID"], share_service["access"]
+        string = ServiceAccess.get_by_service_id(service_id)
+        share_list = string.strip('][').split(', ') if string != '[]' else None#.replace("'", "") 
+        if access:
+            if share_list:
+                for user in share_list:
+                    ServiceAccess.remove_user(service_id, user)
+            Service.update_access(service_id, access)
+            return json.dumps({'return':'public'})         
         else:
-            pass
-#             shared_service_check = ServiceAccess.check(share_service) 
-#             if shared_service_check:
-#                 result = ServiceAccess.query.filter(ServiceAccess.service_id == share_service).with_entities(ServiceAccess.user_id)
-#                 lst = json.dumps([r for r in result], cls=AlchemyEncoder)
-#                 lst = lst.replace('[', '').replace(']', '').replace(' ', '')
-#                 user_list = list(lst.split(","))
-#                 return jsonify(user_list)
-#             else:
-#                 return json.dumps({'return':'not_shared'})
-        return json.dumps({'return':'error'})
+            sharing_with = share_service["sharedWith"] if "sharedWith" in share_service.keys() else []
+            if share_list:
+                for user in share_list:
+                    if int(user) not in sharing_with:
+                        ServiceAccess.remove_user(service_id, user)
+                    else:
+                        sharing_with.remove(int(user))
+            Service.update_access(service_id, access) 
+            if sharing_with != []: 
+                share_ServiceAccess.add(service_id, sharing_with)      
+                return json.dumps({'return':'shared'})
+            else:
+                return json.dumps({'return':'private'})
     
         
     else:

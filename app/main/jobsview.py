@@ -22,13 +22,14 @@ import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
 from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user, generate_graph
-from ..models import Runnable, Workflow, AccessType, Service, ServiceAccess, User
+from ..models import Workflow, AccessType, Service, ServiceAccess, User
 from . import main
 from .views import Samples, AlchemyEncoder
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 from operator import add
+from ..runmgr import runnableManager
 
 
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -51,7 +52,7 @@ def update_workflow(user_id, workflow_id, script):
 def run_biowl(workflow_id, script, args, immediate = True):
     try:
         workflow = Workflow.query.get(workflow_id)
-        runnable = Runnable.create(workflow_id, script if script else workflow.script, args)
+        runnable = runnableManager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, args)
                 
         if immediate:
             run_script(runnable.id, args)
@@ -371,7 +372,7 @@ def graphs():
 
 def get_user_status(user_id):
     logs = []
-    runnables = Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.id.desc())
+    runnables = runnableManager.runnables_of_user(user_id)
     for r in runnables:
         log = r.to_json_info()
         if (r.created_on + timedelta(minutes=5) > datetime.utcnow()):
@@ -380,12 +381,12 @@ def get_user_status(user_id):
         
     return jsonify(runnables = logs)
 
-def get_task_status(task_id):
-    runnable = Runnable.query.get(task_id)
+def get_task_status(runnable_id):
+    runnable = runnableManager.get_runnable(runnable_id)
     return json.dumps(runnable.to_json_log())
 
-def get_task_full_status(task_id):
-    runnable = Runnable.query.get(task_id)
+def get_task_full_status(runnable_id):
+    runnable = runnableManager.get_runnable(runnable_id)
     return json.dumps(runnable.to_json_tooltip())
 # def get_task_output(path):
 #      remotepath = os.path.join('/home/mishuk/biowl/storage/', path)
@@ -409,7 +410,7 @@ def runnables():
             ids = ids.split(",")
             new_status = []
             for runnable_id in ids:
-                runnable = Runnable.query.get(int(runnable_id))
+                runnable = runnableManager.get_runnable(int(runnable_id))
                 if runnable:
                     stop_script(runnable.celery_id)
                     new_status.append(runnable)
@@ -420,7 +421,7 @@ def runnables():
             ids = ids.split(",")
             new_status = []
             for runnable_id in ids:
-                runnable = Runnable.query.get(int(runnable_id))
+                runnable = runnableManager.get_runnable(int(runnable_id))
                 if runnable:
                     if not runnable.completed():
                         stop_script(runnable.celery_id)

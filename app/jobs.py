@@ -21,7 +21,8 @@ from dsl.wftimer import Timer
 from dsl.context import Context
 from app.biowl.vizsciflowlib import Library
 
-from .models import Runnable, Status, Workflow
+from .models import Status, Workflow
+from .runmgr import runnableManager
 
 
 class ContextTask(AbortableTask):
@@ -137,7 +138,7 @@ class RequestContextTask(AbortableTask):
 @celery.task(bind=True, base=RequestContextTask)#, base = AbortableTask
 def run_script(self, runnable_id, args):
     
-    runnable = Runnable.query.get(runnable_id)
+    runnable = runnableManager.get_runnable(runnable_id)
     workflow = Workflow.query.get(runnable.workflow_id)
     
     machine = Interpreter(Context(Library()))
@@ -182,27 +183,27 @@ def stop_script(task_id):
     from celery import current_app
     celery.control.revoke(task_id, terminate=True)
 
-def sync_task_status_with_db(task):
-    if task.celery_id is not None and task.status != 'FAILURE' and task.status != 'SUCCESS' and task.status != 'REVOKED':
-        celeryTask = run_script.AsyncResult(task.celery_id)
-        task.status = celeryTask.state
+def sync_task_status_with_db(runnable):
+    if runnable.celery_id is not None and runnable.status != 'FAILURE' and runnable.status != 'SUCCESS' and runnable.status != 'REVOKED':
+        celeryTask = run_script.AsyncResult(runnable.celery_id)
+        runnable.status = celeryTask.state
         
         if celeryTask.state != 'PENDING':
             if celeryTask.state != 'FAILURE' and celeryTask.state != 'REVOKED':
-                task.out = "\n".join(celeryTask.info.get('out'))
-                task.err = "\n".join(celeryTask.info.get('err'))
-                task.duration = int(celeryTask.info.get('duration'))
+                runnable.out = "\n".join(celeryTask.info.get('out'))
+                runnable.err = "\n".join(celeryTask.info.get('err'))
+                runnable.duration = int(celeryTask.info.get('duration'))
             else:
-                task.err = str(celeryTask.info)
-        task.update()
+                runnable.err = str(celeryTask.info)
+        runnable.update()
 
-    return task.status
+    return runnable.status
     
 def sync_task_status_with_db_for_user(user_id):
-    tasks = Runnable.query.join(Workflow).filter(Workflow.user_id == user_id)
-    for task in tasks:
-        if not task.completed():
-            sync_task_status_with_db(task)
+    runnables = runnableManager.runnables_of_user(user_id)
+    for runnable in runnables:
+        if not runnable.completed():
+            sync_task_status_with_db(runnable)
             
 def generate_graph(workflow_id):
     workflow = Workflow.query.get(workflow_id)

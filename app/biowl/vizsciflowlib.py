@@ -1,12 +1,14 @@
 from os import path
 
 from ..util import Utility
-from ..models import Task, Service
+from ..models import Service
 from dsl.library import LibraryBase
 from dsl.library import load_module
 from dsl.datatype import DataType
 from app.models import AccessRights, DataSourceAllocation, Runnable, DataProperty
 from dsl.fileop import FolderItem
+from app.runmgr import runnableManager
+from app.datamgr import dataManager
 
 class Library(LibraryBase):
     def __init__(self):
@@ -40,18 +42,6 @@ class Library(LibraryBase):
             if Library.check_function(f.name, f.package):
                 return True
         return False
-            
-        
-    @staticmethod
-    def split_args(arguments):
-        args = []
-        kwargs = {}
-        for arg in arguments:
-            if isinstance(arg, tuple):
-                kwargs[arg[0]] = arg[1]
-            else:
-                args.append(arg)
-        return args, kwargs
     
     @staticmethod
     def call_func(context, package, function, args):
@@ -64,7 +54,7 @@ class Library(LibraryBase):
         '''
         task = None
         try:   
-            task = Task.create_task(context.runnable, function)
+            task = runnableManager.create_task(context.runnable, function)
             context.task_id = task.id
             task.start()
 
@@ -72,18 +62,18 @@ class Library(LibraryBase):
                 result = LibraryBase.call_func(context, package, function, args)
                 task.succeeded(DataType.Text, result)
             else:
-                arguments, kwargs = Library.split_args(args)
+                arguments, kwargs = LibraryBase.split_args(args)
                 func = Service.get_first_service_by_name_package(function, package)
 
                 module_obj = load_module(func["module"])
                 function = getattr(module_obj, func["internal"])
                 
                 result = function(context, *arguments, **kwargs)
-                result = Library.add_meta_data(func["returns"] if "returns" in func else "", result, context.user_id, context.runnable, task.id)
+                result = Library.add_meta_data(func["returns"] if "returns" in func else "", result, context.user_id, task)
                 
                 task.succeeded(DataType.Text, str(result))
                 
-                result = result if len(result) > 1 else result[0]
+                result = result if len(result) > 1 else result[0] if result else None
             return result
         except Exception as e:
             if task:
@@ -124,20 +114,9 @@ class Library(LibraryBase):
         return dataAndType
 
     @staticmethod
-    def add_meta_data(returns, data, user_id, runnable_id, task_id):
-        result = ()
+    def add_meta_data(returns, data, user_id, task):
         dataAndType = Library.GetDataAndTypeFromFunc(returns, data)
-        for d in dataAndType:
-            if isinstance(d[1], FolderItem):
-                ds = Utility.ds_by_prefix_or_default(str(d[1]))
-                data_alloc = DataSourceAllocation.get(user_id, ds.id, str(d[1]))
-                if not data_alloc:
-                    data_alloc = DataSourceAllocation.add(user_id, ds.id, str(d[1]), AccessRights.Owner)
-                result += (d[1],)
-
-                workflow_id = Runnable.query.get(runnable_id).workflow_id
-                DataProperty.add(data_alloc.id, "execution {0}".format(task_id), { 'workflow': { 'task_id': task_id, 'job_id': runnable_id, 'workflow_id': workflow_id, 'inout': 'out'} })
-        return result   
+        return dataManager.add_task_data(dataAndType, user_id, task)
 
     def code_func(self, context, package, function, arguments):
         '''

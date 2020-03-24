@@ -26,6 +26,7 @@ from app.exceptions import ValidationError
 from . import db, login_manager
 from sqlalchemy.sql.expression import desc
 from dsl.datatype import DataType
+from abc import abstractstaticmethod
 
 
 class AlchemyEncoder(json.JSONEncoder):
@@ -869,6 +870,16 @@ class Service(db.Model):
         q1list = [q for q in q1]
         q1list.extend([q for q in q2])
         return q1list
+    
+    @staticmethod
+    def update_access(service_id, access):
+        try:
+            service = Service.query.filter(Service.id == service_id).first()
+            service.public = access
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
         
 class ServiceAccess(db.Model):
     __tablename__ = 'serviceaccesses'
@@ -883,10 +894,10 @@ class ServiceAccess(db.Model):
     @staticmethod
     def add(service_id, users):
         try:
-            serviceaccess = ServiceAccess()
             for user in users:
-                serviceaccess.service_id = service_id
-                serviceaccess.user_id = user
+                serviceaccess = ServiceAccess()
+                serviceaccess.service_id = str(service_id)
+                serviceaccess.user_id = str(user)
                 serviceaccess.rights = 0x01
         
                 db.session.add(serviceaccess)
@@ -915,9 +926,9 @@ class ServiceAccess(db.Model):
             db.session.rollback()
             raise
         
-    def remove_user(user):
+    def remove_user(service_id, user):
         try:
-            ServiceAccess.query.filter(ServiceAccess.user_id == user).delete()
+            ServiceAccess.query.filter(and_(ServiceAccess.user_id == user, ServiceAccess.service_id == service_id)).delete()
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()

@@ -9,4 +9,4 @@ git --work-tree=$TARGET --git-dir=$GIT_DIR checkout -f $BRANCH
 
 # restart the web service; you may need to restart nginx.
 # for vizsciflow, supervisor does it.
-#echo sr-hadoop | sudo -S supervisorctrl restart all
+echo sr-hadoop | sudo -S supervisorctrl restart all

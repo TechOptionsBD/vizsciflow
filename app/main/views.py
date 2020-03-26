@@ -14,7 +14,6 @@ from flask import Flask, render_template, redirect, url_for, abort, flash, reque
 from flask import send_from_directory, jsonify, send_file
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy import and_
 
 from . import main
@@ -25,6 +24,7 @@ from ..models import Permission, AlchemyEncoder, Role, User, Post, Comment, Work
 from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
+from ..biowl.exechelper import func_exec_stdout
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -848,3 +848,15 @@ def samples():
     
     access = int(request.args.get('access')) if request.args.get('access') else 0
     return json.dumps({'samples': Samples.get_samples_as_list(access)})
+
+@main.route('/webhook', methods=['GET', 'POST'])
+def webhook():
+    # project folder
+    target = os.path.dirname(os.path.dirname(basedir))
+    # git folder location, usually .git subfolder inside project folder
+    gitdir = os.path.join(target, '.git')
+    # branch name to checkout
+    branch = 'master'
+    
+    func_exec_stdout(os.path.join(target, 'pullwebhook.sh'), '{0} {1} {2} '.format(target, gitdir, branch))
+    return json.dumps({})

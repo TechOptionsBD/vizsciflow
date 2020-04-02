@@ -486,6 +486,8 @@ function TasksViewModel() {
                     if (item === candidateSample) {
 
                         var url = "/functions?tooltip&name=" + item.name() + "&package=" + item.package();
+                        initExmplDom(url);
+
                         $.ajax({
                             url: url
                         })
@@ -495,11 +497,23 @@ function TasksViewModel() {
                                     content = JSON.parse(content);
 
                                     tooltip = "<div class=\'expandedtask\'> <p>Name: " + content.name + (content.package && content.package.length ? "<br>Package: " + content.package : "") + "<br>Access: " + content.access + "</p>"
-                                    if (content.example) {
-                                        tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 0); return false;">Add: </a>' + content.example;
-                                    }
-                                    if (content.example2 && content.example !== content.example2) {
-                                        tooltip += '<br><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\', 1); return false;">Add: </a>' + content.example2;
+                                    if (content.package && content.name && content.params && content.returns) {
+                                        exmplDOM = '', retrnNo = 0, paramNo = 0;
+                                        
+                                        content.returns.forEach(function (retrn){
+                                            retrnNo++;
+                                            exmplDOM += "<input onkeydown = \"editParam(this);\" class = 'inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
+                                        });
+                                        exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
+                                        exmplDOM += " = " + content.package + '.' + content.name + '( ';
+                                        content.params.forEach(function (param){
+                                            paramNo++;
+                                            exmplDOM += "<input onkeydown = \"editParam(this);\" class = 'inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
+                                        });
+                                        exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
+                                        exmplDOM += ")";
+                                        
+                                        tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\')">Add: </a>' + exmplDOM;
                                     }
                                     if (content.returns) {
                                         tooltip += "<br>Returns: " + content.returns;

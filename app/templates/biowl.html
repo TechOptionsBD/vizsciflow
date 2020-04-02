@@ -2058,10 +2058,13 @@
     var isDirty = false;
     var username = "{{ username }}";
 	var currentBiowlTab;
+	
+	var exmplReturns = ko.observableArray();
+	var exmplParams = ko.observableArray();
 	   
-    function copy2Editor(text, type) {
+   function copy2Editor(serviceURL) {
     	 $.ajax({
-             url: text
+             url: serviceURL
          })
          .then(function(content) {
              // Set the tooltip content upon successful retrieval
@@ -2069,15 +2072,93 @@
              	content = "";
              }
              else {
-                 content = JSON.parse(content);
-                 
-                 var pos = editor.selection.getCursor();             
-                 editor.session.insert(pos, type == 0 ? content.example + "\r\n": content.example2 + "\r\n");
-                 editor.focus();
+				exmpl = '';
+				content = JSON.parse(content);
+				
+				exmplReturns().forEach(function (retrn){
+					exmpl += retrn.value + ','
+				});
+				exmpl = exmpl.substring(0, exmpl.length - 1);
+				exmpl += " = " + content.package + '.' + content.name + '(';
+				exmplParams().forEach(function (param){
+					exmpl += param.value + ','
+				});
+				exmpl = exmpl.substring(0, exmpl.length - 1);
+				exmpl += ")";
+
+				console.log(exmplReturns())
+				console.log(exmplParams())
+
+				var pos = editor.selection.getCursor();             
+				editor.session.insert(pos, exmpl + "\r\n");
+				editor.focus();
              }
          });
-    };
+	};
 
+	 function initExmplDom(serviceURL) {
+    	 $.ajax({
+             url: serviceURL
+         })
+         .then(function(content) {
+             // create init DOM for arguments upon successful retrieval
+             if (!content) {
+             	content = "";
+             }
+             else {
+				content = JSON.parse(content);
+				 
+				if(exmplParams())
+					exmplParams.removeAll();
+				 if(exmplReturns())
+					exmplReturns.removeAll();				 
+				 
+
+                 if (content.package && content.name && content.params && content.returns) {
+						retrnNo = 0, paramNo = 0;
+
+						content.returns.forEach(function (retrn){
+							exmplReturns().push({
+								id: 'return ' + ++retrnNo,
+								value: retrn.name
+							});
+						});
+						
+						content.params.forEach(function (param){
+							exmplParams().push({
+								id: 'param ' + ++paramNo,
+								value: param.name
+							});
+						});
+					}
+             	}
+         });
+	};
+	
+	function editParam(elem) {
+		if (event.keyCode == 13){
+			console.log('Enter button hit')
+			console.log(elem.value)
+			if(elem.name == 'Return'){
+				exmplReturns().forEach(function (item){
+					if(item.id == elem.id)
+						item.value = elem.value;
+				});
+			}
+				
+			if(elem.name == 'Param'){
+				exmplParams().forEach(function (item){
+					if(item.id == elem.id)
+						item.value = elem.value;
+				});
+			}
+		}
+			
+		else{
+			elem.style.width = elem.value.length +'ch';
+		}
+    }
+    
 	function showBrowserItemModal(itemSrc, itemName) {
 			$("#browserItemModal").find('h5').html(itemName);
 			var iframe = $("#browserItemModal").find('iframe');

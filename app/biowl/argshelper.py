@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from ..util import Utility
-from ..models import DataSourceAllocation, AccessRights, User
+#from ..models import User #DataAllocation, AccessRights, 
 
 def get_temp_dir(context, typename = "posix"):
     '''
@@ -44,7 +44,7 @@ def get_optional_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     if not data:
         return paramindex, data, None
     
-    DataSourceAllocation.check_access_rights(context.user_id, str(data), AccessRights.Read)
+    #DataAllocation.check_access_rights(context.user_id, str(data), AccessRights.Read)
     
     fs = None
     if Utility.fs_type_by_prefix(data) != 'posix':
@@ -67,7 +67,7 @@ def get_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     
     paramindex, data = get_input_from_args(paramindex, keyname, *args, **kwargs)
     
-    DataSourceAllocation.check_access_rights(context.user_id, data, AccessRights.Read)
+    #DataSourceAllocation.check_access_rights(context.user_id, data, AccessRights.Read)
     
     fs = None
     if Utility.fs_type_by_prefix(data) != 'posix':
@@ -97,7 +97,7 @@ def get_posix_output_folder_args(paramindex, keyname, fs, context, *args, **kwar
     
     if outdir and Utility.fs_type_by_prefix(outdir) == 'posix':
         outdir = fs.normalize_path(outdir)
-        DataSourceAllocation.check_access_rights(context.user_id, outdir, AccessRights.Write)
+        #DataSourceAllocation.check_access_rights(context.user_id, outdir, AccessRights.Write)
         if not fs.exists(outdir):
             fs.makedirs(outdir)
     else:
@@ -119,7 +119,7 @@ def get_posix_output_args(paramindex, keyname, fs, data, context, ext, *args, **
         output = fs.join(get_temp_dir(context, fs.typename()), data_path.stem)
         output += ext if ext else "_output" + data_path.suffix
     else:
-        DataSourceAllocation.check_access_rights(context.user_id, output, AccessRights.Write)
+        #DataSourceAllocation.check_access_rights(context.user_id, output, AccessRights.Write)
         if not fs.exists(fs.dirname(output)):
             fs.mkdir(fs.dirname(output))
     

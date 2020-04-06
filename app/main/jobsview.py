@@ -11,9 +11,6 @@ import pip
 import ast
 #I have improted subprocess and sys to active alternative install fuction
 import subprocess
-import sys
-
-from .. import db
 
 from datetime import timedelta
 from datetime import datetime

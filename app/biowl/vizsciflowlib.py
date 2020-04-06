@@ -1,14 +1,12 @@
 from os import path
 
-from ..util import Utility
 from ..models import Service
-from dsl.library import LibraryBase
-from dsl.library import load_module
+from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
-from app.models import AccessRights, DataSourceAllocation, Runnable, DataProperty
 from dsl.fileop import FolderItem
 from app.runmgr import runnableManager
-from app.datamgr import dataManager
+from app.datamgr import dataManager, DataManager
+from app.models import AccessRights
 
 class Library(LibraryBase):
     def __init__(self):
@@ -60,7 +58,7 @@ class Library(LibraryBase):
 
             if LibraryBase.check_function(function, package):
                 result = LibraryBase.call_func(context, package, function, args)
-                task.succeeded(DataType.Text, result)
+                task.succeeded()
             else:
                 arguments, kwargs = LibraryBase.split_args(args)
                 func = Service.get_first_service_by_name_package(function, package)
@@ -68,10 +66,15 @@ class Library(LibraryBase):
                 module_obj = load_module(func["module"])
                 function = getattr(module_obj, func["internal"])
                 
+                storeArguments = list(arguments)
+                for _, v in kwargs.items():
+                    storeArguments.append(v)
+                    
+                dataManager.StoreArgumentes(context.user_id, task, func["params"] if func["params"] else [], storeArguments)
                 result = function(context, *arguments, **kwargs)
                 result = Library.add_meta_data(func["returns"] if "returns" in func else "", result, context.user_id, task)
                 
-                task.succeeded(DataType.Text, str(result))
+                task.succeeded()
                 
                 result = result if len(result) > 1 else result[0] if result else None
             return result
@@ -79,7 +82,7 @@ class Library(LibraryBase):
             if task:
                 task.failed(str(e))
             raise
-
+        
     @staticmethod
     def GetDataAndTypeFromFunc(returns, result = None):
         if not result:

@@ -26,7 +26,7 @@ from app.exceptions import ValidationError
 from . import db, login_manager
 from sqlalchemy.sql.expression import desc
 from dsl.datatype import DataType
-from abc import abstractstaticmethod
+from sqlalchemy.orm.attributes import flag_modified
 
 
 class AlchemyEncoder(json.JSONEncoder):
@@ -957,7 +957,7 @@ class DataSourceAllocation(db.Model):
     visualizers = db.relationship('Visualizer', secondary = "data_visualizers")
     mimetypes = db.relationship('MimeType', secondary='data_mimetypes', lazy='dynamic')
     annotations = db.relationship('DataAnnotation', backref='datasource_allocation', lazy='dynamic')
-    properties = db.relationship('DataProperty', backref='datasource_allocation', lazy='dynamic', cascade='all, delete-orphan')
+    #properties = db.relationship('DataProperty', backref='datasource_allocation', lazy='dynamic', cascade='all, delete-orphan')
     permissions = db.relationship('DataPermission', backref='datasource_allocation', lazy='dynamic', cascade='all, delete-orphan')
     
     def has_read_access(self):
@@ -1052,12 +1052,12 @@ class DataSourceAllocation(db.Model):
     def access_rights_to_string(user_id, path):
         return AccessRights.rights_to_string(DataSourceAllocation.get_access_rights(user_id, path))
     
-class Data(db.Model):
-    __tablename__ = 'data'
-    id = db.Column(db.Integer, primary_key=True)
-    datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'), nullable=True)
-    datatype = db.Column(db.Integer)
-    url = db.Column(db.Text)
+# class Data(db.Model):
+#     __tablename__ = 'data'
+#     id = db.Column(db.Integer, primary_key=True)
+#     datasource_id = db.Column(db.Integer, db.ForeignKey('datasources.id'), nullable=True)
+#     datatype = db.Column(db.Integer)
+#     url = db.Column(db.Text)
 
 class TaskStatus(db.Model):
     __tablename__ = 'taskstatus'
@@ -1091,11 +1091,10 @@ class Task(db.Model):
     started_on = db.Column(db.DateTime, default=datetime.utcnow)
     ended_on = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Text)    
-    datatype = db.Column(db.Integer)
-    data = db.Column(db.Text)
     comment = db.Column(db.Text)
     
     tasklogs = db.relationship('TaskLog', cascade="all,delete-orphan", backref='task', lazy='dynamic')
+    outputs = db.relationship('TaskData', cascade="all,delete-orphan", backref='task', order_by="asc(TaskData.id)", lazy='subquery')
 
     @staticmethod
     def create_task(runnable_id, name = None):
@@ -1129,13 +1128,11 @@ class Task(db.Model):
             db.session.rollback()
             raise
     
-    def succeeded(self, datatype, result):
+    def succeeded(self):
         try:
             self.status = Status.SUCCESS
             self.add_log(Status.SUCCESS, LogType.INFO)
             self.ended_on = datetime.utcnow()
-            self.data = result
-            self.datatype = datatype
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
@@ -1164,19 +1161,23 @@ class Task(db.Model):
             raise
         
     def to_json_log(self):
-        data = self.data
-        if data and data.startswith('[') and data.endswith(']'):
-            data = data[1:]
-            data = data[:-1]
+#         data = self.data
+#         if data and data.startswith('[') and data.endswith(']'):
+#             data = data[1:]
+#             data = data[:-1]
+        
+        data = []#[{ "datatype": data.value["valuetype"], "data": data.value["value"]} for data in self.outputs]
+        for output in self.outputs:
+            dataitem = Data.query.get(output.data_id)
+            data.append({ "datatype": dataitem.value["type"], "data": dataitem.value["value"]})
             
         log = { 
             'name': self.name if self.name else "", 
-            'datatype': self.datatype, 
             'status': self.status,
             'data': data
         }
-        if self.status == Status.SUCCESS and (self.datatype & DataType.FileList) > 0:
-            log['data'] = log['data'].strip('}{').split(',')
+#         if self.status == Status.SUCCESS and (self.datatype & DataType.FileList) > 0:
+#             log['data'] = log['data'].strip('}{').split(',')
         return log
        
 class TaskLog(db.Model):
@@ -1199,7 +1200,7 @@ class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)
     workflow_id  = db.Column(db.Integer, db.ForeignKey('workflows.id', ondelete='CASCADE'), nullable=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     celery_id = db.Column(db.String(64))
     #name = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
@@ -1295,10 +1296,11 @@ class Runnable(db.Model):
         }
         
     @staticmethod
-    def create(workflow_id, script, args):
+    def create(user_id, workflow_id, script, args):
         try:
             runnable = Runnable()
             runnable.workflow_id = workflow_id
+            runnable.user_id = user_id
             runnable.script = script
             runnable.args = args
             runnable.status = Status.PENDING
@@ -1311,8 +1313,7 @@ class Runnable(db.Model):
             raise
     
     def get_user(self):
-        workflow = Workflow.query.get(self.workflow_id)
-        return User.query.get(workflow.user_id)
+        return User.query.get(self.user_id)
 
 class Filter(db.Model):
     __tablename__ = 'filters'
@@ -1472,7 +1473,7 @@ class DataAnnotation(db.Model):
 class DataProperty(db.Model):
     __tablename__ = 'data_properties'
     id = db.Column(db.Integer, primary_key=True)
-    data_id  = db.Column(db.Integer, db.ForeignKey('datasource_allocations.id'), nullable=True)
+    data_id  = db.Column(db.Integer, db.ForeignKey('data.id'), nullable=True)
     key = db.Column(db.Text, nullable = False)
     value = db.Column(JSON, nullable = False)
     
@@ -1614,3 +1615,200 @@ class DataAccessError(Exception):
 
         # Call the base class constructor with the parameters it needs
         super().__init__("You do not have access rights for this path: " + url)
+        
+class Data(db.Model):
+    __tablename__ = 'data'
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(JSON) #datatype, data, valuetype
+    
+    properties = db.relationship('DataProperty', backref='datasource_allocation', lazy='dynamic', cascade='all, delete-orphan')
+    #properties = db.relationship('Property', backref='data', lazy='dynamic', cascade='all, delete-orphan', foreign_keys='')
+    
+    @staticmethod
+    def get_by_type_value(datatype, value):
+        return Data.query.filter(and_(Data.value["valuetype"].astest == datatype, Data.value["value"].astest == value))
+    
+    @staticmethod
+    def get_by_path(fullpath):
+        return Data.query.filter(and_(Data.value["path"].astest == os.path.dirname(fullpath), Data.value["name"].astest == os.path.basename(fullpath))).first()
+    
+    def rename(self, name):
+        if (name == self.value["name"]):
+            return name
+        
+        try:
+            self.value["name"] = name
+            flag_modified(self, "value")
+            db.session.add(self)
+            db.session.commit()
+            return name
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    @staticmethod
+    def get_datasource(ds_id, url):
+        return Data.query.filter(and_(Data.value["datasource"] == cast(ds_id, JSON), Data.value["value"] == cast(url, JSON))).first()
+    
+#     @staticmethod
+#     def get_datatype_from_value(value):
+#         valuetype = None
+#         pythontype = type(value)
+#         if pythontype == "<class 'int'>":
+#             valuetype = DataType.
+    
+    @staticmethod
+    def add_json(value, data):
+        try:
+            data.value = value
+            db.session.add(data)
+            db.session.commit()
+            return data
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
+    @staticmethod
+    def add(value, valuetype, path, **kwargs):
+        datavalue = dict(kwargs)
+        datavalue.update({"value": value, "type": str(valuetype), "path": path, "datatype": str(type(value)), "created": str(datetime.utcnow()), "modified": str(datetime.utcnow())})
+        return Data.add_json(datavalue, Data())
+
+    @staticmethod
+    def add_json_value(value):
+        try:
+            data = Data()
+            data.value = value
+            db.session.add(data)
+            db.session.commit()
+            return data
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+class DataAllocation(db.Model):
+    __tablename__ = 'data_allocations'
+    id = db.Column(db.Integer, primary_key=True)
+    data_id = db.Column(db.Integer, db.ForeignKey('data.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    rights = db.Column(db.Integer, default = 0)
+    
+    data = db.relationship("Data", foreign_keys=[data_id])
+    
+    @staticmethod
+    def add(user_id, data_id, rights):
+        try:
+            allocation = DataAllocation.query.filter(and_(DataAllocation.user_id == user_id, DataAllocation.data_id == data_id)).first()
+            if not allocation:
+                allocation = DataAllocation()
+                allocation.user_id = user_id
+                allocation.data_id = data_id
+                db.session.add(allocation)
+            elif allocation.rights >= rights:
+                return allocation
+                
+            allocation.rights = rights
+            db.session.commit()
+            return allocation
+        
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
+    @staticmethod
+    def add_datasource(user_id, ds_id, url, rights):
+        try:
+            data = Data.add_datasource(url, ds_id)
+            return DataAllocation.add(user_id, data.id, rights)
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    @staticmethod
+    def add_value(user_id, name, value, valuetype, path, rights, **kwargs):
+        try:
+            data = Data.add_value(name, value, valuetype, path, **kwargs)
+            return DataAllocation.add(user_id, data.id, rights)
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    @staticmethod
+    def add_json_value(user_id, value, rights):
+        try:
+            data = Data.add_json_value(value)
+            return DataAllocation.add(user_id, data.id, rights)
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+        
+    def has_read_access(self):
+        return self.has_right(AccessRights.Read)
+    
+    def has_write_access(self):
+        return self.has_right(AccessRights.Write)
+    
+    def has_owner_access(self):
+        return self.has_right(AccessRights.Owner)
+    
+#     @staticmethod
+#     def get(user_id, ds_id, url):
+#         data = Data.get_datasource(ds_id, url)
+#         if data:
+#             return DataAllocation.query.filter(and_(DataAllocation.user_id == user_id, DataAllocation.data_id == data.id)).first()
+       
+    def has_right(self, checkRight):
+        return AccessRights.hasRight(self.rights, checkRight)
+    
+    @staticmethod
+    def has_access_rights(user_id, path, checkRights):
+        return True
+#        defaultRights = AccessRights.NotSet
+        
+#         if path == os.sep:
+#             defaultRights = AccessRights.Read # we are giving read access to our root folder to all logged in user
+# 
+#         prefixedDataSources = DataSource.query.filter(or_(DataSource.prefix == path, DataSource.url == path))
+#         if prefixedDataSources:
+#             defaultRights = AccessRights.Read
+
+#         allocations = DataAllocation.query.join(DataAllocation, DataAllocation.data_id == DataSourceAllocation.id).filter(DataAllocation.user_id == user_id)
+#         for allocation in allocations:
+#             if path.startswith(allocation.url):
+#                 for permission in allocation.permissions:   
+#                     if AccessRights.hasRight(permission.rights, checkRights):
+#                         return True
+#                     
+#         return defaultRights >= checkRights
+
+    @staticmethod
+    def get_access_rights(user_id, path):
+        return AccessRights.Read | AccessRights.Write
+    
+    @staticmethod
+    def check_access_rights(user_id, path, checkRights):
+        if not DataAllocation.has_access_rights(user_id, path, checkRights):
+            raise DataAccessError(path)
+    
+    @staticmethod
+    def access_rights_to_string(user_id, path):
+        return AccessRights.rights_to_string(DataAllocation.get_access_rights(user_id, path))
+    
+class TaskData(db.Model):
+    __tablename__ = 'taskdata'
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, ForeignKey('tasks.id'))
+    data_id = db.Column(db.Integer, ForeignKey('data.id'))
+    
+    @staticmethod
+    def add(task_id, data_id):
+        try:
+            taskdata = TaskData()
+            taskdata.task_id = task_id
+            taskdata.data_id = data_id
+            db.session.add(taskdata)
+            db.session.commit()
+            return taskdata
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise

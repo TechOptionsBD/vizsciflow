@@ -1,13 +1,7 @@
 from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
-from celery.states import state, PENDING, SUCCESS
 
-from flask_login import current_user
-from flask import has_request_context, g, request, make_response
-from datetime import datetime
+from flask import has_request_context, g, request
 import os
-import random
-import time
-import json
 from pyparsing import ParseException
 
 from config import Config
@@ -20,6 +14,7 @@ from  dsl.graphgen import GraphGenerator
 from dsl.wftimer import Timer
 from dsl.context import Context
 from app.biowl.vizsciflowlib import Library
+from app.biowl.vizsciflowsymtab import VizSciFlowSymbolTable
 
 from .models import Status, Workflow
 from .runmgr import runnableManager
@@ -141,7 +136,7 @@ def run_script(self, runnable_id, args):
     runnable = runnableManager.get_runnable(runnable_id)
     workflow = Workflow.query.get(runnable.workflow_id)
     
-    machine = Interpreter(Context(Library()))
+    machine = Interpreter(Context(Library(), VizSciFlowSymbolTable))
     
     parserdir = Config.BIOWL
     curdir = os.getcwd()
@@ -153,7 +148,8 @@ def run_script(self, runnable_id, args):
         
         if self and self.request:
             runnable.celery_id = self.request.id
-        runnable.update_status(Status.STARTED)
+        runnable.status = Status.STARTED
+        runnable.update()
 
         with Timer() as t:
             parser = WorkflowParser(PythonGrammar())   
@@ -184,7 +180,7 @@ def stop_script(task_id):
     celery.control.revoke(task_id, terminate=True)
 
 def sync_task_status_with_db(runnable):
-    if runnable.celery_id is not None and runnable.status != 'FAILURE' and runnable.status != 'SUCCESS' and runnable.status != 'REVOKED':
+    if runnable.celery_id and runnable.status != 'FAILURE' and runnable.status != 'SUCCESS' and runnable.status != 'REVOKED':
         celeryTask = run_script.AsyncResult(runnable.celery_id)
         runnable.status = celeryTask.state
         

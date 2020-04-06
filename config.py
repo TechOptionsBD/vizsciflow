@@ -37,7 +37,7 @@ class Config:
     GRAPHDB = 'bolt://localhost:7687'
     GRAPHDB_USER = 'neo4j'
     GRAPHDB_PASSWORD = 'sr-hadoop'
-    DATA_GRAPH = False
+    DATA_GRAPH = True
 
     @staticmethod
     def init_app(app):

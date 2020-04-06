@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from ..util import Utility
-#from ..models import User #DataAllocation, AccessRights, 
+from ..models import User #DataAllocation, AccessRights, 
 
 def get_temp_dir(context, typename = "posix"):
     '''

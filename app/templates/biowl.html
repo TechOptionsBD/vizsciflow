@@ -524,7 +524,7 @@
 				<div id="outputPanel" class="panel panel-primary">
 					<div class="panel-heading">
 						<button class="close closeComponent" title="Close" type="button">×</button>
-						<h4>Output</h4>
+						<h4>&nbsp;</h4>
 					</div>
 					<div class="panel panel-primary"
 					style="padding: 0px; border: 0; margin: 4px">
@@ -550,10 +550,10 @@
 							</div>
 							<div class="tab-pane fade" id="3">
 								<div class="browser-panel-heading">
-									<label class="radio-inline"> <input type="radio" name="logTabView" value="0" checked="checked"
-											autocomplete="off">&nbsp; List</label>
-									<label class="radio-inline"> <input type="radio" name="logTabView" value="1"
-											autocomplete="off">&nbsp; Preview</label>
+									<select name="logTabView" class="logTabCombo">
+										<option value="0" checked="checked" autocomplete="off">&nbsp; List</option>
+										<option value="1" autocomplete="off">&nbsp; Preview</option>
+									</select>
 								</div>
 								<div id="logListView" data-bind="visible: isListLog">
 									<span id="executable-status"></span>

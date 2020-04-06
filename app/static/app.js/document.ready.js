@@ -267,7 +267,7 @@ $(document).ready(function () {
     });
 
 
-    $("input[name=logTabView]").on('click', function (e) {  
+    $("select[name=logTabView]").on('click', function (e) {  
         switch (e.currentTarget.value) {
             
             case '0':

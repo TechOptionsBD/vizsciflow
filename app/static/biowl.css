@@ -63,6 +63,14 @@
   overflow: hidden;
 }
 
+.logTabCombo{
+  background: #337ab7;
+  border-radius: 6px;
+  font-weight: bold;
+  padding: 6px;
+  font-size: medium;
+}
+
 .nav-tabs > li .close {
   margin: -2px 0 0 10px;
   font-size: 18px;
@@ -307,6 +315,10 @@ border-color: #f50000;
 table.table td .add {
 display: none;
 }
+.table tbody tr td{
+  vertical-align: middle;
+}
+
 
 input[type=radio] {
   width: 20px;

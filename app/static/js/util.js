@@ -16,23 +16,23 @@ jsonArray2Table = function(table, jsonArr) {
     	$.each(data, function (key, val) {		
             var link =  $('<a />', {
                 'href': 'javascript:void(0)',
-                'text': val
+                'text': val['data']
             }).on('click', function() {
 				if ((parseInt(value['datatype']) & 0x02) != 0 || (parseInt(value['datatype']) & 0x400) != 0) {
-	           		$.redirect('/datasources', { 'download': val }, "POST", "_blank");
+	           		$.redirect('/datasources', { 'download': val['data'] }, "POST", "_blank");
 				}
 				else {
 					var w = window.open();
-					$(w.document.body).text(val);
+					$(w.document.body).text(val['data']);
 				}
             });
             
 			if (added)
-				cell.append('; ');
+				cell.append("<br/><br/>");
 				
             cell.append(link);
 			added = true;
-    	});
+		});
         row.append(cell);
         
         cell = $("<td>" + value['status'] + "</td>");

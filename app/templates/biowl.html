@@ -2135,7 +2135,7 @@
          });
 	};
 	
-	function editParam(elem) {
+	function editParam(elem) {	
 		if (event.keyCode == 13){
 			console.log('Enter button hit')
 			console.log(elem.value)
@@ -2153,11 +2153,17 @@
 				});
 			}
 		}
-			
+		
+		elem.style.borderColor = 'blue';
+		if(event.keyCode == 32){
+			elem.style.borderColor = 'red';
+			return false;
+		}
+		
 		else{
 			elem.style.width = elem.value.length +'ch';
 		}
-    }
+	}
     
 	function showBrowserItemModal(itemSrc, itemName) {
 			$("#browserItemModal").find('h5').html(itemName);

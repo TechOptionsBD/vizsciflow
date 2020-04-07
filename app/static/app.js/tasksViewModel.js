@@ -502,21 +502,18 @@ function TasksViewModel() {
                                         
                                         content.returns.forEach(function (retrn){
                                             retrnNo++;
-                                            exmplDOM += "<input onkeydown = \"editParam(this);\" class = 'inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
+                                            exmplDOM += "<input onkeydown = \"return editParam(this);\" data-toggle=\"tooltip\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
                                         });
                                         exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                         exmplDOM += " = " + content.package + '.' + content.name + '( ';
                                         content.params.forEach(function (param){
                                             paramNo++;
-                                            exmplDOM += "<input onkeydown = \"editParam(this);\" class = 'inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
+                                            exmplDOM += "<input onkeydown = \"return editParam(this);\" data-toggle=\"tooltip\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
                                         });
                                         exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                         exmplDOM += ")";
                                         
                                         tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\')">Add: </a>' + exmplDOM;
-                                    }
-                                    if (content.returns) {
-                                        tooltip += "<br>Returns: " + content.returns;
                                     }
                                     tooltip += "</p>";
 

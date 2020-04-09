@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 from ..util import Utility
-from ..models import User #DataAllocation, AccessRights, 
 
 def get_temp_dir(context, typename = "posix"):
     '''
@@ -10,7 +9,7 @@ def get_temp_dir(context, typename = "posix"):
     if context.user_id:
         if not typename in context.tempdirs:
             fs = Utility.fs_by_typename(typename)
-            context.tempdirs[typename] = fs.make_unique_dir(User.query.get(context.user_id).username)
+            context.tempdirs[typename] = fs.make_unique_dir(fs.temp if fs.temp else 'temp')
         return context.tempdirs[typename]
         
 def get_input_from_args(paramindex, keyname, *args, **kwargs):

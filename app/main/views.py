@@ -623,6 +623,7 @@ def datasets():
 @main.route('/metadata', methods=['GET', 'POST'])
 @login_required
 def metadata():
+    return json.dumps({})
     if request.args.get('load'):
         return json.dumps(load_metadata(request.args.get('load')))
     elif request.args.get('properties'):

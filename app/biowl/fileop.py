@@ -30,7 +30,7 @@ except:
                                   
 class HadoopFileSystem():
     timeout = 20 # 100s timeout
-    def __init__(self, url, root, user, prefix = None):
+    def __init__(self, url, root, user, temp, prefix = None):
         u = urlsplit(url)
         if u.scheme != 'http' and u.scheme != 'https' and u.scheme != 'hdfs':
             raise ValueError("Invalid name node address")
@@ -38,8 +38,9 @@ class HadoopFileSystem():
         parsedurl = urlparse(url)
         self.client = pyarrow.hdfs.connect(host=parsedurl.hostname, port=parsedurl.port, user=user, driver='libhdfs')
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
-        self.localdir = root
+        self._localdir = root
         self.prefix = prefix
+        self.temp = temp
     
     def typename(self):
         return "hdfs"
@@ -53,12 +54,12 @@ class HadoopFileSystem():
             if not path.startswith(os.sep):
                 path = os.sep + path
         
-        if self.localdir and path.startswith(self.localdir):
+        if self._localdir and path.startswith(self._localdir):
             return path
  
         while path and path[0] == os.sep:
             path = path[1:]
-        return os.path.join(self.localdir, path)
+        return os.path.join(self._localdir, path)
     
     def normalize_fullpath(self, path):
         return urljoin(self.url, self.normalize_path(path))
@@ -70,9 +71,9 @@ class HadoopFileSystem():
         path = self.strip_prefix(path)
         if path.startswith(self.url):
             path = path[len(self.url):]
-            if not path.startswith(self.localdir):
+            if not path.startswith(self._localdir):
                 raise 'Invalid hdfs path. It must start with the root directory'
-        return path[len(self.localdir):] if path.startswith(self.localdir) else path
+        return path[len(self._localdir):] if path.startswith(self._localdir) else path
     
     def makedirs(self, path):
         path = self.normalize_path(path)
@@ -246,7 +247,7 @@ class GalaxyFileSystem():
             raise ValueError("Invalid name node address")
         
         self.url = urlunparse((u.scheme, u.netloc, '', '', '', ''))
-        self.localdir = ""
+        self._localdir = ""
         self.prefix = 'GalaxyFS'
         self.lddaprefix = 'Libraries'
         self.hdaprefix = 'Histories'
@@ -265,12 +266,12 @@ class GalaxyFileSystem():
         if self.url and path.startswith(self.url):
             return path
         
-        if not self.localdir or path.startswith(self.localdir):
+        if not self._localdir or path.startswith(self._localdir):
                 return os.path.join(self.url, path)
  
         while path and path[0] == os.sep:
             path = path[1:]
-        return os.path.join(self.url, self.localdir, path)
+        return os.path.join(self.url, self._localdir, path)
 
     def normalize_fullpath(self, path):
         return self.normalize_path(path)
@@ -279,9 +280,9 @@ class GalaxyFileSystem():
         path = self.strip_prefix(path)
         if path.startswith(self.url):
             path = path[len(self.url):]
-            if not path.startswith(self.localdir):
+            if not path.startswith(self._localdir):
                 raise 'Invalid hdfs path. It must start with the root directory'
-        return path[len(self.localdir):] if path.startswith(self.localdir) else path
+        return path[len(self._localdir):] if path.startswith(self._localdir) else path
     
     def make_fullpath(self, path):
         path = self.normalize_path(path)

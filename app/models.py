@@ -449,6 +449,7 @@ class DataSource(db.Model):
     password = db.Column(db.String(50), nullable=True)
     prefix = db.Column(db.String(30), nullable=True)
     active = db.Column(db.Boolean, nullable=True, default=True)
+    temp = db.Column(db.Text, nullable=True)
     
     @staticmethod
     def insert_datasources():

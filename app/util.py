@@ -2,10 +2,13 @@ from __future__ import print_function
 
 import os
 from os import path
+from flask import g
+
 from .models import DataSource
 
 from app.biowl.fileop import HadoopFileSystem, GalaxyFileSystem
 from dsl.fileop import PosixFileSystem
+
 
 class Utility:
     @staticmethod
@@ -43,12 +46,23 @@ class Utility:
     
     @staticmethod
     def create_fs(ds):
+        
+        if 'fs' not in g:
+            g.fs = {}
+            
+        if ds.type in g.fs:
+            return g.fs[ds.type]
+        
+        fs = None
         if ds.type == 'hdfs':
-            return HadoopFileSystem(ds.url, ds.root, ds.user)
+            fs = HadoopFileSystem(ds.url, ds.root, ds.temp, ds.user)
         elif ds.type == 'posix':
-            return PosixFileSystem(ds.url, ds.public, ds.name)
+            fs = PosixFileSystem(ds.url, ds.public, ds.temp, ds.name)
         elif ds.type == 'gfs':
-            return GalaxyFileSystem(ds.url, ds.password)
+            fs = GalaxyFileSystem(ds.url, ds.password)
+        
+        g.fs[ds.type] = fs
+        return fs
     
     @staticmethod
     def ds_by_prefix_or_default(path):

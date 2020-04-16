@@ -3,6 +3,7 @@ function TasksViewModel() {
     var self = this;
     self.tasksURI = '/functions';
     self.graphsURI = '/graphs';
+    self.dataSourcesURI = '/datasources';
     self.username = "";
     self.password = "";
     self.tasks = ko.observableArray();
@@ -30,6 +31,12 @@ function TasksViewModel() {
 
     self.videoTypes = ["3gp", "axv", "dl", "dif", "dv", "fli", "gl", "ts", "ogv", "mxu", "flv", "lsf", "lsx", "mng", "asf",
         "asx", "wm", "wmv", "wmx", "wvx", "mpv", "mkv", "avi", "m1v", "mov", "movie", "mp4", "mpa", "mpe", "mpeg", "mpg", "webm"];
+
+        self.itemName = ko.observable();
+        self.itemSrc = ko.observable();
+        self.currentItemPath = ko.observable();
+        self.isListView = ko.observable(true);
+        self.sliderItems = ko.observableArray();
 
     self.serviceaccesstypes = ko.observableArray([
         {
@@ -388,8 +395,41 @@ function TasksViewModel() {
     });
 
     self.copyToEditor = function (item) {
-        var pos = editor.selection.getCursor();
-        editor.session.insert(pos, self.selectedCategory().Id == 0 ? item.example() + "\r\n" : item.example2() + "\r\n");
+
+        exmpl = '';
+        retrns=[],params=[];
+
+        if (item.package() && item.name() && item.params() && item.returns()) {
+            retrnNo = 0, paramNo = 0;
+
+            item.returns().forEach(function (retrn){
+                retrns.push({
+                    id: 'return ' + ++retrnNo,
+                    value: retrn.name
+                });
+            });
+            
+            item.params().forEach(function (param){
+                params.push({
+                    id: 'param ' + ++paramNo,
+                    value: param.name
+                });
+            });
+        }
+        
+        retrns.forEach(function (retrn){
+            exmpl += retrn.value + ','
+        });
+        exmpl = exmpl.substring(0, exmpl.length - 1);
+        exmpl += " = " + item.package() + '.' + item.name() + '(';
+        params.forEach(function (param){
+            exmpl += param.value + ','
+        });
+        exmpl = exmpl.substring(0, exmpl.length - 1);
+        exmpl += ")";
+
+        var pos = editor.selection.getCursor();             
+        editor.session.insert(pos, exmpl + "\r\n");
         editor.focus();
     }
 
@@ -491,43 +531,43 @@ function TasksViewModel() {
                         $.ajax({
                             url: url
                         })
-                            .then(function (content) {
-                                // Set the tooltip content upon successful retrieval
-                                if (content) {
-                                    content = JSON.parse(content);
+                        .then(function (content) {
+                            // Set the tooltip content upon successful retrieval
+                            if (content) {
+                                content = JSON.parse(content);
 
-                                    tooltip = "<div class=\'expandedtask\'> <p>Name: " + content.name + (content.package && content.package.length ? "<br>Package: " + content.package : "") + "<br>Access: " + content.access + "</p>"
-                                    if (content.package && content.name && content.params && content.returns) {
-                                        exmplDOM = '', retrnNo = 0, paramNo = 0;
-                                        
-                                        content.returns.forEach(function (retrn){
-                                            retrnNo++;
-                                            exmplDOM += "<input onkeydown = \"return editParam(this);\" data-toggle=\"tooltip\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
-                                        });
-                                        exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
-                                        exmplDOM += " = " + content.package + '.' + content.name + '( ';
-                                        content.params.forEach(function (param){
-                                            paramNo++;
-                                            exmplDOM += "<input onkeydown = \"return editParam(this);\" data-toggle=\"tooltip\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
-                                        });
-                                        exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
-                                        exmplDOM += ")";
-                                        
-                                        tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\')">Add: </a>' + exmplDOM;
-                                    }
-                                    tooltip += "</p>";
-
-                                    var descHref = (content.desc && content.desc.length ? "Desc: " + content.desc : "") + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : "");
-                                    if (descHref !== undefined && descHref.length) {
-                                        tooltip += "<p>" + descHref + "</p>";
-                                    }
-                                    tooltip += "<p>Double click item to insert into code editor.</p></div>";
-
-                                    domItem.parent().append(tooltip);
+                                tooltip = "<div class=\'expandedtask\'> <p>Name: " + content.name + (content.package && content.package.length ? "<br>Package: " + content.package : "") + "<br>Access: " + content.access + "</p>"
+                                if (content.package && content.name && content.params && content.returns) {
+                                    exmplDOM = '', retrnNo = 0, paramNo = 0;
+                                    
+                                    content.returns.forEach(function (retrn){
+                                        retrnNo++;
+                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
+                                    });
+                                    exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
+                                    exmplDOM += " = " + content.package + '.' + content.name + '( ';
+                                    content.params.forEach(function (param){
+                                        paramNo++;
+                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
+                                    });
+                                    exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
+                                    exmplDOM += ")";
+                                    
+                                    tooltip += '<p><a href="javascript:void(0);" onclick="copy2Editor(\'' + url + '\')">Add: </a>' + exmplDOM;
                                 }
-                            }, function (xhr, status, error) {
-                                // Upon failure... set the tooltip content to error
-                            });
+                                tooltip += "</p>";
+
+                                var descHref = (content.desc && content.desc.length ? "Desc: " + content.desc : "") + (content.href && content.href.length ? "<br>" + serviceHelpRef(content.href) : "");
+                                if (descHref !== undefined && descHref.length) {
+                                    tooltip += "<p>" + descHref + "</p>";
+                                }
+                                tooltip += "<p>Double click item to insert into code editor.</p></div>";
+
+                                domItem.parent().append(tooltip);
+                            }
+                        }, function (xhr, status, error) {
+                            // Upon failure... set the tooltip content to error
+                        });
                     };
                 });
             }
@@ -575,12 +615,37 @@ function TasksViewModel() {
         });
     };
 
+    self.getImage = function (data, fileType) { 
+
+        var oReq = new XMLHttpRequest();
+        oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.path, true);
+        oReq.responseType = "arraybuffer";
+        var imgType = "image/" + fileType;
+
+        oReq.send();
+
+        oReq.onload = function (oEvent) {
+            if (this.status == 200) {
+                var arrayBuffer = oReq.response;
+                // var byteArray = new Uint8Array(arrayBuffer);
+                var blob = new Blob([arrayBuffer], { type: imgType });
+                imgUrl = URL.createObjectURL(blob);
+                // self.pushLogData(data, imgUrl);
+                return imgUrl;
+            }
+        };
+    };
+
     self.getFileExtension = function (filename) {
         return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
     };
 
+    self.getFileName = function (absolutePath) {
+        return absolutePath.substring(absolutePath.lastIndexOf('/') + 1, absolutePath.length) || absolutePath;
+    };
+
     self.pushLogData = function (element, datatype ) {  
-        // let fileType = self.getFileExtension(element);
+        
         // if (self.imageTypes.includes(fileType)) {
 
         // }
@@ -593,6 +658,8 @@ function TasksViewModel() {
         //         }
         //     );
         // }
+        var fileName = self.getFileName(element);
+        var fileType = self.getFileExtension(fileName);
 
         switch (datatype) {
             case 0: //unknown
@@ -600,7 +667,7 @@ function TasksViewModel() {
             case 1: //folder
                 self.logData.push(
                     {
-                        name: element,
+                        name: fileName,
                         data: element,
                         imgUrl: self.folderImgPath
                     }
@@ -609,19 +676,29 @@ function TasksViewModel() {
             case 2: //file
                 self.logData.push(
                     {
-                        name: element,
+                        name: fileName,
                         data: element,
                         imgUrl: self.fileImgPath
                     }
                 );
                 break;
             case 4: // image
-
+                if (self.imageTypes.includes(fileType)) {
+                    var imgUrl = self.getImage(element, fileType);
+                
+                    self.logData.push(
+                        {
+                            name: fileName,
+                            data: element,
+                            imgUrl: imgUrl
+                        }
+                    );
+                }
                 break;
             case 8: // video
                 self.logData.push(
                     {
-                        name: element,
+                        name: fileName,
                         data: element,
                         imgUrl: self.fileImgPath
                     }
@@ -634,7 +711,7 @@ function TasksViewModel() {
             case 64: //csv
                 self.logData.push(
                     {
-                        name: element,
+                        name: fileName,
                         data: element,
                         imgUrl: self.fileImgPath
                     }
@@ -643,7 +720,7 @@ function TasksViewModel() {
             case 128: //sql
                 self.logData.push(
                     {
-                        name: element,
+                        name: fileName,
                         data: element,
                         imgUrl: self.fileImgPath
                     }
@@ -656,7 +733,7 @@ function TasksViewModel() {
             case 1024: //fileList
                 self.logData.push(
                     {
-                        name: element,
+                        name: fileName,
                         data: element,
                         imgUrl: self.fileImgPath
                     }
@@ -665,7 +742,7 @@ function TasksViewModel() {
             case 2048: //folderlist
                 self.logData.push(
                     {
-                        name: element,
+                        name: fileName,
                         data: element,
                         imgUrl: self.folderImgPath
                     }
@@ -678,56 +755,121 @@ function TasksViewModel() {
         }
     };
 
-    self.loadLogData = function (data) {  
+    self.loadLogData = function (logDataArray) {  
         self.emptyCarousel();
-        data.forEach(element => {
-            let datatype = parseInt(element.datatype)
+        logDataArray.forEach(dataInfo => {
+            dataInfo.data.forEach(element => {
+                let datatype = parseInt(element.datatype)
 
-            switch (datatype) {
-                case 0: //unknown
-                    break;
-                case 1: //folder
-                    self.pushLogData(element.data, 1);
-                    break;
-                case 2: //file
-                    self.pushLogData(element.data, 2);
-                    break;
-                case 4: // image
-                    self.pushLogData(element.data, 4);
-                    break;
-                case 8: // video
-                    self.pushLogData(element.data, 8);
-                    break;
-                case 16: //binary
-                    break;
-                case 32: // text
-                    break;
-                case 64: //csv
-                    self.pushLogData(element.data, 64);
-                    break;
-                case 128: //sql
-                    self.pushLogData(element.data, 128);
-                    break;
-                case 256: //custom
-                    break;
-                case 512: //root
-                    break;
-                case 1024: //fileList
-                    element.data.forEach(ele => {
-                        self.pushLogData(ele, 1024);
-                    });
-                    break;
-                case 2048: //folderlist
-                    element.data.forEach(ele => {
-                        self.pushLogData(ele, 2048);
-                    });
-                    break;
-                case 4096: //value type
-                    break;
-                default:
-                    break;
-            }
+                switch (datatype) {
+                    case 0: //unknown
+                        break;
+                    case 1: //folder
+                        self.pushLogData(element.data, 1);
+                        break;
+                    case 2: //file
+                        self.pushLogData(element.data, 2);
+                        break;
+                    case 4: // image
+                        self.pushLogData(element.data, 4);
+                        break;
+                    case 8: // video
+                        self.pushLogData(element.data, 8);
+                        break;
+                    case 16: //binary
+                        break;
+                    case 32: // text
+                        break;
+                    case 64: //csv
+                        self.pushLogData(element.data, 64);
+                        break;
+                    case 128: //sql
+                        self.pushLogData(element.data, 128);
+                        break;
+                    case 256: //custom
+                        break;
+                    case 512: //root
+                        break;
+                    case 1024: //fileList
+                        element.data.forEach(ele => {
+                            self.pushLogData(ele, 1024);
+                        });
+                        break;
+                    case 2048: //folderlist
+                        element.data.forEach(ele => {
+                            self.pushLogData(ele, 2048);
+                        });
+                        break;
+                    case 4096: //value type
+                        break;
+                    default:
+                        break;
+                }
+            });
         });
+    };
+
+    //TODO: need to modify for output tab list view
+    self.openInDetailsView = function (data, ele) {
+        var fileType = self.getFileExtension(data.data);
+        
+        self.currentItemPath('');
+
+        self.currentItemPath(data.data);
+
+        if (self.imageTypes.includes(fileType)) {
+            // self.showModal(data);
+            self.itemSrc(data.data);
+            self.itemName(data.name);
+            $('.nav-tabs a[href="#outputtab"]').tab('show');
+        }
+
+        else if (self.videoTypes.includes(fileType)) {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+            oReq.responseType = "arraybuffer";
+            var videoType = "video/" + fileType;
+            self.itemName(data.name);
+            oReq.send();
+
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: videoType });
+                    itemSrc = URL.createObjectURL(blob);
+                    self.itemSrc(itemSrc);
+                    // self.showModal(data, itemSrc);
+                    $('.nav-tabs a[href="#outputtab"]').tab('show');
+                }
+            };
+        }
+        else if (fileType == 'htm' || fileType == 'html') {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+            oReq.responseType = "arraybuffer";
+
+            oReq.send();
+            self.itemName(data.data);
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: "text/html" });
+                    var reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onload = function () {
+                        var base64UrlString = reader.result;
+                        self.itemSrc(base64UrlString);
+                        
+                        $('.nav-tabs a[href="#outputtab"]').tab('show');
+                    }
+                }
+            };
+        }
+        
+        else {
+            self.itemSrc('');
+            return;
+        }
     };
 
     self.sliderController = function (data, element) { 

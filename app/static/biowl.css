@@ -69,10 +69,10 @@
 
 .logTabCombo{
   background: #337ab7;
-  border-radius: 6px;
   font-weight: bold;
-  padding: 6px;
+  padding: 7px 0px;
   font-size: medium;
+  margin-right: -16px;
 }
 
 .nav-tabs > li .close {
@@ -352,7 +352,6 @@ width: 20px;
 
 
 .log-tab {
-
 min-width: 100%;
 max-width: 100%;
 min-height: 150px;

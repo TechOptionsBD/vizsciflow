@@ -16,14 +16,15 @@ jsonArray2Table = function(table, jsonArr) {
     	$.each(data, function (key, val) {		
             var link =  $('<a />', {
                 'href': 'javascript:void(0)',
-                'text': val['data']
-            }).on('click', function() {
+				'text': val['data']
+			}).on('click', function() {
 				if ((parseInt(value['datatype']) & 0x02) != 0 || (parseInt(value['datatype']) & 0x400) != 0) {
-	           		$.redirect('/datasources', { 'download': val['data'] }, "POST", "_blank");
+					$.redirect('/datasources', { 'download': val['data'] }, "POST", "_blank");
 				}
 				else {
-					var w = window.open();
-					$(w.document.body).text(val['data']);
+					// var w = window.open();
+					// $(w.document.body).text(val['data']);
+					tasksViewModel.openInDetailsView(val)
 				}
             });
             

@@ -415,6 +415,7 @@
 									<li> <a class="btn btn-secondary" href="#liBrowserTab">Browser</a></li>
 									<!-- <li> <a class="btn btn-secondary"  href="#liOutputVizTab">Visual Output</a></li> -->
 									<li> <a class="btn btn-secondary" href="#liDataset">Dataset</a></li>
+									<li> <a class="btn btn-secondary" href="#liOutput">Output</a></li>
 								</ul>
 							</div>
 							<!-- <div class="dropdown">
@@ -447,6 +448,7 @@
 								<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<!-- <li id="liOutputVizTab"><a href="#outputVizTab" data-toggle="tab">Visual Output<button class="close closeTab" title="Close" type="button">×</button></a></li> -->
 								<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<li id="liOutput"><a href="#outputtab" data-toggle="tab">Output <button class="close closeTab" title="Close" type="button">×</button></a></li>
 							</ul>
 						<div class="tab-content">
 							<div class="tab-pane fade in active scriptstyle" id="scripttab">
@@ -490,6 +492,10 @@
 							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="datasettab">
 
 							</div>
+							
+							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="outputtab">
+								<iframe id="outputItemDetails" class="center" src="" frameborder="0" data-bind="attr:{src: itemSrc}" style="display: block" width="100%" height="100%"></iframe>
+							</div>
 						</div>
 						</div>
 						<div class="row">
@@ -529,7 +535,7 @@
 					<div class="panel panel-primary"
 					style="padding: 0px; border: 0; margin: 4px">
 					
-				</div>
+					</div>
 					<div id="exTab2" class="extab2">
 						<ul class="nav nav-tabs">
 							<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
@@ -537,7 +543,7 @@
 							<li><a href="#3" data-toggle="tab">Output</a></li>
 						</ul>
 						<span class="badge badge-pill badge-primary" style="float: left" id="reportid"></span>
-						<span class="badge badge-pill badge-primary" style="float: right" id="execstatus"></span>
+						<span class="badge badge-pill badge-primary" id="execstatus"></span>
 						<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
 						<div class="tab-content extab2-tab-content">
 							<div class="tab-pane fade in active" id="1">
@@ -573,8 +579,8 @@
 								</div>
 								<div id="logSliderView" class="container-fluid" aria-hidden="true" data-bind="visible: !isListLog()">
 									<div id="logTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="foreach: {data: logData , afterRender: sliderController.bind($data)}">
-										<div style="display: block;" data-bind=" attr: {title: name}">
-											<figure style="display: inline-block" >
+										<div style="display: block;" data-bind="event: {click : $parent.openInDetailsView.bind($data)}, attr: {title: name}">
+											<figure style="display: inline-block">
 												<img  width="auto" style="width: auto; height: 50px;" data-bind="attr: {src: imgUrl, alt: name}">
 												<figcaption class="figcaption-clipped" data-bind="text: name"></figcaption>
 											</figure>
@@ -638,15 +644,15 @@
 						<div class="row"
 							data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
 							style="width: 100%; margin: 0; display: block;">
-							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px; font-weight: bold;" data-bind="event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data">
+							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px; font-weight: bold;">
 								<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
 								<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
 								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
 								&nbsp;
-								<span style="font-weight: bold;" data-bind="text: name"></span>
+								<span style="font-weight: bold;" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></span>
 
 								<!-- service delete button for owner only -->
-								<span id='serviceDropdown' class='serviceToolbar' data-bind="visible: isOwner()">
+								<span id="serviceDropdown" class="serviceToolbar" data-bind="visible: isOwner()">
 									<span id="shareDropdown" data-bind="event: {click: $parent.shareWithUsers} "
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Share
@@ -2096,7 +2102,7 @@
          });
 	};
 
-	 function initExmplDom(serviceURL) {
+	 function initExmplDom(serviceURL) {		 
     	 $.ajax({
              url: serviceURL
          })
@@ -2135,34 +2141,31 @@
          });
 	};
 	
-	function editParam(elem) {	
-		if (event.keyCode == 13){
-			console.log('Enter button hit')
-			console.log(elem.value)
-			if(elem.name == 'Return'){
-				exmplReturns().forEach(function (item){
-					if(item.id == elem.id)
-						item.value = elem.value;
-				});
-			}
-				
-			if(elem.name == 'Param'){
-				exmplParams().forEach(function (item){
-					if(item.id == elem.id)
-						item.value = elem.value;
-				});
-			}
-		}
-		
+	function editBoxSize(elem){
+		elem.style.width = elem.value.length + 'ch';
+
 		elem.style.borderColor = 'blue';
+
 		if(event.keyCode == 32){
 			elem.style.borderColor = 'red';
 			return false;
 		}
-		
-		else{
-			elem.style.width = elem.value.length +'ch';
+	}
+
+	function editParam(elem) {			
+		if(elem.name == 'Return'){
+			exmplReturns().forEach(function (item){
+				if(item.id == elem.id)
+					item.value = elem.value;
+			});
 		}
+			
+		if(elem.name == 'Param'){
+			exmplParams().forEach(function (item){
+				if(item.id == elem.id)
+					item.value = elem.value;
+			});
+		}		
 	}
     
 	function showBrowserItemModal(itemSrc, itemName) {
@@ -2176,8 +2179,6 @@
 			}, 200);
 
 	}
-
-
 	
     $(window).on('load', function() {
     	 

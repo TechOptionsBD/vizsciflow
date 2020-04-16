@@ -102,7 +102,6 @@ $(document).ready(function () {
     $("#browserView").addClass('browser-list-view');
     $("#browserView").css('max-height', $("#browsertab").height() - $(".browser-panel-heading").height()-50);
     
-    
     $("#browserItemDetails").on('load', function () {  
         $(this).contents().find('body').find('img').css('display', 'block').css('margin', '0 auto');
         $("#browserItemDetails").css('height', $("#browserViewDetails").height() - $("#browserViewDetailsHeader").height());
@@ -214,6 +213,18 @@ $(document).ready(function () {
                 return;
 		}
     });
+
+    //for execstatus printing
+    $("#exTab2").on('shown.bs.tab', function (e) {
+		var x = $(e.target).attr('href');
+		if (x === "#1" || x === "#2") {
+            $("#execstatus").css("float", "right");
+        }
+        else if (x === "#3") {
+            $("#execstatus").css("float", "left");
+            $("#execstatus").css("margin-left", "66%");
+		}
+    });
       
     //handling any service addition on click
     $("#visual").droppable({
@@ -278,6 +289,7 @@ $(document).ready(function () {
                 break;
 
             default:
+                tasksViewModel.isListLog(true);
                 break;
         }
     });

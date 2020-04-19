@@ -50,10 +50,10 @@ class Module(object):
     def json(self):
         this_node = {"key": self._node.id, "type": "Module", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
-
        
         for output in self.Outputs():
             out_json = output.json()
+            json["nodeDataArray"].extend(out_json["nodeDataArray"])
             if out_json["nodeDataArray"]:
                 out_node = out_json["nodeDataArray"][0]
                 link = { "from": self._node.id, "frompid": out_node["key"], "to": out_node["key"], "topid": self._node.id, "value": "Output"}
@@ -61,6 +61,7 @@ class Module(object):
         
         for output in self.Inputs():
             out_json = output.json()
+            json["nodeDataArray"].extend(out_json["nodeDataArray"])
             if out_json["nodeDataArray"]:
                 out_node = out_json["nodeDataArray"][0]
                 link = { "from": out_node["key"], "frompid": self._node.id, "to": self._node.id, "topid": out_node["key"], "value": "Input"}
@@ -114,6 +115,7 @@ class Run(object):
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
         for module in self.Modules():
             mod_json = module.json()
+            json["nodeDataArray"].extend(mod_json["nodeDataArray"])
             if mod_json["nodeDataArray"]:
                 mod_node = mod_json["nodeDataArray"][0]
                 link = { "from": self._node.id, "frompid": mod_node["key"], "to": mod_node["key"], "topid": str(self._node.id), "value": "Module"}

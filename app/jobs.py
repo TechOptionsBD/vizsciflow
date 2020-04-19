@@ -9,7 +9,6 @@ from config import Config
 from . import celery
 from dsl.grammar import PythonGrammar
 from dsl.parser import WorkflowParser
-from dsl.interpreter import Interpreter
 from  dsl.graphgen import GraphGenerator
 from dsl.wftimer import Timer
 from dsl.context import Context
@@ -18,7 +17,7 @@ from app.biowl.vizsciflowsymtab import VizSciFlowSymbolTable
 
 from .models import Status, Workflow
 from .runmgr import runnableManager
-
+from .biowl.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
 
 class ContextTask(AbortableTask):
     abstract = True
@@ -136,7 +135,7 @@ def run_script(self, runnable_id, args):
     runnable = runnableManager.get_runnable(runnable_id)
     workflow = Workflow.query.get(runnable.workflow_id)
     
-    machine = Interpreter(Context(Library(), VizSciFlowSymbolTable))
+    machine = VizSciFlowInterpreter()
     
     parserdir = Config.BIOWL
     curdir = os.getcwd()

@@ -1161,6 +1161,13 @@ class Task(db.Model):
             db.session.rollback()
             raise
         
+    def add_inputs(self, user_id, datatype, value, rights):
+        data = Data.get_by_type_value(datatype, value)
+        if not data:
+            data = Data.add(value, datatype, "")
+        DataAllocation.add(user_id, data.id, rights)
+        return data
+            
     def to_json_log(self):
 #         data = self.data
 #         if data and data.startswith('[') and data.endswith(']'):

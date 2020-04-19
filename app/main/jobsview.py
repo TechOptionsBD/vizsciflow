@@ -7,7 +7,6 @@ import zipfile
 import shutil
 import pathlib
 import mimetypes
-import pip
 import ast
 #I have improted subprocess and sys to active alternative install fuction
 import subprocess
@@ -25,7 +24,6 @@ from .views import Samples, AlchemyEncoder
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
-from operator import add
 from ..runmgr import runnableManager
 
 
@@ -107,7 +105,7 @@ def functions():
             
             args = request.form.get('args') if request.form.get('args') else ''
             immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
-            return run_biowl(workflowId, None, args, immediate)
+            return run_biowl(int(workflowId), None, args, immediate)
         
         elif request.form.get('mapper'):
             result = {"out": [], "err": []}

@@ -5,8 +5,7 @@ from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
 from dsl.fileop import FolderItem
 from app.runmgr import runnableManager
-from app.datamgr import dataManager, DataManager
-from app.models import AccessRights
+from app.datamgr import dataManager
 
 class Library(LibraryBase):
     def __init__(self):

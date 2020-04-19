@@ -1,6 +1,16 @@
-import json
-from ...graphutil import RunnableItem, ModuleItem, ValueItem, DataPropertyItem
+from ...graphutil import RunnableItem, ModuleItem, ValueItem
 
+def merge_json(json, other_json, link_value, opposite_link = False):
+    json["nodeDataArray"].extend(other_json["nodeDataArray"])
+    json["linkDataArray"].extend(other_json["linkDataArray"])
+    if other_json["nodeDataArray"]:
+        json_node = other_json["nodeDataArray"][0] if opposite_link else json["nodeDataArray"][0]
+        other_node = json["nodeDataArray"][0] if opposite_link else other_json["nodeDataArray"][0]
+        link = { "from": json_node["key"], "frompid": other_node["key"], "to": other_node["key"], "topid": json_node["key"], "value": link_value}
+        json["linkDataArray"].append(link)
+                
+    return json
+    
 class Data():
     def __init__(self, data_id = None, data_item = None):
         self._node = ValueItem.load(data_id = data_id) if data_id else data_item
@@ -51,22 +61,12 @@ class Module(object):
         this_node = {"key": self._node.id, "type": "Module", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
        
-        for output in self.Outputs():
-            out_json = output.json()
-            json["nodeDataArray"].extend(out_json["nodeDataArray"])
-            if out_json["nodeDataArray"]:
-                out_node = out_json["nodeDataArray"][0]
-                link = { "from": self._node.id, "frompid": out_node["key"], "to": out_node["key"], "topid": self._node.id, "value": "Output"}
-                json["linkDataArray"].append(link)
+        for outdata in self.Outputs():
+            json = merge_json(json, outdata.json(), 'Output')
         
-        for output in self.Inputs():
-            out_json = output.json()
-            json["nodeDataArray"].extend(out_json["nodeDataArray"])
-            if out_json["nodeDataArray"]:
-                out_node = out_json["nodeDataArray"][0]
-                link = { "from": out_node["key"], "frompid": self._node.id, "to": self._node.id, "topid": out_node["key"], "value": "Input"}
-                json["linkDataArray"].append(link)
-                       
+        for indata in self.Inputs():
+            json = merge_json(json, indata.json(), 'Input', True)
+            
         return json
         
            
@@ -114,12 +114,7 @@ class Run(object):
         this_node = {"key": self._node.id, "type": "Run", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
         for module in self.Modules():
-            mod_json = module.json()
-            json["nodeDataArray"].extend(mod_json["nodeDataArray"])
-            if mod_json["nodeDataArray"]:
-                mod_node = mod_json["nodeDataArray"][0]
-                link = { "from": self._node.id, "frompid": mod_node["key"], "to": mod_node["key"], "topid": str(self._node.id), "value": "Module"}
-                json["linkDataArray"].append(link)
+            json = merge_json(json, module.json(), 'Module')
         return json
     
 class Monitor(object):

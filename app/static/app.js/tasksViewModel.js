@@ -238,7 +238,7 @@ function TasksViewModel() {
 				if (data === undefined)
                 	return;
 
-            	provgraphviewmodel.show(data['out']);         //calling provenance graph
+            	provgraphviewmodel.show(JSON.parse(data['out']));         //calling provenance graph
 			});
 			
 			$('#refresh').hide();

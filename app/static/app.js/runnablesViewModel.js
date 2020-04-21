@@ -186,7 +186,7 @@ function RunnablesViewModel() {
 
 	    var x = $(event.target).attr('id');
 	    if (x === "insert2Editor") {            
-            var content = "run = Run(run_id = "+ item.id() +")"; 
+            var content = "run = Run.get(run_id = "+ item.id() +")\r\nprint(run.json())"; 
             
             var pos = editor.selection.getCursor();
             editor.session.insert(pos, content + "\r\n");

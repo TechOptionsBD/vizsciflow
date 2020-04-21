@@ -1,3 +1,4 @@
+from json import dumps 
 from ...graphutil import RunnableItem, ModuleItem, ValueItem
 
 def merge_json(json, other_json, link_value, opposite_link = False):
@@ -114,7 +115,7 @@ class Run(object):
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
         for module in self.Modules():
             json = merge_json(json, module.json(), 'Module')
-        return json
+        return dumps(json)
     
 class Monitor(object):
     

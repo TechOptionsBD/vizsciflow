@@ -219,97 +219,29 @@ function TasksViewModel() {
 
         formdata.append('workflowId', parseInt(workflowId));
         formdata.append('args', $('#args').val());
-        formdata.append('immediate', $('#immediate').prop('checked'));
-        formdata.append('provenance', "true");
+        formdata.append('immediate', 'true');
         self.clearResults();
        
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
-            $('#refresh').hide();
 
-            if (data === undefined)
+            if (data === undefined) {
+				$('#refresh').hide();
                 return;
+			}
 
-            // reportId = parseInt(data.runnableId);
-            runnablesViewModel.load();
-            // runnablesViewModel.loadHistory(reportId, true);
-                      
+            reportId = parseInt(data.runnableId);
+            //runnablesViewModel.load();
+            //runnablesViewModel.loadHistory(reportId, false);
             
-            //static data for graph 
-            var dummyData = {
-                "nodeDataArray": [
-                  {
-                    "key": 581,
-                    "type": "Run",
-                    "name": "No Name"
-                  },
-                  {
-                    "key": 302,
-                    "type": "Module",
-                    "name": "print"
-                  },
-                  {
-                    "key": 582,
-                    "type": "Module",
-                    "name": "CheckQuality"
-                  },
-                  {
-                    "key": 299,
-                    "type": "Data",
-                    "name": "value"
-                  },
-                  {
-                    "key": 586,
-                    "type": "Data",
-                    "name": "value"
-                  },
-                  {
-                    "key": 584,
-                    "type": "Data",
-                    "name": "value"
-                  }
-                ],
-                "linkDataArray": [
-                  {
-                    "from": 581,
-                    "frompid": 302,
-                    "to": 302,
-                    "topid": 581,
-                    "value": "Module"
-                  },
-                  {
-                    "from": 582,
-                    "frompid": 299,
-                    "to": 299,
-                    "topid": 582,
-                    "value": "Output"
-                  },
-                  {
-                    "from": 582,
-                    "frompid": 586,
-                    "to": 586,
-                    "topid": 582,
-                    "value": "Output"
-                  },
-                  {
-                    "from": 584,
-                    "frompid": 582,
-                    "to": 582,
-                    "topid": 584,
-                    "value": "Input"
-                  },
-                  {
-                    "from": 581,
-                    "frompid": 582,
-                    "to": 582,
-                    "topid": 581,
-                    "value": "Module"
-                  }
-                ]
-              }
-            
-            // dummyData = data;
+			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
+	          
+				if (data === undefined)
+                	return;
 
-            provgraphviewmodel.show(dummyData);         //calling provenance graph 
+            	provgraphviewmodel.show(data['out']);         //calling provenance graph
+			});
+			
+			$('#refresh').hide();
 
         }).fail(function (jqXHR, textStatus) {
             $('#refresh').hide();

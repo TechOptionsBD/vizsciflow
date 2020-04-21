@@ -75,16 +75,15 @@ class Run(object):
         self._node = RunnableItem.load(run_id = run_id) if run_id else runItem
     
     @staticmethod
-    def get(runid = None, workflow_id = None):
-        try:
-            runs = []
-            runItems = RunnableItem.load(runid, workflow_id)
-            for run in runItems:
-                runs.append(Run(runItem = run))
-                #yield Run(runItem = run)
-            return runs
+    def get(run_id = None, workflow_id = None):
+        try:        
+            runItems = RunnableItem.load(run_id, workflow_id)
+            if not isinstance(runItems, list):
+                return Run(runItem = runItems)
+            
+            return [Run(runItem = run) for run in runItems]
         except:
-            raise ValueError("Runnable with id {0} doesn't exist.", runid)
+            raise ValueError("Runnable with id {0} doesn't exist.", run_id)
         
     def view(self, viewer = None):
         pass

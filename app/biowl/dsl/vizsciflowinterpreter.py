@@ -28,7 +28,8 @@ class VizSciFlowInterpreter(Interpreter):
                     return getattr(obj, function)(*v)
                 
                 if package in registry:
-                    return getattr(registry[package], function)(*v)
+                    args, kwargs = Library.split_args(v)
+                    return getattr(registry[package], function)(*args, **kwargs)
                
             # call task if exists
             if package is None and function in self.context.library.tasks:

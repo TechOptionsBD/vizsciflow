@@ -179,4 +179,18 @@ function RunnablesViewModel() {
             self.historyLoading = false;
         });
     }
+
+    //runnableID insert button
+    self.runnableToolbar = function (item, event) {
+	    event.stopPropagation();
+
+	    var x = $(event.target).attr('id');
+	    if (x === "insert2Editor") {            
+            var content = "run = Run(run_id = "+ item.id() +")"; 
+            
+            var pos = editor.selection.getCursor();
+            editor.session.insert(pos, content + "\r\n");
+            editor.focus();            
+        }
+    }
 }

@@ -195,6 +195,128 @@ function TasksViewModel() {
             self.runBioWLInternal(task);
     }
 
+    self.runProvenance = function (task) {
+        var updateDlg = self.updateWorkflow();
+        if (updateDlg) {
+            updateDlg.on('hidden.bs.modal', function () { self.runProvenanceInternal(task); });
+        }
+        else
+            self.runProvenanceInternal(task);
+    }
+
+    self.runProvenanceInternal = function (task) {
+        if (!workflowId) {
+            $("#error").val("Workflow is not updated. Change the code and run again.");
+            return;
+        }
+
+        var script = $.trim(editor.getSession().getValue());
+        if (!script)
+            return;
+
+        $('#refresh').show();
+        var formdata = new FormData();
+
+        formdata.append('workflowId', parseInt(workflowId));
+        formdata.append('args', $('#args').val());
+        formdata.append('immediate', $('#immediate').prop('checked'));
+        formdata.append('provenance', "true");
+        self.clearResults();
+       
+        ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
+            $('#refresh').hide();
+
+            if (data === undefined)
+                return;
+
+            // reportId = parseInt(data.runnableId);
+            runnablesViewModel.load();
+            // runnablesViewModel.loadHistory(reportId, true);
+                      
+            
+            //static data for graph 
+            var dummyData = {
+                "nodeDataArray": [
+                  {
+                    "key": 581,
+                    "type": "Run",
+                    "name": "No Name"
+                  },
+                  {
+                    "key": 302,
+                    "type": "Module",
+                    "name": "print"
+                  },
+                  {
+                    "key": 582,
+                    "type": "Module",
+                    "name": "CheckQuality"
+                  },
+                  {
+                    "key": 299,
+                    "type": "Data",
+                    "name": "value"
+                  },
+                  {
+                    "key": 586,
+                    "type": "Data",
+                    "name": "value"
+                  },
+                  {
+                    "key": 584,
+                    "type": "Data",
+                    "name": "value"
+                  }
+                ],
+                "linkDataArray": [
+                  {
+                    "from": 581,
+                    "frompid": 302,
+                    "to": 302,
+                    "topid": 581,
+                    "value": "Module"
+                  },
+                  {
+                    "from": 582,
+                    "frompid": 299,
+                    "to": 299,
+                    "topid": 582,
+                    "value": "Output"
+                  },
+                  {
+                    "from": 582,
+                    "frompid": 586,
+                    "to": 586,
+                    "topid": 582,
+                    "value": "Output"
+                  },
+                  {
+                    "from": 584,
+                    "frompid": 582,
+                    "to": 582,
+                    "topid": 584,
+                    "value": "Input"
+                  },
+                  {
+                    "from": 581,
+                    "frompid": 582,
+                    "to": 582,
+                    "topid": 581,
+                    "value": "Module"
+                  }
+                ]
+              }
+            
+            // dummyData = data;
+
+            provgraphviewmodel.show(dummyData);         //calling provenance graph 
+
+        }).fail(function (jqXHR, textStatus) {
+            $('#refresh').hide();
+            showXHRText(jqXHR);
+        });
+    }
+
     self.buildGoSimpleGraph = function (task) {
         var updateDlg = self.updateWorkflow();
         if (updateDlg) {
@@ -301,9 +423,9 @@ function TasksViewModel() {
         });
     }
 
-    self.provenance = function () {
-        $.redirect(self.tasksURI, { 'provenance': true }, "POST", "_blank");
-    }
+    // self.provenance = function () {
+    //     $.redirect(self.tasksURI, { 'provenance': true }, "POST", "_blank");
+    // }
 
     self.generatePythonCode = function (task) {
         $('#refresh').show();
@@ -549,6 +671,15 @@ function TasksViewModel() {
                                     content.params.forEach(function (param){
                                         paramNo++;
                                         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
+                                        // if(param.name == "outdir"){
+                                        //     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 3);
+                                        //     exmplDOM += "=";
+                                        //     paramNo++;
+                                        //     if(param.default == "''")
+                                        //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + " outdir\' name=\"Param\" value=\''" + param.default + "'\' placeholder='' > , ";
+                                        //     else
+                                        //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' style = \" border-color : 'red';\" type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.default + "\'> , ";                                            
+                                        // }
                                     });
                                     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                     exmplDOM += ")";

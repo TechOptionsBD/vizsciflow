@@ -945,7 +945,7 @@ border-radius: 50px;
   opacity: .5;
 }
 
-#DiagramOverview, #visualDiagramOverview{
+#DiagramOverview, #visualDiagramOverview, #provDiagramOverview{
 	position: absolute; 
 	right: 10px; 
 	bottom: 10px; 
@@ -1002,7 +1002,7 @@ border-radius: 50px;
   }
 
   .col-md-6.box-two{
-    width: 59%;
+    width: 57%;
   }
 
   .col-md-4.box-two{

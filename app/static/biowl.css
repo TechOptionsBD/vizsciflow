@@ -14,6 +14,10 @@
   padding-right: 18%;
 }
 
+.runnableToolbar{
+  display: none;
+}
+
 .even-row:hover .serviceToolbar, .odd-row:hover .serviceToolbar {
   display: block;
   color: #337ab7;

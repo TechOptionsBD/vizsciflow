@@ -341,7 +341,7 @@
 				<div class="panel-body"
 					style="max-height: 200px; width: 100%; overflow-y: scroll;"
 					data-bind="foreach: items">
-					<div class="div-history-item row menu_button"
+					<div class="div-history-item row menu_button" id="runnablesHistory"
 						data-bind=" css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }">
 						<div class="col-md-1" style="padding-left: 0; margin-right: 5px;">
 							<input type="checkbox" class="form-check-input" style="margin-left: 10px"
@@ -353,8 +353,8 @@
 						</div>
 						
 						<!-- job history floating toolbar -->
-						<span class="serviceToolbar" data-bind="visible: id()">
-							<span class="glyphicon glyphicon-export" id="insert2Editor" data-bind="event: {click: $parent.runnableToolbar}"></span>
+						<span class="runnableToolbar serviceToolbar" data-bind="visible: id()">
+							<span class="glyphicon glyphicon-export" id="insert2Editor" data-bind="event: {click: $parent.runnableToolbar}" title="Insert Run ID"></span>
 						</span>
 
 						<div class="col" style="float: right;padding-right: 5px" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}">

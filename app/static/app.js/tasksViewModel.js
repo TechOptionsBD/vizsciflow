@@ -221,6 +221,7 @@ function TasksViewModel() {
         formdata.append('args', $('#args').val());
         formdata.append('immediate', 'true');
         self.clearResults();
+        $('.nav-tabs a[href="#provenancetab"]').tab('show');
        
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
 
@@ -232,7 +233,7 @@ function TasksViewModel() {
             reportId = parseInt(data.runnableId);
             //runnablesViewModel.load();
             //runnablesViewModel.loadHistory(reportId, false);
-            
+
 			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
 	          
 				if (data === undefined)

@@ -153,13 +153,6 @@ $(document).ready(function () {
         $(".extab2-tab-content").css("min-height", "168px");
     });
 
-    var runProvenance = $("#runProvenance");
-    $(runProvenance).on('click', function () {
-        setTimeout(function () {
-            $('.nav-tabs a[href="#provenancetab"]').tab('show');
-        }, 3000);
-    });
-
     var logTab = $(".log-tab");
     $(logTab).css('height', '150px');
 
@@ -229,9 +222,25 @@ $(document).ready(function () {
             $("#execstatus").css("float", "right");
         }
         else if (x === "#3") {
-            $("#execstatus").css("float", "left");
-            $("#execstatus").css("margin-left", "57%");
+            $("#execstatus")
+            .css({
+                "float": "left",
+                "margin-left": "57%"
+            });
 		}
+    });
+
+    //job history floating toolbar visibility based on active tab 
+    $(document).on('mouseenter', '#runnablesHistory', function (e) {
+        var activeTab = $("#exTabBiowl ul li.active").attr('id');
+
+		if (activeTab === "liScriptTab") 
+            $(this).find(".runnableToolbar").css("display", "block");
+        
+        else
+            $(this).find(".runnableToolbar").css("display", "none");
+    }).on('mouseleave', '#runnablesHistory', function () {
+        $(this).find(".runnableToolbar").css("display", "none");
     });
       
     //handling any service addition on click

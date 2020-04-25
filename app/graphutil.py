@@ -566,10 +566,10 @@ class RunnableItem(NodeItem):
         self._updateQueue.append("out")
     
     @property
-    def error(self):
+    def err(self):
         return self._error
-    @error.setter
-    def error(self, error):
+    @err.setter
+    def err(self, error):
         self._error = error
         self._updateQueue.append("error")
         
@@ -714,7 +714,7 @@ class RunnableItem(NodeItem):
             'memory': (psutil.virtual_memory()[2])/bytes_in_gb,
             'cpu': (psutil.cpu_percent()),
             'out': self.out,
-            'error': self.error,
+            'error': self._error,
             'script': self.script,
             'status': self.status,
             'duration': self.duration,
@@ -928,6 +928,8 @@ class ModuleItem(NodeItem):
                     data = ValueItem(str(d[1]), d[0], task_id = self.id, job_id = run_id, workflow_id = workflow_id)
                     dataNode = Node("Data", **data.json())
                     dataNodeCreated = True
+                else:
+                    dataNode = data.Node()
             task2DataRel = Relationship(self.Node(), "OUTPUT", dataNode)
 
             #DataAllocationItem.add(user_id, dataNode)
@@ -941,6 +943,8 @@ class ModuleItem(NodeItem):
                 dataAllocation = DataAllocationItem(user_id, AccessRights.Owner)
                 dataAllocationNode =  Node('Allocation', **dataAllocation.json())
                 dataAllocationNodeCreated = True
+            else:
+                dataAllocationNode = dataAllocation.Node()
             data2dataAllocationRel = Relationship(dataNode, "ALLOCATION", dataAllocationNode)
             
 #             dataProperty = DataPropertyItem(str(self.id), { 'task_id': self.id, 'job_id': self.run_id, 'workflow_id': workflow_id, 'inout': 'out'})

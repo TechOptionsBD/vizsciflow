@@ -1,6 +1,16 @@
-from json import dumps 
+from json import dumps
+import itertools
+import operator
 from ...graphutil import RunnableItem, ModuleItem, ValueItem
-
+          
+def remove_duplicate_nodes(d, *args):
+    getvals = operator.itemgetter(*args)
+    d.sort(key = getvals)
+    result = []
+    for _, g in itertools.groupby(d, getvals):
+        result.append(next(g))
+    return result
+            
 def merge_json(json, other_json, link_value, opposite_link = False):
     json["nodeDataArray"].extend(other_json["nodeDataArray"])
     json["linkDataArray"].extend(other_json["linkDataArray"])
@@ -9,7 +19,9 @@ def merge_json(json, other_json, link_value, opposite_link = False):
         other_node = json["nodeDataArray"][0] if opposite_link else other_json["nodeDataArray"][0]
         link = { "from": json_node["key"], "frompid": other_node["key"], "to": other_node["key"], "topid": json_node["key"], "value": link_value}
         json["linkDataArray"].append(link)
-                
+    
+    json["nodeDataArray"] = remove_duplicate_nodes(json["nodeDataArray"], 'key')
+    json["linkDataArray"] = remove_duplicate_nodes(json["linkDataArray"], 'from', 'to')
     return json
     
 class Data():

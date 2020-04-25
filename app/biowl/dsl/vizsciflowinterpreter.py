@@ -12,30 +12,30 @@ class VizSciFlowInterpreter(Interpreter):
         super().__init__(Context(Library(), VizSciFlowSymbolTable))
         
     def dofunc(self, expr):
-            '''
-            Execute func expression.
-            :param expr:
-            '''
-            function = expr[0] if len(expr) < 3 else expr[1]
-            package = expr[0][:-1] if len(expr) > 2 else None
+        '''
+        Execute func expression.
+        :param expr:
+        '''
+        function = expr[0] if len(expr) < 3 else expr[1]
+        package = expr[0][:-1] if len(expr) > 2 else None
+        
+        params = expr[1] if len(expr) < 3 else expr[2]
+        v = self.get_args(params)
+        
+        if package:
+            if self.context.var_exists(package):
+                obj = self.context.get_var(package)
+                return getattr(obj, function)(*v)
             
-            params = expr[1] if len(expr) < 3 else expr[2]
-            v = self.get_args(params)
+            if package in registry:
+                args, kwargs = Library.split_args(v)
+                return getattr(registry[package], function)(*args, **kwargs)
+           
+        # call task if exists
+        if package is None and function in self.context.library.tasks:
+            return self.context.library.run_task(function, v, self.dotaskstmt)
+
+        if not self.context.library.check_function(function, package):
+            raise Exception(r"Function '{0}' doesn't exist.".format(function))
             
-            if package:
-                if self.context.var_exists(package):
-                    obj = self.context.get_var(package)
-                    return getattr(obj, function)(*v)
-                
-                if package in registry:
-                    args, kwargs = Library.split_args(v)
-                    return getattr(registry[package], function)(*args, **kwargs)
-               
-            # call task if exists
-            if package is None and function in self.context.library.tasks:
-                return self.context.library.run_task(function, v, self.dotaskstmt)
-    
-            if not self.context.library.check_function(function, package):
-                raise Exception(r"Function '{0}' doesn't exist.".format(function))
-                
-            return self.context.library.call_func(self.context, package, function, v)
+        return self.context.library.call_func(self.context, package, function, v)

@@ -15,3 +15,5 @@ typing
 scp
 py2neo
 regex
+psycopg2-binary
+psutil

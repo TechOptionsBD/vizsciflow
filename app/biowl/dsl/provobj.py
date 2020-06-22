@@ -1,7 +1,7 @@
 from json import dumps
 import itertools
 import operator
-from ...graphutil import RunnableItem, ModuleItem, ValueItem
+from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem
           
 def remove_duplicate_nodes(d, *args):
     getvals = operator.itemgetter(*args)
@@ -28,6 +28,20 @@ class Data():
     def __init__(self, data_id = None, data_item = None):
         self._node = ValueItem.load(data_id = data_id) if data_id else data_item
     
+    @staticmethod
+    def Create(value, datatype):
+        workflow = None
+        if workflow_id:
+            workflow = WorkflowItem.load(workflow_id = workflow_id)
+            if workflow:
+                return workflow
+        
+        if not workflow:
+            workflow = WorkflowItem.Create(name)
+            workflow.workflow_id = workflow_id
+            
+        return Workflow(workflow)
+    
     def json(self):
         this_node = {"key": self._node.id, "type": "Data", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
@@ -40,7 +54,7 @@ class Data():
                 
         return json
     
-    def Metadata(self):
+    def metadata(self):
         properties = []
         for k,v in self._node.properties:
             properties.append(Property(k, v))
@@ -61,23 +75,23 @@ class Property(object):
         
 class Module(object):
 
-    def __init__(self, module_id=None, module_item=None):
-        self._node = ModuleItem.load(module_id=module_id) if module_id else module_item
+    def __init__(self, module_id=None, moduleItem=None):
+        self._node = ModuleItem.load(module_id=module_id) if module_id else moduleItem
     
-    def Outputs(self):
+    def outputs(self):
         return [Data(data_item=output) for output in self._node.outputs]
         
-    def Inputs(self):
+    def inputs(self):
         return [Data(data_item=arg) for arg in self._node.inputs]
     
     def json(self):
         this_node = {"key": self._node.id, "type": "Module", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
        
-        for outdata in self.Outputs():
+        for outdata in self.outputs():
             json = merge_json(json, outdata.json(), 'Output')
         
-        for indata in self.Inputs():
+        for indata in self.inputs():
             json = merge_json(json, indata.json(), 'Input', True)
             
         return json
@@ -104,20 +118,19 @@ class Run(object):
 #     def module(self, index):
 #         return self._node.task_by_index(index)
     
-    def Modules(self, index = None, name = None):
+    def modules(self, index = None, name = None):
         modules = []
         moduleItems = self._node.modules
         if index:
-            modules.append(Module(module_item=moduleItems[index]))
+            modules.append(Module(moduleItem=moduleItems[index]))
         elif name:
             for module in moduleItems:
                 if module.name == name:
-                    modules.append(Module(module_item=module))
+                    modules.append(Module(moduleItem=module))
         else:
             for module in moduleItems:
-                modules.append(Module(module_item=module))
+                modules.append(Module(moduleItem=module))
         return modules
-        #return self._node.task_by_index(index) if index else self._node.task_by_name(name)
     
     def nodes(self, key, value = None):
         return self._node.nodes_by_property(key, value)
@@ -125,10 +138,142 @@ class Run(object):
     def json(self):
         this_node = {"key": self._node.id, "type": "Run", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
-        for module in self.Modules():
+        for module in self.modules():
             json = merge_json(json, module.json(), 'Module')
-        return dumps(json)
+        return json
+
+class Workflow(object):
+    def __init__(self, workflow_id = None, workflowItem = None):
+        self._node = WorkflowItem.load(workflow_id = workflow_id) if workflow_id else workflowItem
     
+    @staticmethod
+    def Create(workflow_id = None, name = None):
+        workflow = None
+        if workflow_id:
+            workflow = WorkflowItem.load(workflow_id = workflow_id)
+            if workflow:
+                return workflow
+        
+        if not workflow:
+            workflow = WorkflowItem.Create(name)
+            workflow.workflow_id = workflow_id
+            
+        return Workflow(workflowItem = workflow)
+    
+    @staticmethod
+    def get(workflow_id = None):
+        try:        
+            workflowItems = WorkflowItem.load(workflow_id)
+            if not isinstance(workflowItems, list):
+                return Workflow(workflowItem = workflowItems)
+            
+            return [Workflow(workflowItem = workflow) for workflow in workflowItems]
+        except:
+            raise ValueError("Workflow with id {0} doesn't exist.", workflow_id)
+        
+    def view(self, viewer = None):
+        pass
+
+    def modules(self, index = None, name = None):
+        modules = []
+        moduleItems = self._node.modules
+        if index:
+            modules.append(Module(moduleItem=moduleItems[index]))
+        elif name:
+            for module in moduleItems:
+                if module.name == name:
+                    modules.append(Module(moduleItem=module))
+        else:
+            for module in moduleItems:
+                modules.append(Module(moduleItem=module))
+        return modules
+       
+    def runs(self, index = None, name = None):
+        runs = []
+        runsItems = self._node.Runs
+        if index:
+            runs.append(Run(run_item=runsItems[index]))
+        elif name:
+            for run in runsItems:
+                if run.name == name:
+                    runs.append(Run(runItem=run))
+        else:
+            for run in runsItems:
+                runs.append(Run(runItem=run))
+        return runs
+    
+    def json(self):
+        this_node = {"key": self._node.id, "type": "Workflow", "name": self._node.name}
+        json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
+        for run in self.runs():
+            json = merge_json(json, run.json(), 'Run')
+        return json
+
+class User(object):
+    def __init__(self, user_id = None, userItem = None):
+        self._node = UserItem.load(user_id = user_id) if user_id else userItem
+    
+    @staticmethod
+    def get(user_id = None):
+        try:        
+            userItems = UserItem.load(user_id)
+            if not isinstance(userItems, list):
+                return User(userItem = userItems)
+            
+            return [User(userItem = user) for user in userItems]
+        except:
+            raise ValueError("User with id {0} doesn't exist.", user_id)
+        
+    def view(self, viewer = None):
+        pass
+    
+#     def module(self, index):
+#         return self._node.task_by_index(index)
+    
+    def workflows(self, index = None, name = None):
+        workflows = []
+        workflowsItems = self._node.Workflows
+        if index:
+            workflows.append(Workflow(workflow_item=workflowsItems[index]))
+        elif name:
+            for workflow in workflowsItems:
+                if workflow.name == name:
+                    workflows.append(Workflow(workflow_item=workflow))
+        else:
+            for workflow in workflowsItems:
+                workflows.append(Workflow(workflowItem=workflow))
+        return workflows
+        #return self._node.task_by_index(index) if index else self._node.task_by_name(name)
+
+    def runs(self, index = None, name = None):
+        runs = []
+        runsItems = self._node.Runs
+        if index:
+            runs.append(Run(run_item=runsItems[index]))
+        elif name:
+            for run in runsItems:
+                if run.name == name:
+                    runs.append(Run(runItem=run))
+        else:
+            for run in runsItems:
+                runs.append(Run(runItem=run))
+        return runs
+        
+    def json(self):
+        this_node = {"key": self._node.id, "type": "User", "name": self._node.name}
+        json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
+        for workflow in self.workflows():
+            json = merge_json(json, workflow.json(), 'Workflow')
+        return json
+
+class View(object):
+    def __init__(self):
+        pass
+    
+    @staticmethod             
+    def graph(node):
+        return dumps(node.json())
+        
 class Monitor(object):
     
     def time(self, node_id):

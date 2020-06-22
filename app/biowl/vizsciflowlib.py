@@ -71,7 +71,7 @@ class Library(LibraryBase):
                     
                 dataManager.StoreArgumentes(context.user_id, task, func["params"] if func["params"] else [], storeArguments)
                 result = function(context, *arguments, **kwargs)
-                result = Library.add_meta_data(func["returns"] if "returns" in func else "", result, context.user_id, task)
+                result = Library.add_meta_data(func["returns"] if "returns" in func else "", result, task)
                 
                 task.succeeded()
                 
@@ -116,9 +116,9 @@ class Library(LibraryBase):
         return dataAndType
 
     @staticmethod
-    def add_meta_data(returns, data, user_id, task):
+    def add_meta_data(returns, data, task):
         dataAndType = Library.GetDataAndTypeFromFunc(returns, data)
-        return dataManager.add_task_data(dataAndType, user_id, task)
+        return dataManager.add_task_data(dataAndType, task)
 
     def code_func(self, context, package, function, arguments):
         '''

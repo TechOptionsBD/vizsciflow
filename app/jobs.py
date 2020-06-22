@@ -9,11 +9,10 @@ from config import Config
 from . import celery
 from dsl.grammar import PythonGrammar
 from dsl.parser import WorkflowParser
-from  dsl.graphgen import GraphGenerator
+from app.biowl.dsl.vizsciflowgraphgen import GraphGenerator
 from dsl.wftimer import Timer
 from dsl.context import Context
 from app.biowl.vizsciflowlib import Library
-from app.biowl.vizsciflowsymtab import VizSciFlowSymbolTable
 
 from .models import Status, Workflow
 from .runmgr import runnableManager
@@ -133,8 +132,7 @@ class RequestContextTask(AbortableTask):
 def run_script(self, runnable_id, args):
     
     runnable = runnableManager.get_runnable(runnable_id)
-    workflow = Workflow.query.get(runnable.workflow_id)
-    
+
     machine = VizSciFlowInterpreter()
     
     parserdir = Config.BIOWL
@@ -143,7 +141,7 @@ def run_script(self, runnable_id, args):
 
     try:
         machine.context.runnable = runnable.id
-        machine.context.user_id = workflow.user_id
+        machine.context.user_id = runnable.user_id
         
         if self and self.request:
             runnable.celery_id = self.request.id
@@ -202,5 +200,5 @@ def sync_task_status_with_db_for_user(user_id):
             
 def generate_graph(workflow_id):
     workflow = Workflow.query.get(workflow_id)
-    graphgen = GraphGenerator(Context(Library()), Config.GRAPHDB, Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD)
+    graphgen = GraphGenerator()
     return graphgen.run_workflow(workflow)

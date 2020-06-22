@@ -5,7 +5,7 @@ from ..vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
 from .provobj import *
 
-registry = {'Workflow':WfWorkflow, 'Module':WfModule, 'Data':WfData, 'Property':WfProperty, 'Run': Run}
+registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View}
 
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):
@@ -29,7 +29,7 @@ class VizSciFlowInterpreter(Interpreter):
             
             if package in registry:
                 args, kwargs = Library.split_args(v)
-                return getattr(registry[package], function)(*args, **kwargs)
+                return getattr(registry[package], function.lower())(*args, **kwargs)
            
         # call task if exists
         if package is None and function in self.context.library.tasks:

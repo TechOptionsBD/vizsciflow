@@ -32,7 +32,6 @@ def neotime2StrfTime(date):
 
 class NodeItem(GraphObject):
 #     __primarykey__ = "id"
-    id = None
     created_on = Property("created_on", neotime.DateTime.utc_now())
     modified_on = Property("modified_on", neotime.DateTime.utc_now())
     properties = {}
@@ -53,13 +52,25 @@ class NodeItem(GraphObject):
         setattr(self, name, value)
     
     @property
+    def label(self):
+        return self.__primarylabel__
+
+    @label.setter
+    def label(self, l):
+        self.__primarylabel__ = l
+            
+    @property
     def id(self):
-        return self._GraphObject__ogm.node.identity
+        return self.__primaryvalue__
     
     @staticmethod
     def OrderBy(self, items, key):
         pass
-    
+
+    @staticmethod
+    def push(node):
+        graph().push(node)
+            
     def json(self):
         
         j = {
@@ -69,6 +80,60 @@ class NodeItem(GraphObject):
         }
         j.update(self.properties)
         return j
+
+class UserItem(NodeItem):
+    user_id = Property("user_id")
+    name = Property("username")
+    runs = RelatedTo("RunnableItem", "USERRUN")
+    workflows = RelatedTo("WorkflowItem", "WORKFLOW")
+    datasets = RelatedTo("ValueItem", "ACCESS")
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    
+    @staticmethod
+    def load(user_id):
+        if user_id:
+            return UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
+        else: # this will be very resource-intensive. never call it.
+            return UserItem.match(graph()).limit(sys.maxsize)
+
+    @property
+    def Runs(self):
+        return list(self.runs)
+    
+    @property
+    def Workflows(self):
+        return list(self.workflows)
+            
+class WorkflowItem(NodeItem):
+    workflow_id = Property("workflow_id")
+    name = Property("name")
+    user = RelatedFrom("UserItem", "WORKFLOW")
+    runs = RelatedTo("RunnableItem", "WORKFLOWRUN")
+    symbols = RelatedTo("ValueItem", "SYMBOL")
+    
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        if not self.name:
+            self.name = name
+    
+    @staticmethod
+    def Create(name):
+        workflow = WorkflowItem(name)
+        graph().push(workflow)
+        return workflow
+        
+    @staticmethod
+    def load(workflow_id):
+        if workflow_id:
+            return WorkflowItem.match(graph()).where("_.workflow_id = {0}".format(workflow_id)).first()
+        else: # this will be very resource-intensive. never call it.
+            return WorkflowItem.match(graph()).limit(sys.maxsize)
+    
+    @property
+    def Runs(self):
+        return list(self.runs)
     
 class DataItem(NodeItem):
     value = None
@@ -83,7 +148,7 @@ class DataItem(NodeItem):
     
     def json(self):
         j = NodeItem.json(self)
-        j['value'] = self._value
+        j['value'] = self.value
         return j
        
 class ValueItem(DataItem):
@@ -92,7 +157,8 @@ class ValueItem(DataItem):
     name = Property('name', 'value')
     value = Property('value')
     
-    allocations = RelatedTo("DataAllocationItem", "ALLOCATION")
+    #allocations = RelatedTo("DataAllocationItem", "ALLOCATION")
+    users = RelatedFrom(UserItem, 'ACCESS')
     
     def __init__(self, value, valuetype, **kwargs):
         super().__init__(**kwargs)
@@ -108,9 +174,7 @@ class ValueItem(DataItem):
     
     @staticmethod
     def create(value, valuetype, **kwargs):
-        item = ValueItem(**kwargs)
-        item.value = value
-        item.valuetype = valuetype
+        item = ValueItem(value, valuetype, **kwargs)        
         item.name = "value"
         graph().push(item)
         return item
@@ -119,16 +183,19 @@ class ValueItem(DataItem):
         return next((a for a in self.allocations if a.user_id == user_id), None)
 
     def allocate_for_user(self, user_id, rights):
-        a = self.get_allocation_for_user(user_id) 
-        if a:
-            if a.access != rights:
-                a.access = rights
-            return a
-        
-        a = DataAllocationItem(user_id, rights)
-        self.allocations.add(a)
-        return a
-    
+        for a in self.users:
+            if a.user_id == user_id:
+                if rights > a.datasets.get(self, "rights"):
+                    a.datasets.remove(self)
+                    a.datasets.add(self, rights=rights)
+                    graph().push(a)
+                return self
+            
+        user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
+        user.datasets.add(self, rights=rights)
+        graph().push(user)
+        return self
+
     def __add__(self, other):
         if self.valuetype == "value":
             return self.value + other.value
@@ -177,41 +244,6 @@ class ValueItem(DataItem):
     def load(item_id):
         return ValueItem.match(graph(), item_id).first()
     
-class DataAllocationItem(NodeItem):
-    user_id = Property("user_id")
-    access = Property("access")
-    
-    allocation = RelatedFrom(ValueItem)
-        
-    def __init__(self, user_id, access):
-        super().__init__()
-        
-        if not self.user_id:
-            self.user_id = user_id
-        if not self.access:
-            self.access = access
-
-    @staticmethod
-    def add(user_id, access):
-        dataAllocation = DataAllocationItem(user_id, access)
-        graph.push(dataAllocation)
-        return dataAllocation
-
-    def json(self):
-        j = NodeItem.json(self)
-        j.update({
-            'event': 'DATA-ALLOC',
-            'user_id': self.user_id,
-            'access': self.access,
-            'memory': (psutil.virtual_memory()[2])/bytes_in_gb,
-            'cpu': (psutil.cpu_percent())
-        })
-        return j
-    
-    def udpate(self):    
-        self.modified_on = neotime.DateTime.utc_now()
-        graph().push(self)
-        
     @staticmethod
     def check_access_rights(user_id, path, checkRights):
         matcher = NodeMatcher(graphgen.graph)
@@ -225,7 +257,7 @@ class DataAllocationItem(NodeItem):
             defaultRights = AccessRights.Read # we are giving read access to our root folder to all logged in user
 
         matcher = NodeMatcher(graphgen.graph)
-        
+       
 class DataPropertyItem(NodeItem):
     name = Property("name")
     value = Property("value")
@@ -260,9 +292,6 @@ class DataPropertyItem(NodeItem):
     
 class RunnableItem(NodeItem): #number1
     celery_id = Property("celery_id", 0)
-    user_id = Property("user_id")
-    workflow_id = Property("workflow_id")
-    
     name = Property("name")
     
     out = Property("out", "")
@@ -274,10 +303,20 @@ class RunnableItem(NodeItem): #number1
     arguments = Property("arguments")
     
     modules = RelatedTo("ModuleItem", "MODULE")
+    users = RelatedFrom(UserItem, "USERRUN")
+    workflows = RelatedFrom(WorkflowItem, "WORKFLOWRUN")
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-            
+    @property
+    def user_id(self):
+        return list(self.users)[0].user_id
+    
+    @property
+    def workflow_id(self):
+        return list(self.workflows)[0].workflow_id
+    
     def update(self):
         graph().push(self)
         
@@ -302,7 +341,8 @@ class RunnableItem(NodeItem): #number1
     
     @staticmethod
     def load_for_users(user_id):
-        return RunnableItem.match(graph()).where("_.user_id = {0}".format(user_id)).limit(sys.maxsize)
+        user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
+        return list(user.runs)
     
     def add_module(self, function_name):
         item = ModuleItem(function_name)
@@ -312,19 +352,32 @@ class RunnableItem(NodeItem): #number1
     
     @staticmethod
     def create(user_id, workflow_id, script, args):
-        try:
-            item = RunnableItem()
-            item.user_id = user_id
-            item.workflow_id = workflow_id
-            item.script = script
-            item.name = Workflow.query.get(workflow_id).name
-            item.args = args
-            graph().push(item)
-            return item
+        user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
+        if not user:
+            user = UserItem()
+            user.user_id = user_id
         
-        except Exception as e:
-            return make_response(jsonify(err=str(e)), 500)
-
+        dbWorkflow = Workflow.query.get(workflow_id)  
+        workflow = WorkflowItem.match(graph()).where("_.workflow_id = {0}".format(workflow_id)).first()
+        if not workflow:
+            workflow = WorkflowItem(dbWorkflow.name)
+            workflow.workflow_id = workflow_id
+            user.workflows.add(workflow)
+            
+        item = RunnableItem()
+        item.script = script
+        item.name = workflow.name
+        item.args = args
+        
+        user.runs.add(item)
+        workflow.runs.add(item)
+        
+        graph().push(user)
+        graph().push(workflow)
+        
+        graph().push(item)
+        return item
+        
     @staticmethod
     def load_if(condition = None):
         pass
@@ -401,12 +454,10 @@ class RunnableItem(NodeItem): #number1
             'modified_on': neotime2StrfTime(self.modified_on) if self.modified_on else '',
             'status': self.status
         }
-    def graph(self):
-        pass    
         
 class ModuleItem(NodeItem):
-    module = RelatedFrom(RunnableItem)
-    inputs = RelatedFrom(ValueItem)
+    runs = RelatedFrom(RunnableItem, "MODULE")
+    inputs = RelatedFrom(ValueItem, "INPUT")
     outputs = RelatedTo("ValueItem", "OUTPUT")
     logs = RelatedTo("TaskLogItem", "LOG")
     
@@ -439,7 +490,7 @@ class ModuleItem(NodeItem):
     
     @property
     def run_id(self):
-        return self._related_objects[0][0].id
+        return list(self.runs)[0].id
 
     @staticmethod
     def load(module_id):
@@ -474,40 +525,22 @@ class ModuleItem(NodeItem):
     def add_input(self, user_id, datatype, value, rights):
         for data in self.inputs:
             if data.datatype == datatype and data.value == value:
-                dataAllocation = data.get_allocation_for_user(user_id)
-                if dataAllocation:
-                    dataAllocation.access = rights
-                else:
-                    data.allocate_for_user(user_id, rights)
-                return data
-             
-#                 for alloc in d.allocations:
-#                     if alloc.user_id == user_id:
-#                         if alloc.rights != rights:
-#                             alloc.rights
-#                     return d
-#                 d.allocations.add(DataAllocationItem(user_id, rights))
-                
+                return data.allocate_for_user(user_id, rights)
+                            
         data = ValueItem.get_by_type_value(datatype, value)
         if not data:
             data = ValueItem(value, datatype)
+            graph().push(data)
+        
+        data.allocate_for_user(user_id, rights)
         
         self.inputs.add(data)
+        graph().push(self)
         
-#        data.allocations.add(DataAllocationItem(user_id, rights))
-        
-        dataAllocation = data.get_allocation_for_user(user_id)
-        if dataAllocation:
-            dataAllocation.access = rights
-        else:
-            data.allocate_for_user(user_id, rights)
-        
-        graph().push(data)       
         return data
     
-    def add_outputs(self, dataAndType, user_id):
-        workflow_id = self.module._related_objects[0][0].workflow_id #RunnableItem.load(self.run_id).workflow_id
-        run_id = self.module._related_objects[0][0].id
+    def add_outputs(self, dataAndType):
+        runitem = list(self.runs)[0]
         
         result = ()        
         for d in dataAndType:
@@ -515,10 +548,12 @@ class ModuleItem(NodeItem):
             if not isinstance(d[1], ValueItem):
                 data = ValueItem.get_by_type_value(d[0], d[1])
                 if not data:
-                    data = ValueItem(str(d[1]), d[0], task_id = self.id, job_id = run_id, workflow_id = workflow_id)
-                    data.allocations.add(DataAllocationItem(user_id, AccessRights.Owner))
+                    data = ValueItem(str(d[1]), d[0], task_id = self.id, job_id = runitem.id, workflow_id = runitem.workflow_id)
+                    data.allocate_for_user(runitem.user_id, AccessRights.Owner)                    
                     graph().push(data)
-                    
+                else:
+                    data.allocate_for_user(runitem.user_id, AccessRights.Write)
+                
             self.outputs.add(data)
             result += (d[1],)
         

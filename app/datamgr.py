@@ -3,7 +3,7 @@ import os
 from config import Config
 from .models import Data, AccessRights, DataAllocation, DataProperty, TaskData
 from dsl.datatype import DataType
-from .graphutil import DataAllocationItem, ValueItem
+from .graphutil import ValueItem
 
 class GraphPersistance():
 #     @staticmethod
@@ -44,11 +44,11 @@ class GraphPersistance():
     
     @staticmethod
     def check_access_rights(user_id, path, checkRights):
-        DataAllocationItem.check_access_rights(user_id, path, checkRights)
+        ValueItem.check_access_rights(user_id, path, checkRights)
     
     @staticmethod
     def get_access_rights(user_id, path):
-        return DataAllocationItem.get_access_rights(user_id, path)
+        return ValueItem.get_access_rights(user_id, path)
         
         #fileitems = matcher.match("FileItem", value=path)
 
@@ -66,8 +66,8 @@ class GraphPersistance():
 #                     return permission.rights 
         
     @staticmethod
-    def add_task_data(dataAndType, user_id, task):
-        return task.add_outputs(dataAndType, user_id)
+    def add_task_data(dataAndType, task):
+        return task.add_outputs(dataAndType)
     
     @staticmethod
     def is_data_item(value):
@@ -107,7 +107,7 @@ class DBPersistance():
         return data_dict
     
     @staticmethod
-    def add_task_data(dataAndType, user_id, task):
+    def add_task_data(dataAndType, task):
         result = ()        
         for d in dataAndType:
             #ds = Utility.ds_by_prefix_or_default(str(d[1])) if isinstance(d[1], FolderItem) else d[1]
@@ -149,8 +149,8 @@ class DataManager():
     def load(self, user_id, recursive):
         self.persistance.load(user_id, recursive)
     
-    def add_task_data(self, dataAndType, user_id, task):
-        return self.persistance.add_task_data(dataAndType, user_id, task)
+    def add_task_data(self, dataAndType, task):
+        return self.persistance.add_task_data(dataAndType, task)
     
     def is_data_item(self, value):
         return self.persistance.is_data_item(value)

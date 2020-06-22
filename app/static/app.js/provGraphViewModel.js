@@ -83,10 +83,45 @@ function provgraphViewModel()
 								font: "bold 6pt sans-serif"					//node type font
 							},
 							new go.Binding("text", "type").makeTwoWay()),
-							)
+							),
+							
+							//newly added for contaxt menu
+							$$(go.TextBlock),
+							{
+								contextMenu:     // define a context menu for each node
+								  $$("ContextMenu",   
+									$$(go.Panel, "Table",
+										{background: 'white'},
+										$$(go.TextBlock,
+											{
+												row: 0,
+												alignment: go.Spot.Left,
+												margin: 3
+											},
+											new go.Binding("text", "key").makeTwoWay()
+										),
+										$$(go.TextBlock,
+											{
+												row: 1,
+												alignment: go.Spot.Left,
+												margin: 3
+											},
+											new go.Binding("text", "type").makeTwoWay()
+										),
+										$$(go.TextBlock,
+											{
+												row: 2,
+												alignment: go.Spot.Left,
+												margin: 3
+											},
+											new go.Binding("text", "name").makeTwoWay()
+										)
+									)
+								)  // end Adornment
+							}
 						)
 					);
-
+					
 				provDiagram.linkTemplate =
 				$$(go.Link,
 					{
@@ -120,37 +155,23 @@ function provgraphViewModel()
 					new go.Binding("text", "topid"))
 				); 	
 
-				//edit color value for each node
+				let typeArr = [];
+				let colorArr = ['DarkSlateGray', 'SteelBlue', 'Teal', 'Indigo', 'MidnightBlue', 'IndianRed', 'DeepSkyBlue', 'DarkSalmon', 'DarkGreen', 'DarkOrange'];
+
+				//set color for each type
 				rels['nodeDataArray'].forEach(function(node) {
-					type = node.type;
-					
-					switch(type) {
-						case "Module":
-							color = 'CadetBlue';
-							break;
-						case "Data":
-							color = 'SteelBlue';
-							break;
-						case "Run":
-							color = 'Teal';
-							break;
-						case "Input":
-							color = 'Teal';
-							break;
-						case "Output":
-							color = 'Teal';
-							break;
-						case "Property":
-							color = 'Teal';
-							break;	
-
-						default:
-							color = 'White';
+					if(!typeArr.includes(node.type)){
+						typeArr.push(node.type);
 					}
+					
+					let typeIndex = typeArr.indexOf(node.type);
 
-					node.color = color;								//assign node color
+					if(colorArr[typeIndex] !== undefined)
+						node.color = colorArr[typeIndex];
+					else
+						node.color = 'Black';
+
 					node.name += '\n';								//add a new line after node name
-					// console.log(node);
 				});
 
 				//creating graph using model data 
@@ -159,7 +180,7 @@ function provgraphViewModel()
 				
 				provDiagram.model.isReadOnly = true;
 			}		
-    	}
+		}
         
       //=======================================
       //=============gojs graph end============

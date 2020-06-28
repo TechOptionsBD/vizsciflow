@@ -41,6 +41,22 @@ class Library(LibraryBase):
         return False
     
     @staticmethod
+    def generate_graph(workflow_id, package, function, args):
+        
+        func = Service.get_first_service_by_name_package(function, package)
+        arguments, kwargs = LibraryBase.split_args(args)
+        storeArguments = list(arguments)
+        for _, v in kwargs.items():
+            storeArguments.append(v)
+            
+        module = runnableManager.add_module(workflow_id, package, function)
+        dataManager.StoreModuleArgs(module, func["params"] if func["params"] else [], storeArguments)
+                
+        result = Library.add_meta_data(func["returns"] if "returns" in func else "")
+        
+        return result
+    
+    @staticmethod
     def call_func(context, package, function, args):
         '''
         Call a function from a module.

@@ -155,6 +155,22 @@ class DataManager():
     def is_data_item(self, value):
         return self.persistance.is_data_item(value)
     
+    def StoreModuleArgs(self, module, params, args):
+        if not isinstance(params, list):
+            params = [params]
+        for i in range(0, len(args)):
+            if not dataManager.is_data_item(args[i]):
+                paramType = DataType.Value
+                if i < len(params):
+                    paramType = params[i]["type"]
+                    paramType = paramType.lower().split('|')
+                    if 'file' in paramType:
+                        paramType = DataType.File
+                    elif 'folder' in paramType:
+                        paramType = DataType.Folder
+                
+                module.add_arg(paramType, args[i])
+               
     def StoreArgumentes(self, user_id, task, params, args):
         if not isinstance(params, list):
             params = [params]

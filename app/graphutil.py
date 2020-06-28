@@ -11,7 +11,7 @@ from py2neo import NodeMatcher
 from py2neo import Graph
 import neotime
 
-from .models import Status, Workflow, LogType, AccessRights, DataType
+from .models import Status, Workflow, LogType, AccessRights, DataType, User
 from dsl.fileop import FolderItem
 
 def graph():
@@ -32,12 +32,15 @@ def neotime2StrfTime(date):
 
 class NodeItem(GraphObject):
 #     __primarykey__ = "id"
-    created_on = Property("created_on", neotime.DateTime.utc_now())
-    modified_on = Property("modified_on", neotime.DateTime.utc_now())
+    _created_on = Property("created_on")
+    _modified_on = Property("modified_on")
     properties = {}
     
     def __init__(self, **kwargs):
-        #self._id = None # this will be set when the item is created or updated from neo4j
+        if not self._created_on:
+            self._created_on = neotime.DateTime.utc_now()
+        if not self._modified_on:
+            self._modified_on = neotime.DateTime.utc_now()
          
         # other properties
         if not self.properties:
@@ -70,12 +73,26 @@ class NodeItem(GraphObject):
     @staticmethod
     def push(node):
         graph().push(node)
-            
+    
+    @property
+    def created_on(self):
+        return self._created_on.to_native()
+    @created_on.setter
+    def created_on(self, value):
+        self._created_on = neotime.DateTime(value.year, value.month, value.day, value.hour, value.minute, value.second, value.tzinfo)
+#     
+    @property
+    def modified_on(self):
+        return self._modified_on.to_native()
+    @modified_on.setter
+    def modified_on(self, value):        
+        self._modified_on = neotime.DateTime(value.year, value.month, value.day, value.hour, value.minute, value.second, value.tzinfo)
+        
     def json(self):
         
         j = {
-            'created_on': self.created_on,
-            'modified_on': self.modified_on,
+            'created_on': str(self.created_on),
+            'modified_on': str(self.modified_on),
             
         }
         j.update(self.properties)
@@ -88,16 +105,24 @@ class UserItem(NodeItem):
     workflows = RelatedTo("WorkflowItem", "WORKFLOW")
     datasets = RelatedTo("ValueItem", "ACCESS")
     
-    def __init__(self, **kwargs):
+    def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
+        if not self.name:
+            self.name = name
     
     @staticmethod
     def load(user_id):
         if user_id:
             return UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
         else: # this will be very resource-intensive. never call it.
-            return UserItem.match(graph()).limit(sys.maxsize)
+            return list(UserItem.match(graph()).limit(sys.maxsize))
 
+    @staticmethod
+    def Create(user_id):
+        user = UserItem(User.query.get(user_id).username)
+        user.user_id = user_id
+        return user
+            
     @property
     def Runs(self):
         return list(self.runs)
@@ -112,12 +137,22 @@ class WorkflowItem(NodeItem):
     user = RelatedFrom("UserItem", "WORKFLOW")
     runs = RelatedTo("RunnableItem", "WORKFLOWRUN")
     symbols = RelatedTo("ValueItem", "SYMBOL")
+    modules = RelatedTo("ModuleItem", "MODULE")
     
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         if not self.name:
             self.name = name
     
+    def add_module(self, package, function):
+        if package:
+            function = package + '.' + function
+        
+        item = ModuleItem(function)
+        self.modules.add(item)
+        graph().push(self)
+        return item
+            
     @staticmethod
     def Create(name):
         workflow = WorkflowItem(name)
@@ -129,11 +164,12 @@ class WorkflowItem(NodeItem):
         if workflow_id:
             return WorkflowItem.match(graph()).where("_.workflow_id = {0}".format(workflow_id)).first()
         else: # this will be very resource-intensive. never call it.
-            return WorkflowItem.match(graph()).limit(sys.maxsize)
+            return list(WorkflowItem.match(graph()).limit(sys.maxsize))
     
     @property
     def Runs(self):
         return list(self.runs)
+    
     
 class DataItem(NodeItem):
     value = None
@@ -291,24 +327,45 @@ class DataPropertyItem(NodeItem):
         return DataPropertyItem.match(graph(), item_id).first()
     
 class RunnableItem(NodeItem): #number1
-    celery_id = Property("celery_id", 0)
+    celery_id = Property("celery_id")
     name = Property("name")
     
-    out = Property("out", "")
-    error = Property("error", "")
+    out = Property("out")
+    error = Property("error")
     
     script = Property("script")
-    status = Property("status", Status.RECEIVED)
-    duration = Property("duration", 0)
+    status = Property("status")
+    duration = Property("duration")
     arguments = Property("arguments")
     
     modules = RelatedTo("ModuleItem", "MODULE")
     users = RelatedFrom(UserItem, "USERRUN")
     workflows = RelatedFrom(WorkflowItem, "WORKFLOWRUN")
     
-    def __init__(self, **kwargs):
+    def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
+        self.name = name
+        if not self.celery_id:
+            self.celery_id = 0
         
+        if not self.out:
+            self.out = ""
+        
+        if not self.error:
+            self.error = ""
+        
+        if not self.script:
+            self.script = ""
+        
+        if not self.status:
+            self.status = Status.RECEIVED
+            
+        if not self.duration:
+            self.duration = 0
+        
+        if not self.arguments:
+            self.arguments = ""
+            
     @property
     def user_id(self):
         return list(self.users)[0].user_id
@@ -337,7 +394,7 @@ class RunnableItem(NodeItem): #number1
         elif workflow_id:
             return RunnableItem.match(graph()).where("_.workflow_id = {0}".format(workflow_id)).limit(sys.maxsize)
         else: # this will be very resource-intensive. never call it.
-            return RunnableItem.match(graph()).limit(sys.maxsize)
+            return list(RunnableItem.match(graph()).limit(sys.maxsize))
     
     @staticmethod
     def load_for_users(user_id):
@@ -354,8 +411,7 @@ class RunnableItem(NodeItem): #number1
     def create(user_id, workflow_id, script, args):
         user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
         if not user:
-            user = UserItem()
-            user.user_id = user_id
+            user = UserItem.Create(user_id)
         
         dbWorkflow = Workflow.query.get(workflow_id)  
         workflow = WorkflowItem.match(graph()).where("_.workflow_id = {0}".format(workflow_id)).first()
@@ -364,9 +420,8 @@ class RunnableItem(NodeItem): #number1
             workflow.workflow_id = workflow_id
             user.workflows.add(workflow)
             
-        item = RunnableItem()
+        item = RunnableItem(workflow.name)
         item.script = script
-        item.name = workflow.name
         item.args = args
         
         user.runs.add(item)
@@ -421,12 +476,12 @@ class RunnableItem(NodeItem): #number1
             error = (self._error[:60] + '...') if len(self.error) > 60 else self.error
         return {
             'id': self.id,
-            'name': self._name,
+            'name': self.name,
             'status': self.status,
-            'error': error,
+            'err': error,
             'duration': self.duration,
-            'created_on': neotime2StrfTime(self.created_on) if self.created_on else '',
-            'modified_on': neotime2StrfTime(self.modified_on) if self.modified_on else ''
+            'created_on': str(self.created_on) if self.created_on else '',
+            'modified_on': str(self.modified_on) if self.modified_on else ''
         }
         
     def to_json_log(self):
@@ -441,7 +496,7 @@ class RunnableItem(NodeItem): #number1
             'script': self.script,
             'status': self.status,
             'out': self.out,
-            'error': self.error,
+            'err': self.error,
             'duration': self.duration,
             'log': log
         }
@@ -451,7 +506,7 @@ class RunnableItem(NodeItem): #number1
             'id': self.id,
             'user_id': self.user_id,
             'name': self.name,
-            'modified_on': neotime2StrfTime(self.modified_on) if self.modified_on else '',
+            'modified_on': str(self.modified_on) if self.modified_on else '',
             'status': self.status
         }
         
@@ -498,20 +553,20 @@ class ModuleItem(NodeItem):
         
     def start(self):
         self.status = Status.STARTED
-        self.created_on = neotime.DateTime.utc_now()
+        self.created_on = datetime.utcnow()
         self.add_log(Status.STARTED, LogType.INFO)
         graph().push(self)
     
     def succeeded(self):
         self.status = Status.SUCCESS
         self.add_log(Status.SUCCESS, LogType.INFO)
-        self.modified_on = neotime.DateTime.utc_now()
+        self.modified_on = datetime.utcnow()
         graph().push(self)
     
     def failed(self, log = "Task Failed."):
         self.status = Status.FAILURE
         self.add_log(log, LogType.INFO)
-        self.modified_on = neotime.DateTime.utc_now()
+        self.modified_on = datetime.utcnow()
         graph().push(self)
                     
     def add_log(self, log, logtype =  LogType.ERROR):
@@ -521,6 +576,25 @@ class ModuleItem(NodeItem):
     
     def graph(self):
         pass
+    
+    def add_arg(self, datatype, value):
+        if isinstance(value, ValueItem):
+            self.inputs.add(value)
+        else:
+            for data in self.inputs:
+                if data.datatype == datatype and data.value == value:
+                    value = data
+                    break
+            if not value:    
+                value = ValueItem.get_by_type_value(datatype, value)
+                if not value:
+                    data = ValueItem(value, datatype)
+                    graph().push(data)
+                self.inputs.add(data)
+
+        graph().push(self)
+        
+        return value
     
     def add_input(self, user_id, datatype, value, rights):
         for data in self.inputs:
@@ -603,5 +677,5 @@ class TaskLogItem(NodeItem):
         return TaskLogItem.match(graph(), task_id).first()
     
     def updateTime(self):
-        self.modified_on = neotime.DateTime.utc_now()
+        self.modified_on = datetime.utcnow()
         graph().push(self)

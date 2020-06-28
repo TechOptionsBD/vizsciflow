@@ -17,7 +17,6 @@ from datetime import datetime
 import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
-from ..jobs import run_script, stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user, generate_graph
 from ..models import Workflow, AccessType, Service, ServiceAccess, User
 from . import main
 from .views import Samples, AlchemyEncoder
@@ -45,6 +44,7 @@ def update_workflow(user_id, workflow_id, script):
         return make_response(jsonify(err=str(e)), 500)
     
 def run_biowl(workflow_id, script, args, immediate = True):
+    from ..jobs import run_script
     try:
         workflow = Workflow.query.get(workflow_id)
         runnable = runnableManager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, args)
@@ -60,6 +60,7 @@ def run_biowl(workflow_id, script, args, immediate = True):
 
 def build_graph(workflow_id):
     try:
+        from ..jobs import generate_graph
         return generate_graph(workflow_id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
@@ -384,12 +385,17 @@ def functions():
 @login_required
 def graphs():
     if request.method == "POST":
-#        if request.form.get('script'):
-        workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
-        if not workflowId:
-            return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
-        else:
-            return build_graph(workflowId)
+        if (request.form.get('workflowId')):
+            workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
+            if not workflowId:
+                return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
+            else:
+                return build_graph(workflowId)
+        elif request.form.get('monitor'):
+            from ..biowl.dsl.provobj import Run, View
+            runid = request.form.get('monitor')
+            run = Run.get(run_id = runid)
+            return View.graph(run)
     return json.dumps({})
 
 def get_user_status(user_id):
@@ -420,6 +426,7 @@ def get_task_full_status(runnable_id):
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
 def runnables():
+    from ..jobs import stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
     try:
         if request.args.get('tooltip'):
             return get_task_full_status(int(request.args.get('tooltip')))

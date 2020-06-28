@@ -20,7 +20,7 @@ from ...graphutil import NodeItem
 logging.basicConfig(level=logging.DEBUG)
 
 
-registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data}
+registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View}
 
 class GraphGenerator(object):
     '''
@@ -47,34 +47,26 @@ class GraphGenerator(object):
         params = expr[1] if len(expr) < 3 else expr[2]
         v = self.get_args(params)
         
+        if package:
+            if self.context.var_exists(package):
+                obj = self.context.get_var(package)
+                return self.context.library.generate_graph(obj, function, *v)
+            
+            if package in registry:
+                return self.context.library.generate_graph(registry[package], function.lower(), *v)
+
         # call task if exists
         if package is None and function in self.context.library.tasks:
-            return self.context.library.run_task(function, v, self.dotaskstmt)
+            return self.context.library.generate_graph_task(function, v, self.dotaskstmt)
 
         funcInstances = self.context.library.get_function(function, package)
         if not funcInstances:
             raise ValueError(r"'{0}' doesn't exist.".format(function))
-        
-        node = Node("Service", package=package, name=function, wid=self.graph_id)
-        for arg in v:
-            if isinstance(arg, Node):
-                self.graph.create(Relationship(arg, "INPUT", node))
-            elif isinstance(arg, tuple):
-                for a in arg:
-                    self.graph.create(Relationship(a, "INPUT", node))
-        
-        outnodes = ()
-        if funcInstances["returns"]:
-            if isinstance(funcInstances["returns"], list):
-                for r in funcInstances["returns"]:
-                    outnode = Node('Data', type=r['type'], name=r['name'], wid=self.graph_id)
-                    self.graph.create(Relationship(node, "OUTPUT", outnode))
-                    outnodes += (outnode, )
-            else:
-                outnodes = Node('Data', type=funcInstances["returns"], name="output", wid=self.graph_id)
-                self.graph.create(Relationship(node, "OUTPUT", outnodes))
-                
-        return outnodes
+
+        if not self.context.library.check_function(function, package):
+            raise Exception(r"Function '{0}' doesn't exist.".format(function))
+            
+        return self.context.library.generate_graph(self.context, package, function, *v)
 
     def dorelexpr(self, expr, parentNode):
         '''

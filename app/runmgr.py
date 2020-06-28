@@ -1,7 +1,7 @@
 from config import Config
 
 from .models import Runnable, Workflow, Task
-from .graphutil import RunnableItem
+from .graphutil import RunnableItem, WorkflowItem
 
 class GraphModuleManager():
 #     @staticmethod
@@ -45,6 +45,11 @@ class GraphModuleManager():
 #             return run
 #         except Exception as e:
 #             return e
+    
+    @staticmethod
+    def add_module(workflow_id, package, function):
+        workflowItem = WorkflowItem.load(workflow_id)
+        return workflowItem.add_module(package, function)
     
     @staticmethod
     def create_task(runnable_id, function_name):
@@ -126,6 +131,9 @@ class RunnableManager:
         self.manager = GraphModuleManager() if Config.DATA_GRAPH else DBModuleManager()
         self.dbmanager = DBModuleManager() if Config.DATA_GRAPH else self.manager # we need this line as long as we have pre-provenance data in the rdbms
 
+    def add_module(self, workflow_id, package, function_name):
+        return self.manager.add_module(workflow_id, package, function_name)
+    
     def create_runnable(self, user_id, workflow_id, script, args):
         return self.manager.create_runnable(user_id, workflow_id, script, args)
     

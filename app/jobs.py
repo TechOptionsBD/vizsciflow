@@ -1,6 +1,5 @@
-from celery.contrib.abortable import AbortableTask, AbortableAsyncResult
+from celery.contrib.abortable import AbortableTask
 
-from flask import has_request_context, g, request
 import os
 from pyparsing import ParseException
 
@@ -11,124 +10,12 @@ from dsl.grammar import PythonGrammar
 from dsl.parser import WorkflowParser
 from app.biowl.dsl.vizsciflowgraphgen import GraphGenerator
 from dsl.wftimer import Timer
-from dsl.context import Context
-from app.biowl.vizsciflowlib import Library
 
 from .models import Status, Workflow
 from .runmgr import runnableManager
 from .biowl.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
-
-class ContextTask(AbortableTask):
-    abstract = True
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        print('{0!r} failed: {1!r}'.format(task_id, exc)) # log to runnables by task_id
-    def __call__(self, *args, **kwargs):
-        app = create_app(os.getenv('FLASK_CONFIG') or 'default')
-        app.config['CURRENT_USER'] = 'phenoproc' #current_user.username
-        with app.app_context():
-            return AbortableTask.__call__(self, *args, **kwargs)
-
-# class RequestContextTask(AbortableTask):
-#     """Celery task running within Flask test request context.
-#     Expects the associated Flask application to be set on the bound
-#     Celery application.
-#     """
-#     abstract = True
-#     def __call__(self, *args, **kwargs):
-#         """Execute task."""
-#         with self.app.flask_app.test_request_context():
-#             self.app.flask_app.try_trigger_before_first_request_functions()
-#             self.app.flask_app.preprocess_request()
-#             res = AbortableTask.__call__(self, *args, **kwargs)
-#             self.app.flask_app.process_response(
-#                 self.app.flask_app.response_class())
-#             return res
-   
-__all__ = ['RequestContextTask']
-
-
-class RequestContextTask(AbortableTask):
-    """Base class for tasks that originate from Flask request handlers
-    and carry over most of the request context data.
-    This has an advantage of being able to access all the usual information
-    that the HTTP request has and use them within the task. Pontential
-    use cases include e.g. formatting URLs for external use in emails sent
-    by tasks.
-    """
-    abstract = True
-
-    #: Name of the additional parameter passed to tasks
-    #: that contains information about the original Flask request context.
-    CONTEXT_ARG_NAME = '_flask_request_context'
-    GLOBALS_ARG_NAME = '_flask_global_proxy'
-    GLOBAL_KEYS = ['user']
-
-    def __call__(self, *args, **kwargs):
-        """Execute task code with given arguments."""
-        call = lambda: super(RequestContextTask, self).__call__(*args, **kwargs)
-
-        # set context
-        context = kwargs.pop(self.CONTEXT_ARG_NAME, None)
-        gl = kwargs.pop(self.GLOBALS_ARG_NAME, {})
-
-        if context is None or has_request_context():
-            return call()
-
-        from app import app
-        with app.test_request_context(**context):
-            # set globals
-            for i in gl:
-                setattr(g, i, gl[i])
-            # call
-            result = call()
-            # process a fake "Response" so that
-            # ``@after_request`` hooks are executed
-            #app.process_response(make_response(result or ''))
-
-        return result
-
-    def apply_async(self, args=None, kwargs=None, **rest):
-        self._include_request_context(kwargs)
-        self._include_global(kwargs)
-        return super(RequestContextTask, self).apply_async(args, kwargs, **rest)
-
-    def apply(self, args=None, kwargs=None, **rest):
-        self._include_request_context(kwargs)
-        self._include_global(kwargs)
-        return super(RequestContextTask, self).apply(args, kwargs, **rest)
-
-    def retry(self, args=None, kwargs=None, **rest):
-        self._include_request_context(kwargs)
-        self._include_global(kwargs)
-        return super(RequestContextTask, self).retry(args, kwargs, **rest)
-
-    def _include_request_context(self, kwargs):
-        """Includes all the information about current Flask request context
-        as an additional argument to the task.
-        """
-        if not has_request_context():
-            return
-
-        # keys correspond to arguments of :meth:`Flask.test_request_context`
-        context = {
-            'path': request.path,
-            'base_url': request.url_root,
-            'method': request.method,
-            'headers': dict(request.headers),
-        }
-        if '?' in request.url:
-            context['query_string'] = request.url[(request.url.find('?') + 1):]
-
-        kwargs[self.CONTEXT_ARG_NAME] = context
-
-    def _include_global(self, kwargs):
-        d = {}
-        for z in self.GLOBAL_KEYS:
-            if hasattr(g, z):
-                d[z] = getattr(g, z)
-        kwargs[self.GLOBALS_ARG_NAME] = d
-             
-@celery.task(bind=True, base=RequestContextTask)#, base = AbortableTask
+            
+@celery.task(bind=True, base = AbortableTask)
 def run_script(self, runnable_id, args):
     
     runnable = runnableManager.get_runnable(runnable_id)
@@ -164,16 +51,17 @@ def run_script(self, runnable_id, args):
     finally:
         os.chdir(curdir)
         runnable.duration = float("{0:.3f}".format(t.secs))
-        runnable.err = "\n".join(machine.context.err)
+        runnable.error = "\n".join(machine.context.err)
         runnable.out = "\n".join(machine.context.out)
         runnable.update()
         
     return runnable.to_json_log()
 
 def stop_script(task_id):
+#    from celery.contrib.abortable import AbortableAsyncResult
 #     abortable_task = AbortableAsyncResult(task_id)
 #     abortable_task.abort()
-    from celery import current_app
+#    from celery import current_app
     celery.control.revoke(task_id, terminate=True)
 
 def sync_task_status_with_db(runnable):

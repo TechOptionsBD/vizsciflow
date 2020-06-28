@@ -2,7 +2,8 @@ from json import dumps
 import itertools
 import operator
 from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem
-          
+from ...models import User as DbUser
+
 def remove_duplicate_nodes(d, *args):
     getvals = operator.itemgetter(*args)
     d.sort(key = getvals)
@@ -11,18 +12,39 @@ def remove_duplicate_nodes(d, *args):
         result.append(next(g))
     return result
             
-def merge_json(json, other_json, link_value, opposite_link = False):
-    json["nodeDataArray"].extend(other_json["nodeDataArray"])
-    json["linkDataArray"].extend(other_json["linkDataArray"])
+def merge_json(json, other_json, relation, opposite_link = False):
+    
+    for other_json_item in other_json["nodeDataArray"]:
+        if not any(j['key'] == other_json_item['key'] for j in json["nodeDataArray"]):
+            json["nodeDataArray"].append(other_json_item)
+    
+    for other_json_item in other_json["linkDataArray"]:
+        if not any(j['from'] == other_json_item['from'] and j['to'] == other_json_item['to'] for j in json["linkDataArray"]):
+            json["linkDataArray"].append(other_json_item)
+            
     if other_json["nodeDataArray"]:
+#         json_node = json["nodeDataArray"][0]
+#         other_node = other_json["nodeDataArray"][0]
         json_node = other_json["nodeDataArray"][0] if opposite_link else json["nodeDataArray"][0]
         other_node = json["nodeDataArray"][0] if opposite_link else other_json["nodeDataArray"][0]
-        link = { "from": json_node["key"], "frompid": other_node["key"], "to": other_node["key"], "topid": json_node["key"], "value": link_value}
+        link = { "from": json_node["key"], "frompid": other_node["key"], "to": other_node["key"], "topid": json_node["key"], "value": relation}
         json["linkDataArray"].append(link)
     
-    json["nodeDataArray"] = remove_duplicate_nodes(json["nodeDataArray"], 'key')
-    json["linkDataArray"] = remove_duplicate_nodes(json["linkDataArray"], 'from', 'to')
     return json
+
+# 
+# def merge_json(json, other_json, link_value, opposite_link = False):
+#     json["nodeDataArray"].extend(other_json["nodeDataArray"])
+#     json["linkDataArray"].extend(other_json["linkDataArray"])
+#     if other_json["nodeDataArray"]:
+#         json_node = other_json["nodeDataArray"][0] if opposite_link else json["nodeDataArray"][0]
+#         other_node = json["nodeDataArray"][0] if opposite_link else other_json["nodeDataArray"][0]
+#         link = { "from": json_node["key"], "frompid": other_node["key"], "to": other_node["key"], "topid": json_node["key"], "value": link_value}
+#         json["linkDataArray"].append(link)
+#     
+#     json["nodeDataArray"] = remove_duplicate_nodes(json["nodeDataArray"], 'key')
+#     json["linkDataArray"] = remove_duplicate_nodes(json["linkDataArray"], 'from', 'to')
+#     return json
     
 class Data():
     def __init__(self, data_id = None, data_item = None):
@@ -112,12 +134,6 @@ class Run(object):
         except:
             raise ValueError("Runnable with id {0} doesn't exist.", run_id)
         
-    def view(self, viewer = None):
-        pass
-    
-#     def module(self, index):
-#         return self._node.task_by_index(index)
-    
     def modules(self, index = None, name = None):
         modules = []
         moduleItems = self._node.modules
@@ -171,9 +187,6 @@ class Workflow(object):
         except:
             raise ValueError("Workflow with id {0} doesn't exist.", workflow_id)
         
-    def view(self, viewer = None):
-        pass
-
     def modules(self, index = None, name = None):
         modules = []
         moduleItems = self._node.modules
@@ -214,22 +227,23 @@ class User(object):
         self._node = UserItem.load(user_id = user_id) if user_id else userItem
     
     @staticmethod
-    def get(user_id = None):
-        try:        
-            userItems = UserItem.load(user_id)
+    def get(id = None, username = None):
+        try:
+            userItems = None
+            if not id and username:
+                user = DbUser.query.filter_by(username = username).first()
+                if user:
+                    id = user.id
+                
+            userItems = UserItem.load(id)
+            
             if not isinstance(userItems, list):
                 return User(userItem = userItems)
             
             return [User(userItem = user) for user in userItems]
         except:
-            raise ValueError("User with id {0} doesn't exist.", user_id)
-        
-    def view(self, viewer = None):
-        pass
-    
-#     def module(self, index):
-#         return self._node.task_by_index(index)
-    
+            raise ValueError("User with id {0} doesn't exist.", id)
+
     def workflows(self, index = None, name = None):
         workflows = []
         workflowsItems = self._node.Workflows
@@ -243,7 +257,6 @@ class User(object):
             for workflow in workflowsItems:
                 workflows.append(Workflow(workflowItem=workflow))
         return workflows
-        #return self._node.task_by_index(index) if index else self._node.task_by_name(name)
 
     def runs(self, index = None, name = None):
         runs = []

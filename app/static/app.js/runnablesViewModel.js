@@ -210,13 +210,13 @@ function RunnablesViewModel() {
 
         //graph monitor
         else if (x === "monitorGraph") {
+            diagramReload("provenance");				//reload the graph
+            diagramReload("provDiagramOverview");		//reload the overview
+
             var formdata = new FormData();
             formdata.append('monitor', parseInt(item.id()));
             
             ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (data) {
-                diagramReload("provenance");				//reload the graph
-                diagramReload("provDiagramOverview");		//reload the overview
-
                 if (data === undefined)
                     return;
 

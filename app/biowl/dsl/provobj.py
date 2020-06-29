@@ -49,21 +49,7 @@ def merge_json(json, other_json, relation, opposite_link = False):
 class Data():
     def __init__(self, data_id = None, data_item = None):
         self._node = ValueItem.load(data_id = data_id) if data_id else data_item
-    
-    @staticmethod
-    def Create(value, datatype):
-        workflow = None
-        if workflow_id:
-            workflow = WorkflowItem.load(workflow_id = workflow_id)
-            if workflow:
-                return workflow
-        
-        if not workflow:
-            workflow = WorkflowItem.Create(name)
-            workflow.workflow_id = workflow_id
-            
-        return Workflow(workflow)
-    
+   
     def json(self):
         this_node = {"key": self._node.id, "type": "Data", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
@@ -126,7 +112,7 @@ class Run(object):
     @staticmethod
     def get(run_id = None, workflow_id = None):
         try:        
-            runItems = RunnableItem.load(run_id, workflow_id)
+            runItems = RunnableItem.load(int(run_id) if run_id else None, int(workflow_id) if workflow_id else None)
             if not isinstance(runItems, list):
                 return Run(runItem = runItems)
             
@@ -138,7 +124,7 @@ class Run(object):
         modules = []
         moduleItems = self._node.modules
         if index:
-            modules.append(Module(moduleItem=moduleItems[index]))
+            modules.append(Module(moduleItem=moduleItems[int(index)]))
         elif name:
             for module in moduleItems:
                 if module.name == name:
@@ -166,7 +152,7 @@ class Workflow(object):
     def Create(workflow_id = None, name = None):
         workflow = None
         if workflow_id:
-            workflow = WorkflowItem.load(workflow_id = workflow_id)
+            workflow = WorkflowItem.load(workflow_id = int(workflow_id) if workflow_id else None)
             if workflow:
                 return workflow
         
@@ -179,7 +165,7 @@ class Workflow(object):
     @staticmethod
     def get(workflow_id = None):
         try:        
-            workflowItems = WorkflowItem.load(workflow_id)
+            workflowItems = WorkflowItem.load(int(workflow_id) if workflow_id else None)
             if not isinstance(workflowItems, list):
                 return Workflow(workflowItem = workflowItems)
             
@@ -191,7 +177,7 @@ class Workflow(object):
         modules = []
         moduleItems = self._node.modules
         if index:
-            modules.append(Module(moduleItem=moduleItems[index]))
+            modules.append(Module(moduleItem=moduleItems[int(index)]))
         elif name:
             for module in moduleItems:
                 if module.name == name:
@@ -205,7 +191,7 @@ class Workflow(object):
         runs = []
         runsItems = self._node.Runs
         if index:
-            runs.append(Run(run_item=runsItems[index]))
+            runs.append(Run(run_item=runsItems[int(index)]))
         elif name:
             for run in runsItems:
                 if run.name == name:
@@ -234,7 +220,8 @@ class User(object):
                 user = DbUser.query.filter_by(username = username).first()
                 if user:
                     id = user.id
-                
+            
+            id = int(id) if id else None
             userItems = UserItem.load(id)
             
             if not isinstance(userItems, list):
@@ -248,7 +235,7 @@ class User(object):
         workflows = []
         workflowsItems = self._node.Workflows
         if index:
-            workflows.append(Workflow(workflow_item=workflowsItems[index]))
+            workflows.append(Workflow(workflow_item=workflowsItems[int(index)]))
         elif name:
             for workflow in workflowsItems:
                 if workflow.name == name:
@@ -262,7 +249,7 @@ class User(object):
         runs = []
         runsItems = self._node.Runs
         if index:
-            runs.append(Run(run_item=runsItems[index]))
+            runs.append(Run(run_item=runsItems[int(index)]))
         elif name:
             for run in runsItems:
                 if run.name == name:

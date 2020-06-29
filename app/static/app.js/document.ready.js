@@ -144,6 +144,9 @@ $(document).ready(function () {
     $("#visualtab").css('height', $("#scripttab").css('height'));
     $("#provenancetab").css('height', $("#scripttab").css('height'));
     
+    // $("#monitorGraph").css('height', $("#scripttab").css('height'));
+    // $("#monitorGraph").css('width', $("#scripttab").css('width'));
+    
     $('.menu_button').click(function () {
         $(this).addClass('selected').siblings().removeClass('selected')
     });
@@ -232,13 +235,13 @@ $(document).ready(function () {
 
     //job history floating toolbar visibility based on active tab 
     $(document).on('mouseenter', '#runnablesHistory', function (e) {
-        var activeTab = $("#exTabBiowl ul li.active").attr('id');
+        // var activeTab = $("#exTabBiowl ul li.active").attr('id');
+		// if (activeTab === "liScriptTab") 
+        //     $(this).find(".runnableToolbar").css("display", "block");
+        // else
+        //     $(this).find(".runnableToolbar").css("display", "none");
+        $(this).find(".runnableToolbar").css("display", "block");
 
-		if (activeTab === "liScriptTab") 
-            $(this).find(".runnableToolbar").css("display", "block");
-        
-        else
-            $(this).find(".runnableToolbar").css("display", "none");
     }).on('mouseleave', '#runnablesHistory', function () {
         $(this).find(".runnableToolbar").css("display", "none");
     });

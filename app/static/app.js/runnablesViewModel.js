@@ -1,6 +1,7 @@
 function RunnablesViewModel() {
     var self = this;
     self.runnablesURI = '/runnables';
+    self.graphsURI = '/graphs';
     self.items = ko.observableArray();
     self.historyLoading = false;
     self.clicks = 0;
@@ -180,17 +181,52 @@ function RunnablesViewModel() {
         });
     }
 
-    //runnableID insert button
+    //job history floating toolbar
     self.runnableToolbar = function (item, event) {
 	    event.stopPropagation();
+        var x = $(event.target).attr('id');
+        
+        //runnableID insert button
+	    if (x === "insert2Editor") {
+            $('.nav-tabs a[href="#scripttab"]').tab('show');
 
-	    var x = $(event.target).attr('id');
-	    if (x === "insert2Editor") {            
-            var content = "run = Run.get(run_id = "+ item.id() +")\r\nprint(run.json())"; 
+            var content = "run = Run.Get(run_id = "+ item.id() +")\r\nprint(View.Graph(run))"; 
             
             var pos = editor.selection.getCursor();
             editor.session.insert(pos, content + "\r\n");
             editor.focus();            
+        }
+
+        //graph monitor
+        else if (x === "monitorGraph") {
+            var formdata = new FormData();
+            formdata.append('monitor', parseInt(item.id()));
+            
+            ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (data) {
+                if (data === undefined)
+                    return;
+
+                // $('#monitorModal').modal({backdrop: true});
+                // $(".modal-body #taskName").text( 'Name: ' + item.name() );
+                // $(".modal-body #taskID").text( 'ID: ' + item.id() );
+                // $(".modal-body #taskStatus").text( 'Status: ' + item.status() );
+                $('.nav-tabs a[href="#provenancetab"]').tab('show');
+
+                function funcCall(){
+                    // monitorGraphViewModel.show(JSON.parse(data))
+                    provgraphviewmodel.show(JSON.parse(data));
+                    clearInterval(timer)
+                }
+
+                let timer = setInterval(() => {
+                    item.status() !== 'SUCCESS'
+                    ?   monitorGraphViewModel.show(JSON.parse(data))
+                    :   funcCall()
+                }, 1000);
+
+            }).fail(function (jqXHR, textStatus) {
+                showXHRText(jqXHR);
+            });
         }
     }
 }

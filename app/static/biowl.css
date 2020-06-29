@@ -949,7 +949,7 @@ border-radius: 50px;
   opacity: .5;
 }
 
-#DiagramOverview, #visualDiagramOverview, #provDiagramOverview{
+#DiagramOverview, #visualDiagramOverview, #provDiagramOverview, #monitorDiagramOverview{
 	position: absolute; 
 	right: 10px; 
 	bottom: 10px; 

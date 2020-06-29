@@ -195,6 +195,17 @@ function TasksViewModel() {
             self.runBioWLInternal(task);
     }
 
+    function diagramReload(diagramName){
+        var diagramDiv = document.getElementById(diagramName);
+        if (diagramDiv !== null) {
+            var olddiag = go.Diagram.fromDiv(diagramDiv);
+            if (olddiag !== null){
+                olddiag.div = null;
+                diagramDiv = null;
+            }
+        }
+    }
+
     self.runProvenance = function (task) {
         var updateDlg = self.updateWorkflow();
         if (updateDlg) {
@@ -235,10 +246,12 @@ function TasksViewModel() {
             //runnablesViewModel.loadHistory(reportId, false);
 
 			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
-	          
-				if (data === undefined)
-                	return;
+                diagramReload("provenance");				//reload the graph
+                diagramReload("provDiagramOverview");		//reload the overview
 
+				if (data === undefined)
+                    return;
+                
             	provgraphviewmodel.show(JSON.parse(data['out']));         //calling provenance graph
 			});
 			

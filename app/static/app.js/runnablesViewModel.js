@@ -181,6 +181,17 @@ function RunnablesViewModel() {
         });
     }
 
+    function diagramReload(diagramName){
+        var diagramDiv = document.getElementById(diagramName);
+        if (diagramDiv !== null) {
+            var olddiag = go.Diagram.fromDiv(diagramDiv);
+            if (olddiag !== null){
+                olddiag.div = null;
+                diagramDiv = null;
+            }
+        }
+    }
+
     //job history floating toolbar
     self.runnableToolbar = function (item, event) {
 	    event.stopPropagation();
@@ -203,6 +214,9 @@ function RunnablesViewModel() {
             formdata.append('monitor', parseInt(item.id()));
             
             ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (data) {
+                diagramReload("provenance");				//reload the graph
+                diagramReload("provDiagramOverview");		//reload the overview
+
                 if (data === undefined)
                     return;
 

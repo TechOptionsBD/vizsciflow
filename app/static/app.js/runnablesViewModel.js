@@ -220,7 +220,7 @@ function RunnablesViewModel() {
 
                 let timer = setInterval(() => {
                     item.status() !== 'SUCCESS'
-                    ?   monitorGraphViewModel.show(JSON.parse(data))
+                    ?   provgraphviewmodel.show(JSON.parse(data))
                     :   funcCall()
                 }, 1000);
 

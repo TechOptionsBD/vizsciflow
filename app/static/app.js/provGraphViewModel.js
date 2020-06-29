@@ -3,14 +3,18 @@ function provgraphViewModel()
         	var self = this;
 
     		self.show = function(rels) {
-				
+				if(rels == null)
+					return;
+
 				//diagram reload function
     			function diagramReload(diagramName){
     				var diagramDiv = document.getElementById(diagramName);
         			if (diagramDiv !== null) {
         			    var olddiag = go.Diagram.fromDiv(diagramDiv);
-        			    if (olddiag !== null)
-        			    	olddiag.div = null;
+        			    if (olddiag !== null){
+							olddiag.div = null;
+							diagramDiv = null;
+						}
         			}
     			}				
 

@@ -284,8 +284,24 @@ $(document).ready(function () {
 			return true;
 		}
     });
-    //handling any service addition on click
+    
+    //service drop in editor
+    $("#editor").droppable({
+        activeClass: "ui-state-default",
+		hoverClass: "ui-state-hover",
+		accept: ":not(.ui-sortable-helper)",
 
+		drop: function (event, ui) {
+			event.preventDefault();
+			event.stopPropagation();
+			
+			var v = ko.dataFor(ui.draggable[0]);
+			if (v) {
+				tasksViewModel.copyToEditor(v);
+			}
+		}
+    });
+    
     $("input[name=graphTabView]").on('click', function (k) {
         toggleGraphView(k.currentTarget.value);
     }); 

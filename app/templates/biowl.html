@@ -2085,7 +2085,7 @@
 				<p id="taskID"></p>
 				<p id="taskStatus"></p>
 
-				<div style="width: 100%; height: 100%; z-index: 0;" id="monitorGraph"></div>
+				<div style="width: 750px; height: 500px; z-index: 2; position: relative;" id="monitorGraph"></div>
 				<div id="monitorDiagramOverview"></div>
 			</div>
 			<div class="modal-footer">
@@ -2748,56 +2748,7 @@ function typeInTextarea(el, newText) {
    	langTools.setCompleters([dynamicWordCompleter])
    	// or 
    	//editor.completers = [staticWordCompleter]
-    
-    $("#editor").droppable({
 
-        activeClass: "ui-state-default",
-		hoverClass: "ui-state-hover",
-		accept: ":not(.ui-sortable-helper)",
-
-		drop: function (event, ui) {
-			event.preventDefault();
-			event.stopPropagation();
-			var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
-			var v = ko.dataFor(ui.draggable[0]);
-			example = '';
-			if (v) {
-				if (v.example) {
-					example = v.example();
-				}
-
-				else if (v.sample) {
-					example = v.sample();
-				}
-
-				else if (v.id) {
-					ajaxcalls.simple('/samples', 'GET', { 'sample_id': v.id }).done(function (data) {
-						v.script = data['script'];
-						example = v.script;
-						editor.session.insert(pos, example + "\r\n");
-						editor.focus();
-						return true;
-					});
-					return true;
-				}
-				else {
-					node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
-					if (node) {
-						example = node.path;
-						//             		  path = split(node.path, ';');
-						//             		  if (path.length >= 2)
-						//             			  example = node[]
-					}
-					else
-						example = v.name() + "()";
-				}
-			}
-
-			editor.session.insert(pos, example + "\r\n");
-			editor.focus();
-			return true;
-		}
-	});
 
 		ko.bindingHandlers.draggable = {
 			init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -2997,14 +2948,15 @@ function typeInTextarea(el, newText) {
 	            	if (!refreshId) {
 	            		refreshId = setInterval(function() {
 	            			if (runnablesViewModel !== undefined)
-	            				runnablesViewModel.load();
-	            			if (reportId > 0) {
+								runnablesViewModel.load();
+								
+							ids = runnablesViewModel.selectedIds();
+							if (ids.length !== 0) {
+								runnablesViewModel.loadHistory(ids[0], false);
+							} 
+	            			else if (reportId > 0) {
 	            				runnablesViewModel.loadHistory(reportId, false);
 	            			}
-	           				/* ids = runnablesViewModel.selectedIds();
-	                        if (ids.length == 1) {
-	                        	runnablesViewModel.loadHistory(ids[0], false);
-	            			} */
 	                    }, 10000); //  refresh the executables once in 10 seconds
 	            	}
 	                break;

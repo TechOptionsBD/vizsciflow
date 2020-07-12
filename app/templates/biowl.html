@@ -354,11 +354,11 @@
 						</div>
 						
 						<!-- job history floating toolbar -->
-						<span class="runnableToolbar serviceToolbar" data-bind="visible: id()">
-							<span class="glyphicon glyphicon-export" id="insert2Editor" data-bind="event: {click: $parent.runnableToolbar}" title="Insert Run ID"></span>
+						<span class="runnableToolbar service-toolbar" data-bind="visible: id()">
+							<span class="glyphicon glyphicon-export" id="insert2Editor" data-bind="event: {click: $parent.runnableToolbar}" title="Provenance"></span>
 						</span>
 
-						<span class="runnableToolbar serviceToolbar" data-bind="visible: id()" style="right: 2em;">
+						<span class="runnableToolbar service-toolbar" data-bind="visible: id()" style="right: 2em;">
 							<span class="fa fa-desktop" id="monitorGraph" data-bind="event: {click: $parent.runnableToolbar}" title="Current Exec Status"></span>
 						</span>
 						
@@ -468,10 +468,10 @@
 							</div>
 							<div class="tab-pane fade" id="graphtab" style="position: relative;">
 								<div class="graph-panel-heading">
-									<label class="radio-inline"> <input type="radio" name="graphTabView" value="0" checked="checked"
-											autocomplete="off">&nbsp; Simplified</label>
-									<label class="radio-inline"> <input type="radio" name="graphTabView" value="1"
-											autocomplete="off">&nbsp; Detailed</label>
+									<select name="graphTabView" class="graphTabCombo">
+										<option value="0" checked="checked" autocomplete="off">&nbsp; Simplified</option>
+										<option value="1" autocomplete="off">&nbsp; Detailed</option>
+									</select>
 								</div>
 								<div style="width: 100%; height: 100%; z-index: 0;" id="graph"></div>
 								<div id="DiagramOverview"></div>
@@ -671,7 +671,11 @@
 								<span style="font-weight: bold;" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></span>
 
 								<!-- service floating toolbar for owner only -->
-								<span id="serviceDropdown" class="serviceToolbar" data-bind="visible: isOwner()">
+								<span id="serviceToolbar" class="service-toolbar" data-bind="visible: isOwner()">
+									<span id="copyProv" title="Provenance" data-bind="event: {click: $parent.serviceToolbar} "
+										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Prov.
+									</span>
 									<span id="shareDropdown" data-bind="event: {click: $parent.shareWithUsers} "
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Share
@@ -747,11 +751,11 @@
 								<span style="font-weight: bold;" data-bind="text: name"></span>
 								
 								<!-- workflow toolbar for owner only -->
-								<span id='workflowDropdown' class='serviceToolbar workflowToolbar' data-bind="visible: isOwner() == true">
-									<!-- <span id="shareDropdown" data-bind="event: {click: $parent.workflowToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									Share &#x25BC;
-									
-									</span>									 -->
+								<span id='workflowDropdown' class='service-toolbar workflow-toolbar' data-bind="visible: isOwner() == true">
+									<span id="copyProv" title="Provenance" data-bind="event: {click: $parent.workflowToolbar} "
+										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Prov.
+									</span>								
 									
 									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.workflowToolbar} "></span>
 								</span>
@@ -2331,6 +2335,15 @@
 			$("#filterhistoryView").show();
 		}
 	}
+
+	function copyProvSnippetToEditor(data){
+       var pos = editor.selection.getCursor();
+	   var content = "run = Run.Get(data_path = '"+ data.path +"')"
+					 +"\r\nprint(View.Graph(run))"; 
+					 
+	   editor.session.insert(pos, content + "\r\n");
+       editor.focus();
+   }
 	
 function typeInTextarea(el, newText) {
   var start = el.selectionStart;
@@ -2535,14 +2548,23 @@ function typeInTextarea(el, newText) {
            'item1' : {
         	   'label': 'To editor',
         	   'icon': 'glyphicon glyphicon-paste',
-        	   'separator_after': true,
                'action' : function(data) {
             	   var inst = $.jstree.reference(data.reference);
             	   var node = inst.get_node(data.reference);
             	   	copyDataPathToEditor(node.original);
             	   }
+		   },
+		   'item2' : {
+        	   'label': 'Provenance',
+        	   'icon': 'glyphicon glyphicon-paste',
+        	   'separator_after': true,
+               'action' : function(data) {
+            	   var inst = $.jstree.reference(data.reference);
+            	   var node = inst.get_node(data.reference);
+				   copyProvSnippetToEditor(node.original);
+            	}
            },
-           'item2' : {
+           'item3' : {
                'label' : 'To args',
                'icon': 'glyphicon glyphicon-paste',
                'action' : function(data) {
@@ -2551,7 +2573,7 @@ function typeInTextarea(el, newText) {
             	   	typeInTextarea(document.getElementById("args"), "'" + node.original.path + "'");
             	   }
            },
-           'item3' : {
+           'item4' : {
                'label' : 'Show Metadata',
                'icon': 'glyphicon glyphicon-th',
                'action' : function(data) {

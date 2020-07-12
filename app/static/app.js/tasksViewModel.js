@@ -354,7 +354,9 @@ function TasksViewModel() {
     				overview = overviewdiv.querySelector('canvas');
     				context = overview.getContext('2d');
     				context.clearRect(0, 0, overview.width, overview.height);
-    			}
+                }
+                // diagramReload("graph");				    //reload the graph
+                // diagramReload("DiagramOverview");		//reload the overview
             }
         	
         	else if (data === undefined)
@@ -512,7 +514,7 @@ function TasksViewModel() {
 
         function areYouSure(confirmation){
             if(confirmation == true){
-                ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){                	          
+                ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){
                     if (data === undefined)
                             return;
                     
@@ -558,17 +560,25 @@ function TasksViewModel() {
         		else if (data == 'error')
         			alert("ERROR");
         		                                
-                }).fail(function (jqXHR) {
-                        alert("status="+jqXHR.status);
-                }); 
-            }
+            }).fail(function (jqXHR) {
+                    alert("status="+jqXHR.status);
+            }); 
+        }
+        
+        else if (x === "copyProv") {
+	    	var content =  "run = Run.Get(service_name = "+ item.name() +", package = "+ item.package() +")"
+                            +"\r\nprint(View.Graph(run))"; 
+            
+            var pos = editor.selection.getCursor();
+            editor.session.insert(pos, content + "\r\n");
+            editor.focus();
+        }
     }
 
-    
-    
     self.copyToEditorDblClick = function (itme, event) {
         event.preventDefault();
     }
+    
     self.toggleExpand = function (item, event) {
         event.stopPropagation();
 

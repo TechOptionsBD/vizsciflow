@@ -201,7 +201,8 @@ function RunnablesViewModel() {
 	    if (x === "insert2Editor") {
             $('.nav-tabs a[href="#scripttab"]').tab('show');
 
-            var content = "run = Run.Get(run_id = "+ item.id() +")\r\nprint(View.Graph(run))"; 
+            var content = "run = Run.Get(run_id = "+ item.id() +")"
+                          +"\r\nprint(View.Graph(run))"; 
             
             var pos = editor.selection.getCursor();
             editor.session.insert(pos, content + "\r\n");
@@ -219,25 +220,41 @@ function RunnablesViewModel() {
             ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (data) {
                 if (data === undefined)
                     return;
-
-                // $('#monitorModal').modal({backdrop: true});
-                // $(".modal-body #taskName").text( 'Name: ' + item.name() );
-                // $(".modal-body #taskID").text( 'ID: ' + item.id() );
-                // $(".modal-body #taskStatus").text( 'Status: ' + item.status() );
-                $('.nav-tabs a[href="#provenancetab"]').tab('show');
-
+                
+                let timer;
                 function funcCall(){
-                    // monitorGraphViewModel.show(JSON.parse(data))
-                    provgraphviewmodel.show(JSON.parse(data));
-                    clearInterval(timer)
+                    monitorGraphViewModel.show(JSON.parse(data))
+                    monitorGraphViewModel.requestUpdate();
+                    // provgraphviewmodel.show(JSON.parse(data));
+                    clearInterval(timer);
+                    timer = false
                 }
 
-                let timer = setInterval(() => {
-                    item.status() !== 'SUCCESS'
-                    ?   provgraphviewmodel.show(JSON.parse(data))
-                    :   funcCall()
-                }, 1000);
+                $(".modal-body #taskName").text( 'Name: ' + item.name() );
+                $(".modal-body #taskID").text( 'ID: ' + item.id() );
+                $(".modal-body #taskStatus").text( 'Status: ' + item.status() );
+                $('#monitorModal').modal({backdrop: true});
+                
+                $('#monitorModal').on('shown.bs.modal', function (e) {
+                    diagramReload("monitorGraph");				//reload the graph
+                    diagramReload("monitorDiagramOverview");	//reload the overview
 
+                    monitorGraphViewModel.show(JSON.parse(data))
+                    monitorGraphViewModel.requestUpdate();
+                    // timer = setInterval(() => {
+                    //     item.status() !== 'SUCCESS'
+                    //     ?   monitorGraphViewModel.show(JSON.parse(data))
+                    //     :   funcCall()
+                    // }, 1000);
+                })
+
+                // $('.nav-tabs a[href="#provenancetab"]').tab('show');
+                
+                // if(timer !== false){
+                //     clearInterval(timer)
+                //     timer = false
+                // }
+                
             }).fail(function (jqXHR, textStatus) {
                 showXHRText(jqXHR);
             });

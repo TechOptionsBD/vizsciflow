@@ -302,7 +302,7 @@ $(document).ready(function () {
 		}
     });
     
-    $("input[name=graphTabView]").on('click', function (k) {
+    $("select[name=graphTabView]").on('click', function (k) {
         toggleGraphView(k.currentTarget.value);
     }); 
    

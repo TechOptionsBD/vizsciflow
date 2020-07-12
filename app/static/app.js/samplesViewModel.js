@@ -228,11 +228,14 @@ function SamplesViewModel(sampleViewModel) {
                         alert("Status: "+jqXHR.status);
                 }); 
             }
-
-        else if (x === "shareDropdown") {
-            alert('workflow share button hit');
-            id = item.id();
-                // api_call                
-        }
+        
+            else if (x === "copyProv") {
+                var content = "run = Run.Get("+ item.id() +")"
+                              +"\r\nprint(View.Graph(run))"; 
+                
+                var pos = editor.selection.getCursor();
+                editor.session.insert(pos, content + "\r\n");
+                editor.focus();
+            }
     }
 }

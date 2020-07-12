@@ -1,5 +1,5 @@
 /* floating toolbar */
-.serviceToolbar{
+.service-toolbar{
   position: absolute;
   padding-top: 0px;
   padding-right: 10px;
@@ -10,7 +10,7 @@
   z-index: 1;
 }
 
-.workflowToolbar{
+.workflow-toolbar{
   padding-right: 18%;
 }
 
@@ -18,7 +18,7 @@
   display: none;
 }
 
-.even-row:hover .serviceToolbar, .odd-row:hover .serviceToolbar {
+.even-row:hover .service-toolbar, .odd-row:hover .service-toolbar {
   display: block;
   color: #337ab7;
 }
@@ -36,10 +36,25 @@
   transition : .3s;
 }
 
-#delete:hover, #shareDropdown:hover {
+#delete:hover, #shareDropdown:hover, #copyProv:hover {
   color: red;
   transition: .4s;
   box-shadow: 0 0 5px red;
+}
+
+#copyProv{
+  position : relative;
+  display : inline-block;
+  height : 18px;
+  width : 40px;
+  bottom: 2px;
+  /* padding-bottom: 22%; */
+  text-align : center;
+  background : rgba(51, 122, 183, 0.21);
+  border-radius : 10%;
+  z-index: 1;
+  transition : .3s;
+  font-weight: normal;
 }
 
 #shareDropdown{
@@ -48,7 +63,7 @@
   height : 18px;
   width : 50px;
   bottom: 2px;
-  padding-bottom: 22%;
+  /* padding-bottom: 22%; */
   text-align : center;
   background : rgba(51, 122, 183, 0.21);
   border-radius : 10%;
@@ -71,7 +86,7 @@
   text-align: center;
 }
 
-.logTabCombo{
+.logTabCombo, .graphTabCombo{
   background: #337ab7;
   font-weight: bold;
   padding: 7px 0px;

@@ -472,19 +472,35 @@ function TasksViewModel() {
         if (item.package() && item.name() && item.params() && item.returns()) {
             retrnNo = 0, paramNo = 0;
 
-            item.returns().forEach(function (retrn){
+            if(Array.isArray(item.returns())){
+                item.returns().forEach(function (retrn){
+                    retrns.push({
+                        id: 'return ' + ++retrnNo,
+                        value: retrn.name
+                    });
+                });
+            }
+            else{
                 retrns.push({
                     id: 'return ' + ++retrnNo,
-                    value: retrn.name
+                    value: item.returns()
                 });
-            });
-            
-            item.params().forEach(function (param){
+            }
+
+            if(Array.isArray(item.params())){
+                item.params().forEach(function (param){
+                    params.push({
+                        id: 'param ' + ++paramNo,
+                        value: param.name
+                    });
+                });
+            }
+            else{
                 params.push({
                     id: 'param ' + ++paramNo,
-                    value: param.name
+                    value: item.params()
                 });
-            });
+            }
         }
         
         retrns.forEach(function (retrn){
@@ -618,25 +634,38 @@ function TasksViewModel() {
                                 if (content.package && content.name && content.params && content.returns) {
                                     exmplDOM = '', retrnNo = 0, paramNo = 0;
                                     
-                                    content.returns.forEach(function (retrn){
+                                    if(Array.isArray(content.returns)){
+                                        content.returns.forEach(function (retrn){
+                                            retrnNo++;
+                                            exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
+                                        });
+                                    }
+                                    else{
                                         retrnNo++;
-                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
-                                    });
+                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + content.returns + "\'> , ";
+                                    }
                                     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                     exmplDOM += " = " + content.package + '.' + content.name + '( ';
-                                    content.params.forEach(function (param){
+
+                                    if(Array.isArray(content.params)){
+                                        content.params.forEach(function (param){
+                                            paramNo++;
+                                            exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
+                                            // if(param.name == "outdir"){
+                                            //     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 3);
+                                            //     exmplDOM += "=";
+                                            //     paramNo++;
+                                            //     if(param.default == "''")
+                                            //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + " outdir\' name=\"Param\" value=\''" + param.default + "'\' placeholder='' > , ";
+                                            //     else
+                                            //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' style = \" border-color : 'red';\" type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.default + "\'> , ";                                            
+                                            // }
+                                        });
+                                    }
+                                    else{
                                         paramNo++;
-                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
-                                        // if(param.name == "outdir"){
-                                        //     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 3);
-                                        //     exmplDOM += "=";
-                                        //     paramNo++;
-                                        //     if(param.default == "''")
-                                        //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + " outdir\' name=\"Param\" value=\''" + param.default + "'\' placeholder='' > , ";
-                                        //     else
-                                        //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' style = \" border-color : 'red';\" type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.default + "\'> , ";                                            
-                                        // }
-                                    });
+                                            exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + content.params + "\'> , ";
+                                    }
                                     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                     exmplDOM += ")";
                                     

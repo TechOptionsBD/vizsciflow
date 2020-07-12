@@ -2179,25 +2179,41 @@
                  if (content.package && content.name && content.params && content.returns) {
 						retrnNo = 0, paramNo = 0;
 
-						content.returns.forEach(function (retrn){
+						if(Array.isArray(content.returns)){
+							content.returns.forEach(function (retrn){
+								exmplReturns().push({
+									id: 'return ' + ++retrnNo,
+									value: retrn.name
+								});
+							});
+						}
+						else{
 							exmplReturns().push({
 								id: 'return ' + ++retrnNo,
-								value: retrn.name
+								value: content.returns
 							});
-						});
-						
-						content.params.forEach(function (param){
+						}
+
+						if(Array.isArray(content.params)){
+							content.params.forEach(function (param){
+								exmplParams().push({
+									id: 'param ' + ++paramNo,
+									value: param.name
+								});
+								// if(param.name == "outdir"){
+								// 	exmplParams().push({
+								// 	id: 'param '+ ++paramNo +' outdir',
+								// 	value: param.default
+								// });
+								// }
+							});
+						}
+						else{
 							exmplParams().push({
 								id: 'param ' + ++paramNo,
-								value: param.name
+								value: content.params
 							});
-							// if(param.name == "outdir"){
-							// 	exmplParams().push({
-							// 	id: 'param '+ ++paramNo +' outdir',
-							// 	value: param.default
-							// });
-							// }
-						});
+						}
 					}
              	}
          });

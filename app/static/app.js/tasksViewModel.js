@@ -206,6 +206,42 @@ function TasksViewModel() {
         }
     }
 
+    let subGraphNo = 1;
+    function mergeJson(json, otherJson){
+        otherJson["nodeDataArray"].forEach(otherJsonItem => {
+            let isKeyExsit = false;
+            if(json["nodeDataArray"].length > 0){
+                json["nodeDataArray"].forEach( j => {
+                    if(j['key'] == otherJsonItem['key'])
+                        isKeyExsit = true;
+                })
+                if(!isKeyExsit){
+                    otherJsonItem["group"] = "Subgraph " + subGraphNo;
+                    json["nodeDataArray"].push(otherJsonItem)
+                }
+            }
+            else{
+                otherJsonItem["group"] = "Subgraph " + subGraphNo;
+                json["nodeDataArray"].push(otherJsonItem)
+            }
+        });
+
+        otherJson["linkDataArray"].forEach(otherJsonItem => {
+            let isKeyExsit = false;
+            if(json["linkDataArray"].length > 0){
+                json["linkDataArray"].forEach( j => {
+                    if(j['from'] == otherJsonItem['from'] && j['to'] == otherJsonItem['to'])
+                        isKeyExsit= true;
+                })
+                if(!isKeyExsit)
+                    json["linkDataArray"].push(otherJsonItem)
+            }
+            else
+                json["linkDataArray"].push(otherJsonItem)
+        });
+        return json
+    }
+
     self.runProvenance = function (task) {
         var updateDlg = self.updateWorkflow();
         if (updateDlg) {
@@ -242,17 +278,35 @@ function TasksViewModel() {
 			}
 
             reportId = parseInt(data.runnableId);
-            //runnablesViewModel.load();
-            //runnablesViewModel.loadHistory(reportId, false);
 
 			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
                 diagramReload("provenance");				//reload the graph
                 diagramReload("provDiagramOverview");		//reload the overview
+                let json = { "nodeDataArray" : [], "linkDataArray":[] }
 
 				if (data === undefined)
                     return;
-                
-            	provgraphviewmodel.show(JSON.parse(data['out']));         //calling provenance graph
+
+                //json marger
+                subGraphNo = 1;
+                provGraphData = data['out'].split("\n");
+
+                if(provGraphData.length == 1){
+                    json = JSON.parse(provGraphData)
+                }
+
+                else{
+                    provGraphData.forEach((aGraphData) => {
+                        groupNode = {key: "Subgraph " + subGraphNo, isGroup: true}
+                        json["nodeDataArray"].push(groupNode)
+                        
+                        json = mergeJson(json, JSON.parse(aGraphData))
+                        subGraphNo++;
+                    });
+                }
+
+                json = JSON.stringify(json)
+            	provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
 			});
 			
 			$('#refresh').hide();

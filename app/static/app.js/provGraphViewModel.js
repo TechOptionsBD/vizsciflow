@@ -159,6 +159,35 @@ function provgraphViewModel()
 					new go.Binding("text", "topid"))
 				); 	
 
+				provDiagram.groupTemplate =
+				$$(go.Group, "Auto",
+					{ selectionAdorned: false }, 
+					{ layout: $$(go.LayeredDigraphLayout,
+						{ direction: 90,											//graph will extend towards Right direction
+							setsPortSpots : false,
+							isOngoing: false
+						} )
+					},
+					$$(go.Shape, "RoundedRectangle", 
+						{ parameter1: 10, fill: "rgba(128,128,128,0.33)" , stroke: "darkorange" }),
+					$$(go.Panel, "Table",
+						{ margin: 0.5 },  											  	// avoid overlapping border with table contents
+						$$(go.RowColumnDefinition, { row: 0, background: "DimGray" }),  	// header color
+						$$("SubGraphExpanderButton", { row: 0, column: 0, margin: 3 }),
+						$$(go.TextBlock,  												// title is centered in header
+							{ row: 0, column: 1, font: "bold 14px Sans-Serif", stroke: "FloralWhite",		// title color
+								textAlign: "center", stretch: go.GraphObject.Horizontal },
+							new go.Binding("text", "key")),
+						$$(go.Placeholder,  											// becomes zero-sized when Group.isSubGraphExpanded is false
+							{ row: 1, columnSpan: 2, padding: 10, alignment: go.Spot.TopLeft },
+							new go.Binding("padding", "isSubGraphExpanded",
+											function(exp) { return exp ? 10 : 0; } ).ofObject())
+						)
+					);
+			
+				provDiagram.layout = $$(go.LayeredDigraphLayout,
+									{ direction: 90, layerSpacing: 10, setsPortSpots : false });
+					
 				let typeArr = [];
 				let colorArr = ['DarkSlateGray', 'SteelBlue', 'Teal', 'Indigo', 'MidnightBlue', 'IndianRed', 'DeepSkyBlue', 'DarkSalmon', 'DarkGreen', 'DarkOrange'];
 

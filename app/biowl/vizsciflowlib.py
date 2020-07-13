@@ -7,6 +7,10 @@ from dsl.fileop import FolderItem
 from app.runmgr import runnableManager
 from app.datamgr import dataManager
 
+from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View
+
+registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View}
+
 class Library(LibraryBase):
     def __init__(self):
         self.tasks = {}
@@ -28,11 +32,19 @@ class Library(LibraryBase):
         return services.first().value
     
     @staticmethod
+    def is_module(name, package = None):
+        return not package and name.lower() == "addmodule"
+    
+    @staticmethod
     def check_function(name, package = None):
+        if not package:
+            namelower = name.lower()
+            if namelower == "addmodule" or namelower=="user" or namelower=="workflow" or namelower=="run" or namelower=="module" or namelower=="data":
+                return True
         if LibraryBase.check_function(name, package):
             return True
         return Service.check_function(name, package)
-    
+        
     @staticmethod
     def check_functions(v):
         for f in v:
@@ -66,16 +78,41 @@ class Library(LibraryBase):
         :param args: The arguments for the function
         '''
         task = None
-        try:   
+        try:
             task = runnableManager.create_task(context.runnable, function)
             context.task_id = task.id
             task.start()
 
+            if not package and function.lower() == "addmodule":
+                f = args[0]
+                pkgfunc = f.split(".")
+                if pkgfunc == 1:
+                    function = pkgfunc
+                else:
+                    package = pkgfunc[0]
+                    function = pkgfunc[1]
+                args = args[1:]
+                
             if LibraryBase.check_function(function, package):
                 result = LibraryBase.call_func(context, package, function, args)
                 task.succeeded()
             else:
                 arguments, kwargs = LibraryBase.split_args(args)
+                if not package and function in registry:
+                    provcls = None
+                    if function.lower() == "run":
+                        provcls = Run(*arguments, **kwargs)
+                    elif function.lower() == "user":
+                        provcls = User(*arguments, **kwargs)
+                    elif function.lower() == "workflow":
+                        provcls = Workflow(*arguments, **kwargs)
+                    elif function.lower() == "module":
+                        provcls = Module(*arguments, **kwargs)
+                    elif function.lower() == "data":
+                        provcls = Data(*arguments, **kwargs)
+                    #provcls = getattr(".dsl.provobj", registry[function])
+                    #return provcls(*arguments, **kwargs)
+                    return provcls 
                 func = Service.get_first_service_by_name_package(function, package)
 
                 module_obj = load_module(func["module"])
@@ -91,6 +128,15 @@ class Library(LibraryBase):
                 
                 task.succeeded()
                 
+                if not result:
+                    return result
+                
+                if func["returns"]:
+                    if isinstance(func["returns"], list):
+                        return result if isinstance(result, tuple) else (result,)
+                    else:
+                        return result[0]
+                    
                 result = result if len(result) > 1 else result[0] if result else None
             return result
         except Exception as e:
@@ -103,32 +149,37 @@ class Library(LibraryBase):
         if not result:
             return DataType.Unknown, '', ''
         
-        if not isinstance(result, tuple):
-            result = (result,)
+        returnstup = returns
+        if not isinstance(returnstup, list):
+            returnstup = (returnstup,)
+            
+        resulttup = result
+        if not isinstance(resulttup, tuple):
+            resulttup = (resulttup,)
         
         dataAndType = []
-        mincount = min(len(result), len(returns) if returns else 0)
+        mincount = min(len(resulttup), len(returnstup) if returnstup else 0)
         for i in range(0, mincount):
             datatype = DataType.Unknown
             data = ''
-            returnsLower = returns[i]["type"].lower().split('|')
+            returnsLower = returnstup[i]["type"].lower().split('|')
             if 'file' in returnsLower :
                 datatype = datatype | DataType.File
-                data = result[i] if isinstance(result[i], FolderItem) else FolderItem(result[i])
+                data = resulttup[i] if isinstance(resulttup[i], FolderItem) else FolderItem(resulttup[i])
             elif 'folder' in returnsLower:
                 datatype = datatype | DataType.Folder
-                data = result[i] if isinstance(result[i], FolderItem) else FolderItem(result[i])
+                data = resulttup[i] if isinstance(resulttup[i], FolderItem) else FolderItem(resulttup[i])
             elif 'file[]' in returnsLower or 'folder[]' in returnsLower:
                 datatype = datatype | DataType.FileList if 'file[]' in returnsLower else datatype | DataType.FolderList
-                data = result[i] if isinstance(result[i], list) else [result[i]]
+                data = resulttup[i] if isinstance(resulttup[i], list) else [resulttup[i]]
                 data = [f if isinstance(f, FolderItem) else FolderItem(f) for f in data]
             else:
                 datatype = DataType.Custom
         
             dataAndType.append((datatype, data))
         
-        for i in range(mincount, len(result)):
-            dataAndType.append((DataType.Unknown, result[i]))
+        for i in range(mincount, len(resulttup)):
+            dataAndType.append((DataType.Unknown, resulttup[i]))
         return dataAndType
 
     @staticmethod

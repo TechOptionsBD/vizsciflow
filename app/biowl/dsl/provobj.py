@@ -3,6 +3,8 @@ import itertools
 import operator
 from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem
 from ...models import User as DbUser
+from app.util import Utility
+from dsl.datatype import DataType
 
 def remove_duplicate_nodes(d, *args):
     getvals = operator.itemgetter(*args)
@@ -51,7 +53,11 @@ class Data():
         self._node = ValueItem.load(data_id = data_id) if data_id else data_item
    
     def json(self):
-        this_node = {"key": self._node.id, "type": "Data", "name": self._node.name}
+        value = self._node.value
+        if self._node.valuetype == DataType.File or self._node.valuetype == DataType.Folder:
+            fs = Utility.fs_by_prefix_or_default(self._node.value)
+            value = fs.basename(self._node.value)
+        this_node = {"key": self._node.id, "type": "Data", "name": value}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
 #         for output in self.Metadata():
 #             out_json = output.json()

@@ -6,9 +6,11 @@ from flask import g
 import psutil
 from datetime import datetime
 
-from py2neo.ogm import GraphObject, Property, RelatedTo, RelatedFrom
+from .ogmex import GraphObject, Property, RelatedTo, RelatedFrom, OGM, RelatedObjects, Related, OUTGOING, GraphObjectMatcher, GraphObjectMatch, Repository, GraphObjectType
 from py2neo import NodeMatcher
 from py2neo import Graph
+from py2neo.data import PropertyDict, Node 
+from py2neo.compat import metaclass
 import neotime
 
 from .models import Status, Workflow, LogType, AccessRights, DataType, User
@@ -17,10 +19,189 @@ from dsl.fileop import FolderItem
 def graph():
     if 'graph' not in g:
         g.graph = Graph(Config.GRAPHDB, username=Config.GRAPHDB_USER, password=Config.GRAPHDB_PASSWORD)
-        g.graph.schema.create_uniqueness_constraint('Workflow', 'id')
+#        g.graph.schema.create_uniqueness_constraint('Workflow', 'workflow_id')
     return g.graph
 
+
+# class OGMEx(OGM):
+# 
+#     def __init__(self, node):
+#         super().__init__(node)
+# 
+#     def relatedex(self, direction, relationship_type, related_class, order_by):
+#         """ Return :class:`.RelatedObjects` for given criteria.
+#         """
+#         key = (direction, relationship_type)
+#         if key not in self._related:
+#             self._related[key] = RelatedObjectsEx(self.node, direction, relationship_type, related_class, order_by)
+#         return self._related[key]
+# 
+# class RelatedObjectsEx(RelatedObjects):
+#     """ A set of similarly-typed and similarly-related objects,
+#     relative to a central node.
+#     """
+# 
+#     def __init__(self, node, direction, relationship_type, related_class, order_by):
+#         super().__init__(node, direction, relationship_type, related_class)
+#         self.order_by = order_by
+#         
+# 
+# #     def add(self, obj, properties=None, **kwproperties):
+# #         """ Add a related object.
+# # 
+# #         :param obj: the :py:class:`.GraphObject` to relate
+# #         :param properties: dictionary of properties to attach to the relationship (optional)
+# #         :param kwproperties: additional keyword properties (optional)
+# #         """
+# #         related_objects = self._related_objects
+# #         properties = PropertyDict(properties or {}, **kwproperties)
+# #         added = False
+# #         for i, (related_object, _) in enumerate(related_objects):
+# #             if related_object == obj:
+# #                 related_objects[i] = (obj, properties)
+# #                 added = True
+# #         if not added:
+# #             related_objects.append((obj, properties))
+# 
+# #     def update(self, obj, properties=None, **kwproperties):
+# #         """ Add or update a related object.
+# # 
+# #         :param obj: the :py:class:`.GraphObject` to relate
+# #         :param properties: dictionary of properties to attach to the relationship (optional)
+# #         :param kwproperties: additional keyword properties (optional)
+# #         """
+# #         related_objects = self._related_objects
+# #         properties = dict(properties or {}, **kwproperties)
+# #         added = False
+# #         for i, (related_object, p) in enumerate(related_objects):
+# #             if related_object == obj:
+# #                 related_objects[i] = (obj, PropertyDict(p, **properties))
+# #                 added = True
+# #         if not added:
+# #             related_objects.append((obj, properties))
+# 
+#     def __db_pull__(self, tx):
+#         related_objects = {}
+#         matcher = tx.graph.match(**self._RelatedObjects__match_args)
+#         if self.order_by:
+#             matcher = matcher.order_by(self.order_by)
+#         for r in matcher:
+#             nodes = []
+#             n = self.node
+#             a = r.start_node
+#             b = r.end_node
+#             if a == b:
+#                 nodes.append(a)
+#             else:
+#                 if self.__start_node and a != n:
+#                     nodes.append(r.start_node)
+#                 if self.__end_node and b != n:
+#                     nodes.append(r.end_node)
+#             for node in nodes:
+#                 related_object = self.related_class.wrap(node)
+#                 related_objects[node] = (related_object, PropertyDict(r))
+#         self._related_objects[:] = related_objects.values()
+# 
+# class RelatedEx(Related):
+#     """ Descriptor for a set of related objects in a :class:`.GraphObject`.
+# 
+#     Attributes:
+#         related_class: The class of object to which these relationships
+#                        connect. This class is used to coerce nodes to and
+#                        from :class:`GraphObject` instances.
+#         relationship_type: The underlying relationship type for these
+#                            relationships. Note that the relationship
+#                            type should be unique for each class of related
+#                            object as the `related_class` is only used for
+#                            object coercion and not as part of the underlying
+#                            database query.
+#     """
+# 
+#     def __init__(self, related_class, relationship_type=None, order_by=None):
+#         """ Initialise a property definition.
+# 
+#         Args:
+#             related_class: The class of object to which these relationships
+#                            connect.
+#             relationship_type: The underlying relationship type for these
+#                                relationships.
+#         """
+#         self.related_class = related_class
+#         self.relationship_type = relationship_type
+#         self.order_by=order_by
+# 
+#     def __get__(self, instance, owner):
+#         return instance.__ogm__.relatedex(self.direction, self.relationship_type,
+#                                         self._resolve_class(self.related_class, instance), self.order_by)
+#     
+#     @classmethod
+#     def _resolve_class(cls, ogm_class, instance):
+#         if isinstance(ogm_class, type):
+#             return ogm_class
+#         module_name, _, class_name = ogm_class.rpartition(".")
+#         if not module_name:
+#             module_name = instance.__class__.__module__
+#         module = __import__(module_name, fromlist=".")
+#         return getattr(module, class_name)
+#     
+# class RelatedToEx(RelatedEx):
+#     direction = OUTGOING
+# 
+# 
+# class GraphObjectMatcherEx(GraphObjectMatcher):
+# 
+#     _match_class = GraphObjectMatch
+# 
+#     def __init__(self, object_class, repository):
+#         super().__init__(object_class, repository)
+# 
+#     def match(self, primary_value=None):
+#         cls = self._object_class
+#         properties = {}
+#         if primary_value is not None:
+#             return NodeMatcher.match(self, cls.__primarylabel__).where("id(_) = %d" % primary_value)
+#         return NodeMatcher.match(self, cls.__primarylabel__, **properties)
+# 
+# @metaclass(GraphObjectType)    
+# class GraphObjectEx(GraphObject):
+#     
+#     @property
+#     def __ogm__(self):
+#         if self._GraphObject__ogm is None:
+#             self._GraphObject__ogm = OGMEx(Node(self.__primarylabel__))
+#         node = self._GraphObject__ogm.node
+#         if not hasattr(node, "__primarylabel__"):
+#             setattr(node, "__primarylabel__", self.__primarylabel__)
+#         if not hasattr(node, "__primarykey__"):
+#             setattr(node, "__primarykey__", self.__primarykey__)
+#         return self.__ogm
+# 
+#     @classmethod
+#     def wrap(cls, node):
+#         """ Convert a :class:`.Node` into a :class:`.GraphObject`.
+# 
+#         :param node:
+#         :return:
+#         """
+#         if node is None:
+#             return None
+#         inst = GraphObjectEx()
+#         inst.__ogm = OGMEx(node)
+#         inst.__class__ = cls
+#         return inst
+# 
+#     @classmethod
+#     def match(cls, repository, primary_value=None):
+#         """ Select one or more nodes from the database, wrapped as instances of this class.
+# 
+#         :param repository: the :class:`.Repository` in which to match
+#         :param primary_value: value of the primary property (optional)
+#         :rtype: :class:`.GraphObjectMatch`
+#         """
+#         return GraphObjectMatcherEx(cls, repository).match(primary_value)
+    
 bytes_in_gb = 1024 * 1024
+
 
 def neotime2StrfTime(date):
     if isinstance(date, neotime.DateTime):
@@ -338,7 +519,7 @@ class RunnableItem(NodeItem): #number1
     duration = Property("duration")
     arguments = Property("arguments")
     
-    modules = RelatedTo("ModuleItem", "MODULE")
+    modules = RelatedTo("ModuleItem", "MODULE", "id(b)")
     users = RelatedFrom(UserItem, "USERRUN")
     workflows = RelatedFrom(WorkflowItem, "WORKFLOWRUN")
     
@@ -399,12 +580,16 @@ class RunnableItem(NodeItem): #number1
     @staticmethod
     def load_for_users(user_id):
         user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
-        return list(user.runs)
+        return list(user.runs) if user else []
     
     def add_module(self, function_name):
         item = ModuleItem(function_name)
         self.modules.add(item)
+        from py2neo.data import Node
+        n = Node(self.__primarylabel__)
+        
         graph().push(self)
+        graph().pull(self)
         return item
     
     @staticmethod
@@ -487,8 +672,7 @@ class RunnableItem(NodeItem): #number1
     def to_json_log(self):
         log = []
         
-        modules = self.modules
-        for module in modules:
+        for module in self.modules:
             log.append(module.to_json_log())
 
         return {

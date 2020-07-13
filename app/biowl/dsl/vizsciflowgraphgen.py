@@ -10,25 +10,28 @@ from dsl.taskmgr import TaskManager
 from dsl.grammar import PythonGrammar
 from dsl.parser import WorkflowParser
 from dsl.datatype import DataType
+from dsl.library import Pair
 
 from .vizsciflowsymgraph import VizSciFlowSymbolGraph
-from ..vizsciflowlib import Library
-from .provobj import *
+from ..vizsciflowcomposelib import LibraryComposition
+from .wfdsl import Workflow, Module, Data, IfModule, BinModule
+from .provobj import View
 from ...graphutil import NodeItem
 
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View}
+registry = {'Workflow':Workflow, 'Module':Module, 'Data':Data}
 
 class GraphGenerator(object):
     '''
     The Bio-DSL graph generator
     '''
     def __init__(self):
-        self.context = Context(Library(), VizSciFlowSymbolGraph)
+        self.context = Context(LibraryComposition(), VizSciFlowSymbolGraph)
         self.line = 0
+        self._workflow = None
     
     def get_args(self, expr, parentNode):
         v = []
@@ -45,15 +48,15 @@ class GraphGenerator(object):
         package = expr[0][:-1] if len(expr) > 2 else None
         
         params = expr[1] if len(expr) < 3 else expr[2]
-        v = self.get_args(params)
-        
+        v = self.get_args(params, parentNode)
+                    
         if package:
             if self.context.var_exists(package):
                 obj = self.context.get_var(package)
                 return self.context.library.generate_graph(obj, function, *v)
             
             if package in registry:
-                return self.context.library.generate_graph(registry[package], function.lower(), *v)
+                return self.context.library.call_func(registry[package], function.lower(), *v)
 
         # call task if exists
         if package is None and function in self.context.library.tasks:
@@ -66,7 +69,7 @@ class GraphGenerator(object):
         if not self.context.library.check_function(function, package):
             raise Exception(r"Function '{0}' doesn't exist.".format(function))
             
-        return self.context.library.generate_graph(self.context, package, function, *v)
+        return self.context.library.call_func(parentNode, package, function, v)
 
     def dorelexpr(self, expr, parentNode):
         '''
@@ -85,7 +88,7 @@ class GraphGenerator(object):
         '''
         if not expr:
             return True
-        right = self.eval(expr[-1])
+        right = self.eval(expr[-1], parentNode)
         if len(expr) == 1:
             return right
         left = expr[:-2]
@@ -120,7 +123,7 @@ class GraphGenerator(object):
         Executes a logical expression.
         :param expr:
         '''
-        right = self.eval(expr[-1])
+        right = self.eval(expr[-1], parentNode)
         if len(expr) == 1:
             return right
         left = expr[:-2]
@@ -144,13 +147,18 @@ class GraphGenerator(object):
         return self.createbinarynode(left, right, expr[-2], parentNode)
     
     def createbinarynode(self, left, right, name, parentNode):
-        node = NodeItem()
-        node.lable = Operator 
-        node = Node("Operator", name=name, wid=self.graph_id)
-        self.graph.create(Relationship(left, "INPUT", node))
-        self.graph.create(Relationship(right, "INPUT", node))
-        outnode = Node('Data', wid=self.graph_id)
-        self.graph.create(Relationship(node, "OUTPUT", outnode))
+        
+#         node = NodeItem()
+#         node.lable = Operator 
+#         node = Node("Operator", name=name, wid=self.graph_id)
+#         self.graph.create(Relationship(left, "INPUT", node))
+#         self.graph.create(Relationship(right, "INPUT", node))
+#         outnode = Node('Data', wid=self.graph_id)
+#         self.graph.create(Relationship(node, "OUTPUT", outnode))
+        outnode = BinModule(name)
+        
+        outnode.modules().extend([left, right])
+        parentNode.modules().append(outnode)
         return outnode
             
     def doarithmetic(self, expr, parentNode):
@@ -173,11 +181,21 @@ class GraphGenerator(object):
         Executes if statement.
         :param expr:
         '''
-        cond = self.eval(expr[0], parentNode)
-        if cond:
-            self.eval(expr[1], parentNode)
-        elif len(expr) > 3 and expr[3]:
-            self.eval(expr[3], parentNode)
+        condmodule = Module()
+        cond = self.eval(expr[0], condmodule)
+        ifmodule = IfModule(condmodule)
+        
+        moduletrue = Module()
+        modulefalse = None
+        self.eval(expr[1], moduletrue)
+        if len(expr) > 3 and expr[3]:
+            modulefalse = Module()
+            self.eval(expr[3], modulefalse)
+        
+        ifmodule.modules().append(moduletrue)
+        if modulefalse:
+            ifmodule.modules().append(modulefalse)
+        parentNode.modules().append(ifmodule)
     
     def dolock(self, expr, parentNode):
         if not self.context.symtab.var_exists(expr[0]) or not isinstance(self.context.symtab.get_var(expr[0]), _thread.RLock):
@@ -267,11 +285,12 @@ class GraphGenerator(object):
             self.eval(expr[2], parentNode)
     
     def eval_value_node(self, typename, value):
-        node = ValueItem.create(value, DataType.Value, datatype = typename)
-        self.wfroot.symbols.add(node)
-        return node
+        data = Data()
+        data.valuetype = typename
+        data.value = value
+        return data
     
-    def eval_value(self, str_value, parentNode):
+    def eval_value(self, str_value):
         '''
         Evaluate a single expression for value.
         :param str_value:
@@ -414,9 +433,7 @@ class GraphGenerator(object):
                     
     
     def donamedarg(self, expr, parentNode):
-        name = expr[0]
-        arg = expr[2]
-        return str(name), self.eval(arg, parentNode) 
+        return Pair(str(expr[0]), self.eval(expr[2], parentNode))
                 
     def eval(self, expr, parentNode):        
         '''
@@ -424,7 +441,7 @@ class GraphGenerator(object):
         :param expr: The expression in AST tree form.
         '''
         if not isinstance(expr, list):
-            return self.eval_value(expr, parentNode)
+            return self.eval_value(expr)
         if not expr:
             return
         if len(expr) == 1:
@@ -491,7 +508,7 @@ class GraphGenerator(object):
         try:
             #self.context.reload()
             stmt = prog.asList()
-            self.eval(stmt, self.wfroot)
+            self.eval(stmt, self._workflow)
         except Exception as err:
             self.context.err.append("Error at line {0}: {1}".format(self.line, err))
     
@@ -499,11 +516,13 @@ class GraphGenerator(object):
         parser = WorkflowParser(PythonGrammar())
         prog = parser.parse(workflow.script)
         
-        self.wfroot = Workflow.Create(workflow.id, workflow.name)._node
+        self._workflow = Workflow(workflow.id, workflow.name)
+        #self.wfroot = Workflow.Create(workflow.id, workflow.name)._node
         
         self.run(prog)
-        NodeItem.push(self.wfroot)
-        return View.graph(self.wfroot)
+        return View.graph(self._workflow)
+        #NodeItem.push(self.wfroot)
+        #return View.graph(self.wfroot)
         
 #         self.graph_id= str(workflow.id) +'#' + str(workflow.user_id)
 #         cypher = "MATCH (n) WHERE n.wid='{0}' DETACH DELETE n".format(self.graph_id)

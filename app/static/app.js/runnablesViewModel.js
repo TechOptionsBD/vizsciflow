@@ -211,9 +211,7 @@ function RunnablesViewModel() {
 
         //graph monitor
         else if (x === "monitorGraph") {
-            diagramReload("provenance");				//reload the graph
-            diagramReload("provDiagramOverview");		//reload the overview
-
+            event.stopPropagation();
             var formdata = new FormData();
             formdata.append('monitor', parseInt(item.id()));
             
@@ -221,40 +219,35 @@ function RunnablesViewModel() {
                 if (data === undefined)
                     return;
                 
-                let timer;
-                function funcCall(){
-                    monitorGraphViewModel.show(JSON.parse(data))
-                    monitorGraphViewModel.requestUpdate();
-                    // provgraphviewmodel.show(JSON.parse(data));
-                    clearInterval(timer);
-                    timer = false
-                }
-
+                $('#monitorModal').modal('show');
                 $(".modal-body #taskName").text( 'Name: ' + item.name() );
                 $(".modal-body #taskID").text( 'ID: ' + item.id() );
                 $(".modal-body #taskStatus").text( 'Status: ' + item.status() );
-                $('#monitorModal').modal({backdrop: true});
-                
-                $('#monitorModal').on('shown.bs.modal', function (e) {
-                    diagramReload("monitorGraph");				//reload the graph
-                    diagramReload("monitorDiagramOverview");	//reload the overview
-
-                    monitorGraphViewModel.show(JSON.parse(data))
-                    monitorGraphViewModel.requestUpdate();
-                    // timer = setInterval(() => {
-                    //     item.status() !== 'SUCCESS'
-                    //     ?   monitorGraphViewModel.show(JSON.parse(data))
-                    //     :   funcCall()
-                    // }, 1000);
-                })
-
                 // $('.nav-tabs a[href="#provenancetab"]').tab('show');
                 
-                // if(timer !== false){
-                //     clearInterval(timer)
-                //     timer = false
-                // }
+                $('#monitorModal').on('show.bs.modal', function (e) {
+                    console.log(e);
+                    monitorGraphViewModel.show(JSON.parse(data))
+                    monitorGraphViewModel.requestUpdate();
+                })
+
+                $('#monitorModal').on('hidden.bs.modal', function (e) {
+                    diagramReload("monitorGraph");				    //reload the graph
+                    diagramReload("monitorDiagramOverview");	    //reload the overview
+                })
+
+                // let timer = setInterval(() => {
+                //     item.status() !== 'SUCCESS'
+                //     ?   provgraphviewmodel.show(JSON.parse(data))
+                //     :   funcCall()
+                // }, 1000);
                 
+                // function funcCall(){
+                //     monitorGraphViewModel.show(JSON.parse(data))
+                //     // provgraphviewmodel.show(JSON.parse(data));
+                //     clearInterval(timer)
+                // }
+
             }).fail(function (jqXHR, textStatus) {
                 showXHRText(jqXHR);
             });

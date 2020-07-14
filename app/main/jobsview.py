@@ -396,6 +396,10 @@ def graphs():
             runid = request.form.get('monitor')
             run = Run.get(run_id = runid)
             return View.graph(run)
+        elif request.form.get('nodeinfo'):
+            from ..graphutil import NodeItem
+            node = NodeItem.load(request.form.get('nodeinfo'))
+            return json.dumps(node.json())
     return json.dumps({})
 
 def get_user_status(user_id):

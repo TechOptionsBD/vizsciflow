@@ -49,9 +49,16 @@ def merge_json(json, other_json, relation, opposite_link = False):
 #     return json
     
 class Data():
-    def __init__(self, data_id = None, data_item = None):
-        self._node = ValueItem.load(data_id = data_id) if data_id else data_item
-   
+    def __init__(self, id = None, data_item = None, path = None):
+        if data_item:
+            self._node = data_item
+        else:
+            self._node = ValueItem.load(id = id, path = path)
+    
+    @staticmethod
+    def get(id = None, path = None):
+        return Data(id = None, path = None)
+       
     def json(self):
         value = self._node.value
         if self._node.valuetype == DataType.File or self._node.valuetype == DataType.Folder:
@@ -142,6 +149,9 @@ class Run(object):
     
     def nodes(self, key, value = None):
         return self._node.nodes_by_property(key, value)
+    
+    def compare(self, run):
+        pass
        
     def json(self):
         this_node = {"key": self._node.id, "type": "Run", "name": self._node.name}

@@ -97,6 +97,17 @@ class NodeItem(GraphObject):
         }
         j.update(self.properties)
         return j
+    
+    @staticmethod
+    def load(id):
+        registry = {'UserItem':UserItem, 'WorkflowItem':WorkflowItem, 'ModuleItem':ModuleItem, 'ValueItem':ValueItem, 'RunnableItem': RunnableItem}
+        
+        cypher = "MATCH(n) WHERE ID(n)={0} RETURN n".format(id)
+        c = graph().run(cypher)
+        node = next(iter(c))['n']
+        label = list(node.labels)[0]
+        if  label in registry:
+            return registry[label].wrap(node)
 
 class UserItem(NodeItem):
     user_id = Property("user_id")
@@ -193,6 +204,9 @@ class ValueItem(DataItem):
     name = Property('name', 'value')
     value = Property('value')
     
+    inputs = RelatedTo("ModuleItem", "INPUT")
+    outputs = RelatedFrom("ModuleItem", "OUTPUT")
+    
     #allocations = RelatedTo("DataAllocationItem", "ALLOCATION")
     users = RelatedFrom(UserItem, 'ACCESS')
     
@@ -277,8 +291,11 @@ class ValueItem(DataItem):
         return ValueItem.match(graph()).where("_.valuetype={0} AND _.value='{1}'".format(valuetype, value)).first()
     
     @staticmethod
-    def load(item_id):
-        return ValueItem.match(graph(), item_id).first()
+    def load(id = None, path = None):
+        if id:
+            return ValueItem.match(graph(), id).first()
+        else:
+            return ValueItem.match(graph()).where("_.value='{0}'".format(path)).first()
     
     @staticmethod
     def check_access_rights(user_id, path, checkRights):

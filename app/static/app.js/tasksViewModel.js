@@ -267,6 +267,7 @@ function TasksViewModel() {
         formdata.append('workflowId', parseInt(workflowId));
         formdata.append('args', $('#args').val());
         formdata.append('immediate', 'true');
+        formdata.append('provenance', 'true');
         self.clearResults();
         $('.nav-tabs a[href="#provenancetab"]').tab('show');
        
@@ -307,6 +308,117 @@ function TasksViewModel() {
 
                 json = JSON.stringify(json)
             	provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
+			});
+			
+			$('#refresh').hide();
+
+        }).fail(function (jqXHR, textStatus) {
+            $('#refresh').hide();
+            showXHRText(jqXHR);
+        });
+    }
+
+    function tableCreate(data){
+        var tbl = document.getElementById("comparisonTbl");
+        
+        data.forEach(row => {
+            Object.entries(row).forEach(
+                ([key, value]) => {
+                    if(key == "Heading"){
+                        var tr = tbl.insertRow();
+                        
+                        var td = tr.insertCell();
+                        td.appendChild(document.createTextNode(value['Title']));
+                        td.style.fontWeight = 'bold';
+                        td.style.textAlign = 'center';
+                        td.style.borderTopStyle = 'hidden';
+                        td.style.borderLeftStyle = 'hidden';
+                        td.style.borderBottomStyle = 'hidden';
+                        td.style.width = 'fit-content';
+                    
+
+                        var td = tr.insertCell();
+                        td.appendChild(document.createTextNode(value['First']));
+                        td.style.fontWeight = 'bold';
+                        td.style.textAlign = 'center';
+                        
+                        var td = tr.insertCell();
+                        td.appendChild(document.createTextNode(value['Second']));
+                        td.style.fontWeight = 'bold';
+                        td.style.textAlign = 'center';
+                    }
+                    else if(key == "Properties"){
+                        value.forEach(tableData => {
+                            var tr = tbl.insertRow();
+                            
+                            var td = tr.insertCell();
+                            td.appendChild(document.createTextNode(tableData['Name']));
+                            td.style.textAlign = 'right';
+                            td.style.borderTopStyle = 'hidden';
+                            td.style.borderLeftStyle = 'hidden';
+                            td.style.borderBottomStyle = 'hidden';
+                            td.style.width = 'fit-content';
+                            td.style.padding = '0px 5px';
+                            
+                            var td = tr.insertCell();
+                            td.appendChild(document.createTextNode(tableData['First']));
+                            td.style.textAlign = 'center';
+                            
+                            var td = tr.insertCell();
+                            td.appendChild(document.createTextNode(tableData['Second']));
+                            td.style.textAlign = 'center';
+                        })
+                    }
+            })
+        })
+    }
+
+    self.compareProv = function (task) {
+        var updateDlg = self.updateWorkflow();
+        if (updateDlg) {
+            updateDlg.on('hidden.bs.modal', function () { self.compareProvInternal(task); });
+        }
+        else
+            self.compareProvInternal(task);
+    }
+
+    self.compareProvInternal = function (task) {
+        if (!workflowId) {
+            $("#error").val("Workflow is not updated. Change the code and run again.");
+            return;
+        }
+
+        var script = $.trim(editor.getSession().getValue());
+        if (!script)
+            return;
+
+        $('#refresh').show();
+        var formdata = new FormData();
+
+        formdata.append('workflowId', parseInt(workflowId));
+        formdata.append('args', $('#args').val());
+        formdata.append('immediate', 'true');
+        formdata.append('provenance', 'true');
+        self.clearResults();
+       
+        ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
+
+            if (data === undefined) {
+				$('#refresh').hide();
+                return;
+			}
+
+            reportId = parseInt(data.runnableId);
+
+			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
+                if(data == undefined)
+                    return;
+                
+                $("#comparisonTbl tr").remove();        //removing previous table data
+                $('.nav-tabs a[href="#comparisontab"]').tab('show');
+                
+                data = JSON.parse(data['out'])
+                tableCreate(data);
 			});
 			
 			$('#refresh').hide();
@@ -636,8 +748,14 @@ function TasksViewModel() {
         }
         
         else if (x === "copyProv") {
-	    	var content =  "run = Run.Get(service_name = "+ item.name() +", package = "+ item.package() +")"
-                            +"\r\nprint(View.Graph(run))"; 
+			
+			var package = "";
+			if (item.package())
+			{
+				package = ", package = '" + item.package() +"'";
+			}
+	    	var content =  "module = Module.Get(name = '"+ item.name() +"'" + package + ")"
+                            +"\r\nprint(View.Graph(module))"; 
             
             var pos = editor.selection.getCursor();
             editor.session.insert(pos, content + "\r\n");

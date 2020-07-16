@@ -94,6 +94,16 @@
   margin-right: -16px;
 }
 
+#comparisonTbl{
+  width: 90%; 
+  border: 1px solid black; 
+  margin: 2% 5%;
+}
+
+#comparisonTbl td{
+  border: 1px solid black; 
+}
+
 .nav-tabs > li .close {
   margin: -2px 0 0 10px;
   font-size: 18px;

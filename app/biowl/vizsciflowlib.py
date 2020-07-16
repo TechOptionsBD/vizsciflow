@@ -7,9 +7,9 @@ from dsl.fileop import FolderItem
 from app.runmgr import runnableManager
 from app.datamgr import dataManager
 
-from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View
+from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plugin
 
-registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View}
+registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin}
 
 class Library(LibraryBase):
     def __init__(self):
@@ -79,10 +79,6 @@ class Library(LibraryBase):
         '''
         task = None
         try:
-            task = runnableManager.create_task(context.runnable, function)
-            context.task_id = task.id
-            task.start()
-
             if not package and function.lower() == "addmodule":
                 f = args[0]
                 pkgfunc = f.split(".")
@@ -92,7 +88,11 @@ class Library(LibraryBase):
                     package = pkgfunc[0]
                     function = pkgfunc[1]
                 args = args[1:]
-                
+
+            task = runnableManager.create_task(context.runnable, function, package)
+            context.task_id = task.id
+            task.start()
+
             if LibraryBase.check_function(function, package):
                 result = LibraryBase.call_func(context, package, function, args)
                 task.succeeded()

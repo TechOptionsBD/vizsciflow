@@ -31,8 +31,8 @@ class GraphModuleManager():
 #         return Relationship(data, "METADATA", metadatanode)
     
     @staticmethod
-    def create_runnable(user_id, workflow_id, script, args):
-        return RunnableItem.create(user_id, workflow_id, script, args)
+    def create_runnable(user_id, workflow_id, script, provenance, args):
+        return RunnableItem.create(user_id, workflow_id, script, provenance, args)
     
 #     @staticmethod
 #     def update_runnable(properties):
@@ -52,9 +52,9 @@ class GraphModuleManager():
         return workflowItem.add_module(package, function)
     
     @staticmethod
-    def create_task(runnable_id, function_name):
+    def create_task(runnable_id, function_name, package):
         runnableItem = RunnableItem.load(runnable_id)
-        return runnableItem.add_module(function_name)
+        return runnableItem.add_module(function_name, package)
     
     @staticmethod
     def get_workflow(workflow_id):
@@ -111,7 +111,7 @@ class DBModuleManager():
         return Workflow.create(user_id, name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
     
     @staticmethod
-    def create_runnable(user_id, workflow_id, script, args):
+    def create_runnable(user_id, workflow_id, script, provenance, args):
         return Runnable.create(user_id, workflow_id, script, args)
     
     @staticmethod
@@ -119,7 +119,7 @@ class DBModuleManager():
         return Runnable.query.get(int(runnable_id))
     
     @staticmethod
-    def create_task(runnable_id, function_name):
+    def create_task(runnable_id, function_name, package):
         return Task.create_task(runnable_id, function_name)
     
     @staticmethod
@@ -134,11 +134,11 @@ class RunnableManager:
     def add_module(self, workflow_id, package, function_name):
         return self.manager.add_module(workflow_id, package, function_name)
     
-    def create_runnable(self, user_id, workflow_id, script, args):
-        return self.manager.create_runnable(user_id, workflow_id, script, args)
+    def create_runnable(self, user_id, workflow_id, script, provenance, args):
+        return self.manager.create_runnable(user_id, workflow_id, script, provenance, args)
     
-    def create_task(self, runnable_id, function_name):
-        return self.manager.create_task(runnable_id, function_name)
+    def create_task(self, runnable_id, function_name, package):
+        return self.manager.create_task(runnable_id, function_name, package)
     
     def update_runnable(self, properties):
         return self.manager.update_runnable(properties)

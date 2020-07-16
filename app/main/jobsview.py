@@ -43,11 +43,11 @@ def update_workflow(user_id, workflow_id, script):
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
     
-def run_biowl(workflow_id, script, args, immediate = True):
+def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
     from ..jobs import run_script
     try:
         workflow = Workflow.query.get(workflow_id)
-        runnable = runnableManager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, args)
+        runnable = runnableManager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, provenance, args)
                 
         if immediate:
             run_script(runnable.id, args)
@@ -106,7 +106,8 @@ def functions():
             
             args = request.form.get('args') if request.form.get('args') else ''
             immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
-            return run_biowl(int(workflowId), None, args, immediate)
+            provenance = request.form.get('provenance') == 'true'.lower() if request.form.get('provenance') else False
+            return run_biowl(int(workflowId), None, args, immediate, provenance)
         
         elif request.form.get('mapper'):
             result = {"out": [], "err": []}
@@ -394,7 +395,7 @@ def graphs():
         elif request.form.get('monitor'):
             from ..biowl.dsl.provobj import Run, View
             runid = request.form.get('monitor')
-            run = Run.get(run_id = runid)
+            run = Run.get(id = runid)
             return View.graph(run)
         elif request.form.get('nodeinfo'):
             from ..graphutil import NodeItem

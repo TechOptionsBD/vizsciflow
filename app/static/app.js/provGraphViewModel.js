@@ -163,10 +163,10 @@ function provgraphViewModel()
 				$$(go.Group, "Auto",
 					{ selectionAdorned: false }, 
 					{ layout: $$(go.LayeredDigraphLayout,
-						{ direction: 90,											//graph will extend towards Right direction
-							setsPortSpots : false,
-							isOngoing: false
-						} )
+						{ direction: 0,								//graph will extend towards Right direction
+						  layeringOption: go.LayeredDigraphLayout.LayerLongestPathSource,
+						  setsPortSpots: false
+						})
 					},
 					$$(go.Shape, "RoundedRectangle", 
 						{ parameter1: 10, fill: "rgba(128,128,128,0.33)" , stroke: "darkorange" }),
@@ -186,7 +186,17 @@ function provgraphViewModel()
 					);
 			
 				provDiagram.layout = $$(go.LayeredDigraphLayout,
-									{ direction: 90, layerSpacing: 10, setsPortSpots : false });
+									{ direction: 0,								//graph will extend towards Right direction
+									  layeringOption: go.LayeredDigraphLayout.LayerLongestPathSource,
+									  setsPortSpots: false
+									});
+
+				provDiagram.addDiagramListener("ObjectSingleClicked",
+					function(e) {
+						var part = e.subject.part;
+						if (!(part instanceof go.Link)) 
+							self.showMessageModal(part.data);
+					});
 					
 				let typeArr = [];
 				let colorArr = ['DarkSlateGray', 'SteelBlue', 'Teal', 'Indigo', 'MidnightBlue', 'IndianRed', 'DeepSkyBlue', 'DarkSalmon', 'DarkGreen', 'DarkOrange'];
@@ -212,7 +222,31 @@ function provgraphViewModel()
 				provDiagram.model = go.Model.fromJson(JSON.stringify(provModelData));  //load()
 				
 				provDiagram.model.isReadOnly = true;
-			}		
+			}
+			
+			self.showMessageModal = function(node){
+				var formdata = new FormData();
+				formdata.append('nodeinfo', node.key);
+				
+				ajaxcalls.form('/graphs', 'POST', formdata).done( function (data){
+					if(data == undefined)
+						return;
+						
+					$("#showMessageModal").find('.modal-body ul li').remove();
+					
+					data = JSON.parse(data)
+					Object.entries(data).forEach(
+						([key, value]) => {
+							$("#showMessageModal").find('.modal-body #NodeInfo').append("<li>"+key+" : "+value+"</li>")
+						}
+					)
+					$('#showMessageModal').modal('show');
+						
+				}).fail(function(jqXHR){
+					alert("Status:"+jqXHR.status)
+				});
+				
+			}
 		}
         
       //=======================================

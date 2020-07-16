@@ -420,6 +420,7 @@
 								<ul class="dropdown-menu" role="menu" aria-labelledby="btnEditorTabs" id="editortabs-dropdown" >
 									<li><a class="btn btn-secondary"  href="#liGraphTab">Graph Tab</a></li>
 									<li><a class="btn btn-secondary"  href="#liProvenanceTab">Provenance</a></li>
+									<li><a class="btn btn-secondary"  href="#liComparisonTab">Comparison</a></li>
 									<li><a class="btn btn-secondary"  href="#liVisualTab">Visual Tab</a></li>
 									<li> <a class="btn btn-secondary" href="#liMetadataTab">Metadata</a></li>
 									<li> <a class="btn btn-secondary" href="#liFilterHistoryTab">Filter History</a></li>
@@ -453,6 +454,7 @@
 								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
 								<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<li id="liComparisonTab"><a href="#comparisontab" data-toggle="tab">Comparison <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
 								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<!-- <button class="close closeTab" type="button">×</button> -->
@@ -480,6 +482,12 @@
 							<div class="tab-pane fade ui-droppable" id="provenancetab" style="position: relative;">								
 								<div style="width: 100%; height: 100%; z-index: 0;" id="provenance"></div>
 								<div id="provDiagramOverview"></div>
+							</div>
+
+							<div class="tab-pane fade scriptstyle" id="comparisontab" style="position: relative;">
+								<div style="height:98%; overflow-y: auto;">
+									<table id="comparisonTbl"></table>
+								</div>	
 							</div>
 
 							<!-- visualtab -->
@@ -533,6 +541,9 @@
 						<!-- run provenance -->
 					<button id="runProvenance" class="btn pull-left btn-primary btn-lg"
 						style="margin-right: 5px; padding: 10px 4px;" data-bind="click: runProvenance">Provenance</button>
+
+					<button id="compareProv" class="btn pull-left btn-primary btn-lg"
+						style="margin-right: 5px; padding: 10px 4px;" data-bind="click: compareProv">Compare</button>
 					
 						<div style="margin-top: 8px">
 					<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
@@ -2099,6 +2110,25 @@
 	</div>
 </div>
 
+<!-- showMessage Modal on prov graph node click-->
+<div id="showMessageModal" class="modal fade">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			
+			<div class="modal-body">
+				<ul id="NodeInfo"></ul>
+			</div>
+			
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -2354,8 +2384,8 @@
 
 	function copyProvSnippetToEditor(data){
        var pos = editor.selection.getCursor();
-	   var content = "run = Run.Get(data_path = '"+ data.path +"')"
-					 +"\r\nprint(View.Graph(run))"; 
+	   var content = "data = Data.Get(path = '"+ data.path +"')"
+					 +"\r\nprint(View.Graph(data))"; 
 					 
 	   editor.session.insert(pos, content + "\r\n");
        editor.focus();

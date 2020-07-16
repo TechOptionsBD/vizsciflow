@@ -230,8 +230,8 @@ function SamplesViewModel(sampleViewModel) {
             }
         
             else if (x === "copyProv") {
-                var content = "run = Run.Get("+ item.id() +")"
-                              +"\r\nprint(View.Graph(run))"; 
+                var content = "workflow = Workflow.Get(id="+ item.id() +")"
+                              +"\r\nprint(View.Graph(workflow))"; 
                 
                 var pos = editor.selection.getCursor();
                 editor.session.insert(pos, content + "\r\n");

@@ -93,7 +93,6 @@ class NodeItem(GraphObject):
         j = {
             'created_on': str(self.created_on),
             'modified_on': str(self.modified_on),
-            
         }
         j.update(self.properties)
         return j
@@ -155,11 +154,8 @@ class WorkflowItem(NodeItem):
         if not self.name:
             self.name = name
     
-    def add_module(self, package, function):
-        if package:
-            function = package + '.' + function
-        
-        item = ModuleItem(function)
+    def add_module(self, function, package):
+        item = ModuleItem(function, package)
         self.modules.add(item)
         graph().push(self)
         return item
@@ -354,6 +350,7 @@ class RunnableItem(NodeItem): #number1
     status = Property("status")
     duration = Property("duration")
     arguments = Property("arguments")
+    provenance = Property("provenance")
     
     modules = RelatedTo("ModuleItem", "MODULE", "id(b)")
     users = RelatedFrom(UserItem, "USERRUN")
@@ -382,6 +379,9 @@ class RunnableItem(NodeItem): #number1
         
         if not self.arguments:
             self.arguments = ""
+        
+        if not self.provenance:
+            self.provenance = False
             
     @property
     def user_id(self):
@@ -416,20 +416,19 @@ class RunnableItem(NodeItem): #number1
     @staticmethod
     def load_for_users(user_id):
         user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
-        return list(user.runs) if user else []
+        if not user:
+            return []
+        return [r for r in user.runs if not r.provenance]
     
-    def add_module(self, function_name):
-        item = ModuleItem(function_name)
+    def add_module(self, function_name, package):
+        item = ModuleItem(function_name, package)
         self.modules.add(item)
-        from py2neo.data import Node
-        n = Node(self.__primarylabel__)
-        
         graph().push(self)
         graph().pull(self)
         return item
     
     @staticmethod
-    def create(user_id, workflow_id, script, args):
+    def create(user_id, workflow_id, script, provenance, args):
         user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
         if not user:
             user = UserItem.Create(user_id)
@@ -444,6 +443,7 @@ class RunnableItem(NodeItem): #number1
         item = RunnableItem(workflow.name)
         item.script = script
         item.args = args
+        item.provenance = provenance
         
         user.runs.add(item)
         workflow.runs.add(item)
@@ -471,7 +471,7 @@ class RunnableItem(NodeItem): #number1
             'cpu': (psutil.cpu_percent()),
             'out': self.out,
             'error': self.error,
-            'script': self.script,
+#            'script': self.script,
             'status': self.status,
             'duration': self.duration,
             'arguments': str(self.arguments),
@@ -537,14 +537,17 @@ class ModuleItem(NodeItem):
     logs = RelatedTo("TaskLogItem", "LOG")
     
     name = Property("name")
+    package = Property("package")
     status = Property("status")
         
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, package = None, **kwargs):
         super().__init__(**kwargs)
         if not self.name:
             self.name = name
         if not self.status:
             self.status = Status.RECEIVED
+        if not self.package:
+            self.package = package
     
     def json(self):
         j = NodeItem.json(self)
@@ -568,8 +571,19 @@ class ModuleItem(NodeItem):
         return list(self.runs)[0].id
 
     @staticmethod
-    def load(module_id):
-        return ModuleItem.match(graph(), module_id).first()
+    def load(module_id, name = None, package = None):
+        if module_id:
+            return ModuleItem.match(graph(), module_id).first()
+        elif name:
+            if not package:
+                pkg_func = name.split(".")
+                if len(pkg_func) > 1:
+                    name = pkg_func[-1]
+                    package = ".".join(pkg_func[0:-1])
+                else:
+                    return ModuleItem.match(graph()).where("_.name='{0}'".format(name)).first()
+            
+            return ModuleItem.match(graph()).where("_.name='{0}' AND _.package='{1}'".format(name, package)).first()
         
     def start(self):
         self.status = Status.STARTED

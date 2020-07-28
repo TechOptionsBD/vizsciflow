@@ -629,7 +629,17 @@ function TasksViewModel() {
             showXHRText(jqXHR);
         });
     });
-
+    self.paramToArg = function(param) {
+		paramarg = param.name
+		if (param.default !== undefined) {
+			var paramvalue = param.default;
+			if (paramvalue.constructor == String) {
+				paramvalue = "'" + paramvalue + "'";
+			}
+			paramarg = paramarg + "=" + paramvalue;
+		}
+		return paramarg;
+    }
     self.copyToEditor = function (item) {
 
         exmpl = '';
@@ -649,7 +659,7 @@ function TasksViewModel() {
             else{
                 retrns.push({
                     id: 'return ' + ++retrnNo,
-                    value: item.returns()
+                    value: item.returns().constructor == Object ? item.returns().name : item.returns()
                 });
             }
 
@@ -657,14 +667,14 @@ function TasksViewModel() {
                 item.params().forEach(function (param){
                     params.push({
                         id: 'param ' + ++paramNo,
-                        value: param.name
+                        value: self.paramToArg(param)
                     });
                 });
             }
             else{
                 params.push({
                     id: 'param ' + ++paramNo,
-                    value: item.params()
+                    value: self.paramToArg(item.params())
                 });
             }
         }
@@ -814,7 +824,8 @@ function TasksViewModel() {
                                     }
                                     else{
                                         retrnNo++;
-                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + content.returns + "\'> , ";
+										var retname = content.returns.constructor == Object ? content.returns.name : content.returns;
+                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retname + "\'> , ";
                                     }
                                     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                     exmplDOM += " = " + content.package + '.' + content.name + '( ';
@@ -822,7 +833,7 @@ function TasksViewModel() {
                                     if(Array.isArray(content.params)){
                                         content.params.forEach(function (param){
                                             paramNo++;
-                                            exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
+                                            exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + self.paramToArg(param) + "\'> , ";                                            
                                             // if(param.name == "outdir"){
                                             //     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 3);
                                             //     exmplDOM += "=";
@@ -836,7 +847,7 @@ function TasksViewModel() {
                                     }
                                     else{
                                         paramNo++;
-                                            exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + content.params + "\'> , ";
+                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + content.params + "\'> , ";
                                     }
                                     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                     exmplDOM += ")";

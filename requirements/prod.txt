@@ -1,5 +1,4 @@
 -r common.txt
 -r vizsciflow.txt
 -r provenance.txt
-psycopg2
 gunicorn

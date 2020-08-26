@@ -129,7 +129,7 @@ def functions():
                 this_path = os.path.dirname(os.path.abspath(__file__))
                 #os.chdir(this_path) #set dir of this file to current directory
                 app_path = os.path.dirname(this_path)
-                librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/libraries'))
+                librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/modules'))
 
                 user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
                 if not os.path.isdir(user_package_dir):

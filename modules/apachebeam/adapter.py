@@ -25,13 +25,13 @@ password_big1 = 'sr-hadoop'
 
 cluster_hdfs = 'hdfs://sr-p2irc-big1.usask.ca:8020'
 spark_submit_app = 'spark-submit'
-jar = "/home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar"
+jar = "/home/phenodoop/phenoproc/app/biowl/modules/apachebeam/lib/beamflows-bundled-spark.jar"
 
 
 # {
 #            "org": "SRLAB",
 #            "package": "beam",
-#            "module": "app.biowl.libraries.apachebeam.adapter",
+#            "module": "app.biowl.modules.apachebeam.adapter",
 #            "group": "Texts",
 #            "level": "1",
 #            "name":"CountWords",
@@ -172,7 +172,7 @@ def run_beam_quality(context, *args, **kwargs):
         ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.CheckQ --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 {0} --inputFile={1} --outDir={2} --runner=SparkRunner".format(jar, data, outdir)
     else:
         #ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.CheckQ -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(data, cmd_outdir)
-        ssh_cmd = "java -cp /home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar edu.usask.srlab.biowl.beam.CheckQ --inputFile={0} {1}".format(data, outdir)
+        ssh_cmd = "java -cp /home/phenodoop/phenoproc/app/biowl/modules/apachebeam/lib/beamflows-bundled-spark.jar edu.usask.srlab.biowl.beam.CheckQ --inputFile={0} {1}".format(data, outdir)
     
     ssh_hadoop_command(cluster, user, keyfile, ssh_cmd)
            
@@ -332,7 +332,7 @@ def run_beam_quality_big1(context, *args, **kwargs):
         ssh_cmd = "spark-submit --class edu.usask.srlab.biowl.beam.CheckQ --master yarn --deploy-mode cluster --driver-memory 4g --executor-memory 4g --executor-cores 4 {0} --inputFile={1} --outDir={2} --runner=SparkRunner".format(jar, data, outdir)
     else:
         #ssh_cmd = "mvn compile exec:java -Dexec.mainClass=edu.usask.srlab.biowl.beam.CheckQ -Dexec.args='--inputFile={0} {1}' -Pdirect-runner".format(data, cmd_outdir)
-        ssh_cmd = "java -cp /home/phenodoop/phenoproc/app/biowl/libraries/apachebeam/lib/beamflows-bundled-spark.jar edu.usask.srlab.biowl.beam.CheckQ --inputFile={0} {1}".format(data, outdir)
+        ssh_cmd = "java -cp /home/phenodoop/phenoproc/app/biowl/modules/apachebeam/lib/beamflows-bundled-spark.jar edu.usask.srlab.biowl.beam.CheckQ --inputFile={0} {1}".format(data, outdir)
     
     ssh_hadoop_command(cluster, user, password, ssh_cmd)
            

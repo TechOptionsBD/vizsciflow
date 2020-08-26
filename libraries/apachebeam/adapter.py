@@ -3,12 +3,10 @@ from os import path
 from pathlib import Path
 import uuid
 
-from ...exechelper import func_exec_run
-from ...fileop import PosixFileSystem
-from ....util import Utility
-from ....models import Runnable, User, Workflow
-from ...ssh import ssh_hadoop_command, scp_get, scp_put
-from ...argshelper import get_input_from_args_optional
+from app.util import Utility
+from app.models import Runnable, User, Workflow
+from app.biowl.ssh import ssh_hadoop_command, scp_put
+from app.biowl.argshelper import get_input_from_args_optional
 
 # cluster = '206.12.102.75'
 # user = 'hadoop'

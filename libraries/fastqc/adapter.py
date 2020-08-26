@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 
 from dsl.fileop import FolderItem
-from ...exechelper import func_exec_run
-from ...argshelper import get_posix_data_args, get_posix_output_folder_args
+from app.biowl.exechelper import func_exec_run
+from app.biowl.argshelper import get_posix_data_args, get_posix_output_folder_args
 
 fastqc = path.join(path.abspath(path.dirname(__file__)), path.join('lib', 'fastqc'))
 

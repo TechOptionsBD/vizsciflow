@@ -3,8 +3,8 @@ from urllib.error import HTTPError  # for Python 3
 from Bio import Cluster
 import time
 
-from ....util import Utility
-from ...fileop import IOHelper
+from app.util import Utility
+from app.biowl.fileop import IOHelper
 
 Entrez.email = "phenoproc@gmail.com"
 

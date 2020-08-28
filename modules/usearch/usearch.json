@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "usearch",
-           "module": "app.biowl.libraries.usearch.adapter",
+           "module": "modules.usearch.adapter",
            "group": "Search",
            "level": 0,
            "name":"Usearch",

@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "nicad",
-           "module": "app.biowl.libraries.nicad.adapter",
+           "module": "modules.nicad.adapter",
            "group": "clonecheck",
            "level": 0,
            "name":"NiCad",
@@ -36,7 +36,7 @@
        {
            "org": "srlab",
            "package": "nicad",
-           "module": "app.biowl.libraries.nicad.adapter",
+           "module": "modules.nicad.adapter",
            "group": "clonecheck",
            "level": 0,
            "name":"NiCadCross",

@@ -4,7 +4,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "level": "1",
            "group": "Workflow",
            "name":"GetLibraries",
@@ -17,7 +17,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "level": "1",
            "group": "Workflow",
            "name":"GetLibraryInfo",
@@ -30,7 +30,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "level": "1",
            "group": "Workflow",
            "name":"GetHistories",
@@ -43,7 +43,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "level": "1",
            "group": "Workflow",
            "name":"GetHistoryInfo",
@@ -56,7 +56,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "level": "0",
            "group": "Workflow",
            "name":"CreateHistory",
@@ -69,7 +69,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "level": "0",
            "group": "Workflow",
            "name":"Upload",
@@ -83,7 +83,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "level": "1",
            "group": "Workflow",
            "name":"Download",
@@ -97,7 +97,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Quality",
            "level": 0,
            "name":"Groom",
@@ -111,7 +111,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Alignment",
            "level": 0,
            "name":"Align",
@@ -125,7 +125,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Text",
            "level": 0,
            "name":"Cut",
@@ -139,7 +139,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Text",
            "level": 0,
            "name":"Trim",
@@ -153,7 +153,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"Join",
@@ -167,7 +167,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"Group",
@@ -181,7 +181,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"Sort",
@@ -195,7 +195,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Text",
            "level": 0,
            "name":"SelectFirst",
@@ -209,7 +209,6 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"Compare",
@@ -223,7 +222,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"Unique",
@@ -237,7 +236,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"Clip",
@@ -251,7 +250,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Text",
            "level": 1,
            "name":"TrimAdaptive",
@@ -265,7 +264,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Quality",
            "level": 0,
            "name":"CheckQuality",
@@ -279,7 +278,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"Filter",
@@ -293,7 +292,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"ToTabular",
@@ -307,7 +306,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"FastqToSam",
@@ -321,7 +320,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"BamToSam",
@@ -335,7 +334,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"SamToBam",
@@ -349,7 +348,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"FastqToFasta",
@@ -363,7 +362,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"SamToInterval",
@@ -377,7 +376,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"iJoin",
@@ -391,7 +390,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"GetSniffers",
@@ -404,7 +403,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"GetDatatypes",
@@ -417,7 +416,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Convert",
            "level": 0,
            "name":"GetDatatype",
@@ -430,7 +429,7 @@
        {
            "org": "srlab",
            "package": "galaxy",
-           "module": "app.biowl.libraries.galaxy.adapter",
+           "module": "modules.galaxy.adapter",
            "group": "Analysis",
            "level": "0",
            "name":"Merge",

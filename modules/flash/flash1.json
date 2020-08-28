@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "flash",
-           "module": "app.biowl.libraries.flash.adapter",
+           "module": "modules.flash.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"Merge",
@@ -38,7 +38,7 @@
        {
            "org": "srlab",
            "package": "flash",
-           "module": "app.biowl.libraries.flash.adapter",
+           "module": "modules.flash.adapter",
            "group": "Analysis",
            "level": 0,
            "name":"MergeR",

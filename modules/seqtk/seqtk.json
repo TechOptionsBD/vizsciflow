@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "seqtk",
-           "module": "app.biowl.libraries.seqtk.adapter",
+           "module": "modules.seqtk.adapter",
            "level": 1,
            "name":"Seqtk",
            "internal":"run_seqtk",
@@ -30,7 +30,7 @@
        {
            "org": "srlab",
            "package": "seqtk",
-           "module": "app.biowl.libraries.seqtk.adapter",
+           "module": "modules.seqtk.adapter",
            "group": "Convert",
            "level": 0,
            "name":"FastqToFasta",
@@ -54,7 +54,7 @@
        {
            "org": "srlab",
            "package": "seqtk",
-           "module": "app.biowl.libraries.seqtk.adapter",
+           "module": "modules.seqtk.adapter",
            "group": "Text",
            "level": 0,
            "name":"Extract",
@@ -86,7 +86,7 @@
        {
            "org": "srlab",
            "package": "seqtk",
-           "module": "app.biowl.libraries.seqtk.adapter",
+           "module": "modules.seqtk.adapter",
            "group": "Text",
            "level": 1,
            "name":"Trim",

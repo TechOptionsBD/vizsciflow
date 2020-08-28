@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "pear",
-           "module": "app.biowl.libraries.pear.adapter",
+           "module": "modules.pear.adapter",
            "group": "Analysis",
            "level": "0",
            "name":"Merge",

@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "samtools",
-           "module": "app.biowl.libraries.samtools.adapter",
+           "module": "modules.samtools.adapter",
            "group": "Analysis",
            "level": "0",
            "name":"MergeBam",

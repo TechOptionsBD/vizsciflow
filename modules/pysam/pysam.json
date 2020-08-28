@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "pysam",
-           "module": "app.biowl.libraries.pysam.adapter",
+           "module": "modules.pysam.adapter",
            "group": "Convert",
            "level": 0,
            "name":"SamToBam",

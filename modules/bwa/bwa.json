@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "bwa",
-           "module": "app.biowl.libraries.bwa.adapter",
+           "module": "modules.bwa.adapter",
            "group": "Alignment",
            "level": 0,
            "name":"Align",

@@ -3,7 +3,7 @@
 		{
 			"org": "srlab",
 			"package": "fastqc",
-			"module": "app.biowl.libraries.fastqc.adapter",
+			"module": "modules.fastqc.adapter",
 			"group": "Quality",
 			"name": "CheckQuality",
 			"internal": "run_fastqc",

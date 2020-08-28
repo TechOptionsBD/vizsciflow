@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "vsearch",
-           "module": "app.biowl.libraries.vsearch.adapter",
+           "module": "modules.vsearch.adapter",
            "group": "Search",
            "level": 1,
            "name":"Vsearch",

@@ -31,7 +31,7 @@ jar = "/home/phenodoop/phenoproc/app/biowl/modules/apachebeam/lib/beamflows-bund
 # {
 #            "org": "SRLAB",
 #            "package": "beam",
-#            "module": "app.biowl.modules.apachebeam.adapter",
+#            "module": "modules.apachebeam.adapter",
 #            "group": "Texts",
 #            "level": "1",
 #            "name":"CountWords",

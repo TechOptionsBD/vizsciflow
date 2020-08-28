@@ -14,8 +14,8 @@ from collections import namedtuple
 import os
 import time
 
-from ....util import Utility
-from ...ssh import ssh_command
+from app.util import Utility
+from app.biowl.ssh import ssh_command
 from app.biowl.fileop import GalaxyFileSystem
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')

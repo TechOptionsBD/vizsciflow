@@ -18,6 +18,7 @@ mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
 pagedown = PageDown()
+celery = Celery(__name__, broker=Config.broker_url, backend=Config.result_backend)
 
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
@@ -36,6 +37,7 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
     pagedown.init_app(app)
+    celery.conf.update(app.config)
     
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask_sslify import SSLify
@@ -57,5 +59,21 @@ def create_app(config_name):
     return app
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
-celery = Celery(__name__, broker=Config.broker_url, backend=Config.result_backend)
-celery.conf.update(app.config)
+
+from werkzeug.utils import import_string
+from celery.signals import worker_process_init, celeryd_init
+
+def get_celery_conf():
+    config = import_string('src.settings')
+    config = {k: getattr(config, k) for k in dir(config) if k.isupper()}
+    config['BROKER_URL'] = config['CELERY_BROKER_URL']
+    return config
+
+@celeryd_init.connect
+def init_celeryd(conf=None, **kwargs):
+    conf.update(get_celery_conf())
+
+@worker_process_init.connect
+def init_celery_flask_app(**kwargs):
+    app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+    app.app_context().push()

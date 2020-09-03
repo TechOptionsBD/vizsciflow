@@ -38,6 +38,7 @@ function provgraphViewModel()
     		          }
 					);
 					provDiagram.grid.visible = true;
+					provDiagram.animationManager.initialAnimationStyle = go.AnimationManager.None;
 
 				// create the Overview and initialize it to show the main Diagram
 				var provOverview =

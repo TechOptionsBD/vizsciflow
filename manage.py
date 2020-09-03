@@ -4,7 +4,7 @@ import os
 from flask_restful import Api
 from flask_restful.utils import cors
 from flask_httpauth import HTTPBasicAuth
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -32,7 +32,8 @@ from app.models import User, Follow, Role, Permission, Post, Comment
 from flask_script import Shell
 from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user
-from app.main.jobsview import run_biowl, get_user_status, get_task_status, get_functions
+from app.main.views import Samples, load_data_sources_biowl
+from app.main.jobsview import run_biowl, get_user_status, get_task_status, get_functions, save_and_run_workflow
 
 api = Api(app)
 api.decorators=[cors.crossdomain(origin='*')]
@@ -61,32 +62,72 @@ def get_datasources():
 
 @app.route('/api/script', methods=['POST'])
 @auth.login_required
-def run_rest_script():
+def run_script_api():
     try:
         script = request.json.get('script')
         args = request.json.get('args') if request.json.get('args') else ''
         immediate = request.json.get('immediate') == 'true'.lower() if request.json.get('immediate') else False
-        return run_biowl(current_user.id, script, args, immediate)
-    finally:
-        logout_user()
-
-@app.route('/api/functions/<int:level>', methods=['GET'])
-@app.route('/api/functions', methods=['GET'])
-@auth.login_required
-def get_functions_api(level):
-    try:
-        return get_functions(level if level else 0)
+        return save_and_run_workflow(script, args, immediate)
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
     finally:
         logout_user()
         
-@app.route('/api/status/<int:task_id>', methods=['GET'])
-@app.route('/api/status', defaults={'task_id': 0}, methods=['GET'])
+@app.route('/api/functions', methods=['GET'])
 @auth.login_required
-def get_status_api(task_id):
-    if task_id:
-        return get_task_status(task_id)
-    else:
-        return get_user_status(current_user.id)
+def get_functions_api():
+    try:
+        return get_functions(0)
+    finally:
+        logout_user()
+
+@app.route('/api/workflow', methods=['GET'])
+@auth.login_required
+def get_workflows_api():
+    '''
+    Usage:
+    /api/workflow?access=0&tags=curation
+    '''
+    try:
+        tags = request.args.get('tags') if request.args.get('tags') else ''
+        tags = tags.split(',') if tags else []
+        access = request.args.get('access') if request.args.get('access') else ''
+        return Samples.get_samples_as_list(int(access), *tags)
+    finally:
+        logout_user()
+
+@app.route('/api/run', methods=['GET'])
+@auth.login_required
+def run_workflow_api():
+    '''
+    Usage:
+    curl -H 'Content-Type: application/json'  -u mainulhossain@gmail.com:aaa -X GET -d '{"id":"332", "args":"data='/storage',data2='/storag22'"}' http://127.0.0.1:5000/api/run
+    '''
+    try:
+        workflow_id = request.json.get('id')
+        args = request.json.get('args') if request.json.get('args') else ''
+        args = args.split(',')
+        args = [arg for arg in args if arg]
+                
+        immediate = request.json.get('immediate').lower() == 'true' if request.json.get('immediate') else False
+        runnable = run_biowl(workflow_id, '', args, immediate)
+        return jsonify(runnableId = runnable.id)
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
+    finally:
+        logout_user()
+        
+@app.route('/api/status', methods=['GET'])
+@auth.login_required
+def get_status_api():
+    '''
+    Usage:
+    curl -u mainulhossain@gmail.com:aaa -X GET  http://127.0.0.1:5000/api/status?id=7
+    wget --user mainulhossain@gmail.com --password aaa "http://127.0.0.1:5000/api/status?id=7"
+    '''
+    runid = request.args.get('id') if request.args.get('id') else ''
+    return get_task_status(int(runid)) if runid else get_user_status(current_user.id)
+
 
 def make_shell_context():
     return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,

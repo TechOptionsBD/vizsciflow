@@ -581,6 +581,7 @@ class Workflow(db.Model):
     
     accesses = db.relationship('WorkflowAccess', backref='workflow', lazy=True, cascade="all,delete-orphan") 
     runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflow', lazy='dynamic')
+    annotations = db.relationship('WorkflowAnnotation', backref='workflow', lazy='dynamic', cascade="all,delete-orphan")
     #children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
     
     def add_access(self, user_id, rights =  AccessRights.NotSet):
@@ -1452,6 +1453,32 @@ class DataPermission(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+
+class WorkflowAnnotation(db.Model):
+    __tablename__ = 'workflow_annotations'
+    id = db.Column(db.Integer, primary_key=True)
+    workflow_id  = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=True)
+    tag = db.Column(db.Text, nullable = False)
+    
+    @staticmethod
+    def add(workflow_id, tag):
+        try:
+            annotation = WorkflowAnnotation.query.filter_by(workflow_id = workflow_id).first()
+            if not annotation:            
+                annotation = WorkflowAnnotation()
+                annotation.workflow_id = workflow_id
+                db.session.add(annotation)
+            elif annotation.tag == tag:
+                return annotation
+                
+            annotation.tag = tag
+            
+            db.session.commit()
+            return annotation
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
         
 class DataAnnotation(db.Model):
     __tablename__ = 'data_annotations'

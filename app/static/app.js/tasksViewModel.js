@@ -14,9 +14,12 @@ function TasksViewModel() {
     self.folderImgPath = '/static/folder_Icon_blue.png';
     this.filteredTasks = ko.computed(function () {
         return this.tasks().filter(function (task) {
-            if (!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
-                || task.package().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
-//                || task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
+            if (!self.taskFilter() || 
+                (task.name() !== undefined && task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1) ||
+                (task.package() !== undefined && task.package().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1) ||
+                (task.group() !== undefined && task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1) ||
+                (task.desc() !== undefined && task.desc().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
+            )
                 return task;
         });
     }, this);

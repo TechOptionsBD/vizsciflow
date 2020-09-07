@@ -111,13 +111,30 @@ function SamplesViewModel(sampleViewModel) {
                if ($.isEmptyObject(data))
                    return;
             
-         
-             editor.session.setValue(data['script']);
+            editor.session.setValue(data['script']);
             editor.focus();
+
             workflowId = item.id();
             $('#script-name').text(item.name());
             $('#args').val('');
             
+        }).fail(function(jqXHR) {
+            showXHRText(jqXHR);
+        });
+    }
+
+    self.dropNLoadIntoEditor = function(item) {
+         ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item.id}).done(function(data) {
+            if ($.isEmptyObject(data))
+                return;
+            
+            var pos = editor.selection.getCursor();
+            editor.session.insert(pos, data['script'] + "\r\n");
+            editor.focus();
+
+            workflowId = item.id();
+            $('#script-name').text(item.name());
+            $('#args').val('');
         }).fail(function(jqXHR) {
             showXHRText(jqXHR);
         });

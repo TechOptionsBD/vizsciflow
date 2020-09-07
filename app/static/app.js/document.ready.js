@@ -295,9 +295,12 @@ $(document).ready(function () {
 			event.preventDefault();
 			event.stopPropagation();
 			
-			var v = ko.dataFor(ui.draggable[0]);
-			if (v) {
-				tasksViewModel.copyToEditor(v);
+            var v = ko.dataFor(ui.draggable[0]);
+			if (v.serviceID !== undefined) {
+                tasksViewModel.copyToEditor(v);
+            }
+            else {
+				samplesViewModel.dropNLoadIntoEditor(v);
 			}
 		}
     });

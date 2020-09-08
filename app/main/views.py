@@ -14,13 +14,13 @@ from flask import Flask, render_template, redirect, url_for, abort, flash, reque
 from flask import send_from_directory, jsonify, send_file
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 
 from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import Permission, AlchemyEncoder, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType
+from ..models import Permission, AlchemyEncoder, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType, WorkflowAnnotation
 from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -726,20 +726,23 @@ class Samples():
         return workflow_list
 
     @staticmethod
-    def get_samples_as_list(access):
+    def get_samples_as_list(access, *args):
+        terms = []
+        for v in args:
+            terms.append("tag='{0}'".format(v))
         samples = []
         if access == 0 or access == 3:
-            workflows = Workflow.query.filter(Workflow.public == True)
+            workflows = Workflow.query.filter(Workflow.public == True).filter(or_(*terms))
             samples.extend(Samples.get_workflows_info(workflows, AccessType.PUBLIC))
             #workflows=Workflow.query.join(User).filter(User.role != None).join(Role).filter(and_(Role.permissions != None, Role.permissions.op('&')(Permission.ADMINISTER) == Permission.ADMINISTER)).filter(Workflow.accesses.any(WorkflowAccess.user_id.is_(None)))
         if access == 1 or access == 3:
-            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id))) # TODO: Do we need or_ operator here? 
+            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id))).filter(or_(*terms)) # TODO: Do we need or_ operator here? 
             samples.extend(Samples.get_workflows_info(workflows, AccessType.SHARED))
         if access == 2 or access == 3:
-            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id))
+            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id)).filter(or_(*terms))
             samples.extend(Samples.get_workflows_info(workflows, AccessType.PRIVATE))
-            
-        return samples
+        
+        return json.dumps({'samples': samples})    
     
     @staticmethod
     def make_fn(path, prefix, ext, suffix):
@@ -848,7 +851,7 @@ def samples():
         return json.dumps({'return':'error'})
     
     access = int(request.args.get('access')) if request.args.get('access') else 0
-    return json.dumps({'samples': Samples.get_samples_as_list(access)})
+    return Samples.get_samples_as_list(access)
 
 @main.route('/webhook', methods=['GET', 'POST'])
 def webhook():

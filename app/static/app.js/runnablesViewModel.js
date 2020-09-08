@@ -1,6 +1,7 @@
 function RunnablesViewModel() {
     var self = this;
     self.runnablesURI = '/runnables';
+    self.graphsURI = '/graphs';
     self.items = ko.observableArray();
     self.historyLoading = false;
     self.clicks = 0;
@@ -180,17 +181,79 @@ function RunnablesViewModel() {
         });
     }
 
-    //runnableID insert button
+    function diagramReload(diagramName){
+        var diagramDiv = document.getElementById(diagramName);
+        if (diagramDiv !== null) {
+            var olddiag = go.Diagram.fromDiv(diagramDiv);
+            if (olddiag !== null){
+                olddiag.div = null;
+                diagramDiv = null;
+            }
+        }
+    }
+
+    //job history floating toolbar
     self.runnableToolbar = function (item, event) {
 	    event.stopPropagation();
+        var x = $(event.target).attr('id');
+        
+        //runnableID insert button
+	    if (x === "insert2Editor") {
+            $('.nav-tabs a[href="#scripttab"]').tab('show');
 
-	    var x = $(event.target).attr('id');
-	    if (x === "insert2Editor") {            
-            var content = "run = Run.get(run_id = "+ item.id() +")\r\nprint(run.json())"; 
+            var content = "run = Run.Get(id = "+ item.id() +")"
+                          +"\r\nprint(View.Graph(run))"; 
             
             var pos = editor.selection.getCursor();
             editor.session.insert(pos, content + "\r\n");
             editor.focus();            
+        }
+
+        //graph monitor
+        else if (x === "monitorGraph") {
+            event.stopPropagation();
+            var formdata = new FormData();
+            formdata.append('monitor', parseInt(item.id()));
+            
+            ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (data) {
+                if (data === undefined)
+                    return;
+                
+                // $('#monitorModal').modal('show');
+                // $(".modal-body #taskName").text( 'Name: ' + item.name() );
+                // $(".modal-body #taskID").text( 'ID: ' + item.id() );
+                // $(".modal-body #taskStatus").text( 'Status: ' + item.status() );
+                
+                // $('#monitorModal').on('show.bs.modal', function (e) {
+                //     console.log(e);
+                //     monitorGraphViewModel.show(JSON.parse(data))
+                //     monitorGraphViewModel.requestUpdate();
+                // })
+                
+                // $('#monitorModal').on('hidden.bs.modal', function (e) {
+                //     diagramReload("monitorGraph");				    //reload the graph
+                //     diagramReload("monitorDiagramOverview");	    //reload the overview
+                // })
+
+                diagramReload("provenance");				    //reload the graph
+                diagramReload("provDiagramOverview");	        //reload the overview
+
+                $('.nav-tabs a[href="#provenancetab"]').tab('show');
+                
+                let timer = setInterval(() => {
+                    item.status() !== 'SUCCESS'
+                    ?   provgraphviewmodel.show(JSON.parse(data))
+                    :   funcCall()
+                }, 1000);
+                
+                function funcCall(){
+                    provgraphviewmodel.show(JSON.parse(data));
+                    clearInterval(timer)
+                }
+
+            }).fail(function (jqXHR, textStatus) {
+                showXHRText(jqXHR);
+            });
         }
     }
 }

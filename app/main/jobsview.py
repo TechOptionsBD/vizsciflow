@@ -29,35 +29,32 @@ from ..runmgr import runnableManager
 basedir = os.path.dirname(os.path.abspath(__file__))
 
 def update_workflow(user_id, workflow_id, script):
-    try:
-        if workflow_id:
-            workflow = Workflow.query.get(workflow_id)
-            if workflow.temp:
-                workflow.update_script(script)
-            else:
-                workflow = Samples.create_workflow(user_id, workflow.name, workflow.desc, script, AccessType.PRIVATE, '', True, workflow.id)
-        else:
-            workflow = Samples.create_workflow(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
-                
-        return jsonify(workflowId = workflow.id)
-    except Exception as e:
-        return make_response(jsonify(err=str(e)), 500)
-    
-def run_biowl(workflow_id, script, args, immediate = True):
-    from ..jobs import run_script
-    try:
+    if workflow_id:
         workflow = Workflow.query.get(workflow_id)
-        runnable = runnableManager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, args)
-                
-        if immediate:
-            run_script(runnable.id, args)
+        if workflow.temp:
+            workflow.update_script(script)
         else:
-            run_script.delay(runnable.id, args)
+            workflow = Samples.create_workflow(user_id, workflow.name, workflow.desc, script, AccessType.PRIVATE, '', True, workflow.id)
+    else:
+        workflow = Samples.create_workflow(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
+    return workflow
+    
+def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
+    from ..jobs import run_script
+    workflow = Workflow.query.get(workflow_id)
+    runnable = runnableManager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, provenance, args)
             
-        return jsonify(runnableId = runnable.id)
-    except Exception as e:
-        return make_response(jsonify(err=str(e)), 500)
+    if immediate:
+        run_script(runnable.id, args)
+    else:
+        run_script.delay(runnable.id, args)
+        
+    return runnable
 
+def save_and_run_workflow(script, args, immediate = True, provenance = False):
+    workflow = update_workflow(current_user.id, 0, script)
+    run_biowl(workflow.id, script, args, immediate, provenance)
+    
 def build_graph(workflow_id):
     try:
         from ..jobs import generate_graph
@@ -96,18 +93,25 @@ def install(package):
 def functions():
     if request.method == "POST":
         if request.form.get('workflowId'):
-            workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
-            if request.form.get('script'):
-                return update_workflow(current_user.id, workflowId, request.form.get('script'));
+            try:
+                workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
+                if request.form.get('script'):
+                    workflow = update_workflow(current_user.id, workflowId, request.form.get('script'));
+                    return jsonify(workflowId = workflow.id)
+                
+                # Here we must have a valid workflow id
+                if not workflowId:
+                    return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
+                
+                args = request.form.get('args') if request.form.get('args') else ''
+                immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
+                provenance = request.form.get('provenance') == 'true'.lower() if request.form.get('provenance') else False
+                runnable = run_biowl(int(workflowId), None, args, immediate, provenance)
+                return jsonify(runnableId = runnable.id)
             
-            # Here we must have a valid workflow id
-            if not workflowId:
-                return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
-            
-            args = request.form.get('args') if request.form.get('args') else ''
-            immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
-            return run_biowl(int(workflowId), None, args, immediate)
-        
+            except Exception as e:
+                return make_response(jsonify(err=str(e)), 500)
+
         elif request.form.get('mapper'):
             result = {"out": [], "err": []}
             try:
@@ -128,7 +132,7 @@ def functions():
                 this_path = os.path.dirname(os.path.abspath(__file__))
                 #os.chdir(this_path) #set dir of this file to current directory
                 app_path = os.path.dirname(this_path)
-                librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/libraries'))
+                librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/modules'))
 
                 user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
                 if not os.path.isdir(user_package_dir):
@@ -394,8 +398,12 @@ def graphs():
         elif request.form.get('monitor'):
             from ..biowl.dsl.provobj import Run, View
             runid = request.form.get('monitor')
-            run = Run.get(run_id = runid)
+            run = Run.get(id = runid)
             return View.graph(run)
+        elif request.form.get('nodeinfo'):
+            from ..graphutil import NodeItem
+            node = NodeItem.load(request.form.get('nodeinfo'))
+            return json.dumps(node.json())
     return json.dumps({})
 
 def get_user_status(user_id):

@@ -14,9 +14,12 @@ function TasksViewModel() {
     self.folderImgPath = '/static/folder_Icon_blue.png';
     this.filteredTasks = ko.computed(function () {
         return this.tasks().filter(function (task) {
-            if (!self.taskFilter() || task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1
-                || task.package().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
-//                || task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
+            if (!self.taskFilter() || 
+                (task.name() !== undefined && task.name().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1) ||
+                (task.package() !== undefined && task.package().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1) ||
+                (task.group() !== undefined && task.group().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1) ||
+                (task.desc() !== undefined && task.desc().toLowerCase().indexOf(self.taskFilter().toLowerCase()) !== -1)
+            )
                 return task;
         });
     }, this);
@@ -195,6 +198,53 @@ function TasksViewModel() {
             self.runBioWLInternal(task);
     }
 
+    function diagramReload(diagramName){
+        var diagramDiv = document.getElementById(diagramName);
+        if (diagramDiv !== null) {
+            var olddiag = go.Diagram.fromDiv(diagramDiv);
+            if (olddiag !== null){
+                olddiag.div = null;
+                diagramDiv = null;
+            }
+        }
+    }
+
+    let subGraphNo = 1;
+    function mergeJson(json, otherJson){
+        otherJson["nodeDataArray"].forEach(otherJsonItem => {
+            let isKeyExsit = false;
+            if(json["nodeDataArray"].length > 0){
+                json["nodeDataArray"].forEach( j => {
+                    if(j['key'] == otherJsonItem['key'])
+                        isKeyExsit = true;
+                })
+                if(!isKeyExsit){
+                    otherJsonItem["group"] = "Subgraph " + subGraphNo;
+                    json["nodeDataArray"].push(otherJsonItem)
+                }
+            }
+            else{
+                otherJsonItem["group"] = "Subgraph " + subGraphNo;
+                json["nodeDataArray"].push(otherJsonItem)
+            }
+        });
+
+        otherJson["linkDataArray"].forEach(otherJsonItem => {
+            let isKeyExsit = false;
+            if(json["linkDataArray"].length > 0){
+                json["linkDataArray"].forEach( j => {
+                    if(j['from'] == otherJsonItem['from'] && j['to'] == otherJsonItem['to'])
+                        isKeyExsit= true;
+                })
+                if(!isKeyExsit)
+                    json["linkDataArray"].push(otherJsonItem)
+            }
+            else
+                json["linkDataArray"].push(otherJsonItem)
+        });
+        return json
+    }
+
     self.runProvenance = function (task) {
         var updateDlg = self.updateWorkflow();
         if (updateDlg) {
@@ -220,6 +270,7 @@ function TasksViewModel() {
         formdata.append('workflowId', parseInt(workflowId));
         formdata.append('args', $('#args').val());
         formdata.append('immediate', 'true');
+        formdata.append('provenance', 'true');
         self.clearResults();
         $('.nav-tabs a[href="#provenancetab"]').tab('show');
        
@@ -231,15 +282,146 @@ function TasksViewModel() {
 			}
 
             reportId = parseInt(data.runnableId);
-            //runnablesViewModel.load();
-            //runnablesViewModel.loadHistory(reportId, false);
 
 			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
-	          
-				if (data === undefined)
-                	return;
+                diagramReload("provenance");				//reload the graph
+                diagramReload("provDiagramOverview");		//reload the overview
+                let json = { "nodeDataArray" : [], "linkDataArray":[] }
 
-            	provgraphviewmodel.show(JSON.parse(data['out']));         //calling provenance graph
+				if (data === undefined)
+                    return;
+
+                //json marger
+                subGraphNo = 1;
+                provGraphData = data['out'].split("\n");
+
+                if(provGraphData.length == 1){
+                    json = JSON.parse(provGraphData)
+                }
+
+                else{
+                    provGraphData.forEach((aGraphData) => {
+                        groupNode = {key: "Subgraph " + subGraphNo, isGroup: true}
+                        json["nodeDataArray"].push(groupNode)
+                        
+                        json = mergeJson(json, JSON.parse(aGraphData))
+                        subGraphNo++;
+                    });
+                }
+
+                json = JSON.stringify(json)
+            	provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
+			});
+			
+			$('#refresh').hide();
+
+        }).fail(function (jqXHR, textStatus) {
+            $('#refresh').hide();
+            showXHRText(jqXHR);
+        });
+    }
+
+    function tableCreate(data){
+        var tbl = document.getElementById("comparisonTbl");
+        
+        data.forEach(row => {
+            Object.entries(row).forEach(
+                ([key, value]) => {
+                    if(key == "Heading"){
+                        var tr = tbl.insertRow();
+                        
+                        var td = tr.insertCell();
+                        td.appendChild(document.createTextNode(value['Title']));
+                        td.style.fontWeight = 'bold';
+                        td.style.textAlign = 'center';
+                        td.style.borderTopStyle = 'hidden';
+                        td.style.borderLeftStyle = 'hidden';
+                        td.style.borderBottomStyle = 'hidden';
+                        td.style.width = 'fit-content';
+                    
+
+                        var td = tr.insertCell();
+                        td.appendChild(document.createTextNode(value['First']));
+                        td.style.fontWeight = 'bold';
+                        td.style.textAlign = 'center';
+                        
+                        var td = tr.insertCell();
+                        td.appendChild(document.createTextNode(value['Second']));
+                        td.style.fontWeight = 'bold';
+                        td.style.textAlign = 'center';
+                    }
+                    else if(key == "Properties"){
+                        value.forEach(tableData => {
+                            var tr = tbl.insertRow();
+                            
+                            var td = tr.insertCell();
+                            td.appendChild(document.createTextNode(tableData['Name']));
+                            td.style.textAlign = 'right';
+                            td.style.borderTopStyle = 'hidden';
+                            td.style.borderLeftStyle = 'hidden';
+                            td.style.borderBottomStyle = 'hidden';
+                            td.style.width = 'fit-content';
+                            td.style.padding = '0px 5px';
+                            
+                            var td = tr.insertCell();
+                            td.appendChild(document.createTextNode(tableData['First']));
+                            td.style.textAlign = 'center';
+                            
+                            var td = tr.insertCell();
+                            td.appendChild(document.createTextNode(tableData['Second']));
+                            td.style.textAlign = 'center';
+                        })
+                    }
+            })
+        })
+    }
+
+    self.compareProv = function (task) {
+        var updateDlg = self.updateWorkflow();
+        if (updateDlg) {
+            updateDlg.on('hidden.bs.modal', function () { self.compareProvInternal(task); });
+        }
+        else
+            self.compareProvInternal(task);
+    }
+
+    self.compareProvInternal = function (task) {
+        if (!workflowId) {
+            $("#error").val("Workflow is not updated. Change the code and run again.");
+            return;
+        }
+
+        var script = $.trim(editor.getSession().getValue());
+        if (!script)
+            return;
+
+        $('#refresh').show();
+        var formdata = new FormData();
+
+        formdata.append('workflowId', parseInt(workflowId));
+        formdata.append('args', $('#args').val());
+        formdata.append('immediate', 'true');
+        formdata.append('provenance', 'true');
+        self.clearResults();
+       
+        ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
+
+            if (data === undefined) {
+				$('#refresh').hide();
+                return;
+			}
+
+            reportId = parseInt(data.runnableId);
+
+			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
+                if(data == undefined)
+                    return;
+                
+                $("#comparisonTbl tr").remove();        //removing previous table data
+                $('.nav-tabs a[href="#comparisontab"]').tab('show');
+                
+                data = JSON.parse(data['out'])
+                tableCreate(data);
 			});
 			
 			$('#refresh').hide();
@@ -341,7 +523,9 @@ function TasksViewModel() {
     				overview = overviewdiv.querySelector('canvas');
     				context = overview.getContext('2d');
     				context.clearRect(0, 0, overview.width, overview.height);
-    			}
+                }
+                // diagramReload("graph");				    //reload the graph
+                // diagramReload("DiagramOverview");		//reload the overview
             }
         	
         	else if (data === undefined)
@@ -448,7 +632,17 @@ function TasksViewModel() {
             showXHRText(jqXHR);
         });
     });
-
+    self.paramToArg = function(param) {
+		paramarg = param.name
+		if (param.default !== undefined) {
+			var paramvalue = param.default;
+			if (paramvalue.constructor == String) {
+				paramvalue = "'" + paramvalue + "'";
+			}
+			paramarg = paramarg + "=" + paramvalue;
+		}
+		return paramarg;
+    }
     self.copyToEditor = function (item) {
 
         exmpl = '';
@@ -457,19 +651,35 @@ function TasksViewModel() {
         if (item.package() && item.name() && item.params() && item.returns()) {
             retrnNo = 0, paramNo = 0;
 
-            item.returns().forEach(function (retrn){
+            if(Array.isArray(item.returns())){
+                item.returns().forEach(function (retrn){
+                    retrns.push({
+                        id: 'return ' + ++retrnNo,
+                        value: retrn.name
+                    });
+                });
+            }
+            else{
                 retrns.push({
                     id: 'return ' + ++retrnNo,
-                    value: retrn.name
+                    value: item.returns().constructor == Object ? item.returns().name : item.returns()
                 });
-            });
-            
-            item.params().forEach(function (param){
+            }
+
+            if(Array.isArray(item.params())){
+                item.params().forEach(function (param){
+                    params.push({
+                        id: 'param ' + ++paramNo,
+                        value: self.paramToArg(param)
+                    });
+                });
+            }
+            else{
                 params.push({
                     id: 'param ' + ++paramNo,
-                    value: param.name
+                    value: self.paramToArg(item.params())
                 });
-            });
+            }
         }
         
         retrns.forEach(function (retrn){
@@ -499,7 +709,7 @@ function TasksViewModel() {
 
         function areYouSure(confirmation){
             if(confirmation == true){
-                ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){                	          
+                ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){
                     if (data === undefined)
                             return;
                     
@@ -545,17 +755,31 @@ function TasksViewModel() {
         		else if (data == 'error')
         			alert("ERROR");
         		                                
-                }).fail(function (jqXHR) {
-                        alert("status="+jqXHR.status);
-                }); 
-            }
+            }).fail(function (jqXHR) {
+                    alert("status="+jqXHR.status);
+            }); 
+        }
+        
+        else if (x === "copyProv") {
+			
+			var package = "";
+			if (item.package())
+			{
+				package = ", package = '" + item.package() +"'";
+			}
+	    	var content =  "module = Module.Get(name = '"+ item.name() +"'" + package + ")"
+                            +"\r\nprint(View.Graph(module))"; 
+            
+            var pos = editor.selection.getCursor();
+            editor.session.insert(pos, content + "\r\n");
+            editor.focus();
+        }
     }
 
-    
-    
     self.copyToEditorDblClick = function (itme, event) {
         event.preventDefault();
     }
+    
     self.toggleExpand = function (item, event) {
         event.stopPropagation();
 
@@ -595,25 +819,39 @@ function TasksViewModel() {
                                 if (content.package && content.name && content.params && content.returns) {
                                     exmplDOM = '', retrnNo = 0, paramNo = 0;
                                     
-                                    content.returns.forEach(function (retrn){
+                                    if(Array.isArray(content.returns)){
+                                        content.returns.forEach(function (retrn){
+                                            retrnNo++;
+                                            exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
+                                        });
+                                    }
+                                    else{
                                         retrnNo++;
-                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
-                                    });
+										var retname = content.returns.constructor == Object ? content.returns.name : content.returns;
+                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retname + "\'> , ";
+                                    }
                                     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                     exmplDOM += " = " + content.package + '.' + content.name + '( ';
-                                    content.params.forEach(function (param){
+
+                                    if(Array.isArray(content.params)){
+                                        content.params.forEach(function (param){
+                                            paramNo++;
+                                            exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + self.paramToArg(param) + "\'> , ";                                            
+                                            // if(param.name == "outdir"){
+                                            //     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 3);
+                                            //     exmplDOM += "=";
+                                            //     paramNo++;
+                                            //     if(param.default == "''")
+                                            //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + " outdir\' name=\"Param\" value=\''" + param.default + "'\' placeholder='' > , ";
+                                            //     else
+                                            //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' style = \" border-color : 'red';\" type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.default + "\'> , ";                                            
+                                            // }
+                                        });
+                                    }
+                                    else{
                                         paramNo++;
-                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.name + "\'> , ";                                            
-                                        // if(param.name == "outdir"){
-                                        //     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 3);
-                                        //     exmplDOM += "=";
-                                        //     paramNo++;
-                                        //     if(param.default == "''")
-                                        //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + " outdir\' name=\"Param\" value=\''" + param.default + "'\' placeholder='' > , ";
-                                        //     else
-                                        //         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' style = \" border-color : 'red';\" type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + param.default + "\'> , ";                                            
-                                        // }
-                                    });
+                                        exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'param " + paramNo + "\' name=\"Param\" value=\'" + content.params + "\'> , ";
+                                    }
                                     exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
                                     exmplDOM += ")";
                                     

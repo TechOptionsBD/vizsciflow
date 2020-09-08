@@ -1,11 +1,9 @@
 from dsl.interpreter import Interpreter
 from dsl.context import Context
-from ..vizsciflowlib import Library
+from ..vizsciflowlib import Library, registry
 from ..vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
 from .provobj import *
-
-registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View}
 
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):
@@ -25,7 +23,8 @@ class VizSciFlowInterpreter(Interpreter):
         if package:
             if self.context.var_exists(package):
                 obj = self.context.get_var(package)
-                return getattr(obj, function)(*v)
+                args, kwargs = Library.split_args(v)
+                return getattr(obj, function.lower())(*args, **kwargs)
             
             if package in registry:
                 args, kwargs = Library.split_args(v)

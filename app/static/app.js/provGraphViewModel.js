@@ -3,14 +3,18 @@ function provgraphViewModel()
         	var self = this;
 
     		self.show = function(rels) {
-				
+				if(rels == null)
+					return;
+
 				//diagram reload function
     			function diagramReload(diagramName){
     				var diagramDiv = document.getElementById(diagramName);
         			if (diagramDiv !== null) {
         			    var olddiag = go.Diagram.fromDiv(diagramDiv);
-        			    if (olddiag !== null)
-        			    	olddiag.div = null;
+        			    if (olddiag !== null){
+							olddiag.div = null;
+							diagramDiv = null;
+						}
         			}
     			}				
 
@@ -34,6 +38,7 @@ function provgraphViewModel()
     		          }
 					);
 					provDiagram.grid.visible = true;
+					provDiagram.animationManager.initialAnimationStyle = go.AnimationManager.None;
 
 				// create the Overview and initialize it to show the main Diagram
 				var provOverview =
@@ -83,10 +88,45 @@ function provgraphViewModel()
 								font: "bold 6pt sans-serif"					//node type font
 							},
 							new go.Binding("text", "type").makeTwoWay()),
-							)
+							),
+							
+							//newly added for contaxt menu
+							$$(go.TextBlock),
+							{
+								contextMenu:     // define a context menu for each node
+								  $$("ContextMenu",   
+									$$(go.Panel, "Table",
+										{background: 'white'},
+										$$(go.TextBlock,
+											{
+												row: 0,
+												alignment: go.Spot.Left,
+												margin: 3
+											},
+											new go.Binding("text", "key").makeTwoWay()
+										),
+										$$(go.TextBlock,
+											{
+												row: 1,
+												alignment: go.Spot.Left,
+												margin: 3
+											},
+											new go.Binding("text", "type").makeTwoWay()
+										),
+										$$(go.TextBlock,
+											{
+												row: 2,
+												alignment: go.Spot.Left,
+												margin: 3
+											},
+											new go.Binding("text", "name").makeTwoWay()
+										)
+									)
+								)  // end Adornment
+							}
 						)
 					);
-
+					
 				provDiagram.linkTemplate =
 				$$(go.Link,
 					{
@@ -120,37 +160,62 @@ function provgraphViewModel()
 					new go.Binding("text", "topid"))
 				); 	
 
-				//edit color value for each node
-				rels['nodeDataArray'].forEach(function(node) {
-					type = node.type;
+				provDiagram.groupTemplate =
+				$$(go.Group, "Auto",
+					{ selectionAdorned: false }, 
+					{ layout: $$(go.LayeredDigraphLayout,
+						{ direction: 0,								//graph will extend towards Right direction
+						  layeringOption: go.LayeredDigraphLayout.LayerLongestPathSource,
+						  setsPortSpots: false
+						})
+					},
+					$$(go.Shape, "RoundedRectangle", 
+						{ parameter1: 10, fill: "rgba(128,128,128,0.33)" , stroke: "darkorange" }),
+					$$(go.Panel, "Table",
+						{ margin: 0.5 },  											  	// avoid overlapping border with table contents
+						$$(go.RowColumnDefinition, { row: 0, background: "DimGray" }),  	// header color
+						$$("SubGraphExpanderButton", { row: 0, column: 0, margin: 3 }),
+						$$(go.TextBlock,  												// title is centered in header
+							{ row: 0, column: 1, font: "bold 14px Sans-Serif", stroke: "FloralWhite",		// title color
+								textAlign: "center", stretch: go.GraphObject.Horizontal },
+							new go.Binding("text", "key")),
+						$$(go.Placeholder,  											// becomes zero-sized when Group.isSubGraphExpanded is false
+							{ row: 1, columnSpan: 2, padding: 10, alignment: go.Spot.TopLeft },
+							new go.Binding("padding", "isSubGraphExpanded",
+											function(exp) { return exp ? 10 : 0; } ).ofObject())
+						)
+					);
+			
+				provDiagram.layout = $$(go.LayeredDigraphLayout,
+									{ direction: 0,								//graph will extend towards Right direction
+									  layeringOption: go.LayeredDigraphLayout.LayerLongestPathSource,
+									  setsPortSpots: false
+									});
+
+				provDiagram.addDiagramListener("ObjectSingleClicked",
+					function(e) {
+						var part = e.subject.part;
+						if (!(part instanceof go.Link)) 
+							self.showMessageModal(part.data);
+					});
 					
-					switch(type) {
-						case "Module":
-							color = 'CadetBlue';
-							break;
-						case "Data":
-							color = 'SteelBlue';
-							break;
-						case "Run":
-							color = 'Teal';
-							break;
-						case "Input":
-							color = 'Teal';
-							break;
-						case "Output":
-							color = 'Teal';
-							break;
-						case "Property":
-							color = 'Teal';
-							break;	
+				let typeArr = [];
+				let colorArr = ['DarkSlateGray', 'SteelBlue', 'Teal', 'Indigo', 'MidnightBlue', 'IndianRed', 'DeepSkyBlue', 'DarkSalmon', 'DarkGreen', 'DarkOrange'];
 
-						default:
-							color = 'White';
+				//set color for each type
+				rels['nodeDataArray'].forEach(function(node) {
+					if(!typeArr.includes(node.type)){
+						typeArr.push(node.type);
 					}
+					
+					let typeIndex = typeArr.indexOf(node.type);
 
-					node.color = color;								//assign node color
+					if(colorArr[typeIndex] !== undefined)
+						node.color = colorArr[typeIndex];
+					else
+						node.color = 'Black';
+
 					node.name += '\n';								//add a new line after node name
-					// console.log(node);
 				});
 
 				//creating graph using model data 
@@ -158,8 +223,32 @@ function provgraphViewModel()
 				provDiagram.model = go.Model.fromJson(JSON.stringify(provModelData));  //load()
 				
 				provDiagram.model.isReadOnly = true;
-			}		
-    	}
+			}
+			
+			self.showMessageModal = function(node){
+				var formdata = new FormData();
+				formdata.append('nodeinfo', node.key);
+				
+				ajaxcalls.form('/graphs', 'POST', formdata).done( function (data){
+					if(data == undefined)
+						return;
+						
+					$("#showMessageModal").find('.modal-body ul li').remove();
+					
+					data = JSON.parse(data)
+					Object.entries(data).forEach(
+						([key, value]) => {
+							$("#showMessageModal").find('.modal-body #NodeInfo').append("<li>"+key+" : "+value+"</li>")
+						}
+					)
+					$('#showMessageModal').modal('show');
+						
+				}).fail(function(jqXHR){
+					alert("Status:"+jqXHR.status)
+				});
+				
+			}
+		}
         
       //=======================================
       //=============gojs graph end============

@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '../..') #modules are 2 layers above this location
+
 from celery.contrib.abortable import AbortableTask
 
 import os

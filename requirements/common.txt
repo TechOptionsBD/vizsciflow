@@ -27,3 +27,4 @@ sijax==0.3.2
 Flask-Sijax==0.4.1
 flask_restful==0.3.6
 pathlib==1.0.1
+requests==2.20.0

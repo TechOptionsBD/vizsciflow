@@ -1,0 +1,11 @@
+pyparsing
+hdfs==2.0.15
+kombu
+celery
+redis
+paramiko==2.4.1
+jsonpickle
+typing
+scp
+regex
+psycopg2-binary

@@ -74,6 +74,7 @@
 <script src="/static/app.js/sampleViewModel.js"></script>
 <script src="/static/app.js/controlFlowViewModel.js"></script>
 <script src="/static/app.js/provGraphViewModel.js"></script>
+<script src="/static/app.js/monitorGraphViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl-span-rules.css')}}">
@@ -353,10 +354,14 @@
 						</div>
 						
 						<!-- job history floating toolbar -->
-						<span class="runnableToolbar serviceToolbar" data-bind="visible: id()">
-							<span class="glyphicon glyphicon-export" id="insert2Editor" data-bind="event: {click: $parent.runnableToolbar}" title="Insert Run ID"></span>
+						<span class="runnableToolbar service-toolbar" data-bind="visible: id()">
+							<span class="glyphicon glyphicon-export" id="insert2Editor" data-bind="event: {click: $parent.runnableToolbar}" title="Provenance"></span>
 						</span>
 
+						<span class="runnableToolbar service-toolbar" data-bind="visible: id()" style="right: 2em;">
+							<span class="fa fa-desktop" id="monitorGraph" data-bind="event: {click: $parent.runnableToolbar}" title="Current Exec Status"></span>
+						</span>
+						
 						<div class="col" style="float: right;padding-right: 5px" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}">
 							<span data-bind="text: modified" style="text-align: right"></span>
 						</div>
@@ -415,6 +420,7 @@
 								<ul class="dropdown-menu" role="menu" aria-labelledby="btnEditorTabs" id="editortabs-dropdown" >
 									<li><a class="btn btn-secondary"  href="#liGraphTab">Graph Tab</a></li>
 									<li><a class="btn btn-secondary"  href="#liProvenanceTab">Provenance</a></li>
+									<li><a class="btn btn-secondary"  href="#liComparisonTab">Comparison</a></li>
 									<li><a class="btn btn-secondary"  href="#liVisualTab">Visual Tab</a></li>
 									<li> <a class="btn btn-secondary" href="#liMetadataTab">Metadata</a></li>
 									<li> <a class="btn btn-secondary" href="#liFilterHistoryTab">Filter History</a></li>
@@ -448,6 +454,7 @@
 								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
 								<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<li id="liComparisonTab"><a href="#comparisontab" data-toggle="tab">Comparison <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
 								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<!-- <button class="close closeTab" type="button">×</button> -->
@@ -463,10 +470,10 @@
 							</div>
 							<div class="tab-pane fade" id="graphtab" style="position: relative;">
 								<div class="graph-panel-heading">
-									<label class="radio-inline"> <input type="radio" name="graphTabView" value="0" checked="checked"
-											autocomplete="off">&nbsp; Simplified</label>
-									<label class="radio-inline"> <input type="radio" name="graphTabView" value="1"
-											autocomplete="off">&nbsp; Detailed</label>
+									<select name="graphTabView" class="graphTabCombo">
+										<option value="0" checked="checked" autocomplete="off">&nbsp; Simplified</option>
+										<option value="1" autocomplete="off">&nbsp; Detailed</option>
+									</select>
 								</div>
 								<div style="width: 100%; height: 100%; z-index: 0;" id="graph"></div>
 								<div id="DiagramOverview"></div>
@@ -475,6 +482,12 @@
 							<div class="tab-pane fade ui-droppable" id="provenancetab" style="position: relative;">								
 								<div style="width: 100%; height: 100%; z-index: 0;" id="provenance"></div>
 								<div id="provDiagramOverview"></div>
+							</div>
+
+							<div class="tab-pane fade scriptstyle" id="comparisontab" style="position: relative;">
+								<div style="height:98%; overflow-y: auto;">
+									<table id="comparisonTbl"></table>
+								</div>	
 							</div>
 
 							<!-- visualtab -->
@@ -528,6 +541,9 @@
 						<!-- run provenance -->
 					<button id="runProvenance" class="btn pull-left btn-primary btn-lg"
 						style="margin-right: 5px; padding: 10px 4px;" data-bind="click: runProvenance">Provenance</button>
+
+					<button id="compareProv" class="btn pull-left btn-primary btn-lg"
+						style="margin-right: 5px; padding: 10px 4px;" data-bind="click: compareProv">Compare</button>
 					
 						<div style="margin-top: 8px">
 					<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
@@ -666,7 +682,11 @@
 								<span style="font-weight: bold;" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></span>
 
 								<!-- service floating toolbar for owner only -->
-								<span id="serviceDropdown" class="serviceToolbar" data-bind="visible: isOwner()">
+								<span id="serviceToolbar" class="service-toolbar" data-bind="visible: isOwner()">
+									<span id="copyProv" title="Provenance" data-bind="event: {click: $parent.serviceToolbar} "
+										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Prov.
+									</span>
 									<span id="shareDropdown" data-bind="event: {click: $parent.shareWithUsers} "
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Share
@@ -742,11 +762,11 @@
 								<span style="font-weight: bold;" data-bind="text: name"></span>
 								
 								<!-- workflow toolbar for owner only -->
-								<span id='workflowDropdown' class='serviceToolbar workflowToolbar' data-bind="visible: isOwner() == true">
-									<!-- <span id="shareDropdown" data-bind="event: {click: $parent.workflowToolbar} " class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									Share &#x25BC;
-									
-									</span>									 -->
+								<span id='workflowDropdown' class='service-toolbar workflow-toolbar' data-bind="visible: isOwner() == true">
+									<span id="copyProv" title="Provenance" data-bind="event: {click: $parent.workflowToolbar} "
+										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Prov.
+									</span>								
 									
 									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.workflowToolbar} "></span>
 								</span>
@@ -2067,6 +2087,48 @@
 	</div>
 </div>
 
+<!-- Monitor Modal-->
+<div id="monitorModal" class="modal fade">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			
+			<div class="modal-body">
+				<p id="taskName"></p>
+				<p id="taskID"></p>
+				<p id="taskStatus"></p>
+
+				<div style="width: 750px; height: 500px; z-index: 2; position: relative;" id="monitorGraph"></div>
+				<div id="monitorDiagramOverview"></div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- showMessage Modal on prov graph node click-->
+<div id="showMessageModal" class="modal fade">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			
+			<div class="modal-body">
+				<ul id="NodeInfo"></ul>
+			</div>
+			
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -2147,25 +2209,41 @@
                  if (content.package && content.name && content.params && content.returns) {
 						retrnNo = 0, paramNo = 0;
 
-						content.returns.forEach(function (retrn){
+						if(Array.isArray(content.returns)){
+							content.returns.forEach(function (retrn){
+								exmplReturns().push({
+									id: 'return ' + ++retrnNo,
+									value: retrn.name
+								});
+							});
+						}
+						else{
 							exmplReturns().push({
 								id: 'return ' + ++retrnNo,
-								value: retrn.name
+								value: content.returns
 							});
-						});
-						
-						content.params.forEach(function (param){
+						}
+
+						if(Array.isArray(content.params)){
+							content.params.forEach(function (param){
+								exmplParams().push({
+									id: 'param ' + ++paramNo,
+									value: param.name
+								});
+								// if(param.name == "outdir"){
+								// 	exmplParams().push({
+								// 	id: 'param '+ ++paramNo +' outdir',
+								// 	value: param.default
+								// });
+								// }
+							});
+						}
+						else{
 							exmplParams().push({
 								id: 'param ' + ++paramNo,
-								value: param.name
+								value: content.params
 							});
-							// if(param.name == "outdir"){
-							// 	exmplParams().push({
-							// 	id: 'param '+ ++paramNo +' outdir',
-							// 	value: param.default
-							// });
-							// }
-						});
+						}
 					}
              	}
          });
@@ -2303,6 +2381,15 @@
 			$("#filterhistoryView").show();
 		}
 	}
+
+	function copyProvSnippetToEditor(data){
+       var pos = editor.selection.getCursor();
+	   var content = "data = Data.Get(path = '"+ data.path +"')"
+					 +"\r\nprint(View.Graph(data))"; 
+					 
+	   editor.session.insert(pos, content + "\r\n");
+       editor.focus();
+   }
 	
 function typeInTextarea(el, newText) {
   var start = el.selectionStart;
@@ -2507,14 +2594,23 @@ function typeInTextarea(el, newText) {
            'item1' : {
         	   'label': 'To editor',
         	   'icon': 'glyphicon glyphicon-paste',
-        	   'separator_after': true,
                'action' : function(data) {
             	   var inst = $.jstree.reference(data.reference);
             	   var node = inst.get_node(data.reference);
             	   	copyDataPathToEditor(node.original);
             	   }
+		   },
+		   'item2' : {
+        	   'label': 'Provenance',
+        	   'icon': 'glyphicon glyphicon-paste',
+        	   'separator_after': true,
+               'action' : function(data) {
+            	   var inst = $.jstree.reference(data.reference);
+            	   var node = inst.get_node(data.reference);
+				   copyProvSnippetToEditor(node.original);
+            	}
            },
-           'item2' : {
+           'item3' : {
                'label' : 'To args',
                'icon': 'glyphicon glyphicon-paste',
                'action' : function(data) {
@@ -2523,7 +2619,7 @@ function typeInTextarea(el, newText) {
             	   	typeInTextarea(document.getElementById("args"), "'" + node.original.path + "'");
             	   }
            },
-           'item3' : {
+           'item4' : {
                'label' : 'Show Metadata',
                'icon': 'glyphicon glyphicon-th',
                'action' : function(data) {
@@ -2720,56 +2816,7 @@ function typeInTextarea(el, newText) {
    	langTools.setCompleters([dynamicWordCompleter])
    	// or 
    	//editor.completers = [staticWordCompleter]
-    
-    $("#editor").droppable({
 
-        activeClass: "ui-state-default",
-		hoverClass: "ui-state-hover",
-		accept: ":not(.ui-sortable-helper)",
-
-		drop: function (event, ui) {
-			event.preventDefault();
-			event.stopPropagation();
-			var pos = editor.renderer.screenToTextCoordinates(event.clientX, event.clientY)
-			var v = ko.dataFor(ui.draggable[0]);
-			example = '';
-			if (v) {
-				if (v.example) {
-					example = v.example();
-				}
-
-				else if (v.sample) {
-					example = v.sample();
-				}
-
-				else if (v.id) {
-					ajaxcalls.simple('/samples', 'GET', { 'sample_id': v.id }).done(function (data) {
-						v.script = data['script'];
-						example = v.script;
-						editor.session.insert(pos, example + "\r\n");
-						editor.focus();
-						return true;
-					});
-					return true;
-				}
-				else {
-					node = $('#tree').treeview('getNode', $(ui.draggable[0]).data('nodeid'));
-					if (node) {
-						example = node.path;
-						//             		  path = split(node.path, ';');
-						//             		  if (path.length >= 2)
-						//             			  example = node[]
-					}
-					else
-						example = v.name() + "()";
-				}
-			}
-
-			editor.session.insert(pos, example + "\r\n");
-			editor.focus();
-			return true;
-		}
-	});
 
 		ko.bindingHandlers.draggable = {
 			init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -2906,6 +2953,7 @@ function typeInTextarea(el, newText) {
         var sampleViewModel = new SampleViewModel();
 		var editTaskViewModel = new EditTaskViewModel();
 		var provgraphviewmodel = new provgraphViewModel();
+		var monitorGraphViewModel = new monitorGraphViewModel();
 		 
 //         var loginViewModel = new LoginViewModel();
 
@@ -2968,14 +3016,15 @@ function typeInTextarea(el, newText) {
 	            	if (!refreshId) {
 	            		refreshId = setInterval(function() {
 	            			if (runnablesViewModel !== undefined)
-	            				runnablesViewModel.load();
-	            			if (reportId > 0) {
+								runnablesViewModel.load();
+								
+							ids = runnablesViewModel.selectedIds();
+							if (ids.length !== 0) {
+								runnablesViewModel.loadHistory(ids[0], false);
+							} 
+	            			else if (reportId > 0) {
 	            				runnablesViewModel.loadHistory(reportId, false);
 	            			}
-	           				/* ids = runnablesViewModel.selectedIds();
-	                        if (ids.length == 1) {
-	                        	runnablesViewModel.loadHistory(ids[0], false);
-	            			} */
 	                    }, 10000); //  refresh the executables once in 10 seconds
 	            	}
 	                break;

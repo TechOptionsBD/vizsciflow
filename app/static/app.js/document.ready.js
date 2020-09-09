@@ -10,6 +10,8 @@ $(document).ready(function () {
     //     showBrowserItemModal(src, itemName);
     // });
 
+    hideTabInit();
+
     $("#browserTabCarousel").on('mouseover', '.owl-item', function (e) {  
        
         $(this).addClass('owl-item-focus');
@@ -84,6 +86,7 @@ $(document).ready(function () {
             case "1":
                 $("#dataSourcesPanel").hide();
                 $("#dataSetsPanel").show();
+                $("#liDataset").show();
                 $("#liDataset").siblings('li').removeClass("active");
                 $("#liDataset").addClass("active");
                 $("#datasettab").siblings('div').removeClass("active");
@@ -405,4 +408,11 @@ function toggleGraphView(selectedTab) {
             tasksViewModel.buildGoSimpleGraph();
             break;
     }
+}
+
+function hideTabInit() {
+    $('#liVisualTab').hide();
+    $('#liMetadataTab').hide();
+    $('#liFilterHistoryTab').hide();
+    $('#liDataset').hide();
 }

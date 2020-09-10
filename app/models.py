@@ -1,17 +1,17 @@
 from datetime import datetime
 import hashlib
 import os
-
+import io
 import json
 import bleach
 from flask import current_app, request, url_for
 from flask_login import UserMixin, AnonymousUserMixin
-from flask_login import current_user
+#from flask_login import current_user
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from markdown import markdown
-from sqlalchemy.engine import default
+#from sqlalchemy.engine import default
 from sqlalchemy.orm import backref
-from sqlalchemy.orm.collections import attribute_mapped_collection
+#from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql import exists
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
@@ -24,7 +24,7 @@ from sqlalchemy import func
 from app.exceptions import ValidationError
 
 from . import db, login_manager
-from sqlalchemy.sql.expression import desc
+#from sqlalchemy.sql.expression import desc
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -41,7 +41,12 @@ def git_access():
     except git.exc.InvalidGitRepositoryError:
         git.Repo.init(workflowdir)
         return Workflow.git_access()
-repo = git_access()
+
+repo = None
+try:
+    repo = git_access()
+except:
+    print("No local repository. Versioning of workflow will not work.")
         
 class AlchemyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -638,12 +643,12 @@ class Workflow(db.Model):
             db.session.add(wf)
             db.session.commit()
             
-            # save the script in workflows folder for git version
-            scriptpath = os.path.join(workflowdir, str(wf.id))
-            with open(scriptpath, "w+") as f:
-                f.write(script)
-                repo.git.add(scriptpath)
-                repo.git.commit('-m', 'create workflow ' + str(wf.id))
+            if repo:
+                # save the script in workflows folder for git version
+                with open(wf.scriptpath, "w+") as f:
+                    f.write(script)
+                    repo.git.add(wf.scriptpath)
+                    repo.git.commit('-m', 'create workflow ' + str(wf.id))
             
             return wf
         except SQLAlchemyError:
@@ -669,28 +674,51 @@ class Workflow(db.Model):
             self.modified_on = datetime.utcnow() 
             db.session.commit()
             
-            with open(os.path.join(workflowdir, str(self.id)), 'w') as f:
-                f.write(script)
-                repo.git.commit('-m', 'create workflow')
+            if repo:
+                with open(self.scriptpath, 'w') as f:
+                    f.write(script)
+                    repo.git.commit('-m', 'update script')
         except:
             db.session.rollback()
             raise
     
-#     def get_revisions(self):
-#         #commits_touching_path = list(repo.iter_commits(paths=path))
-#         revlist = (
-#     (commit, (commit.tree / path).data_stream.read())
-#     for commit in repo.iter_commits(paths=path)
-# )
-#for commit, filecontents in revlist:
-
-    def load_current_script(self):
-        scriptpath = os.path.join(workflowdir, str(self.id))
-        if not os.path.exists(scriptpath):
+    @property
+    def scriptpath(self):
+        return os.path.join(workflowdir, str(self.id))
+    
+    @property                        
+    def revisions(self):
+        revisions = []
+        if not repo:
+            return revisions
+        commits = list(repo.iter_commits(paths=workflowdir))
+        for c in commits:
+            try:
+                f = c.tree / str(self.id)
+                revision = {
+                    'hex': f.hexsha,
+                    'summary': c.summary,
+                    'committer': c.committer.name,
+                    'time': str(c.committed_datetime)
+                    }
+                revisions.append(revision)
+            except:
+                pass
+    
+    def revision_by_commit(self, hexsha):
+        if not repo:
             return self.script
-        with open(scriptpath, "r") as f:
-            return f.read()
-                
+        commits = list(repo.iter_commits(paths=workflowdir))
+        for c in commits:
+            try:
+                f = c.tree / str(self.id)
+                if f.hexsha != hexsha:
+                    continue
+                with io.BytesIO(f.data_stream.read()) as fd:
+                    return fd.read().decode('utf-8')
+            except:
+                pass
+                                
     def to_json(self):
         json_post = {
             'id': self.id,

@@ -833,6 +833,12 @@ def samples():
     elif request.args.get('sample_id'):
         workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
         return json.dumps(workflow.to_json())
+    elif request.args.get('revisions'):
+        workflow = Workflow.query.filter_by(id = request.args.get('revisions')).first_or_404()
+        return json.dumps(workflow.revisions())
+    elif request.args.get('revision'):
+        workflow = Workflow.query.filter_by(id = request.args.get('revision')).first_or_404()
+        return json.dumps(workflow.revision_by_commit(request.args.get('hexsha')))
     elif request.args.get('tooltip'):
         workflow = Workflow.query.filter_by(id = request.args.get('tooltip')).first_or_404()
         return json.dumps(workflow.to_json_tooltip())   

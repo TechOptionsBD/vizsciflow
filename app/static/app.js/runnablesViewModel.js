@@ -6,6 +6,7 @@ function RunnablesViewModel() {
     self.historyLoading = false;
     self.clicks = 0;
     self.timer = null;
+    let monitorTimer = false;
 
     self.copyToEditorDblClick = function (itme, event) {
         event.preventDefault();
@@ -196,7 +197,7 @@ function RunnablesViewModel() {
     self.runnableToolbar = function (item, event) {
 	    event.stopPropagation();
         var x = $(event.target).attr('id');
-        
+
         //runnableID insert button
 	    if (x === "insert2Editor") {
             $('.nav-tabs a[href="#scripttab"]').tab('show');
@@ -214,46 +215,58 @@ function RunnablesViewModel() {
             event.stopPropagation();
             var formdata = new FormData();
             formdata.append('monitor', parseInt(item.id()));
+            // $('#monitorModal').modal('show');
+            // $(".modal-body #taskName").text( 'Name: ' + item.name() );
+            // $(".modal-body #taskID").text( 'ID: ' + item.id() );
+            // $(".modal-body #taskStatus").text( 'Status: ' + item.status() );
             
-            ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (data) {
-                if (data === undefined)
-                    return;
-                
-                // $('#monitorModal').modal('show');
-                // $(".modal-body #taskName").text( 'Name: ' + item.name() );
-                // $(".modal-body #taskID").text( 'ID: ' + item.id() );
-                // $(".modal-body #taskStatus").text( 'Status: ' + item.status() );
-                
-                // $('#monitorModal').on('show.bs.modal', function (e) {
-                //     console.log(e);
-                //     monitorGraphViewModel.show(JSON.parse(data))
-                //     monitorGraphViewModel.requestUpdate();
-                // })
-                
-                // $('#monitorModal').on('hidden.bs.modal', function (e) {
-                //     diagramReload("monitorGraph");				    //reload the graph
-                //     diagramReload("monitorDiagramOverview");	    //reload the overview
-                // })
+            // $('#monitorModal').on('show.bs.modal', function (e) {
+            //     console.log(e);
+            //     monitorGraphViewModel.show(JSON.parse(data))
+            //     monitorGraphViewModel.requestUpdate();
+            // })
+            
+            // $('#monitorModal').on('hidden.bs.modal', function (e) {
+            //     diagramReload("monitorGraph");				    //reload the graph
+            //     diagramReload("monitorDiagramOverview");	        //reload the overview
+            // })
 
-                diagramReload("provenance");				    //reload the graph
-                diagramReload("provDiagramOverview");	        //reload the overview
+            diagramReload("provenance");				    //reload the graph
+            diagramReload("provDiagramOverview");	        //reload the overview
 
-                $('.nav-tabs a[href="#provenancetab"]').tab('show');
-                
-                let timer = setInterval(() => {
-                    item.status() !== 'SUCCESS'
-                    ?   provgraphviewmodel.show(JSON.parse(data))
-                    :   funcCall()
-                }, 1000);
-                
-                function funcCall(){
-                    provgraphviewmodel.show(JSON.parse(data));
-                    clearInterval(timer)
-                }
+            $('.nav-tabs a[href="#provenancetab"]').tab('show');
+            
+            if(monitorTimer){
+                clearInterval(monitorTimer); 
+                monitorTimer = false;
+            }
 
-            }).fail(function (jqXHR, textStatus) {
-                showXHRText(jqXHR);
-            });
+            monitorTimer = setInterval(() => {
+                item.status() !== 'SUCCESS'
+                ?   getGraphData()
+                :   stopRefreshGraph()
+            }, 1000);
+
+            function getGraphData () {
+                ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (newData) {
+                    if (newData === undefined){
+                        diagramReload("provenance");				   
+                        diagramReload("provDiagramOverview");	        
+                        return;
+                    }
+                    provgraphviewmodel.show(JSON.parse(newData))
+
+                }).fail(function (jqXHR, textStatus) {
+                    showXHRText(jqXHR);
+                });
+            }
+
+            function stopRefreshGraph(){
+                getGraphData();
+                clearInterval(monitorTimer)
+                monitorTimer = false;
+            }
+            
         }
     }
 }

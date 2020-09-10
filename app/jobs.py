@@ -4,6 +4,7 @@ sys.path.insert(0, '../..') #modules are 2 layers above this location
 from celery.contrib.abortable import AbortableTask
 
 import os
+import json
 from pyparsing import ParseException
 
 from config import Config
@@ -56,6 +57,7 @@ def run_script(self, runnable_id, args):
         runnable.duration = float("{0:.3f}".format(t.secs))
         runnable.error = "\n".join(machine.context.err)
         runnable.out = "\n".join(machine.context.out)
+        runnable.view = json.dumps(machine.context.view if machine.context.view else '')
         runnable.update()
         
     return runnable.to_json_log()

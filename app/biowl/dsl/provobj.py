@@ -518,13 +518,13 @@ class View(object):
     def __init__(self):
         pass
     
-    @staticmethod             
+    @staticmethod
     def graph(node):
-        return dumps(node.json())
+        return node.json()
 
     @staticmethod             
     def compare(node1, node2, deep = True):
-        return dumps(node1.compare(node1, node2, deep))
+        return node1.compare(node1, node2, deep)
    
 class Monitor(object):
     

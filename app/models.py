@@ -28,7 +28,21 @@ from sqlalchemy.sql.expression import desc
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
 
+import git
+import pathlib
+workflowdir = os.path.join(pathlib.Path(__file__).parent.absolute(), 'workflows')
 
+def git_access():
+    try:
+        return git.Repo(workflowdir)
+    except git.exc.NoSuchPathError:
+        os.mkdir(workflowdir)
+        return Workflow.git_access()
+    except git.exc.InvalidGitRepositoryError:
+        git.Repo.init(workflowdir)
+        return Workflow.git_access()
+repo = git_access()
+        
 class AlchemyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj.__class__, DeclarativeMeta):
@@ -623,11 +637,20 @@ class Workflow(db.Model):
 #                         service.accesses.append(ServiceAccess(user_id = user.id, rights = 0x01))
             db.session.add(wf)
             db.session.commit()
+            
+            # save the script in workflows folder for git version
+            scriptpath = os.path.join(workflowdir, str(wf.id))
+            with open(scriptpath, "w+") as f:
+                f.write(script)
+                repo.git.add(scriptpath)
+                repo.git.commit('-m', 'create workflow ' + str(wf.id))
+            
             return wf
         except SQLAlchemyError:
             db.session.rollback()
             raise
     
+    @staticmethod
     def remove(current_user_id, workflow_id):
         try:
             #Workflow.query.filter(and_(Workflow.id == workflow_id, Workflow.user_id == current_user_id)).delete()
@@ -639,14 +662,35 @@ class Workflow(db.Model):
      
     
     def update_script(self, script):
+        if self.script == script:
+            return True                       
         try:
             self.script = script
             self.modified_on = datetime.utcnow() 
             db.session.commit()
-        except:
-            db.session.rollbakc()
-            raise
             
+            with open(os.path.join(workflowdir, str(self.id)), 'w') as f:
+                f.write(script)
+                repo.git.commit('-m', 'create workflow')
+        except:
+            db.session.rollback()
+            raise
+    
+#     def get_revisions(self):
+#         #commits_touching_path = list(repo.iter_commits(paths=path))
+#         revlist = (
+#     (commit, (commit.tree / path).data_stream.read())
+#     for commit in repo.iter_commits(paths=path)
+# )
+#for commit, filecontents in revlist:
+
+    def load_current_script(self):
+        scriptpath = os.path.join(workflowdir, str(self.id))
+        if not os.path.exists(scriptpath):
+            return self.script
+        with open(scriptpath, "r") as f:
+            return f.read()
+                
     def to_json(self):
         json_post = {
             'id': self.id,
@@ -663,8 +707,8 @@ class Workflow(db.Model):
             'user': self.user.username,
             'name': self.name,
             'public': str(self.public),
-            'desc': self.desc,
-            'script': (self.script[:100] + '...') if len(self.script) > 100 else self.script
+            'desc': self.desc
+            #'script': (self.script[:100] + '...') if len(self.script) > 100 else self.script
         }
         return json_post
     

@@ -56,7 +56,7 @@ function RunnablesViewModel() {
 
     self.loadHistory = function (id, switchTab = false) {
 
-        ajaxcalls.simple(self.runnablesURI, 'GET', { 'id': id }).done(function (data) {
+        ajaxcalls.simple(self.runnablesURI, 'GET', { 'status': id }).done(function (data) {
 
             if (data === undefined)
                 return;

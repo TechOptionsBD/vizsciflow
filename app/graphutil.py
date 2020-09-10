@@ -340,17 +340,18 @@ class DataPropertyItem(NodeItem):
         return DataPropertyItem.match(graph(), item_id).first()
     
 class RunnableItem(NodeItem): #number1
-    celery_id = Property("celery_id")
+    celery_id = Property("celery_id", 0)
     name = Property("name")
     
-    out = Property("out")
-    error = Property("error")
+    out = Property("out", "")
+    error = Property("error", "")
+    view = Property("view", "")
     
-    script = Property("script")
-    status = Property("status")
-    duration = Property("duration")
-    arguments = Property("arguments")
-    provenance = Property("provenance")
+    script = Property("script", "")
+    status = Property("status", "")
+    duration = Property("duration", 0)
+    arguments = Property("arguments", "")
+    provenance = Property("provenance", False)
     
     modules = RelatedTo("ModuleItem", "MODULE", "id(b)")
     users = RelatedFrom(UserItem, "USERRUN")
@@ -367,6 +368,9 @@ class RunnableItem(NodeItem): #number1
         
         if not self.error:
             self.error = ""
+            
+        if not self.view:
+            self.view = ""
         
         if not self.script:
             self.script = ""
@@ -471,6 +475,7 @@ class RunnableItem(NodeItem): #number1
             'cpu': (psutil.cpu_percent()),
             'out': self.out,
             'error': self.error,
+            'view': self.view,
 #            'script': self.script,
             'status': self.status,
             'duration': self.duration,

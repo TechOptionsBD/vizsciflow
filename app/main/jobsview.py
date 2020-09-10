@@ -417,6 +417,10 @@ def get_user_status(user_id):
         
     return jsonify(runnables = logs)
 
+def get_run(runnable_id):
+    runnable = runnableManager.get_runnable(runnable_id)
+    return json.dumps(runnable.json())
+
 def get_task_status(runnable_id):
     runnable = runnableManager.get_runnable(runnable_id)
     return json.dumps(runnable.to_json_log())
@@ -439,7 +443,9 @@ def runnables():
         if request.args.get('tooltip'):
             return get_task_full_status(int(request.args.get('tooltip')))
         elif request.args.get('id'):
-            return get_task_status(int(request.args.get('id')))
+            return get_run(int(request.args.get('id')))
+        elif request.args.get('status'):
+            return get_task_status(int(request.args.get('status')))
 #          elif request.args.get('path'):
 #              return get_task_output(int(request.args.get('path')))
         elif request.args.get('stop'):

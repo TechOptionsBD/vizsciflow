@@ -28,7 +28,15 @@ class VizSciFlowInterpreter(Interpreter):
             
             if package in registry:
                 args, kwargs = Library.split_args(v)
-                return getattr(registry[package], function.lower())(*args, **kwargs)
+                result = getattr(registry[package], function.lower())(*args, **kwargs)
+                if package == "View":
+                    if not hasattr(self.context, 'view'):
+                        self.context.view = {}
+                    if function.lower() in self.context.view:
+                        self.context.view[function.lower()].append(result)
+                    else:
+                        self.context.view[function.lower()] = [result]
+                return result
            
         # call task if exists
         if package is None and function in self.context.library.tasks:

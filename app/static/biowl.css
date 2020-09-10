@@ -86,7 +86,7 @@
   text-align: center;
 }
 
-.logTabCombo, .graphTabCombo{
+.logTabCombo, .graphTabCombo, .provTabCombo{
   background: #337ab7;
   font-weight: bold;
   padding: 7px 0px;
@@ -711,7 +711,7 @@ hr {
   font-weight: bold;
 }
 
-.browser-panel-heading, .graph-panel-heading, .visual-panel-heading{
+.browser-panel-heading, .graph-panel-heading, .visual-panel-heading, .prov-panel-heading{
   color: white;
   background-color: #8AC5F8;
   text-align: right;

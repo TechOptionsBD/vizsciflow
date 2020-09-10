@@ -275,7 +275,6 @@ function TasksViewModel() {
         $('.nav-tabs a[href="#provenancetab"]').tab('show');
        
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
-
             if (data === undefined) {
 				$('#refresh').hide();
                 return;
@@ -284,33 +283,41 @@ function TasksViewModel() {
             reportId = parseInt(data.runnableId);
 
 			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
-                diagramReload("provenance");				//reload the graph
-                diagramReload("provDiagramOverview");		//reload the overview
-                let json = { "nodeDataArray" : [], "linkDataArray":[] }
-
-				if (data === undefined)
+                if(data == undefined)
                     return;
 
-                //json marger
-                subGraphNo = 1;
-                provGraphData = data['out'].split("\n");
+                view = JSON.parse(data['view'])
 
-                if(provGraphData.length == 1){
-                    json = JSON.parse(provGraphData)
+                let provTabDdl = document.getElementsByClassName("provTabCombo");
+                $(".provTabCombo").empty();
+
+                for (const val in view) {
+                    let option = document.createElement("option");
+                    option.value = val;
+                    option.autocomplete = "off";
+                    option.text = val.charAt(0).toUpperCase() + val.slice(1);
+                    provTabDdl[0].appendChild(option);
+                }
+                provTabDdl[0].options[0].checked = true;
+
+                if(view.graph !== undefined){
+                    $("#compareDiv").hide();
+                    $("#provenance").show();
+                    $("#provDiagramOverview").show();
+                    
+                    createProvGraph(view.graph);
                 }
 
-                else{
-                    provGraphData.forEach((aGraphData) => {
-                        groupNode = {key: "Subgraph " + subGraphNo, isGroup: true}
-                        json["nodeDataArray"].push(groupNode)
-                        
-                        json = mergeJson(json, JSON.parse(aGraphData))
-                        subGraphNo++;
-                    });
-                }
+                if(view.compare !== undefined){
+                    if(view.graph === undefined){
+                        $("#provenance").hide();
+                        $("#provDiagramOverview").hide();
+                        $("#compareDiv").show();
+                    }
 
-                json = JSON.stringify(json)
-            	provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
+                    $("#comparisonTbl tr").remove();            //removing previous table data
+                    provCompTable(view.compare[0]);
+                }
 			});
 			
 			$('#refresh').hide();
@@ -321,7 +328,36 @@ function TasksViewModel() {
         });
     }
 
-    function tableCreate(data){
+    function createProvGraph (provGraphData) {
+        diagramReload("provenance");				//reload the graph
+        diagramReload("provDiagramOverview");		//reload the overview
+        let json = { "nodeDataArray" : [], "linkDataArray":[] }
+
+        if (provGraphData === undefined)
+            return;
+
+        //json marger
+        subGraphNo = 1;
+
+        if(provGraphData.length == 1){
+            json = provGraphData[0]
+        }
+
+        else{
+            provGraphData.forEach((aGraphData) => {
+                groupNode = {key: "Subgraph " + subGraphNo, isGroup: true}
+                json["nodeDataArray"].push(groupNode)
+                
+                json = mergeJson(json, JSON.parse(aGraphData))
+                subGraphNo++;
+            });
+        }
+
+        json = JSON.stringify(json)
+        provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
+    }
+
+    function provCompTable(data){
         var tbl = document.getElementById("comparisonTbl");
         
         data.forEach(row => {
@@ -376,61 +412,6 @@ function TasksViewModel() {
         })
     }
 
-    self.compareProv = function (task) {
-        var updateDlg = self.updateWorkflow();
-        if (updateDlg) {
-            updateDlg.on('hidden.bs.modal', function () { self.compareProvInternal(task); });
-        }
-        else
-            self.compareProvInternal(task);
-    }
-
-    self.compareProvInternal = function (task) {
-        if (!workflowId) {
-            $("#error").val("Workflow is not updated. Change the code and run again.");
-            return;
-        }
-
-        var script = $.trim(editor.getSession().getValue());
-        if (!script)
-            return;
-
-        $('#refresh').show();
-        var formdata = new FormData();
-
-        formdata.append('workflowId', parseInt(workflowId));
-        formdata.append('args', $('#args').val());
-        formdata.append('immediate', 'true');
-        formdata.append('provenance', 'true');
-        self.clearResults();
-       
-        ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
-
-            if (data === undefined) {
-				$('#refresh').hide();
-                return;
-			}
-
-            reportId = parseInt(data.runnableId);
-
-			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
-                if(data == undefined)
-                    return;
-                
-                $("#comparisonTbl tr").remove();        //removing previous table data
-                $('.nav-tabs a[href="#comparisontab"]').tab('show');
-                
-                data = JSON.parse(data['out'])
-                tableCreate(data);
-			});
-			
-			$('#refresh').hide();
-
-        }).fail(function (jqXHR, textStatus) {
-            $('#refresh').hide();
-            showXHRText(jqXHR);
-        });
-    }
 
     self.buildGoSimpleGraph = function (task) {
         var updateDlg = self.updateWorkflow();

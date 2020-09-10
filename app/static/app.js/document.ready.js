@@ -145,11 +145,10 @@ $(document).ready(function () {
     $("#graph").css('max-height', $("#graphtab").height() - $(".graph-panel-heading").height()-30);
 
     $("#visualtab").css('height', $("#scripttab").css('height'));
+
     $("#provenancetab").css('height', $("#scripttab").css('height'));
-    
-    // $("#monitorGraph").css('height', $("#scripttab").css('height'));
-    // $("#monitorGraph").css('width', $("#scripttab").css('width'));
-    
+    $("#provenance").css('max-height', $("#provenancetab").height() - $(".prov-panel-heading").height()-45);
+
     $('.menu_button').click(function () {
         $(this).addClass('selected').siblings().removeClass('selected')
     });
@@ -218,7 +217,11 @@ $(document).ready(function () {
                 gojsControlFlow.show();   			
             else 
                 return;
-		}
+        }
+        else if (x === "#provenancetab") {
+            var selectedProvView = $("select[name=provTabView]").val();
+            toggleProvView(selectedProvView)
+        }
     });
 
     //for execstatus printing
@@ -336,6 +339,9 @@ $(document).ready(function () {
         }
     });
     
+    $("select[name=provTabView]").on('click', function (e) {  
+        toggleProvView(e.currentTarget.value);
+    });
     
     // $("#btnfilterClose").click(function () {  
     //     $("#btnfilterToggle").trigger('click');
@@ -406,6 +412,22 @@ function toggleGraphView(selectedTab) {
             break;
         default:
             tasksViewModel.buildGoSimpleGraph();
+            break;
+    }
+}
+
+function toggleProvView(selectedTab) {
+    switch (selectedTab) {   
+        case "graph":
+            $("#compareDiv").hide();
+            $("#provenance").show();
+            $("#provDiagramOverview").show();
+            break;
+
+        case "compare":
+            $("#provenance").hide();
+            $("#provDiagramOverview").hide();
+            $("#compareDiv").show();
             break;
     }
 }

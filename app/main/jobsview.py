@@ -58,7 +58,7 @@ def save_and_run_workflow(script, args, immediate = True, provenance = False):
 def build_graph(workflow_id):
     try:
         from ..jobs import generate_graph
-        return generate_graph(workflow_id)
+        return json.dumps(generate_graph(workflow_id))
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
 
@@ -104,8 +104,8 @@ def functions():
                     return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
                 
                 args = request.form.get('args') if request.form.get('args') else ''
-                immediate = request.form.get('immediate') == 'true'.lower() if request.form.get('immediate') else False
-                provenance = request.form.get('provenance') == 'true'.lower() if request.form.get('provenance') else False
+                immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
+                provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
                 runnable = run_biowl(int(workflowId), None, args, immediate, provenance)
                 return jsonify(runnableId = runnable.id)
             

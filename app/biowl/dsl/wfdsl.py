@@ -3,6 +3,7 @@ from py2neo.matching import NodeMatch, NodeMatcher
 from dsl.datatype import DataType
 from .provobj import merge_json
 from app.util import Utility
+from dsl.symtab import SymbolTable
 
 def merge_json_seq(json, other_json, relation, opposite_link = False):
     
@@ -90,12 +91,12 @@ class GraphNode(object):
 class Data(GraphNode):
     __primarylabel__ = "Data"
     
-    def __init__(self):
+    def __init__(self, name=None, value=None):
         super().__init__("Data")
         self.valuetype = DataType.Unknown
-        self.datatype = None
-        self.value = None
-        self.name = None
+        self.datatype = str(type(value))
+        self.value = value
+        self.name = name
         self.expected = False
 
     def json(self):
@@ -144,7 +145,7 @@ class Module(GraphNode):
     
     __primarylabel__ = "Module"
     
-    def __init__(self, name = None, package = None):
+    def __init__(self, parent = None, name = None, package = None):
         super().__init__("Module")
         
         self._modules = []
@@ -154,9 +155,46 @@ class Module(GraphNode):
         self._name = name
         self._args = []
         self._kwargs = {}
+        self._parent = parent
         
         self.properties = PropertyDict()
+        self._symtab = None
         
+    def add_var(self, name, value):
+        if self._symtab:
+            return self._symtab.add_var(name, value)
+        elif self._parent:
+            return self._parent.add_var(name, value)
+
+    def update_var(self, name, value):
+        if self._symtab and self._symtab.var_exists(name):
+            return self._symtab.update_var(name, value)
+        elif self._parent:
+            return self._parent.update_var(name, value)
+
+    
+    def var_exists(self, name):
+        if self._symtab and self._symtab.var_exists(name):
+            return True
+        elif self._parent:
+            return self._parent.var_exists(name)
+        
+    def check_var(self, name):
+        if not self.var_exists(name):
+            raise ValueError("var {0} does not exist".format(name))
+        return True
+            
+    def get_var(self, name):
+        '''
+        Gets value of a variable
+        :param name:
+        '''
+        self.check_var(name)
+        if self._symtab and self._symtab.var_exists(name):
+            return self._symtab.get_var(name)
+        elif self._parent:
+            return self._parent.get_var(name)
+            
     def Subs(self):
         return self._modules
     
@@ -185,9 +223,8 @@ class Module(GraphNode):
             json = merge_json(json, outdata.json(), 'Output')
         
         for indata in self.inputs():
-            if not indata.value:
-                if not indata.expected:
-                    continue
+            if isinstance(indata, Data) and indata.value and indata.expected:
+                continue
             json = merge_json(json, indata.json(), 'Input', True)
                 
         return json
@@ -276,24 +313,32 @@ class Module(GraphNode):
 # split
 # join
 
+class AssignModule(Module):
+    __primarylabel__ = "AssignModule"
+    
+    def __init__(self, parent, var, value):
+        super().__init__(parent, "=")
+        self.var = var
+        self.inputs().append(value)
+        
 class CondModule(Module):
     __primarylabel__ = "LogModule"
     
-    def __init__(self):
-        super().__init__("Logical")
+    def __init__(self, parent):
+        super().__init__(parent, "Logical")
         
 class BinModule(Module):
-    __primarylabel__ = "IfModule"
+    __primarylabel__ = "BinaryModule"
     
-    def __init__(self, cond):
-        super().__init__("Binary")
-        self.cond = cond
+    def __init__(self, parent, opname, left, right):
+        super().__init__(parent, opname)
+        self.inputs().extend([left, right])
         
 class IfModule(Module):
     __primarylabel__ = "IfModule"
     
-    def __init__(self, cond):
-        super().__init__("If")
+    def __init__(self, parent, cond):
+        super().__init__(parent, "If")
         self.cond = cond
     
     def json(self):
@@ -307,16 +352,16 @@ class IfModule(Module):
             json = merge_json_seq(json, module.json(), 'Module')
                 
         return json    
-        
                            
 class Workflow(Module):
     __workflow_id = None
     __primarylabel__ = "Workflow"
     
-    def __init__(self, workflow_id = None, name = None):
-        super().__init__(name)
+    def __init__(self, parent = None, workflow_id = None, name = None):
+        super().__init__(parent, name)
         if not self.__workflow_id:
             self.__workflow_id = workflow_id
+        self._symtab = SymbolTable()
     
     @property
     def id(self):

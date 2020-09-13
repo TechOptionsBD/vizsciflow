@@ -1,7 +1,7 @@
 from os import path
 from pathlib import Path
-from ...exechelper import func_exec_stdout
-from ....util import Utility
+from app.biowl.exechelper .exechelper import func_exec_stdout
+from app.util import Utility
 
 seqtk = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'seqtk'))
 

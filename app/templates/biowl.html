@@ -86,7 +86,7 @@
 		<div class="col-md-3 box-zero"> 
 			<div id="filter-area" class="panel panel-primary">
 				<div class="panel-heading">
-					<button id="btnfilterClose" type="button" class="close" title="Close Filter" data-bind="click: closeFilter"ia-hidden="true">&times;</button>
+					<button id="btnfilterClose" type="button" class="close" title="Close Filter" data-bind="click: closeFilter" aria-hidden="true">&times;</button>
 					<h4>Search & Filter</h4>
 				</div>
 				<div class="table-responsive" style="overflow-x: hidden;">
@@ -375,6 +375,17 @@
 				
 					<div class="panel-heading text-center">
 					<h4 style="margin-bottom:10px">VizSciFlow Workflow Editor</h4>
+
+					<div class="btn-group" style="left: 1.5vw; position: absolute;">
+						<button class="btn btn-primary" id="wfMode" style="display: grid" onclick="handleModeViewModel.setMode('wfMode')">
+							<i class="fa fa-sitemap"></i>
+							Workflow
+						</button>
+						<button class="btn btn-primary" id="provMode" style="display: grid" onclick="handleModeViewModel.setMode('provMode')">
+							<i class="fa fa-columns"></i>
+							Provenance
+						</button>
+					</div>
 					
 					<div class="btn-group">
 						<div class="btn-group-sm">
@@ -452,7 +463,7 @@
 							<ul class="nav nav-tabs marginBottom">
 								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
 								<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph <button class="close closeTab" title="Close" type="button">×</button></a></li>
-								<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance Viewer<button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
 								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<!-- <button class="close closeTab" type="button">×</button> -->
@@ -467,12 +478,6 @@
 								<div id="editor" class="editorstyle"></div>
 							</div>
 							<div class="tab-pane fade" id="graphtab" style="position: relative;">
-								<div class="graph-panel-heading">
-									<select name="graphTabView" class="graphTabCombo">
-										<option value="0" checked="checked" autocomplete="off">&nbsp; Simplified</option>
-										<option value="1" autocomplete="off">&nbsp; Detailed</option>
-									</select>
-								</div>
 								<div style="width: 100%; height: 100%; z-index: 0;" id="graph"></div>
 								<div id="DiagramOverview"></div>
 							</div>
@@ -538,9 +543,8 @@
 					<button class="btn pull-left btn-primary btn-lg"
 						style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
 					
-						<!-- run provenance -->
-					<button id="runProvenance" class="btn pull-left btn-primary btn-lg"
-						style="margin-right: 5px; padding: 10px 4px;" data-bind="click: runProvenance">Provenance</button>
+					<!-- <button id="runProvenance" class="btn pull-left btn-primary btn-lg"
+						style="margin-right: 5px; padding: 10px 4px;" data-bind="click: runProvenance">Provenance</button> -->
 
 						<div style="margin-top: 8px">
 					<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
@@ -729,6 +733,11 @@
 									data-toggle="tooltip" data-placement="top" title="Save"
 									data-bind="click: beginAdd">
 									<i class="glyphicon glyphicon-floppy-save toolbar-icon"></i>
+								</button>
+								<button style="margin-right: 10px;" class="btn btn-primary"
+									data-toggle="tooltip" data-placement="top" title="Compare"
+									data-bind="click: compareWf">
+									<i class="fa fa-exchange toolbar-icon"></i>
 								</button>
 							</span> 
 							<input class="form-control" type="text" placeholder="Search…"
@@ -2084,6 +2093,52 @@
 	</div>
 </div>
 
+<div id="wfCompareSelection" class="modal fade" tabindex="=1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4>Workflow Selection for Comparison</h4>
+			</div>
+			<div class="modal-body">
+				<div class="container-fluid">
+					<div class="row service-form-group" style="display: flex;">
+						<div>
+							<label>Select a Workflow</label>
+							<div>
+								<select id="compareWf1" class="form-control" data-bind="options: wfList, 
+																						optionsText: 'name', 
+																						optionsValue: 'id',
+																						selectedOptions: selectedWfId1">
+								</select>
+							</div>
+						</div>
+
+						<div class="vl"></div>
+						
+						<div style="right: 1em; position: absolute;">
+							<label>Select another Workflow</label>
+							<div>
+								<select id="compareWf2"class="form-control" data-bind="options: wfList, 
+																						optionsText: 'name', 
+																						optionsValue: 'id',
+																						selectedOptions: selectedWfId2">
+								</select>
+							</div>
+						</div>
+					</div>
+					<span id="wfSubmitAlert" style="color: red;"></span>
+				</div>
+			</div>
+
+			<div class="modal-footer">
+				<button data-bind="click: compareSelectedWf" class="btn btn-primary">Compare</button>
+				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			</div>
+
+		</div>
+	</div>
+</div>
 <!-- Monitor Modal-->
 <div id="monitorModal" class="modal fade">
 	<div class="modal-dialog modal-lg">
@@ -2892,8 +2947,57 @@ function typeInTextarea(el, newText) {
                     example2: self.example2()
                 });
             }
+		}
+		
+		function HandleModeViewModel() {
+            var self = this;
+            self.currentMode = ko.observable('wfMode');
+			
+            self.setMode = function(id) {
+				if(id == 'wfMode'){
+					self.currentMode('wfMode')
+    				$("#provMode").removeClass("active-mode");
+    				$("#wfMode").addClass("active-mode");
+					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
+						$("#exTabBiowl ul li:first").addClass('active');	
+					});
+
+					$('#liGraphTab').show();
+					$('#liBrowserTab').show();
+					$('#liOutput').show();
+					$('#liProvenanceTab').hide();
+					
+					$('#liVisualTab').hide();
+					$('#liMetadataTab').hide();
+					$('#liFilterHistoryTab').hide();
+					$('#liDataset').hide();
+				}
+				else if(id == 'provMode'){
+					self.currentMode('provMode')
+    				$("#wfMode").removeClass("active-mode");
+    				$("#provMode").addClass("active-mode");
+					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
+						$("#exTabBiowl ul li:first").addClass('active');	
+					});
+
+					$('#liProvenanceTab').show();
+					$('#liGraphTab').hide();
+					$('#liBrowserTab').hide();
+					$('#liOutput').hide();
+
+					$('#liVisualTab').hide();
+					$('#liMetadataTab').hide();
+					$('#liFilterHistoryTab').hide();
+					$('#liDataset').hide();
+				}
+			}
+			
+			self.getMode = function(){
+				return self.currentMode()
+			}
         }
-       
+		var handleModeViewModel = new HandleModeViewModel();
+		// ko.applyBindings(handleModeViewModel, $("#main")[0]);
       
 		// Browser ViewModel binding
 		var browserViewModel = new BrowserViewModel();
@@ -2979,7 +3083,9 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(metadataViewModel, $('#update-metadata-dialog')[0]);
 		// ko.applyBindings(tasksViewModel, $("#executeSection")[0]);
 		ko.applyBindings(taskSharingViewModel, $('#modalShareService')[0]);
-                
+
+		ko.applyBindings(samplesViewModel, $('#wfCompareSelection')[0]);
+
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
     
         dataSourceViewModel.loadMetadataProperties();
@@ -3155,13 +3261,10 @@ function typeInTextarea(el, newText) {
     }
 	
     function showTab(tabId) {
-
 		$("#"+ tabId).show();
 		$("#" + tabId).children('a').tab('show');
-
-        // $('#exTabBiowl a[href="#' + tabId + '"]').tab('show');
-    }
-    
+	}
+	
     //This function will create a new tab here and it will load the url content in tab content div.
     function createNewTabAndLoadUrl(parms, url, loadDivSelector) {
 

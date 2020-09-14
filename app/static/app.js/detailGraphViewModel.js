@@ -132,6 +132,9 @@ function detailGojsGraph()
 						case "Service":
 							color = 'Teal';
 							break;
+						case "Module":
+							color = 'CadetBlue';
+							break;
 						default:
 							color = 'SteelBlue';
 					}

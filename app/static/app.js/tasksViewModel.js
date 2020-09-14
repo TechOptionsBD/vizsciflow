@@ -172,6 +172,7 @@ function TasksViewModel() {
         formdata.append('args', $('#args').val());
         formdata.append('immediate', $('#immediate').prop('checked'));
         self.clearResults();
+
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
             $('#refresh').hide();
 
@@ -190,12 +191,25 @@ function TasksViewModel() {
     }
 
     self.runBioWL = function (task) {
+        let currentMode = handleModeViewModel.getMode();
+
         var updateDlg = self.updateWorkflow();
         if (updateDlg) {
-            updateDlg.on('hidden.bs.modal', function () { self.runBioWLInternal(task); });
+            updateDlg.on('hidden.bs.modal', function () { 
+                if(currentMode == 'wfMode')
+                    self.runBioWLInternal(task);
+                
+                else if(currentMode == 'provMode')
+                    self.runProvenanceInternal(task);
+            });
         }
-        else
-            self.runBioWLInternal(task);
+        else{
+            if(currentMode == 'wfMode')
+                self.runBioWLInternal(task);
+            
+            else if(currentMode == 'provMode')
+                self.runProvenanceInternal(task);
+        }
     }
 
     function diagramReload(diagramName){
@@ -245,15 +259,6 @@ function TasksViewModel() {
         return json
     }
 
-    self.runProvenance = function (task) {
-        var updateDlg = self.updateWorkflow();
-        if (updateDlg) {
-            updateDlg.on('hidden.bs.modal', function () { self.runProvenanceInternal(task); });
-        }
-        else
-            self.runProvenanceInternal(task);
-    }
-
     self.runProvenanceInternal = function (task) {
         if (!workflowId) {
             $("#error").val("Workflow is not updated. Change the code and run again.");
@@ -273,7 +278,7 @@ function TasksViewModel() {
         formdata.append('provenance', 'true');
         self.clearResults();
         $('.nav-tabs a[href="#provenancetab"]').tab('show');
-       
+
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
             if (data === undefined) {
 				$('#refresh').hide();
@@ -283,41 +288,7 @@ function TasksViewModel() {
             reportId = parseInt(data.runnableId);
 
 			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
-                if(data == undefined)
-                    return;
-
-                view = JSON.parse(data['view'])
-
-                let provTabDdl = document.getElementsByClassName("provTabCombo");
-                $(".provTabCombo").empty();
-
-                for (const val in view) {
-                    let option = document.createElement("option");
-                    option.value = val;
-                    option.autocomplete = "off";
-                    option.text = val.charAt(0).toUpperCase() + val.slice(1);
-                    provTabDdl[0].appendChild(option);
-                }
-                provTabDdl[0].options[0].checked = true;
-
-                if(view.graph !== undefined){
-                    $("#compareDiv").hide();
-                    $("#provenance").show();
-                    $("#provDiagramOverview").show();
-                    
-                    createProvGraph(view.graph);
-                }
-
-                if(view.compare !== undefined){
-                    if(view.graph === undefined){
-                        $("#provenance").hide();
-                        $("#provDiagramOverview").hide();
-                        $("#compareDiv").show();
-                    }
-
-                    $("#comparisonTbl tr").remove();            //removing previous table data
-                    provCompTable(view.compare[0]);
-                }
+                createCompView(data);
 			});
 			
 			$('#refresh').hide();
@@ -329,8 +300,6 @@ function TasksViewModel() {
     }
 
     function createProvGraph (provGraphData) {
-        diagramReload("provenance");				//reload the graph
-        diagramReload("provDiagramOverview");		//reload the overview
         let json = { "nodeDataArray" : [], "linkDataArray":[] }
 
         if (provGraphData === undefined)
@@ -412,6 +381,46 @@ function TasksViewModel() {
         })
     }
 
+    function createCompView (data) {
+        if(data == undefined)
+            return;
+
+        view = JSON.parse(data['view'])
+
+        let provTabDdl = document.getElementsByClassName("provTabCombo");
+        $(".provTabCombo").empty();
+        
+        diagramReload("provenance");				//removing the graph
+        diagramReload("provDiagramOverview");		//removing the overview
+        $("#comparisonTbl tr").remove();            //removing previous table data
+
+        for (const val in view) {
+            let option = document.createElement("option");
+            option.value = val;
+            option.autocomplete = "off";
+            option.text = val.charAt(0).toUpperCase() + val.slice(1);
+            provTabDdl[0].appendChild(option);
+        }
+        provTabDdl[0].options[0].selected = true;
+
+        if(view.graph !== undefined){
+            $("#compareDiv").hide();
+            $("#provenance").show();
+            $("#provDiagramOverview").show();
+            
+            createProvGraph(view.graph);
+        }
+
+        if(view.compare !== undefined){
+            if(view.graph === undefined){
+                $("#provenance").hide();
+                $("#provDiagramOverview").hide();
+                $("#compareDiv").show();
+            }
+
+            provCompTable(view.compare[0]);
+        }
+    }
 
     self.buildGoSimpleGraph = function (task) {
         var updateDlg = self.updateWorkflow();
@@ -1142,7 +1151,7 @@ function TasksViewModel() {
                     reader.onload = function () {
                         var base64UrlString = reader.result;
                         self.itemSrc(base64UrlString);
-                        
+                        $('#liOutput').show();
                         $('.nav-tabs a[href="#outputtab"]').tab('show');
                     }
                 }
@@ -1161,7 +1170,7 @@ function TasksViewModel() {
     }
 
     self.shareWithUsers = function (data, e) {  
-        event.stopPropagation();
+        e.stopPropagation();
         taskSharingViewModel.shareWithUsers(data);
     }
     

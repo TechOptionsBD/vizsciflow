@@ -104,6 +104,17 @@
   border: 1px solid black; 
 }
 
+.vl {
+  border-left: 2px solid #337ab7;
+  width: 35%;
+  margin: 0 auto;
+  position: relative;
+}
+
+.active-mode {
+  background-color: #295e8b;
+}
+
 .nav-tabs > li .close {
   margin: -2px 0 0 10px;
   font-size: 18px;

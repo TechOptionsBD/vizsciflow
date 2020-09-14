@@ -11,6 +11,7 @@ $(document).ready(function () {
     // });
 
     hideTabInit();
+    setInitModeView();
 
     $("#browserTabCarousel").on('mouseover', '.owl-item', function (e) {  
        
@@ -142,7 +143,7 @@ $(document).ready(function () {
 
 
     $("#graphtab").css('height', $("#scripttab").css('height'));
-    $("#graph").css('max-height', $("#graphtab").height() - $(".graph-panel-heading").height()-30);
+    // $("#graph").css('max-height', $("#graphtab").height() - $(".graph-panel-heading").height()-45);
 
     $("#visualtab").css('height', $("#scripttab").css('height'));
 
@@ -201,17 +202,18 @@ $(document).ready(function () {
     $("#editortabs-dropdown li").click(function (e) {  
         var targetTab = $(this).children().attr('href');
         $(targetTab).show();
-        $(targetTab).removeClass('active');
+        $(targetTab).children('a').tab('show');
     });
 
 
 	$("#exTabBiowl").on('shown.bs.tab', function (e) {
 		var x = $(e.target).attr('href');
 		if (x === "#graphtab") {
-            var checked = $('input[name="graphTabView"]:checked').val();
-            toggleGraphView(checked);
+            // var checked = $('select[name="graphTabView"]').val();
+            // toggleGraphView(checked);
+            tasksViewModel.buildGoDetailGraph();
         }
-        else if (x === "#visualtab") {
+        if (x === "#visualtab") {
             var visualdiv = visualtab.querySelector('canvas');
             if(visualdiv == null)
                 gojsControlFlow.show();   			
@@ -311,9 +313,9 @@ $(document).ready(function () {
 		}
     });
     
-    $("select[name=graphTabView]").on('click', function (k) {
-        toggleGraphView(k.currentTarget.value);
-    }); 
+    // $("select[name=graphTabView]").on('click', function (k) {
+    //     toggleGraphView(k.currentTarget.value);
+    // }); 
    
     //service delete button on hovar
     $(document).on('mouseenter', '.deleteService', function () {
@@ -402,19 +404,19 @@ $(document).ready(function () {
     //   });
 });
 
-function toggleGraphView(selectedTab) {
-    switch (selectedTab) {   
-        case "0":
-            tasksViewModel.buildGoSimpleGraph();
-            break;
-        case "1":
-            tasksViewModel.buildGoDetailGraph();
-            break;
-        default:
-            tasksViewModel.buildGoSimpleGraph();
-            break;
-    }
-}
+// function toggleGraphView(selectedTab) {
+//     switch (selectedTab) {   
+//         case "0":
+//             tasksViewModel.buildGoSimpleGraph();
+//             break;
+//         case "1":
+//             tasksViewModel.buildGoDetailGraph();
+//             break;
+//         default:
+//             tasksViewModel.buildGoSimpleGraph();
+//             break;
+//     }
+// }
 
 function toggleProvView(selectedTab) {
     switch (selectedTab) {   
@@ -437,4 +439,9 @@ function hideTabInit() {
     $('#liMetadataTab').hide();
     $('#liFilterHistoryTab').hide();
     $('#liDataset').hide();
+}
+
+function setInitModeView() {
+    let currentMode = handleModeViewModel.getMode();
+    handleModeViewModel.setMode(currentMode);
 }

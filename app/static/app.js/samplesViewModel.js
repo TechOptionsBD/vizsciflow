@@ -1,12 +1,16 @@
 function SamplesViewModel(sampleViewModel) {
     var self = this;
     self.samplesURI = '/samples';
+    self.tasksURI = '/functions';
     self.clicks = 0;
     self.timer = null;
     self.items = ko.observableArray();
     self.sampleViewModel = sampleViewModel;
     self.access = ko.observable("0");
     self.workflowFilter = ko.observable("");
+    self.wfList = ko.observableArray();
+    self.selectedWfId1 = ko.observableArray();
+    self.selectedWfId2 = ko.observableArray();
      self.filteredWorkflows = ko.computed(function(){
         return this.items().filter(function(item){
             if(!self.workflowFilter() || item.name().toLowerCase().indexOf(self.workflowFilter().toLowerCase()) !== -1)
@@ -187,7 +191,70 @@ function SamplesViewModel(sampleViewModel) {
             showXHRText(jqXHR);
         });
     }
+
+    self.compareWf = function() {
+        self.getAllSavedWf();
+        document.getElementById("wfSubmitAlert").textContent = '';
+        
+        self.selectedWfId1([])
+        self.selectedWfId2([])
+
+        $('#wfCompareSelection').modal('show');
+    }
     
+    self.getAllSavedWf = function () {
+        self.wfList([]);
+        ajaxcalls.simple(self.samplesURI, 'GET', {'access': 3}).done(function (data) {
+            data.samples.forEach(wf => {
+                self.wfList.push({
+                    id: wf.id,
+                    name: wf.name
+                }); 
+            });
+            self.initiateWfSelectionDdl();
+
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    };
+    
+    self.initiateWfSelectionDdl = function () {
+        $("#compareWf1").multiselect({
+            includeSelectAllOption: true,
+            inheritClass: true,
+            buttonWidth: '100%',
+            enableFiltering: true,
+            maxHeight: 200
+        });
+
+        $("#compareWf2").multiselect({
+            includeSelectAllOption: true,
+            inheritClass: true,
+            buttonWidth: '100%',
+            enableFiltering: true,
+            maxHeight: 200
+        });
+    };
+
+    self.compareSelectedWf = function () {
+        document.getElementById("wfSubmitAlert").textContent = '';
+        
+        let selectedWfId1 = ko.toJS(self.selectedWfId1()[0]);
+        let selectedWfId2 = ko.toJS(self.selectedWfId2()[0]);
+        
+        if(selectedWfId1 !== selectedWfId2){
+            ajaxcalls.simple(self.tasksURI, 'GET', {'compare': selectedWfId1, 'with': selectedWfId2}).done(function (res) {
+                //TODO: correct the req. fetch data and show on below span 
+                console.log('TODO: fetch correct data & show on the diff ')
+            }).fail(function (jqXHR) {
+                showXHRText(jqXHR);
+            });
+        }
+        else{
+            document.getElementById("wfSubmitAlert").textContent = 'Please select two different workflow!'
+        }
+    }
+
     //workflow delete button
     self.workflowToolbar = function (item, event) {
 	    event.stopPropagation();

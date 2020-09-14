@@ -24,7 +24,7 @@ from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 from ..runmgr import runnableManager
-
+from ..biowl.dsl.provobj import View
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -111,7 +111,6 @@ def functions():
             
             except Exception as e:
                 return make_response(jsonify(err=str(e)), 500)
-
         elif request.form.get('mapper'):
             result = {"out": [], "err": []}
             try:
@@ -379,10 +378,30 @@ def functions():
                 return json.dumps({'return':'shared'})
             else:
                 return json.dumps({'return':'private'})
-    
-        
-    else:
-        return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
+    if request.method == "GET":
+        if request.args.get('compare'):
+            try:
+                from ..jobs import generate_graph
+                graph1 = generate_graph(int(request.args.get('compare')))
+                graph2 = generate_graph(int(request.args.get('with')))
+                return json.dumps(View.compare(graph1, graph2))
+            except Exception as e:
+                return make_response(jsonify(err=str(e)), 500)
+        elif request.args.get('revcompare'):
+            try:
+                from ..jobs import generate_graph
+                
+                workflow = Workflow.query.filter_by(id = request.args.get('revcompare')).first_or_404()
+                
+                revision1_script = workflow.revision_by_commit(request.args.get('revision1'))
+                revision2_script = workflow.revision_by_commit(request.args.get('revision2'))
+                graph2 = generate_graph(revision1_script)
+                graph2 = generate_graph(revision2_script)
+                return json.dumps(View.compare(graph1, graph2))
+            except Exception as e:
+                return make_response(jsonify(err=str(e)), 500)
+        else:
+            return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
 
 
 @main.route('/graphs', methods=['GET', 'POST'])

@@ -13,7 +13,7 @@ from dsl.library import Pair
 
 from .vizsciflowsymgraph import VizSciFlowSymbolGraph
 from ..vizsciflowcomposelib import LibraryComposition
-from .wfdsl import Workflow, Module, Data, IfModule, BinModule, AssignModule
+from .wfdsl import Workflow, Module, Data, IfModule, BinModule, AssignModule, CondModule, UnaryModule
 from .provobj import View
 
 
@@ -48,10 +48,9 @@ class GraphGenerator(object):
         params = expr[1] if len(expr) < 3 else expr[2]
         v = self.get_args(params, parentNode)
                     
-        if package:
-            if parentNode.var_exists(package):
-                obj = parentNode.get_var(package)
-                return self.context.library.generate_graph(obj, function, *v)
+        if package and parentNode.var_exists(package):
+            obj = parentNode.get_var(package)
+            return self.context.library.generate_graph(obj, function, *v)
             
 #             if package in registry:
 #                 return self.context.library.call_func(registry[package], function.lower(), *v)
@@ -74,8 +73,10 @@ class GraphGenerator(object):
         :param expr:
         '''
         left = self.eval(expr[0], parentNode)
-        right = self.eval(expr[2], parentNode)
+        if len(expr) == 1:
+            return parentNode.inputs().append(left)
         
+        right = self.eval(expr[2], parentNode)
         return self.createbinarynode(left, right, expr[1], parentNode)
     
     def doand(self, expr, parentNode):
@@ -143,6 +144,11 @@ class GraphGenerator(object):
         left = self.eval(left)
         return self.createbinarynode(left, right, expr[-2], parentNode)
     
+    def createunarynode(self, left, parentNode):
+        outnode = UnaryModule(parentNode, left)
+        parentNode.outputs().append(outnode)
+        return outnode
+    
     def createbinarynode(self, left, right, name, parentNode):
         
 #         node = NodeItem()
@@ -153,7 +159,7 @@ class GraphGenerator(object):
 #         outnode = Node('Data', wid=self.graph_id)
 #         self.graph.create(Relationship(node, "OUTPUT", outnode))
         outnode = BinModule(parentNode, name, left, right)
-        parentNode.modules().append(outnode)
+        parentNode.inputs().append(outnode)
         return outnode
             
     def doarithmetic(self, expr, parentNode):
@@ -176,20 +182,23 @@ class GraphGenerator(object):
         Executes if statement.
         :param expr:
         '''
-        condmodule = Module(parentNode)
+        condmodule = CondModule(parentNode)
         self.eval(expr[0], condmodule)
         ifmodule = IfModule(parentNode, condmodule)
         
+        #true branch
         moduletrue = Module(parentNode)
-        modulefalse = None
+        moduletrue.add_symtab()
         self.eval(expr[1], moduletrue)
+        ifmodule.modules().append(moduletrue)
+        
+        #false branch
         if len(expr) > 3 and expr[3]:
             modulefalse = Module(parentNode)
+            moduletrue.add_symtab()
             self.eval(expr[3], modulefalse)
-        
-        ifmodule.modules().append(moduletrue)
-        if modulefalse:
             ifmodule.modules().append(modulefalse)
+
         parentNode.modules().append(ifmodule)
     
     def dolock(self, expr, parentNode):

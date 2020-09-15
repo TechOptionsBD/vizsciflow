@@ -159,7 +159,10 @@ class Module(GraphNode):
         
         self.properties = PropertyDict()
         self._symtab = None
-        
+
+    def add_symtab(self):
+        self._symtab = SymbolTable()
+                
     def add_var(self, name, value):
         if self._symtab:
             return self._symtab.add_var(name, value)
@@ -172,7 +175,6 @@ class Module(GraphNode):
         elif self._parent:
             return self._parent.update_var(name, value)
 
-    
     def var_exists(self, name):
         if self._symtab and self._symtab.var_exists(name):
             return True
@@ -213,7 +215,7 @@ class Module(GraphNode):
         return self._inputs
     
     def json(self):
-        this_node = {"key": self.id, "type": "Module", "name": self._name if self._name else ""}
+        this_node = {"key": self.id, "type": self.__primarylabel__, "name": self._name if self._name else ""}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
 
         for module in self.modules():
@@ -318,8 +320,21 @@ class AssignModule(Module):
     
     def __init__(self, parent, var, value):
         super().__init__(parent, "=")
+        
+        parent.update_var(var, self) if parent.var_exists(var) else parent.add_var(var, self)
         self.var = var
         self.inputs().append(value)
+        self.__primarylabel__ = "Operator"
+    
+    def json(self):
+        this_node = {"key": self.id, "type": self.__primarylabel__, "name": self.var + self._name}
+        json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
+        for indata in self.inputs():
+            if isinstance(indata, Data) and indata.value and indata.expected:
+                continue
+            json = merge_json(json, indata.json(), 'Input', True)
+        
+        return json
         
 class CondModule(Module):
     __primarylabel__ = "LogModule"
@@ -333,7 +348,14 @@ class BinModule(Module):
     def __init__(self, parent, opname, left, right):
         super().__init__(parent, opname)
         self.inputs().extend([left, right])
-        
+
+class UnaryModule(Module):
+    __primarylabel__ = "UnaryModule"
+    
+    def __init__(self, parent, left):
+        super().__init__(parent, "")
+        self.inputs().append(left)
+                
 class IfModule(Module):
     __primarylabel__ = "IfModule"
     
@@ -342,14 +364,18 @@ class IfModule(Module):
         self.cond = cond
     
     def json(self):
-        this_node = {"key": self.id, "type": "If", "name": "self.cond" if self.cond else ""}
+        this_node = {"key": self.id, "type": "If", "name": ""}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
 
         if self.cond:
-            json = merge_json(json, self.cond.json(), 'Condition')
+            json = merge_json(json, self.cond.json(), 'Condition', True)
             
-        for module in self.modules():
-            json = merge_json_seq(json, module.json(), 'Module')
+        if len(self._modules) > 0:
+            json = merge_json(json, self._modules[0].json(), 'Module')
+
+        if len(self._modules) > 1:
+            json = merge_json(json, self._modules[0].json(), 'Module')
+
                 
         return json    
                            

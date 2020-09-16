@@ -118,30 +118,23 @@ function detailGojsGraph()
 					new go.Binding("text", "topid"))
 				); 	
 
-				//edit color value for each node
-				rels['nodeDataArray'].forEach(function(node) {
-					type = node.type;
-					
-					switch(type) {
-						case "Operator":
-							color = 'CadetBlue';
-							break;
-						case "Data":
-							color = 'SteelBlue';
-							break;
-						case "Service":
-							color = 'Teal';
-							break;
-						case "Module":
-							color = 'CadetBlue';
-							break;
-						default:
-							color = 'SteelBlue';
-					}
+				let typeArr = [];
+				let colorArr = ['DarkSlateGray', 'SteelBlue', 'Teal', 'Indigo', 'MidnightBlue', 'IndianRed', 'DeepSkyBlue', 'DarkSalmon', 'DarkGreen', 'DarkOrange'];
 
-					node.color = color;								//assign node color
+				//set color for each type
+				rels['nodeDataArray'].forEach(function(node) {
+					if(!typeArr.includes(node.type)){
+						typeArr.push(node.type);
+					}
+					
+					let typeIndex = typeArr.indexOf(node.type);
+
+					if(colorArr[typeIndex] !== undefined)
+						node.color = colorArr[typeIndex];
+					else
+						node.color = 'Black';
+
 					node.name += '\n';								//add a new line after node name
-					// console.log(node);
 				});
 
 				//creating graph using model data 

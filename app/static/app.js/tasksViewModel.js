@@ -288,7 +288,7 @@ function TasksViewModel() {
             reportId = parseInt(data.runnableId);
 
 			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
-                createCompView(data);
+                self.createCompView(data);
 			});
 			
 			$('#refresh').hide();
@@ -381,7 +381,7 @@ function TasksViewModel() {
         })
     }
 
-    function createCompView (data) {
+    self.createCompView = function (data) {
         if(data == undefined)
             return;
 

@@ -244,8 +244,11 @@ function SamplesViewModel(sampleViewModel) {
         
         if(selectedWfId1 !== selectedWfId2){
             ajaxcalls.simple(self.tasksURI, 'GET', {'compare': selectedWfId1, 'with': selectedWfId2}).done(function (res) {
-                //TODO: correct the req. fetch data and show on below span 
-                console.log('TODO: fetch correct data & show on the diff ')
+                $('#wfCompareSelection').modal('hide');
+                $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function (param) {
+                    $('#liProvenanceTab').show();
+                });
+                tasksViewModel.createCompView(res) 
             }).fail(function (jqXHR) {
                 showXHRText(jqXHR);
             });

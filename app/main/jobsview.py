@@ -87,6 +87,31 @@ def install(package):
 #Previous function did not work for pip version greater then 10
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+@main.route('/provenance', methods=['GET', 'POST'])
+@login_required
+def provenance():
+    from ..biowl.dsl.pluginmgr import plugincollection
+    if 'users' in request.args:
+        result = User.query.filter(current_user.id != User.id).with_entities(User.id, User.username)
+        j = json.dumps([r for r in result], cls=AlchemyEncoder)
+        return jsonify(j)
+    else:
+        plugins = []
+        for v in plugincollection.plugins:
+            plugins.append({
+                "name": v,
+                "package": "",
+                "desc": "",
+                "example": "",
+                "access": "1",
+                "isowner": "False",
+                "sharewith": "",
+                "pluginID": 1 
+                })
+        
+        return json.dumps({'provplugins':  plugins}) 
+
                           
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required

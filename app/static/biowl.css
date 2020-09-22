@@ -106,9 +106,10 @@
 
 .vl {
   border-left: 2px solid #337ab7;
-  width: 35%;
-  margin: 0 auto;
-  position: relative;
+  width: 50%;
+  position: absolute;
+  right: 0px;
+  padding: 6vh;
 }
 
 .active-mode {
@@ -441,7 +442,7 @@ border-radius: 10px;
 color: #141313
 }
 
-.expandedWorkflow {
+.expandedWorkflow, .expandedProvenance{
   border:2px groove;
 background-color:lightblue;
 padding:10px;

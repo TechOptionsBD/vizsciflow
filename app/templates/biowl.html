@@ -624,7 +624,84 @@
 					</div>
 				</div>
 		</div>
+
 		<div class="col-md-3 box-three" style="padding: 2px;">
+			<!-- newly added prov panel -->
+			<div id="provplugins" class="panel panel-primary" style="padding: 2px">
+				<div class="panel-heading">
+					<button class="close closeComponent" title="Close" type="button">×</button>
+					<div class="row">
+						<div class="col-sm-8">
+							<h4 class="pull-left">Provenance Plugins</h4>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About"	data-bind="click: about">
+								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+							</button>
+						</div>
+					</div>
+					<div class="row panel-controlgroup">
+						<!-- <label class="radio-inline"> <input type="radio" name="access" value="0" data-bind="checked: access, click:click" checked="checked" autocomplete="off">Public</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="1" data-bind="checked: access, click:click" autocomplete="off">Shared</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="2" data-bind="checked: access, click:click" autocomplete="off">Private</label>
+						<label class="radio-inline"> <input type="radio" name="access" value="3" data-bind="checked: access, click:click" autocomplete="off">All</label> -->
+						
+						<div class="input-group" style="margin-top: 10px">
+							<span class="input-group-btn">
+								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
+									title="Reload" data-bind="click: reload">
+									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+								</button>
+								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
+									title="Add" data-bind="click: beginAddProvPlugin">
+									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
+								</button>
+							</span> 
+							<input class="form-control" type="text" placeholder="Search…"
+								data-bind="value: provpluginFilter, valueUpdate: 'keyup'" />
+						</div>
+					</div>
+				</div>
+				<div class="panel-body draggable-prov"
+					style="max-height: 200px; width: 100%; overflow-y: scroll; padding: 3px 3px 0 0">
+					<div class="row" style="width: 100%; margin: 0">
+						<div class="p-3 mb-2 bg-primary text-white"
+							style="float: left; width: 80%; text-align: left; padding-left: 12px"><strong>Name</strong></div>
+						<div class="p-3 mb-2 bg-primary text-white"
+							style="float: right; padding-left: 5px; width: 20%; text-align: center"><strong>Package</strong></div>
+					</div>
+
+					<div data-bind="foreach: filteredProvPlugins">
+						<div class="row draggable-provenance"
+							data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
+							style="width: 100%; margin: 0; display: block">
+							<div class="col-xm-6 menu_button"
+								style="float: left; margin: 7px 0px 7px 0px; padding-left: 10px; width: 80%;"
+							>
+								<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
+								<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
+								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
+								&nbsp;
+								<span style="font-weight: bold;" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></span>
+								
+								<!-- Prov toolbar for owner only -->
+								<span id='provpluginToolbar' class='service-toolbar' data-bind="visible: isowner()">
+									<span id="shareDropdown" data-bind="event: {click: $parent.shareWithUsers} "
+										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Share
+									</span>
+									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.workflowToolbar} "></span>
+								</span>
+								
+							</div>
+							<br>
+							<div class="col" style="float: right">
+								<span data-bind="text: package" style="text-align: right"></span>
+							</div>
+							<div style="clear:both"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		
 			<div id="functions" class="panel panel-primary">
 				<div class="panel-heading">
 					<button class="close closeComponent" title="Close" type="button">×</button>
@@ -706,84 +783,6 @@
 				</div>
 			</div>
 			
-			
-			<div id="provplugins" class="panel panel-primary">
-			<div class="panel-heading">
-					<button class="close closeComponent" title="Close" type="button">×</button>
-					<div class="row">
-						<div class="col-sm-6">
-							<h4 class="pull-left">Provenance Plugins</h4>
-							<button class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="About"
-								data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-							</button>
-						</div>
-					</div>
-				</div>
-				
-				<div class="row panel-controlgroup">
-						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="0" data-bind="checked: access, click:click"
-								checked="checked" autocomplete="off">Public</label>
-						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="1" data-bind="checked: access, click:click"
-								autocomplete="off">Shared</label>
-						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="2" data-bind="checked: access, click:click"
-								autocomplete="off">Private</label>
-						<label class="radio-inline"> <input type="radio" name="serviceAccess" value="3" data-bind="checked: access, click:click"
-								autocomplete="off">All</label>
-						<div class="input-group" style="margin-top: 10px;">
-							<span class="input-group-btn">
-								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
-									title="Reload" data-bind="click: reload">
-									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-								</button>
-								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
-									title="Add" data-bind="click: beginAddProvPlugin">
-									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
-								</button>
-							</span>
-							<input class="form-control" type="text" placeholder="Search…"
-								data-bind="value: provpluginFilter, valueUpdate: 'keyup'" />
-						</div>
-				</div>
-				
-				<div class="panel-body draggable-functions"
-					style="max-height: 500px; overflow-y: scroll; padding: 3px">
-					<div class="row" style="width: 100%; margin: 0">
-						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: left; text-align: left; padding-left:5px; width: 60%"><strong>Name</strong></div>
-						<div class="p-3 mb-2 bg-primary text-white"
-							style="float: right; padding-left: 4px; text-align: right; padding-right: 5px; width: 40%"><strong>Package</strong></div>
-					</div>
-					<div data-bind="foreach: filteredProvPlugins">
-						<div class="row"
-							data-bind="css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }"
-							style="width: 100%; margin: 0; display: block;">
-							<div class="col-md-auto draggable-func menu_button float: left;" style="word-wrap: break-word; padding-left: 5px; font-weight: bold;">
-								<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
-								<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
-								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
-								&nbsp;
-								<span style="font-weight: bold;" data-bind="text: name, event: {dblclick: $parent.copyToEditorDblClick, click: $parent.toggleExpand}, clickBubble: false, draggable : $data"></span>
-								<!-- service floating toolbar for owner only -->
-								<span id="provpluginToolbar" class="service-toolbar" data-bind="visible: isowner()">
-									<span id="shareDropdown" data-bind="event: {click: $parent.shareWithUsers} "
-										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										Share
-									</span>
-									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.serviceToolbar} "></span>
-								</span>
-							
-							</div>
-							<div class="col" style="float: right;padding-right: 5px">
-								<span data-bind="text: package" style="text-align: left"></span>
-							</div>
-							<div style="clear:both"></div>
-						</div>
-	</div>
-	</div>
-				
-	</div>
 			<!-- 	            <div data-bind="stopBinding: true"> -->
 			<div id="samples" class="panel panel-primary" style="padding: 2px">
 				<div class="panel-heading">
@@ -3051,6 +3050,8 @@ function typeInTextarea(el, newText) {
 					$('#liMetadataTab').hide();
 					$('#liFilterHistoryTab').hide();
 					$('#liDataset').hide();
+
+					$('#provplugins').hide();
 				}
 				else if(id == 'provMode'){
 					self.currentMode('provMode')
@@ -3069,6 +3070,8 @@ function typeInTextarea(el, newText) {
 					$('#liMetadataTab').hide();
 					$('#liFilterHistoryTab').hide();
 					$('#liDataset').hide();
+
+					$('#provplugins').show();
 				}
 			}
 			

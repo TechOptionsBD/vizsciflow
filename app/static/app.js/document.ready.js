@@ -307,6 +307,9 @@ $(document).ready(function () {
 			if (v.serviceID !== undefined) {
                 tasksViewModel.copyToEditor(v);
             }
+            else if(v.pluginID !== undefined){
+                provpluginsViewModel.copyToEditor(v);
+            }
             else {
 				samplesViewModel.dropNLoadIntoEditor(v);
 			}

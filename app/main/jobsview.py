@@ -15,6 +15,7 @@ from datetime import timedelta
 from datetime import datetime
 
 import regex
+from _ast import If
 regex.DEFAULT_VERSION = regex.VERSION1
 
 from ..models import Workflow, AccessType, Service, ServiceAccess, User
@@ -25,6 +26,10 @@ from flask import request, jsonify, current_app, send_from_directory, make_respo
 from werkzeug.utils import secure_filename
 from ..runmgr import runnableManager
 from ..biowl.dsl.provobj import View
+
+from config import Config
+prov_base = Config.PROVENANCE_DIR
+html_base = Config.HTML_DIR
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -87,35 +92,202 @@ def install(package):
 #Previous function did not work for pip version greater then 10
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    
+def get_provenance_plugins():
+    from ..biowl.dsl.pluginmgr import plugincollection
+    plugins = []
+    for v in plugincollection.plugins:
+        plugins.append({
+            "name": v,
+            "package": "",
+            "desc": "",
+            "example": "",
+            "access": "1",
+            "isowner": "False",
+            "sharewith": "",
+            "pluginID": 1 
+            })
+    
+    return json.dumps({'provplugins':  plugins}) 
+
+def demo_provenance_add():
+    demoprovenance = {'script':'', 'html': ''}
+    base = os.path.join(os.path.dirname(basedir), 'biowl')
+    with open(os.path.join(prov_base, 'demoprov.py'), 'r') as f:
+        demoprovenance['script'] = f.read()
+    with open(os.path.join(html_base, 'demoprov.html'), 'r') as f:
+        demoprovenance['html'] = f.read()
+    return jsonify(demoprovenance= demoprovenance)
 
 @main.route('/provenance', methods=['GET', 'POST'])
 @login_required
 def provenance():
-    from ..biowl.dsl.pluginmgr import plugincollection
     if 'users' in request.args:
-        result = User.query.filter(current_user.id != User.id).with_entities(User.id, User.username)
-        j = json.dumps([r for r in result], cls=AlchemyEncoder)
-        return jsonify(j)
+        return get_users()
+    elif 'demoprovenanceadd' in request.args:
+        return demo_provenance_add()
     else:
-        plugins = []
-        for v in plugincollection.plugins:
-            plugins.append({
-                "name": v,
-                "package": "",
-                "desc": "",
-                "example": "",
-                "access": "1",
-                "isowner": "False",
-                "sharewith": "",
-                "pluginID": 1 
-                })
+        return get_provenance_plugins()
+    
+    
+    
+    
+def workflow_compare(workflow1, workflow2):
+    try:
+        from ..jobs import generate_graph
+        from ..biowl.dsl.wfdsl import View
+        view = {"graph": []}
+        graph1 = generate_graph(workflow1)
+        graph2 = generate_graph(workflow2)
+        view['graph'].append(graph1)
+        view['graph'].append(graph2)
+        workflow = Workflow.query.get(workflow1)
+        node1 = runnableManager.create_runnable(current_user.id, workflow1, workflow.script, provenance=True, args=None)
+        workflow = Workflow.query.get(workflow2)
+        node2 = runnableManager.create_runnable(current_user.id, workflow2, workflow.script, provenance=True, args=None)
+        view['compare'] = [View.compare(node1, node2)]
         
-        return json.dumps({'provplugins':  plugins}) 
+        return json.dumps({"view": view})
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
+    
+def workflow_rev_compare(request):
+    try:
+        from ..jobs import generate_graph
+        
+        workflow = Workflow.query.filter_by(id = request.args.get('revcompare')).first_or_404()
+        
+        revision1_script = workflow.revision_by_commit(request.args.get('revision1'))
+        revision2_script = workflow.revision_by_commit(request.args.get('revision2'))
+        graph2 = generate_graph(revision1_script)
+        graph2 = generate_graph(revision2_script)
+        return json.dumps(View.compare(graph1, graph2))
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
+    
+def share_service(share_service):
+    service_id, access = share_service["serviceID"], share_service["access"]
+    string = ServiceAccess.get_by_service_id(service_id)
+    share_list = string.strip('][').split(', ') if string != '[]' else None#.replace("'", "") 
+    if access:
+        if share_list:
+            for user in share_list:
+                ServiceAccess.remove_user(service_id, user)
+        Service.update_access(service_id, access)
+        return json.dumps({'return':'public'})         
+    else:
+        sharing_with = share_service["sharedWith"] if "sharedWith" in share_service.keys() else []
+        if share_list:
+            for user in share_list:
+                if int(user) not in sharing_with:
+                    ServiceAccess.remove_user(service_id, user)
+                else:
+                    sharing_with.remove(int(user))
+        Service.update_access(service_id, access) 
+        if sharing_with != []: 
+            ServiceAccess.add(service_id, sharing_with)      
+            return json.dumps({'return':'shared'})
+        else:
+            return json.dumps({'return':'private'})
+        
+        
+def delete_service(service_id):
+    if 'confirm' in request.args:
+        if request.args.get("confirm") == "true":
+            Service.remove(current_user.id, service_id)       
+            return json.dumps({'return':'deleted'})
+    else:
+        shared_service_check = ServiceAccess.check(service_id) 
+        if shared_service_check:  
+            return json.dumps({'return':'shared'})
+        else:
+            return json.dumps({'return':'not_shared'})
+    return json.dumps({'return':'error'})
+
+def get_users():
+    result = User.query.filter(current_user.id != User.id).with_entities(User.id, User.username)
+    j = json.dumps([r for r in result], cls=AlchemyEncoder)
+    return jsonify(j)
+
+def add_demo_service():
+    demoservice = {'script':'', 'mapper': ''}
+    base = os.path.join(os.path.dirname(basedir), 'biowl')
+    with open(os.path.join(base, 'demoservice.py'), 'r') as f:
+        demoservice['script'] = f.read()
+    with open(os.path.join(base, 'demoservice.json'), 'r') as f:
+        demoservice['mapper'] = f.read()
+    return jsonify(demoservice= demoservice)
+
+def code_completion(codecompletion):
+        keywords = [{"package": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
+        funcs = []
+        for func in Service.get_by_user(current_user.username):
+            if int(func.value['access']) < 2 or (func['user'] and func['user'] == current_user.username):
+                if codecompletion:
+                    if not regex.match(codecompletion, func['name'], regex.IGNORECASE):
+                        continue
+                funcs.append({"package": func['package'], "name": func['name'], "example": func['example'], "group": func['group']})
+        if not codecompletion:
+            funcs.extend(keywords)
+        else:
+            for keyword in keywords:
+                if regex.match(codecompletion, keyword['name'], regex.IGNORECASE):
+                    funcs.append(keyword)
+                    
+        return json.dumps({'functions':  funcs})
+    
+def check_service_function(request):
+    if Service.check_function(request.args.get('name'), request.args.get('package')):
+        return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
+    if 'script' in request.args and request.args.get('script') and 'mapper' in request.args and request.args.get('mapper'):
+        try:
+            mapper = json.loads(request.args.get('mapper'))
+            internal = None
+            if 'functions' in mapper and 'internal' in mapper['functions'][0]:
+                internal = mapper['functions'][0]['internal'].lower()
+            elif 'internal' in mapper:
+                internal = mapper['internal'].lower()
+            
+            if internal:    
+                tree = ast.parse(request.args.get('script'))
+                funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
+                if not any(s.lower() == internal for s in funcDefs):
+                    return json.dumps({'error': "{0} internal name not found in the code.".format(internal)})
+        except json.decoder.JSONDecodeError as e:
+            return json.dumps({'error': str(e)})
+        except Exception as e:
+            return json.dumps({'error': str(e)})
+    return json.dumps("")
 
                           
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
+    if request.method == "GET":
+        if 'check_function' in request.args:
+            return check_service_function(request)
+        elif 'codecompletion' in request.args:
+            return code_completion(request.args.get('codecompletion'))
+        elif request.args.get('compare'):
+            return workflow_compare(int(request.args.get('compare')), int(request.args.get('with')))
+        elif request.args.get('revcompare'):
+            return workflow_rev_compare(request)
+        elif 'share_service' in request.args:
+            return share_service(json.loads(request.args.get("share_service")))
+        elif request.args.get("service_id"):
+            return delete_service(request.args.get("service_id"))
+        elif 'demoserviceadd' in request.args:
+            return add_demo_service()
+        elif 'tooltip' in request.args:
+            func = Service.get_first_by_name_package_with_access(current_user.id, request.args.get('name'), request.args.get('package'))
+            return json.dumps(func) if func else json.dumps("")
+        elif 'users' in request.args:
+            return get_users()
+        elif 'reload' in request.args:
+            return json.dumps("")
+        else:
+            return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
+
     if request.method == "POST":
         if request.form.get('workflowId'):
             try:
@@ -123,7 +295,6 @@ def functions():
                 if request.form.get('script'):
                     workflow = update_workflow(current_user.id, workflowId, request.form.get('script'));
                     return jsonify(workflowId = workflow.id)
-                
                 # Here we must have a valid workflow id
                 if not workflowId:
                     return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
@@ -147,17 +318,14 @@ def functions():
                             install(pkg)
                         except Exception as e:
                             result['err'].append(str(e))
-                                    
                 # Get the name of the uploaded file
                 file = request.files['library'] if len(request.files) > 0 else None
                 # Check if the file is one of the allowed types/extensions
-                
                 package = request.form.get('package')
                 this_path = os.path.dirname(os.path.abspath(__file__))
                 #os.chdir(this_path) #set dir of this file to current directory
                 app_path = os.path.dirname(this_path)
                 librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/modules'))
-
                 user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
                 if not os.path.isdir(user_package_dir):
                     os.makedirs(user_package_dir)
@@ -166,7 +334,6 @@ def functions():
                 path = unique_filename(user_package_dir, pkg_or_default, '')
                 if not os.path.isdir(path):
                     os.makedirs(path)
-                
                 filename = ''
                 scriptname = ''
                 if file:
@@ -179,7 +346,6 @@ def functions():
                         os.makedirs(temppath)
                         temppath = os.path.join(temppath, filename)
                     file.save(temppath)
-                    
                     if zipfile.is_zipfile(temppath):
                         with zipfile.ZipFile(temppath,"r") as zip_ref:
                             zip_ref.extractall(path)
@@ -192,22 +358,18 @@ def functions():
                     scriptname = unique_filename(path, pkg_or_default, 'py')
                     with open(scriptname, 'a+') as script:
                         script.write(request.form.get('script'))
-                    
                 base = unique_filename(path, pkg_or_default, 'json')
                 with open(base, 'w') as mapper:
                     mapper.write(request.form.get('mapper'))
-                
                 org = request.form.get('org')
                 pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
                 pkgpath = os.path.join(pkgpath, os.path.basename(filename))
                 pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
-
                 # create an empty __init__.py to make the directory a module                
                 initpath = os.path.join(path, "__init__.py")
                 if not os.path.exists(initpath):
                     with open(initpath, 'a'):
                         pass
-                    
 #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
                 if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
                     access = 0
@@ -219,11 +381,9 @@ def functions():
                     else:
                         access = 2
                         sharedusers = False              
-                               
                 with open(base, 'r') as json_data:
                     data = json.load(json_data)
                     libraries = data["functions"] if "functions" in data else [data]
-                    
                     for f in libraries:
                         try:
                             # if internal not given, parse the code and use the first function name as internal (adaptor name) 
@@ -242,7 +402,6 @@ def functions():
                                             f['internal'] = funcDefs[0]
                         except:
                             pass
-                                
                         if 'internal' in f and f['internal']:
                             if not 'name' in f:
                                 f['name'] = f['internal']
@@ -261,15 +420,11 @@ def functions():
                             f['package'] = package
                         if org:
                             f['org'] = org
-                        
                         #func = json.dumps(f, indent=4)
-
                         Service.add(current_user.id, f, access, sharedusers)
-                            
 #                 os.remove(base)
 #                 with open(base, 'w') as f:
 #                     f.write(json.dumps(data, indent=4))
-                
                 result['out'].append("Library successfully added.")
             except Exception as e:
                 result['err'].append(str(e))
@@ -278,155 +433,8 @@ def functions():
             fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
             mime = mimetypes.guess_type(fullpath)[0]
             return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
-            
-    elif 'check_function' in request.args:
-        if Service.check_function(request.args.get('name'), request.args.get('package')):
-            return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
-        if 'script' in request.args and request.args.get('script') and 'mapper' in request.args and request.args.get('mapper'):
-            try:
-                mapper = json.loads(request.args.get('mapper'))
-                internal = None
-                if 'functions' in mapper and 'internal' in mapper['functions'][0]:
-                    internal = mapper['functions'][0]['internal'].lower()
-                elif 'internal' in mapper:
-                    internal = mapper['internal'].lower()
-                
-                if internal:    
-                    tree = ast.parse(request.args.get('script'))
-                    funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
-                    if not any(s.lower() == internal for s in funcDefs):
-                        return json.dumps({'error': "{0} internal name not found in the code.".format(internal)})
-            except json.decoder.JSONDecodeError as e:
-                return json.dumps({'error': str(e)})
-            except Exception as e:
-                return json.dumps({'error': str(e)})
-        return json.dumps("")
-    
-    elif 'tooltip' in request.args:
-        func = Service.get_first_by_name_package_with_access(current_user.id, request.args.get('name'), request.args.get('package'))
-        return json.dumps(func) if func else json.dumps("")
 
-    elif 'service_id' in request.args:
-        service_id = request.args.get("service_id")
-        if 'confirm' in request.args:
-            if request.args.get("confirm") == "true":
-                Service.remove(current_user.id, service_id)       
-                return json.dumps({'return':'deleted'})
-        else:
-            shared_service_check = ServiceAccess.check(service_id) 
-            if shared_service_check:  
-                return json.dumps({'return':'shared'})
-            else:
-                return json.dumps({'return':'not_shared'})
-        return json.dumps({'return':'error'})
-    
-    elif 'codecompletion' in request.args:
-        keywords = [{"package": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
-        funcs = []
-        codecompletion = request.args.get('codecompletion')
-        for func in Service.get_by_user(current_user.username):
-            if int(func.value['access']) < 2 or (func['user'] and func['user'] == current_user.username):
-                if codecompletion:
-                    if not regex.match(codecompletion, func['name'], regex.IGNORECASE):
-                        continue
-                funcs.append({"package": func['package'], "name": func['name'], "example": func['example'], "group": func['group']})
-        if not codecompletion:
-            funcs.extend(keywords)
-        else:
-            for keyword in keywords:
-                if regex.match(codecompletion, keyword['name'], regex.IGNORECASE):
-                    funcs.append(keyword)
-                    
-        return json.dumps({'functions':  funcs})
-    elif 'demoserviceadd' in request.args:
-        demoservice = {'script':'', 'mapper': ''}
-        base = os.path.join(os.path.dirname(basedir), 'biowl')
-        with open(os.path.join(base, 'demoservice.py'), 'r') as f:
-            demoservice['script'] = f.read()
-        with open(os.path.join(base, 'demoservice.json'), 'r') as f:
-            demoservice['mapper'] = f.read()
-        return jsonify(demoservice= demoservice)
-    elif 'reload' in request.args:
-        #library.reload()
-        return json.dumps("")
-    
-    elif 'users' in request.args:
-        result = User.query.filter(current_user.id != User.id).with_entities(User.id, User.username)
-        j = json.dumps([r for r in result], cls=AlchemyEncoder)
-        return jsonify(j)
-    
-#     elif 'share_service' in request.args:
-#         share_service = request.args.get("share_service")
-#         shared_check = ServiceAccess.check(share_service) 
-#         if shared_check: 
-#             result = ServiceAccess.query.filter(ServiceAccess.service_id == share_service).with_entities(ServiceAccess.user_id)
-#             lst = json.dumps([r for r in result], cls=AlchemyEncoder)
-#             lst = lst.replace('[', '').replace(']', '').replace(' ', '')
-#             user_list = list(lst.split(","))
-#             if 'sharing_users' in request.args:
-#                 sharing_users = request.args.get("sharing_users")
-#                 for user in user_list:
-#                     if user not in sharing_users:
-#                         ServiceAccess.remove_user(user)
-#                     else:
-#                         sharing_users.remove(user)
-#                  
-#                 ServiceAccess.add(share_service, sharing_users)
-#                  
-#             return jsonify(user_list)
-#              
-#         else:
-#             return json.dumps("")
-        
-    elif 'share_service' in request.args:
-        share_service = json.loads(request.args.get("share_service"))
-        service_id, access = share_service["serviceID"], share_service["access"]
-        string = ServiceAccess.get_by_service_id(service_id)
-        share_list = string.strip('][').split(', ') if string != '[]' else None#.replace("'", "") 
-        if access:
-            if share_list:
-                for user in share_list:
-                    ServiceAccess.remove_user(service_id, user)
-            Service.update_access(service_id, access)
-            return json.dumps({'return':'public'})         
-        else:
-            sharing_with = share_service["sharedWith"] if "sharedWith" in share_service.keys() else []
-            if share_list:
-                for user in share_list:
-                    if int(user) not in sharing_with:
-                        ServiceAccess.remove_user(service_id, user)
-                    else:
-                        sharing_with.remove(int(user))
-            Service.update_access(service_id, access) 
-            if sharing_with != []: 
-                ServiceAccess.add(service_id, sharing_with)      
-                return json.dumps({'return':'shared'})
-            else:
-                return json.dumps({'return':'private'})
-    if request.method == "GET":
-        if request.args.get('compare'):
-            try:
-                from ..jobs import generate_graph
-                graph1 = generate_graph(int(request.args.get('compare')))
-                graph2 = generate_graph(int(request.args.get('with')))
-                return json.dumps(View.compare(graph1, graph2))
-            except Exception as e:
-                return make_response(jsonify(err=str(e)), 500)
-        elif request.args.get('revcompare'):
-            try:
-                from ..jobs import generate_graph
-                
-                workflow = Workflow.query.filter_by(id = request.args.get('revcompare')).first_or_404()
-                
-                revision1_script = workflow.revision_by_commit(request.args.get('revision1'))
-                revision2_script = workflow.revision_by_commit(request.args.get('revision2'))
-                graph2 = generate_graph(revision1_script)
-                graph2 = generate_graph(revision2_script)
-                return json.dumps(View.compare(graph1, graph2))
-            except Exception as e:
-                return make_response(jsonify(err=str(e)), 500)
-        else:
-            return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
+
 
 
 @main.route('/graphs', methods=['GET', 'POST'])

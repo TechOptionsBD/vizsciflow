@@ -15,6 +15,9 @@ class Config:
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    #for provenance
+    PROVENANCE_DIR = os.path.join(basedir, 'app/biowl/dsl/plugins')
+    HTML_DIR = os.path.join(basedir, 'app/templates/plugins')
     #MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587

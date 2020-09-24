@@ -1007,6 +1007,60 @@
 	</div>
   </div>
 
+
+
+  <div id="addProv" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="overflow-y: auto;">
+	<div class="modal-dialog modal-dialog-centered modal-lg modal-wide" role="document">
+	  <div class="modal-content">
+		<div class="modal-header">
+		  <h3 id="addDialogLabel" class="modal-title">Add Provenance</h3>
+		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		  </button>
+		</div>
+		<div class="modal-body">
+			<div id="exTabProvenance" class="controls">
+				<ul class="nav nav-tabs">
+					<li class="active"><a href="#provenance1" data-toggle="tab">Script</a></li>
+					<li><a href="#provenance2" data-toggle="tab">HTML</a></li>
+				</ul>
+				<div class="tab-content ">
+					<div class="tab-pane fade in active" id="provenance1">
+						<textarea rows="10" style="width: inherit" id="provenancescript"></textarea>
+						<br>
+					</div>
+					<div class="tab-pane fade" id="provenance2">
+						<textarea rows="10" style="width: inherit" id="provenancehtml"></textarea>
+						<br>
+					</div>
+				</div>
+			</div>
+			<br><br>
+			<div class="row provenance-form-group">
+				<div class="span-sm-10">
+					<div class="row provenance-form-group">
+						<label class="span-sm-5" for="pippkgs">pip Install</label>
+						<div class="span-sm-10">
+							<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+		  <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
+          <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
+          <span class="label label-default" id="add-library-info"></span>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+
+
+
+
+
 <div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered modal-md" role="document">
 		<div class="modal-content">
@@ -3133,7 +3187,8 @@ function typeInTextarea(el, newText) {
 	   
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var datasetsViewModel = new DatasetsViewModel();
-        var addLibraryViewModel = new AddLibraryViewModel(username, ace);
+		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
+		var AddLibraryProvViewModel = new AddLibraryProvViewModel(ace);
         var sampleViewModel = new SampleViewModel();
 		var editTaskViewModel = new EditTaskViewModel();
 		var provgraphviewmodel = new provgraphViewModel();

@@ -104,16 +104,17 @@ function ProvPluginsViewModel() {
         self.provplugins()[i].example(newTask.example);
         self.provplugins()[i].desc(newTask.desc);
     }
+    
 
 	// /provenance?demoserviceadd
 	self.beginAddProvPlugin = function () {
         $("#add-library-info").text("");
-        $.getJSON('/functions?demoserviceadd', function (demoservice) {
-            addLibraryViewModel.getCodeEditor().setValue(demoservice.demoservice.script, 1);
-            addLibraryViewModel.getMapperEditor().setValue(demoservice.demoservice.mapper, 1);
-            addLibraryViewModel.getUsers();
-            centerDialog($('#add'));
-            $('#add').modal('show');
+        $.getJSON('/provenance?demoprovenanceadd', function (demoprovenance) {
+            AddLibraryProvViewModel.getCodeEditor().setValue(demoprovenance.demoprovenance.script, 1);
+            AddLibraryProvViewModel.getHtmlEditor().setValue(demoprovenance.demoprovenance.html, 1);
+            // AddLibraryProvViewModel.getUsers();
+            centerDialog($('#addProv'));
+            $('#addProv').modal('show');
         })
     }
 

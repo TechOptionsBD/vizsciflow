@@ -126,6 +126,92 @@ def provenance():
         return get_users()
     elif 'demoprovenanceadd' in request.args:
         return demo_provenance_add()
+    elif request.method == "POST" and request.form.get('html'):
+        result = {"out": [], "err": []}
+        try:
+            if request.form.get('pippkgs'):
+                pippkgs = request.form.get('pippkgs')
+                pippkgs = pippkgs.split(",")
+                for pkg in pippkgs:
+                    try:
+                        install(pkg)
+                    except Exception as e:
+                        result['err'].append(str(e))
+            # Get the name of the uploaded file
+            file = request.files['library'] if len(request.files) > 0 else None
+            #user_package_dir = os.path.normpath(os.path.join(pluginsdir, 'users', current_user.username))
+            import importlib.util
+            import uuid
+            import inspect
+            from ..biowl.dsl.pluginmgr import PluginItem
+            from ..biowl.dsl.pluginmgr import plugincollection
+            
+            spec = importlib.util.spec_from_loader(str(uuid.uuid4()), loader=None)
+            helper = importlib.util.module_from_spec(spec)
+            exec(request.form.get('script'), helper.__dict__)
+            
+            scriptname = None
+            for name,obj in inspect.getmembers(helper):
+                if inspect.isclass(obj) and issubclass(obj, PluginItem) and (obj is not PluginItem):
+                    if plugincollection.exists(name):
+                        raise ValueError("Plugin {0} already exists.".format(name))
+                    scriptname = name
+                    break
+
+            if not scriptname:
+                raise ValueError("No plugin is defined in the script.")
+            
+            user_package_dir = os.path.join(Config.PROVENANCE_DIR, scriptname)
+            
+            if not os.path.isdir(user_package_dir):
+                os.makedirs(user_package_dir)
+                
+            if request.form.get('script'):
+                with open(os.path.join(user_package_dir,  scriptname + ".py"), 'w') as script:
+                    script.write(request.form.get('script'))
+                    
+                # create an empty __init__.py to make the directory a module                
+                initpath = os.path.join(user_package_dir, "__init__.py")
+                if not os.path.exists(initpath):
+                    with open(initpath, 'a'):
+                        pass
+                    
+                plugincollection.walk_package('app.biowl.dsl.plugins.' + scriptname)
+                                
+            if request.form.get('html'):
+                if not os.path.isdir(os.path.join(Config.HTML_DIR, scriptname)):
+                    os.makedirs(os.path.join(Config.HTML_DIR, scriptname))
+                with open(os.path.join(Config.HTML_DIR, scriptname, scriptname + ".html"), 'w') as html:
+                    html.write(request.form.get('html'))
+            
+            if file:
+                # Make the filename safe, remove unsupported chars
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(user_package_dir, filename)
+                file.save(filepath)
+                if zipfile.is_zipfile(filepath):
+                    with zipfile.ZipFile(filepath, "r") as zip_ref:
+                        zip_ref.extractall(filepath)
+                elif tarfile.is_tarfile(filepath):
+                    with tarfile.open(filepath,"r") as tar_ref:
+                        tar_ref.extractall(filepath)
+            
+
+# #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
+#             if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
+#                 access = 0
+#                 sharedusers = False 
+#             else:
+#                 if request.form.get('sharedusers'):
+#                     sharedusers = request.form.get('sharedusers')
+#                     access = 1
+#                 else:
+#                     access = 2
+#                     sharedusers = False              
+            result['out'].append("Library successfully added.")
+        except Exception as e:
+            result['err'].append(str(e))
+        return json.dumps(result)
     else:
         return get_provenance_plugins()
     

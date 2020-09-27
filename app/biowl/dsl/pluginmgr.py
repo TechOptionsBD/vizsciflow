@@ -54,6 +54,9 @@ class PluginCollection(object):
         for _, v in self.plugins.items():
             v.perform_operation(*arg, **kwargs)
 
+    def exists(self, name):
+        return name in self.plugins
+    
     def get(self, name):
         return self.plugins[name]
     

@@ -75,7 +75,8 @@
 <script src="/static/app.js/controlFlowViewModel.js"></script>
 <script src="/static/app.js/provGraphViewModel.js"></script>
 <script src="/static/app.js/monitorGraphViewModel.js"></script>
-<script src="/static/app.js/ProvPluginsViewModel.js"></script>
+<script src="/static/app.js/provPluginsViewModel.js"></script>
+<script src="/static/app.js/appProvPluginViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl-span-rules.css')}}">
@@ -1048,7 +1049,7 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-		  <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
+		  <button data-bind="click: addPlugin" class="btn btn-primary">Add</button>
           <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
           <span class="label label-default" id="add-library-info"></span>
 		</div>
@@ -3188,7 +3189,7 @@ function typeInTextarea(el, newText) {
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var datasetsViewModel = new DatasetsViewModel();
 		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
-		var AddLibraryProvViewModel = new AddLibraryProvViewModel(ace);
+		var addProvPluginViewModel = new AddProvPluginViewModel(ace);
         var sampleViewModel = new SampleViewModel();
 		var editTaskViewModel = new EditTaskViewModel();
 		var provgraphviewmodel = new provgraphViewModel();
@@ -3219,6 +3220,7 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(provpluginsViewModel, $('#provplugins')[0]);
         ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
+		ko.applyBindings(addProvPluginViewModel, $('#addProv')[0]);
         ko.applyBindings(sampleViewModel, $('#addSample')[0]);
         ko.applyBindings(editTaskViewModel, $('#edit')[0]);
         ko.applyBindings(metadataViewModel, $('#metadataView')[0]);

@@ -110,9 +110,9 @@ function ProvPluginsViewModel() {
 	self.beginAddProvPlugin = function () {
         $("#add-library-info").text("");
         $.getJSON('/provenance?demoprovenanceadd', function (demoprovenance) {
-            AddLibraryProvViewModel.getCodeEditor().setValue(demoprovenance.demoprovenance.script, 1);
-            AddLibraryProvViewModel.getHtmlEditor().setValue(demoprovenance.demoprovenance.html, 1);
-            // AddLibraryProvViewModel.getUsers();
+            addProvPluginViewModel.getCodeEditor().setValue(demoprovenance.demoprovenance.script, 1);
+            addProvPluginViewModel.getHtmlEditor().setValue(demoprovenance.demoprovenance.html, 1);
+            // AddProvPluginViewModel.getUsers();
             centerDialog($('#addProv'));
             $('#addProv').modal('show');
         })

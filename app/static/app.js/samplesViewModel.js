@@ -257,7 +257,7 @@ function SamplesViewModel(sampleViewModel) {
     self.wfVersionSelectionChange = function () {
         if (self.selectedWfVersionId1()[0] == self.selectedWfVersionId2()[0]) {
             $('#wfVersionSelectionAlert').show();
-            $('#wfVersionSelectionAlert').text('Please select two different version!');
+            $('#wfVersionSelectionAlert').text('Please select two different versions!');
         }
         else {
             $('#wfVersionSelectionAlert').hide();

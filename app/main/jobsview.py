@@ -15,7 +15,6 @@ from datetime import timedelta
 from datetime import datetime
 
 import regex
-from _ast import If
 regex.DEFAULT_VERSION = regex.VERSION1
 
 from ..models import Workflow, AccessType, Service, ServiceAccess, User
@@ -25,7 +24,7 @@ from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 from ..runmgr import runnableManager
-from ..biowl.dsl.provobj import View
+from ..biowl.dsl.provobj import View, Run
 
 from config import Config
 prov_base = Config.PROVENANCE_DIR
@@ -122,116 +121,124 @@ def demo_provenance_add():
 @main.route('/provenance', methods=['GET', 'POST'])
 @login_required
 def provenance():
-    if 'users' in request.args:
-        return get_users()
-    elif 'demoprovenanceadd' in request.args:
-        return demo_provenance_add()
-    elif request.method == "POST" and request.form.get('html'):
-        result = {"out": [], "err": []}
-        try:
-            if request.form.get('pippkgs'):
-                pippkgs = request.form.get('pippkgs')
-                pippkgs = pippkgs.split(",")
-                for pkg in pippkgs:
-                    try:
-                        install(pkg)
-                    except Exception as e:
-                        result['err'].append(str(e))
-            # Get the name of the uploaded file
-            file = request.files['library'] if len(request.files) > 0 else None
-            #user_package_dir = os.path.normpath(os.path.join(pluginsdir, 'users', current_user.username))
-            import importlib.util
-            import uuid
-            import inspect
-            from ..biowl.dsl.pluginmgr import PluginItem
-            from ..biowl.dsl.pluginmgr import plugincollection
-            
-            spec = importlib.util.spec_from_loader(str(uuid.uuid4()), loader=None)
-            helper = importlib.util.module_from_spec(spec)
-            exec(request.form.get('script'), helper.__dict__)
-            
-            scriptname = None
-            for name,obj in inspect.getmembers(helper):
-                if inspect.isclass(obj) and issubclass(obj, PluginItem) and (obj is not PluginItem):
-                    if plugincollection.exists(name):
-                        raise ValueError("Plugin {0} already exists.".format(name))
-                    scriptname = name
-                    break
-
-            if not scriptname:
-                raise ValueError("No plugin is defined in the script.")
-            
-            user_package_dir = os.path.join(Config.PROVENANCE_DIR, scriptname)
-            
-            if not os.path.isdir(user_package_dir):
-                os.makedirs(user_package_dir)
+    try:
+        if 'users' in request.args:
+            return get_users()
+        elif 'demoprovenanceadd' in request.args:
+            return demo_provenance_add()
+        elif request.method == "POST" and request.form.get('html'):
+            result = {"out": [], "err": []}
+            try:
+                if request.form.get('pippkgs'):
+                    pippkgs = request.form.get('pippkgs')
+                    pippkgs = pippkgs.split(",")
+                    for pkg in pippkgs:
+                        try:
+                            install(pkg)
+                        except Exception as e:
+                            result['err'].append(str(e))
+                # Get the name of the uploaded file
+                file = request.files['library'] if len(request.files) > 0 else None
+                #user_package_dir = os.path.normpath(os.path.join(pluginsdir, 'users', current_user.username))
+                import importlib.util
+                import uuid
+                import inspect
+                from ..biowl.dsl.pluginmgr import PluginItem
+                from ..biowl.dsl.pluginmgr import plugincollection
                 
-            if request.form.get('script'):
-                with open(os.path.join(user_package_dir,  scriptname + ".py"), 'w') as script:
-                    script.write(request.form.get('script'))
-                    
-                # create an empty __init__.py to make the directory a module                
-                initpath = os.path.join(user_package_dir, "__init__.py")
-                if not os.path.exists(initpath):
-                    with open(initpath, 'a'):
-                        pass
-                    
-                plugincollection.walk_package('app.biowl.dsl.plugins.' + scriptname)
-                                
-            if request.form.get('html'):
-                if not os.path.isdir(os.path.join(Config.HTML_DIR, scriptname)):
-                    os.makedirs(os.path.join(Config.HTML_DIR, scriptname))
-                with open(os.path.join(Config.HTML_DIR, scriptname, scriptname + ".html"), 'w') as html:
-                    html.write(request.form.get('html'))
-            
-            if file:
-                # Make the filename safe, remove unsupported chars
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(user_package_dir, filename)
-                file.save(filepath)
-                if zipfile.is_zipfile(filepath):
-                    with zipfile.ZipFile(filepath, "r") as zip_ref:
-                        zip_ref.extractall(filepath)
-                elif tarfile.is_tarfile(filepath):
-                    with tarfile.open(filepath,"r") as tar_ref:
-                        tar_ref.extractall(filepath)
-            
-
-# #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
-#             if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
-#                 access = 0
-#                 sharedusers = False 
-#             else:
-#                 if request.form.get('sharedusers'):
-#                     sharedusers = request.form.get('sharedusers')
-#                     access = 1
-#                 else:
-#                     access = 2
-#                     sharedusers = False              
-            result['out'].append("Library successfully added.")
-        except Exception as e:
-            result['err'].append(str(e))
-        return json.dumps(result)
-    else:
-        return get_provenance_plugins()
+                spec = importlib.util.spec_from_loader(str(uuid.uuid4()), loader=None)
+                helper = importlib.util.module_from_spec(spec)
+                exec(request.form.get('script'), helper.__dict__)
+                
+                scriptname = None
+                for name,obj in inspect.getmembers(helper):
+                    if inspect.isclass(obj) and issubclass(obj, PluginItem) and (obj is not PluginItem):
+                        if plugincollection.exists(name):
+                            raise ValueError("Plugin {0} already exists.".format(name))
+                        scriptname = name
+                        break
     
+                if not scriptname:
+                    raise ValueError("No plugin is defined in the script.")
+                
+                user_package_dir = os.path.join(Config.PROVENANCE_DIR, scriptname)
+                
+                if not os.path.isdir(user_package_dir):
+                    os.makedirs(user_package_dir)
+                    
+                if request.form.get('script'):
+                    with open(os.path.join(user_package_dir,  scriptname + ".py"), 'w') as script:
+                        script.write(request.form.get('script'))
+                        
+                    # create an empty __init__.py to make the directory a module                
+                    initpath = os.path.join(user_package_dir, "__init__.py")
+                    if not os.path.exists(initpath):
+                        with open(initpath, 'a'):
+                            pass
+                        
+                    plugincollection.walk_package('app.biowl.dsl.plugins.' + scriptname)
+                                    
+                if request.form.get('html'):
+                    if not os.path.isdir(os.path.join(Config.HTML_DIR, scriptname)):
+                        os.makedirs(os.path.join(Config.HTML_DIR, scriptname))
+                    with open(os.path.join(Config.HTML_DIR, scriptname, scriptname + ".html"), 'w') as html:
+                        html.write(request.form.get('html'))
+                
+                if file:
+                    # Make the filename safe, remove unsupported chars
+                    filename = secure_filename(file.filename)
+                    filepath = os.path.join(user_package_dir, filename)
+                    file.save(filepath)
+                    if zipfile.is_zipfile(filepath):
+                        with zipfile.ZipFile(filepath, "r") as zip_ref:
+                            zip_ref.extractall(filepath)
+                    elif tarfile.is_tarfile(filepath):
+                        with tarfile.open(filepath,"r") as tar_ref:
+                            tar_ref.extractall(filepath)
+                
     
+    # #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
+    #             if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
+    #                 access = 0
+    #                 sharedusers = False 
+    #             else:
+    #                 if request.form.get('sharedusers'):
+    #                     sharedusers = request.form.get('sharedusers')
+    #                     access = 1
+    #                 else:
+    #                     access = 2
+    #                     sharedusers = False              
+                result['out'].append("Library successfully added.")
+            except Exception as e:
+                result['err'].append(str(e))
+            return json.dumps(result)
+        else:
+            return get_provenance_plugins()
+    
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
     
     
 def workflow_compare(workflow1, workflow2):
     try:
         from ..jobs import generate_graph
-        from ..biowl.dsl.wfdsl import View
         view = {"graph": []}
         graph1 = generate_graph(workflow1)
         graph2 = generate_graph(workflow2)
         view['graph'].append(graph1)
         view['graph'].append(graph2)
         workflow = Workflow.query.get(workflow1)
-        node1 = runnableManager.create_runnable(current_user.id, workflow1, workflow.script, provenance=True, args=None)
+        wf_script1 = workflow.script
+        node1 = runnableManager.create_runnable(current_user.id, workflow1, wf_script1, provenance=True, args=None)
+        
         workflow = Workflow.query.get(workflow2)
-        node2 = runnableManager.create_runnable(current_user.id, workflow2, workflow.script, provenance=True, args=None)
-        view['compare'] = [View.compare(node1, node2)]
+        wf_script2 = workflow.script
+        node2 = runnableManager.create_runnable(current_user.id, workflow2, wf_script2, provenance=True, args=None)
+        view['compare'] = [View.compare(Run(runItem = node1), Run(runItem = node2))]
+        
+        # compare_result = Compare(wf_script1, wf_script2)      
+        
+        #view['textcompare'] = [compare_result]
         
         return json.dumps({"view": view})
     except Exception as e:
@@ -245,7 +252,7 @@ def workflow_rev_compare(request):
         
         revision1_script = workflow.revision_by_commit(request.args.get('revision1'))
         revision2_script = workflow.revision_by_commit(request.args.get('revision2'))
-        graph2 = generate_graph(revision1_script)
+        graph1 = generate_graph(revision1_script)
         graph2 = generate_graph(revision2_script)
         return json.dumps(View.compare(graph1, graph2))
     except Exception as e:
@@ -349,200 +356,205 @@ def check_service_function(request):
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
-    if request.method == "GET":
-        if 'check_function' in request.args:
-            return check_service_function(request)
-        elif 'codecompletion' in request.args:
-            return code_completion(request.args.get('codecompletion'))
-        elif request.args.get('compare'):
-            return workflow_compare(int(request.args.get('compare')), int(request.args.get('with')))
-        elif request.args.get('revcompare'):
-            return workflow_rev_compare(request)
-        elif 'share_service' in request.args:
-            return share_service(json.loads(request.args.get("share_service")))
-        elif request.args.get("service_id"):
-            return delete_service(request.args.get("service_id"))
-        elif 'demoserviceadd' in request.args:
-            return add_demo_service()
-        elif 'tooltip' in request.args:
-            func = Service.get_first_by_name_package_with_access(current_user.id, request.args.get('name'), request.args.get('package'))
-            return json.dumps(func) if func else json.dumps("")
-        elif 'users' in request.args:
-            return get_users()
-        elif 'reload' in request.args:
-            return json.dumps("")
-        else:
-            return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
-
-    if request.method == "POST":
-        if request.form.get('workflowId'):
-            try:
-                workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
-                if request.form.get('script'):
-                    workflow = update_workflow(current_user.id, workflowId, request.form.get('script'));
-                    return jsonify(workflowId = workflow.id)
-                # Here we must have a valid workflow id
-                if not workflowId:
-                    return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
+    try:
+        if request.method == "GET":
+            if 'check_function' in request.args:
+                return check_service_function(request)
+            elif 'codecompletion' in request.args:
+                return code_completion(request.args.get('codecompletion'))
+            elif request.args.get('compare'):
+                return workflow_compare(int(request.args.get('compare')), int(request.args.get('with')))
+            elif request.args.get('revcompare'):
+                return workflow_rev_compare(request)
+            elif 'share_service' in request.args:
+                return share_service(json.loads(request.args.get("share_service")))
+            elif request.args.get("service_id"):
+                return delete_service(request.args.get("service_id"))
+            elif 'demoserviceadd' in request.args:
+                return add_demo_service()
+            elif 'tooltip' in request.args:
+                func = Service.get_first_by_name_package_with_access(current_user.id, request.args.get('name'), request.args.get('package'))
+                return json.dumps(func) if func else json.dumps("")
+            elif 'users' in request.args:
+                return get_users()
+            elif 'reload' in request.args:
+                return json.dumps("")
+            else:
+                return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
+    
+        if request.method == "POST":
+            if request.form.get('workflowId'):
+                try:
+                    workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
+                    if request.form.get('script'):
+                        workflow = update_workflow(current_user.id, workflowId, request.form.get('script'));
+                        return jsonify(workflowId = workflow.id)
+                    # Here we must have a valid workflow id
+                    if not workflowId:
+                        return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
+                    
+                    args = request.form.get('args') if request.form.get('args') else ''
+                    immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
+                    provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
+                    runnable = run_biowl(int(workflowId), None, args, immediate, provenance)
+                    return jsonify(runnableId = runnable.id)
                 
-                args = request.form.get('args') if request.form.get('args') else ''
-                immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
-                provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
-                runnable = run_biowl(int(workflowId), None, args, immediate, provenance)
-                return jsonify(runnableId = runnable.id)
-            
-            except Exception as e:
-                return make_response(jsonify(err=str(e)), 500)
-        elif request.form.get('mapper'):
-            result = {"out": [], "err": []}
-            try:
-                if request.form.get('pippkgs'):
-                    pippkgs = request.form.get('pippkgs')
-                    pippkgs = pippkgs.split(",")
-                    for pkg in pippkgs:
-                        try:
-                            install(pkg)
-                        except Exception as e:
-                            result['err'].append(str(e))
-                # Get the name of the uploaded file
-                file = request.files['library'] if len(request.files) > 0 else None
-                # Check if the file is one of the allowed types/extensions
-                package = request.form.get('package')
-                this_path = os.path.dirname(os.path.abspath(__file__))
-                #os.chdir(this_path) #set dir of this file to current directory
-                app_path = os.path.dirname(this_path)
-                librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/modules'))
-                user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
-                if not os.path.isdir(user_package_dir):
-                    os.makedirs(user_package_dir)
-                
-                pkg_or_default = package if package else 'mylib'
-                path = unique_filename(user_package_dir, pkg_or_default, '')
-                if not os.path.isdir(path):
-                    os.makedirs(path)
-                filename = ''
-                scriptname = ''
-                if file:
-                    # Make the filename safe, remove unsupported chars
-                    filename = secure_filename(file.filename)
-                    temppath = os.path.join(tempfile.gettempdir(), filename)
-                    if os.path.exists(temppath):
-                        import uuid
-                        temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-                        os.makedirs(temppath)
-                        temppath = os.path.join(temppath, filename)
-                    file.save(temppath)
-                    if zipfile.is_zipfile(temppath):
-                        with zipfile.ZipFile(temppath,"r") as zip_ref:
-                            zip_ref.extractall(path)
-                    elif tarfile.is_tarfile(temppath):
-                        with tarfile.open(temppath,"r") as tar_ref:
-                            tar_ref.extractall(path)
+                except Exception as e:
+                    return make_response(jsonify(err=str(e)), 500)
+            elif request.form.get('mapper'):
+                result = {"out": [], "err": []}
+                try:
+                    if request.form.get('pippkgs'):
+                        pippkgs = request.form.get('pippkgs')
+                        pippkgs = pippkgs.split(",")
+                        for pkg in pippkgs:
+                            try:
+                                install(pkg)
+                            except Exception as e:
+                                result['err'].append(str(e))
+                    # Get the name of the uploaded file
+                    file = request.files['library'] if len(request.files) > 0 else None
+                    # Check if the file is one of the allowed types/extensions
+                    package = request.form.get('package')
+                    this_path = os.path.dirname(os.path.abspath(__file__))
+                    #os.chdir(this_path) #set dir of this file to current directory
+                    app_path = os.path.dirname(this_path)
+                    librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/modules'))
+                    user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
+                    if not os.path.isdir(user_package_dir):
+                        os.makedirs(user_package_dir)
+                    
+                    pkg_or_default = package if package else 'mylib'
+                    path = unique_filename(user_package_dir, pkg_or_default, '')
+                    if not os.path.isdir(path):
+                        os.makedirs(path)
+                    filename = ''
+                    scriptname = ''
+                    if file:
+                        # Make the filename safe, remove unsupported chars
+                        filename = secure_filename(file.filename)
+                        temppath = os.path.join(tempfile.gettempdir(), filename)
+                        if os.path.exists(temppath):
+                            import uuid
+                            temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+                            os.makedirs(temppath)
+                            temppath = os.path.join(temppath, filename)
+                        file.save(temppath)
+                        if zipfile.is_zipfile(temppath):
+                            with zipfile.ZipFile(temppath,"r") as zip_ref:
+                                zip_ref.extractall(path)
+                        elif tarfile.is_tarfile(temppath):
+                            with tarfile.open(temppath,"r") as tar_ref:
+                                tar_ref.extractall(path)
+                        else:
+                            shutil.move(temppath, path)
+                    if request.form.get('script'):
+                        scriptname = unique_filename(path, pkg_or_default, 'py')
+                        with open(scriptname, 'a+') as script:
+                            script.write(request.form.get('script'))
+                    base = unique_filename(path, pkg_or_default, 'json')
+                    with open(base, 'w') as mapper:
+                        mapper.write(request.form.get('mapper'))
+                    org = request.form.get('org')
+                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
+                    pkgpath = os.path.join(pkgpath, os.path.basename(filename))
+                    pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
+                    # create an empty __init__.py to make the directory a module                
+                    initpath = os.path.join(path, "__init__.py")
+                    if not os.path.exists(initpath):
+                        with open(initpath, 'a'):
+                            pass
+    #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
+                    if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
+                        access = 0
+                        sharedusers = False 
                     else:
-                        shutil.move(temppath, path)
-                if request.form.get('script'):
-                    scriptname = unique_filename(path, pkg_or_default, 'py')
-                    with open(scriptname, 'a+') as script:
-                        script.write(request.form.get('script'))
-                base = unique_filename(path, pkg_or_default, 'json')
-                with open(base, 'w') as mapper:
-                    mapper.write(request.form.get('mapper'))
-                org = request.form.get('org')
-                pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
-                pkgpath = os.path.join(pkgpath, os.path.basename(filename))
-                pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
-                # create an empty __init__.py to make the directory a module                
-                initpath = os.path.join(path, "__init__.py")
-                if not os.path.exists(initpath):
-                    with open(initpath, 'a'):
-                        pass
-#                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
-                if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
-                    access = 0
-                    sharedusers = False 
-                else:
-                    if request.form.get('sharedusers'):
-                        sharedusers = request.form.get('sharedusers')
-                        access = 1
-                    else:
-                        access = 2
-                        sharedusers = False              
-                with open(base, 'r') as json_data:
-                    data = json.load(json_data)
-                    libraries = data["functions"] if "functions" in data else [data]
-                    for f in libraries:
-                        try:
-                            # if internal not given, parse the code and use the first function name as internal (adaptor name) 
-                            if not 'internal' in f:
-                                if scriptname:
-                                    tree = ast.parse(request.form.get('script'))
-                                    funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
-                                    if funcDefs:
-                                        f['internal'] = funcDefs[0]
-                                        
-                                if not 'internal' in f and not filename:        
-                                    with open(filename, 'r') as r:
-                                        tree = ast.parse(r.read())
+                        if request.form.get('sharedusers'):
+                            sharedusers = request.form.get('sharedusers')
+                            access = 1
+                        else:
+                            access = 2
+                            sharedusers = False              
+                    with open(base, 'r') as json_data:
+                        data = json.load(json_data)
+                        libraries = data["functions"] if "functions" in data else [data]
+                        for f in libraries:
+                            try:
+                                # if internal not given, parse the code and use the first function name as internal (adaptor name) 
+                                if not 'internal' in f:
+                                    if scriptname:
+                                        tree = ast.parse(request.form.get('script'))
                                         funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
                                         if funcDefs:
                                             f['internal'] = funcDefs[0]
-                        except:
-                            pass
-                        if 'internal' in f and f['internal']:
-                            if not 'name' in f:
-                                f['name'] = f['internal']
-                        elif 'name' in f and f['name']:
-                            if not 'internal' in f:
-                                f['internal'] = f['name']
-                        if not f['internal'] and not f['name']:
-                            continue
-                        #f['access'] = access
-#                         if sharedusers:
-#                             users = sharedusers.split(";")
-#                         else:
-#                             users = []
-                        f['module'] = pkgpath
-                        if package:
-                            f['package'] = package
-                        if org:
-                            f['org'] = org
-                        #func = json.dumps(f, indent=4)
-                        Service.add(current_user.id, f, access, sharedusers)
-#                 os.remove(base)
-#                 with open(base, 'w') as f:
-#                     f.write(json.dumps(data, indent=4))
-                result['out'].append("Library successfully added.")
-            except Exception as e:
-                result['err'].append(str(e))
-            return json.dumps(result)
-        elif request.form.get('provenance'):
-            fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
-            mime = mimetypes.guess_type(fullpath)[0]
-            return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
+                                            
+                                    if not 'internal' in f and not filename:        
+                                        with open(filename, 'r') as r:
+                                            tree = ast.parse(r.read())
+                                            funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
+                                            if funcDefs:
+                                                f['internal'] = funcDefs[0]
+                            except:
+                                pass
+                            if 'internal' in f and f['internal']:
+                                if not 'name' in f:
+                                    f['name'] = f['internal']
+                            elif 'name' in f and f['name']:
+                                if not 'internal' in f:
+                                    f['internal'] = f['name']
+                            if not f['internal'] and not f['name']:
+                                continue
+                            #f['access'] = access
+    #                         if sharedusers:
+    #                             users = sharedusers.split(";")
+    #                         else:
+    #                             users = []
+                            f['module'] = pkgpath
+                            if package:
+                                f['package'] = package
+                            if org:
+                                f['org'] = org
+                            #func = json.dumps(f, indent=4)
+                            Service.add(current_user.id, f, access, sharedusers)
+    #                 os.remove(base)
+    #                 with open(base, 'w') as f:
+    #                     f.write(json.dumps(data, indent=4))
+                    result['out'].append("Library successfully added.")
+                except Exception as e:
+                    result['err'].append(str(e))
+                return json.dumps(result)
+            elif request.form.get('provenance'):
+                fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
+                mime = mimetypes.guess_type(fullpath)[0]
+                return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
-
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
 
 
 @main.route('/graphs', methods=['GET', 'POST'])
 @login_required
 def graphs():
-    if request.method == "POST":
-        if (request.form.get('workflowId')):
-            workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
-            if not workflowId:
-                return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
-            else:
-                return build_graph(workflowId)
-        elif request.form.get('monitor'):
-            from ..biowl.dsl.provobj import Run, View
-            runid = request.form.get('monitor')
-            run = Run.get(id = runid)
-            return View.graph(run)
-        elif request.form.get('nodeinfo'):
-            from ..graphutil import NodeItem
-            node = NodeItem.load(request.form.get('nodeinfo'))
-            return json.dumps(node.json())
-    return json.dumps({})
+    try:    
+        if request.method == "POST":
+            if (request.form.get('workflowId')):
+                workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
+                if not workflowId:
+                    return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
+                else:
+                    return build_graph(workflowId)
+            elif request.form.get('monitor'):
+                from ..biowl.dsl.provobj import Run
+                runid = request.form.get('monitor')
+                run = Run.get(id = runid)
+                return View.graph(run)
+            elif request.form.get('nodeinfo'):
+                from ..graphutil import NodeItem
+                node = NodeItem.load(request.form.get('nodeinfo'))
+                return json.dumps(node.json())
+        return json.dumps({})
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
 
 def get_user_status(user_id):
     logs = []
@@ -619,7 +631,7 @@ def runnables():
         return get_user_status(current_user.id)
     except Exception as e:
         current_app.logger.error("Unhandled Exception at executables: {0}".format(e))
-        return json.dumps({})
+        return make_response(jsonify(err=str(e)), 500)
 
 def get_functions(access):
     return json.dumps({'functions':  Service.get_by_user(current_user.id, access)})

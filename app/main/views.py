@@ -828,36 +828,39 @@ class Samples():
 @main.route('/samples', methods=['GET', 'POST'])
 @login_required
 def samples():
-    if request.form.get('sample'):
-        return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
-    elif request.args.get('sample_id'):
-        workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
-        return json.dumps(workflow.to_json())
-    elif request.args.get('revisions'):
-        workflow = Workflow.query.filter_by(id = request.args.get('revisions')).first_or_404()
-        return json.dumps(workflow.revisions())
-    elif request.args.get('revision'):
-        workflow = Workflow.query.filter_by(id = request.args.get('revision')).first_or_404()
-        return json.dumps(workflow.revision_by_commit(request.args.get('hexsha')))
-    elif request.args.get('tooltip'):
-        workflow = Workflow.query.filter_by(id = request.args.get('tooltip')).first_or_404()
-        return json.dumps(workflow.to_json_tooltip())   
-    elif 'workflow_id' in request.args:
-        workflow_id = request.args.get("workflow_id")
-        if 'confirm' in request.args:
-            if request.args.get("confirm") == "true":
-                Workflow.remove(current_user.id, workflow_id)       
-                return json.dumps({'return':'deleted'})
-        else:
-            shared_Workflow_check = WorkflowAccess.check(workflow_id) 
-            if shared_Workflow_check:  
-                return json.dumps({'return':'shared'})
+    try:
+        if request.form.get('sample'):
+            return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
+        elif request.args.get('sample_id'):
+            workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
+            return json.dumps(workflow.to_json())
+        elif request.args.get('revisions'):
+            workflow = Workflow.query.filter_by(id = request.args.get('revisions')).first_or_404()
+            return json.dumps(workflow.revisions())
+        elif request.args.get('revision'):
+            workflow = Workflow.query.filter_by(id = request.args.get('revision')).first_or_404()
+            return json.dumps(workflow.revision_by_commit(request.args.get('hexsha')))
+        elif request.args.get('tooltip'):
+            workflow = Workflow.query.filter_by(id = request.args.get('tooltip')).first_or_404()
+            return json.dumps(workflow.to_json_tooltip())   
+        elif 'workflow_id' in request.args:
+            workflow_id = request.args.get("workflow_id")
+            if 'confirm' in request.args:
+                if request.args.get("confirm") == "true":
+                    Workflow.remove(current_user.id, workflow_id)       
+                    return json.dumps({'return':'deleted'})
             else:
-                return json.dumps({'return':'not_shared'})
-        return json.dumps({'return':'error'})
-    
-    access = int(request.args.get('access')) if request.args.get('access') else 0
-    return Samples.get_samples_as_list(access)
+                shared_Workflow_check = WorkflowAccess.check(workflow_id) 
+                if shared_Workflow_check:  
+                    return json.dumps({'return':'shared'})
+                else:
+                    return json.dumps({'return':'not_shared'})
+            return json.dumps({'return':'error'})
+        
+        access = int(request.args.get('access')) if request.args.get('access') else 0
+        return Samples.get_samples_as_list(access)
+    except Exception as e :
+        return make_response(jsonify(err=str(e)), 500)
 
 @main.route('/webhook', methods=['GET', 'POST'])
 def webhook():

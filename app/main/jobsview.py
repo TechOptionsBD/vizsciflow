@@ -61,8 +61,8 @@ def save_and_run_workflow(script, args, immediate = True, provenance = False):
     
 def build_graph(workflow_id):
     try:
-        from ..jobs import generate_graph
-        return json.dumps(generate_graph(workflow_id))
+        from ..jobs import generate_graph_from_workflow
+        return json.dumps(generate_graph_from_workflow(workflow_id))
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
 
@@ -221,12 +221,13 @@ def provenance():
     
 def workflow_compare(workflow1, workflow2):
     try:
-        from ..jobs import generate_graph
-        view = {"graph": []}
-        graph1 = generate_graph(workflow1)
-        graph2 = generate_graph(workflow2)
-        view['graph'].append(graph1)
-        view['graph'].append(graph2)
+        from ..jobs import generate_graph_from_workflow
+        from difflib import ndiff
+        
+        graph1 = generate_graph_from_workflow(workflow1)
+        graph2 = generate_graph_from_workflow(workflow2)
+        view = {"graph": [graph1, graph2] }
+        
         workflow = Workflow.query.get(workflow1)
         wf_script1 = workflow.script
         node1 = runnableManager.create_runnable(current_user.id, workflow1, wf_script1, provenance=True, args=None)
@@ -236,9 +237,9 @@ def workflow_compare(workflow1, workflow2):
         node2 = runnableManager.create_runnable(current_user.id, workflow2, wf_script2, provenance=True, args=None)
         view['compare'] = [View.compare(Run(runItem = node1), Run(runItem = node2))]
         
-        # compare_result = Compare(wf_script1, wf_script2)      
-        
-        #view['textcompare'] = [compare_result]
+        diff = ndiff(wf_script1, wf_script2)              
+        diff = '\n'.join(list(diff))
+        view['textcompare'] = [diff]
         
         return json.dumps({"view": view})
     except Exception as e:
@@ -252,8 +253,8 @@ def workflow_rev_compare(request):
         
         revision1_script = workflow.revision_by_commit(request.args.get('revision1'))
         revision2_script = workflow.revision_by_commit(request.args.get('revision2'))
-        graph1 = generate_graph(revision1_script)
-        graph2 = generate_graph(revision2_script)
+        graph1 = generate_graph(workflow.id, workflow.name, revision1_script)
+        graph2 = generate_graph(workflow.id, workflow.name, revision2_script)
         return json.dumps(View.compare(graph1, graph2))
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
@@ -366,6 +367,9 @@ def functions():
                 return workflow_compare(int(request.args.get('compare')), int(request.args.get('with')))
             elif request.args.get('revcompare'):
                 return workflow_rev_compare(request)
+            elif request.args.get('revisions'):
+                revisions = Workflow.query.get(request.args.get('revisions'))
+                return jsonify(revisions = revisions)
             elif 'share_service' in request.args:
                 return share_service(json.loads(request.args.get("share_service")))
             elif request.args.get("service_id"):

@@ -11,6 +11,9 @@ function SamplesViewModel(sampleViewModel) {
     self.wfList = ko.observableArray();
     self.selectedWfId1 = ko.observableArray();
     self.selectedWfId2 = ko.observableArray();
+    self.wfVersionList = ko.observableArray();
+    self.selectedWfVersionId1 = ko.observableArray();
+    self.selectedWfVersionId2 = ko.observableArray();
      self.filteredWorkflows = ko.computed(function(){
         return this.items().filter(function(item){
             if(!self.workflowFilter() || item.name().toLowerCase().indexOf(self.workflowFilter().toLowerCase()) !== -1)
@@ -194,7 +197,7 @@ function SamplesViewModel(sampleViewModel) {
 
     self.compareWf = function() {
         self.getAllSavedWf();
-        document.getElementById("wfSubmitAlert").textContent = '';
+        $('#versionCompare').hide();
         
         self.selectedWfId1([])
         self.selectedWfId2([])
@@ -236,16 +239,41 @@ function SamplesViewModel(sampleViewModel) {
         });
     };
 
+    self.wfSelectionChange = function (obj, event) {
+        if (self.selectedWfId1() !== undefined && ko.toJS(self.selectedWfId1()[0]) == ko.toJS(self.selectedWfId2()[0])) {
+            //display versions selection ddl
+            self.getAllVersion(self.selectedWfId1()[0]);
+
+            self.selectedWfVersionId1([])
+            self.selectedWfVersionId2([])
+            
+            $('#versionCompare').show();
+        }
+        else{
+            $('#versionCompare').hide();
+        }
+    }
+
+    self.wfVersionSelectionChange = function () {
+        if (self.selectedWfVersionId1()[0] == self.selectedWfVersionId2()[0]) {
+            $('#wfVersionSelectionAlert').show();
+            $('#wfVersionSelectionAlert').text('Please select two different version!');
+        }
+        else {
+            $('#wfVersionSelectionAlert').hide();
+            $('#wfVersionSelectionAlert').text('');
+        }
+    }
+
     self.compareSelectedWf = function () {
-        document.getElementById("wfSubmitAlert").textContent = '';
-        
         let selectedWfId1 = ko.toJS(self.selectedWfId1()[0]);
         let selectedWfId2 = ko.toJS(self.selectedWfId2()[0]);
         
         if(selectedWfId1 !== selectedWfId2){
+            //compare two workflow
             ajaxcalls.simple(self.tasksURI, 'GET', {'compare': selectedWfId1, 'with': selectedWfId2}).done(function (res) {
                 $('#wfCompareSelection').modal('hide');
-                $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function (param) {
+                $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
                     $('#liProvenanceTab').show();
                 });
                 tasksViewModel.createCompView(res) 
@@ -254,9 +282,169 @@ function SamplesViewModel(sampleViewModel) {
             });
         }
         else{
-            document.getElementById("wfSubmitAlert").textContent = 'Please select two different workflow!'
+            //compare two versions of selected workflow
+            let selectedWfVersionId1 = ko.toJS(self.selectedWfVersionId1()[0]);
+            let selectedWfVersionId2 = ko.toJS(self.selectedWfVersionId2()[0]);
+            
+            if(selectedWfVersionId1 !== selectedWfVersionId2){
+                ajaxcalls.simple(self.tasksURI, 'GET', {'revcompare': true,'revision1': selectedWfVersionId1, 'revision2': selectedWfVersionId2}).done(function (res) {
+                    $('#wfCompareSelection').modal('hide');
+                    $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
+                        $('#liProvenanceTab').show();
+                    });
+                    tasksViewModel.createCompView(res) 
+                }).fail(function (jqXHR) {
+                    showXHRText(jqXHR);
+                });
+            }
         }
     }
+
+    self.getAllVersion = function (workflowId) {
+        self.wfVersionList([]);
+        ajaxcalls.simple(self.samplesURI, 'GET', {'revisions': workflowId}).done(function (data) {
+            console.log(data);
+            
+            //get the version list here & make dropdown from it
+            data.forEach(wfVersion => {
+                self.wfVersionList.push({
+                    hex: wfVersion.hex,
+                    name: wfVersion.summary
+                }); 
+            });
+            
+            self.initiateWfVersionSelectionDdl();
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+
+        //remove these block while get the version list above
+        data = [
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+              "summary": "create workflow 1489",
+              "committer": "mredul",
+              "time": "2020-09-27 18:09:53+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5392",
+              "summary": "create workflow 1488",
+              "committer": "mredul",
+              "time": "2020-09-22 18:16:17+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5393",
+              "summary": "create workflow 1487",
+              "committer": "mredul",
+              "time": "2020-09-16 11:36:02+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5394",
+              "summary": "create workflow 1486",
+              "committer": "mredul",
+              "time": "2020-09-16 11:02:30+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5395",
+              "summary": "create workflow 1485",
+              "committer": "mredul",
+              "time": "2020-09-16 10:44:54+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5396",
+              "summary": "create workflow 1484",
+              "committer": "mredul",
+              "time": "2020-09-16 10:43:43+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5397",
+              "summary": "create workflow 1483",
+              "committer": "mredul",
+              "time": "2020-09-15 14:24:17+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5398",
+              "summary": "create workflow 1482",
+              "committer": "mredul",
+              "time": "2020-09-14 20:39:29+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5399",
+              "summary": "create workflow 1481",
+              "committer": "mredul",
+              "time": "2020-09-14 20:27:06+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5310",
+              "summary": "create workflow 1480",
+              "committer": "mredul",
+              "time": "2020-09-14 19:55:59+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5311",
+              "summary": "create workflow 1479",
+              "committer": "mredul",
+              "time": "2020-09-14 18:06:27+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5312",
+              "summary": "create workflow 1478",
+              "committer": "mredul",
+              "time": "2020-09-14 17:34:52+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5313",
+              "summary": "create workflow 1477",
+              "committer": "mredul",
+              "time": "2020-09-14 16:54:18+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5314",
+              "summary": "create workflow 1476",
+              "committer": "mredul",
+              "time": "2020-09-14 15:08:17+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5315",
+              "summary": "create workflow 1475",
+              "committer": "mredul",
+              "time": "2020-09-14 14:32:53+06:00"
+            },
+            {
+              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5316",
+              "summary": "create workflow 1474",
+              "committer": "mredul",
+              "time": "2020-09-14 14:00:04+06:00"
+            }
+        ]
+        data.forEach(wfVersion => {
+            self.wfVersionList.push({
+                hex: wfVersion.hex,
+                name: wfVersion.summary
+            }); 
+        });
+        
+        self.initiateWfVersionSelectionDdl();
+        //remove these block while get the version list above
+    };
+
+    self.initiateWfVersionSelectionDdl = function () {
+        $("#compareWfVersion1").multiselect({
+            includeSelectAllOption: true,
+            inheritClass: true,
+            buttonWidth: '100%',
+            enableFiltering: true,
+            maxHeight: 200
+        });
+
+        $("#compareWfVersion2").multiselect({
+            includeSelectAllOption: true,
+            inheritClass: true,
+            buttonWidth: '100%',
+            enableFiltering: true,
+            maxHeight: 200
+        });
+    };
 
     //workflow delete button
     self.workflowToolbar = function (item, event) {

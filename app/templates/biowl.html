@@ -2238,7 +2238,7 @@
 				<div class="container-fluid">
 					<div class="row service-form-group" style="display: flex;">
 						<div>
-							<label>Select a Workflow</label>
+							<label>Select Workflow</label>
 							<div>
 								<select id="compareWf1" class="form-control" data-bind="options: wfList, 
 																						optionsText: 'name', 
@@ -2252,7 +2252,7 @@
 						<div class="vl"></div>
 						
 						<div style="right: 1em; position: absolute;">
-							<label>Select another Workflow</label>
+							<label>Select Workflow</label>
 							<div>
 								<select id="compareWf2" class="form-control" data-bind="options: wfList, 
 																						optionsText: 'name', 
@@ -2266,27 +2266,31 @@
 
 					<div id="versionCompare" class="row service-form-group">
 						<hr>
-						<div>
-							<label>Select a Version</label>
+						<div style="display: flex;">
 							<div>
-								<select id="compareWfVersion1" class="form-control" data-bind="options: wfVersionList, 
-																						optionsText: 'name', 
-																						optionsValue: 'hex',
-																						selectedOptions: selectedWfVersionId1,
-																						event:{ change: wfVersionSelectionChange}">
-								</select>
+								<label>Select Version</label>
+								<div>
+									<select id="compareWfVersion1" class="form-control" data-bind="options: wfVersionList, 
+																							optionsText: 'name', 
+																							optionsValue: 'hex',
+																							selectedOptions: selectedWfVersionId1,
+																							event:{ change: wfVersionSelectionChange}">
+									</select>
+								</div>
 							</div>
-						</div>
-						
-						<div>
-							<label>Select another Version</label>
-							<div>
-								<select id="compareWfVersion2" class="form-control" data-bind="options: wfVersionList, 
-																						optionsText: 'name', 
-																						optionsValue: 'hex',
-																						selectedOptions: selectedWfVersionId2,
-																						event:{ change: wfVersionSelectionChange}">
-								</select>
+
+							<div class="vl"></div>
+							
+							<div style="right: 15px; position: absolute;">
+								<label>Select Version</label>
+								<div>
+									<select id="compareWfVersion2" class="form-control" data-bind="options: wfVersionList, 
+																							optionsText: 'name', 
+																							optionsValue: 'hex',
+																							selectedOptions: selectedWfVersionId2,
+																							event:{ change: wfVersionSelectionChange}">
+									</select>
+								</div>
 							</div>
 						</div>
 						<span id="wfVersionSelectionAlert" style="color: red;"></span>

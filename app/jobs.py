@@ -90,8 +90,12 @@ def sync_task_status_with_db_for_user(user_id):
     for runnable in runnables:
         if not runnable.completed():
             sync_task_status_with_db(runnable)
-            
-def generate_graph(workflow_id):
+
+def generate_graph_from_workflow(workflow_id):
     workflow = Workflow.query.get(workflow_id)
     graphgen = GraphGenerator()
-    return graphgen.run_workflow(workflow)
+    return graphgen.run_workflow(workflow.id, workflow.name, workflow.script)
+
+def generate_graph(workflow_id, name, script):
+    graphgen = GraphGenerator()
+    return graphgen.run_workflow(id, name, script)

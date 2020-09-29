@@ -506,11 +506,11 @@ class GraphGenerator(object):
         except Exception as err:
             self.context.err.append("Error at line {0}: {1}".format(self.line, err))
     
-    def run_workflow(self, workflow):
+    def run_workflow(self, id, name, script):
         parser = WorkflowParser(PythonGrammar())
-        prog = parser.parse(workflow.script)
+        prog = parser.parse(script)
         
-        self._workflow = Workflow(None, workflow.id, workflow.name)
+        self._workflow = Workflow(None, id, name)
         #self.wfroot = Workflow.Create(workflow.id, workflow.name)._node
         
         self.run(prog)

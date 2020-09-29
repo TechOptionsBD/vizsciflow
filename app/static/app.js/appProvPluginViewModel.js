@@ -129,7 +129,7 @@ function AddProvPluginViewModel(userName) {
 			if (data.err !== undefined && data.err.length != 0) {
 				msg = data.err.join(";");
 				
-				$("#add-library-info").text(msg);
+				$("#add-prov-library-info").text(msg);
 				activateTab(1);
 				return;
 			}
@@ -147,7 +147,7 @@ function AddProvPluginViewModel(userName) {
         
         var serviceName = (self.service.get('name') ? self.service.get('name') : self.service.get('internal'));
         if (!serviceName) {
-            $("#add-library-info").text("No valid service name is given.");
+            $("#add-prov-library-info").text("No valid service name is given.");
             return false;
         }
         
@@ -160,13 +160,13 @@ function AddProvPluginViewModel(userName) {
         ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package, 'name': serviceName, 'script': self.provCodeEditor.getSession().getValue(), 'mapper': ko.toJSON(serviceFormatted)}, false).done(function(data) {
             
             if (data === undefined) {
-                $("#add-library-info").text("Can't retrieve service information. Check your internet connection.");
+                $("#add-prov-library-info").text("Can't retrieve service information. Check your internet connection.");
                 return;
             }
             
             success = data['error'] === undefined;
             if (!success) {
-                $("#add-library-info").text(data['error']);
+                $("#add-prov-library-info").text(data['error']);
             }
         });
         

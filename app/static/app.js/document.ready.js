@@ -425,6 +425,7 @@ function toggleProvView(selectedTab) {
     switch (selectedTab) {   
         case "graph":
             $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
             $("#provenance").show();
             $("#provDiagramOverview").show();
             break;
@@ -432,7 +433,15 @@ function toggleProvView(selectedTab) {
         case "compare":
             $("#provenance").hide();
             $("#provDiagramOverview").hide();
+            $("#compareTxtDiv").hide();
             $("#compareDiv").show();
+            break;
+
+        case "textcompare":
+            $("#provenance").hide();
+            $("#provDiagramOverview").hide();
+            $("#compareDiv").hide();
+            $("#compareTxtDiv").show();
             break;
     }
 }

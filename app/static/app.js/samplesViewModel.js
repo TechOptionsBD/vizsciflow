@@ -199,8 +199,8 @@ function SamplesViewModel(sampleViewModel) {
         self.getAllSavedWf();
         $('#versionCompare').hide();
         
-        self.selectedWfId1([])
-        self.selectedWfId2([])
+        // self.selectedWfId1([])
+        // self.selectedWfId2([])
 
         $('#wfCompareSelection').modal('show');
     }
@@ -244,8 +244,8 @@ function SamplesViewModel(sampleViewModel) {
             //display versions selection ddl
             self.getAllVersion(self.selectedWfId1()[0]);
 
-            self.selectedWfVersionId1([])
-            self.selectedWfVersionId2([])
+            // self.selectedWfVersionId1([])
+            // self.selectedWfVersionId2([])
             
             $('#versionCompare').show();
         }
@@ -276,7 +276,7 @@ function SamplesViewModel(sampleViewModel) {
                 $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
                     $('#liProvenanceTab').show();
                 });
-                tasksViewModel.createCompView(res) 
+                tasksViewModel.createCompView(res.view) 
             }).fail(function (jqXHR) {
                 showXHRText(jqXHR);
             });

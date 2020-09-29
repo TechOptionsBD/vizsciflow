@@ -288,7 +288,7 @@ function TasksViewModel() {
             reportId = parseInt(data.runnableId);
 
 			ajaxcalls.simple('/runnables', 'GET', { 'id': reportId }).done(function (data) {
-                self.createCompView(data);
+                self.createCompView(JSON.parse(data['view']));
 			});
 			
 			$('#refresh').hide();
@@ -317,7 +317,7 @@ function TasksViewModel() {
                 groupNode = {key: "Subgraph " + subGraphNo, isGroup: true}
                 json["nodeDataArray"].push(groupNode)
                 
-                json = mergeJson(json, JSON.parse(aGraphData))
+                json = mergeJson(json, aGraphData)
                 subGraphNo++;
             });
         }
@@ -381,11 +381,16 @@ function TasksViewModel() {
         })
     }
 
-    self.createCompView = function (data) {
-        if(data == undefined)
+    function provCompTxt(data){
+        $('#txtComparisonDiv').text(data)
+        
+    }
+
+    self.createCompView = function (view) {
+        if(view == undefined)
             return;
 
-        view = JSON.parse(data['view'])
+        // view = JSON.parse(data['view'])
 
         let provTabDdl = document.getElementsByClassName("provTabCombo");
         $(".provTabCombo").empty();
@@ -405,6 +410,7 @@ function TasksViewModel() {
 
         if(view.graph !== undefined){
             $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
             $("#provenance").show();
             $("#provDiagramOverview").show();
             
@@ -415,10 +421,22 @@ function TasksViewModel() {
             if(view.graph === undefined){
                 $("#provenance").hide();
                 $("#provDiagramOverview").hide();
+                $("#compareTxtDiv").hide();
                 $("#compareDiv").show();
             }
 
             provCompTable(view.compare[0]);
+        }
+
+        if(view.textcompare !== undefined){
+            if(view.graph === undefined){
+                $("#provenance").hide();
+                $("#provDiagramOverview").hide();
+                $("#compareDiv").hide();
+                $("#compareTxtDiv").show();
+            }
+
+            provCompTxt(view.textcompare[0]);
         }
     }
 

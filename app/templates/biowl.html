@@ -1000,9 +1000,14 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-		  <button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
-          <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
-          <span class="label label-default" id="add-library-info"></span>
+			<div style = "float:left">
+				<label class="span-sm-0" style = "color: red; margin-left: 4px">Error</label>
+				<div class="span-sm-10">
+					<input style="width: 550px; margin-left: 10px" class="form-control" id="add-library-info">	
+				</div>
+			</div>
+			<button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
+			<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		</div>
 	  </div>
 	</div>
@@ -1049,9 +1054,14 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-		  <button data-bind="click: addPlugin" class="btn btn-primary">Add</button>
-          <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
-          <span class="label label-default" id="add-prov-library-info"></span>
+			<div style = "float:left">
+				<label class="span-sm-0" style = "color: red; margin-left: 4px">Error</label>
+				<div class="span-sm-10">
+					<input style="width: 380px; margin-left: 10px" class="form-control" id="add-prov-library-info">	
+				</div>
+			</div>
+		  	<button data-bind="click: addPlugin" class="btn btn-primary">Add</button>
+			<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		</div>
 	  </div>
 	</div>

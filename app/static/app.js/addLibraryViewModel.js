@@ -100,7 +100,7 @@ function AddLibraryViewModel(userName) {
         
         var serviceName = (self.service.get('name') ? self.service.get('name') : self.service.get('internal'));
         if (!serviceName) {
-            $("#add-library-info").text("No valid service name is given.");
+            $("#add-library-info").val("No valid service name is given.");
             return false;
         }
         
@@ -113,13 +113,13 @@ function AddLibraryViewModel(userName) {
         ajaxcalls.simple(self.tasksURI, 'GET', { 'check_function': '', 'package':  package, 'name': serviceName, 'script': self.codeEditor.getSession().getValue(), 'mapper': ko.toJSON(serviceFormatted)}, false).done(function(data) {
             
             if (data === undefined) {
-                $("#add-library-info").text("Can't retrieve service information. Check your internet connection.");
+                $("#add-library-info").val("Can't retrieve service information. Check your internet connection.");
                 return;
             }
             
             success = data['error'] === undefined;
             if (!success) {
-                $("#add-library-info").text(data['error']);
+                $("#add-library-info").val(data['error']);
             }
         });
         
@@ -168,7 +168,7 @@ function AddLibraryViewModel(userName) {
             return;
         }
         
-        $("#add-library-info").text("");
+        $("#add-library-info").val("");
         $('#add').modal('hide');
 
         var serviceFormatted = JSON.parse(JSON.stringify(self.service)) ;

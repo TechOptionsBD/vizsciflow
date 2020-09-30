@@ -37,10 +37,10 @@ def git_access():
         return git.Repo(workflowdir)
     except git.exc.NoSuchPathError:
         os.mkdir(workflowdir)
-        return Workflow.git_access()
+        return git_access()
     except git.exc.InvalidGitRepositoryError:
         git.Repo.init(workflowdir)
-        return Workflow.git_access()
+        return git_access()
 
 repo = None
 try:
@@ -664,8 +664,30 @@ class Workflow(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
-     
-    
+    @staticmethod
+    def commit_changes(branch = 'master', message='update' ):
+        has_changed = False
+        if repo.is_dirty():
+            for file in repo.git.diff(None, name_only=True).split('\n'):
+                repo.git.add(file)
+                if not has_changed:
+                    has_changed = True
+
+        if has_changed:
+            repo.git.commit('-m', message)
+            #repo.git.push('origin', branch) # if you have remote repository too
+                
+    def git_write(self, script):
+        if repo:
+            with open(self.scriptpath, 'w') as f:
+                f.write(script)
+            return Workflow.commit_changes()
+            #g = git.cmd.Git(workflowdir)
+            #if not g.ls_files(str(self.id)):
+            
+#             repo.git.add(str(self.id))
+#             return repo.git.commit('-m', 'update script')
+                
     def update_script(self, script):
         if self.script == script:
             return True                       
@@ -674,10 +696,10 @@ class Workflow(db.Model):
             self.modified_on = datetime.utcnow() 
             db.session.commit()
             
-            if repo:
-                with open(self.scriptpath, 'w') as f:
-                    f.write(script)
-                    repo.git.commit('-m', 'update script')
+            try:
+                self.git_write(script)
+            except:
+                raise
         except:
             db.session.rollback()
             raise
@@ -704,6 +726,10 @@ class Workflow(db.Model):
                 revisions.append(revision)
             except:
                 pass
+        if revisions:
+            return revisions
+        self.git_write(self.script)
+        return self.revision()
     
     def revision_by_commit(self, hexsha):
         if not repo:

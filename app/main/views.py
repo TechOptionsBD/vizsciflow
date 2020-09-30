@@ -20,11 +20,12 @@ from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import Permission, AlchemyEncoder, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType, WorkflowAnnotation
+from ..models import Permission, AlchemyEncoder, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType
 from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from ..biowl.exechelper import func_exec_stdout
+from ..biowl.dsl.provobj import View, Run
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -824,6 +825,47 @@ class Samples():
         finally:
             return json.dumps({ 'out': '', 'err': ''})
     
+
+def workflow_compare(workflow1, workflow2):
+    try:
+        from ..jobs import generate_graph_from_workflow
+        from ..runmgr import runnableManager
+        from difflib import ndiff
+        
+        graph1 = generate_graph_from_workflow(workflow1)
+        graph2 = generate_graph_from_workflow(workflow2)
+        view = {"graph": [graph1, graph2] }
+        
+        workflow = Workflow.query.get(workflow1)
+        wf_script1 = workflow.script
+        node1 = runnableManager.create_runnable(current_user.id, workflow1, wf_script1, provenance=True, args=None)
+        
+        workflow = Workflow.query.get(workflow2)
+        wf_script2 = workflow.script
+        node2 = runnableManager.create_runnable(current_user.id, workflow2, wf_script2, provenance=True, args=None)
+        view['compare'] = [View.compare(Run(runItem = node1), Run(runItem = node2))]
+        
+        diff = ndiff(wf_script1, wf_script2)              
+        diff = '\n'.join(list(diff))
+        view['textcompare'] = [diff]
+        
+        return json.dumps({"view": view})
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
+    
+def workflow_rev_compare(request):
+    try:
+        from ..jobs import generate_graph
+        
+        workflow = Workflow.query.filter_by(id = request.args.get('revcompare')).first_or_404()
+        
+        revision1_script = workflow.revision_by_commit(request.args.get('revision1'))
+        revision2_script = workflow.revision_by_commit(request.args.get('revision2'))
+        graph1 = generate_graph(workflow.id, workflow.name, revision1_script)
+        graph2 = generate_graph(workflow.id, workflow.name, revision2_script)
+        return json.dumps(View.compare(graph1, graph2))
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
     
 @main.route('/samples', methods=['GET', 'POST'])
 @login_required
@@ -834,12 +876,16 @@ def samples():
         elif request.args.get('sample_id'):
             workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
             return json.dumps(workflow.to_json())
-        elif request.args.get('revisions'):
-            workflow = Workflow.query.filter_by(id = request.args.get('revisions')).first_or_404()
-            return json.dumps(workflow.revisions())
         elif request.args.get('revision'):
             workflow = Workflow.query.filter_by(id = request.args.get('revision')).first_or_404()
             return json.dumps(workflow.revision_by_commit(request.args.get('hexsha')))
+        elif request.args.get('compare'):
+            return workflow_compare(int(request.args.get('compare')), int(request.args.get('with')))
+        elif request.args.get('revcompare'):
+            return workflow_rev_compare(request)
+        elif request.args.get('revisions'):
+            workflow = Workflow.query.filter_by(id = request.args.get('revisions')).first_or_404()
+            return json.dumps(workflow.revisions)
         elif request.args.get('tooltip'):
             workflow = Workflow.query.filter_by(id = request.args.get('tooltip')).first_or_404()
             return json.dumps(workflow.to_json_tooltip())   

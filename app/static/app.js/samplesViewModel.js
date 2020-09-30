@@ -271,7 +271,7 @@ function SamplesViewModel(sampleViewModel) {
         
         if(selectedWfId1 !== selectedWfId2){
             //compare two workflow
-            ajaxcalls.simple(self.tasksURI, 'GET', {'compare': selectedWfId1, 'with': selectedWfId2}).done(function (res) {
+            ajaxcalls.simple(self.samplesURI, 'GET', {'compare': selectedWfId1, 'with': selectedWfId2}).done(function (res) {
                 $('#wfCompareSelection').modal('hide');
                 $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
                     $('#liProvenanceTab').show();
@@ -287,7 +287,7 @@ function SamplesViewModel(sampleViewModel) {
             let selectedWfVersionId2 = ko.toJS(self.selectedWfVersionId2()[0]);
             
             if(selectedWfVersionId1 !== selectedWfVersionId2){
-                ajaxcalls.simple(self.tasksURI, 'GET', {'revcompare': true,'revision1': selectedWfVersionId1, 'revision2': selectedWfVersionId2}).done(function (res) {
+                ajaxcalls.simple(self.samplesURI, 'GET', {'revcompare': true,'revision1': selectedWfVersionId1, 'revision2': selectedWfVersionId2}).done(function (res) {
                     $('#wfCompareSelection').modal('hide');
                     $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
                         $('#liProvenanceTab').show();
@@ -302,14 +302,14 @@ function SamplesViewModel(sampleViewModel) {
 
     self.getAllVersion = function (workflowId) {
         self.wfVersionList([]);
-        ajaxcalls.simple(self.samplesURI, 'GET', {'revisions': workflowId}).done(function (data) {
-            console.log(data);
-            
+        ajaxcalls.simple(self.samplesURI, 'GET', {'revisions': workflowId}, false).done(function (data) {
             //get the version list here & make dropdown from it
             data.forEach(wfVersion => {
                 self.wfVersionList.push({
                     hex: wfVersion.hex,
-                    name: wfVersion.summary
+                    name: wfVersion.summary,
+					committer: wfVersion.committer,
+					time: wfVersion.time
                 }); 
             });
             
@@ -317,115 +317,6 @@ function SamplesViewModel(sampleViewModel) {
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });
-
-        //remove these block while get the version list above
-        data = [
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
-              "summary": "create workflow 1489",
-              "committer": "mredul",
-              "time": "2020-09-27 18:09:53+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5392",
-              "summary": "create workflow 1488",
-              "committer": "mredul",
-              "time": "2020-09-22 18:16:17+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5393",
-              "summary": "create workflow 1487",
-              "committer": "mredul",
-              "time": "2020-09-16 11:36:02+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5394",
-              "summary": "create workflow 1486",
-              "committer": "mredul",
-              "time": "2020-09-16 11:02:30+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5395",
-              "summary": "create workflow 1485",
-              "committer": "mredul",
-              "time": "2020-09-16 10:44:54+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5396",
-              "summary": "create workflow 1484",
-              "committer": "mredul",
-              "time": "2020-09-16 10:43:43+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5397",
-              "summary": "create workflow 1483",
-              "committer": "mredul",
-              "time": "2020-09-15 14:24:17+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5398",
-              "summary": "create workflow 1482",
-              "committer": "mredul",
-              "time": "2020-09-14 20:39:29+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5399",
-              "summary": "create workflow 1481",
-              "committer": "mredul",
-              "time": "2020-09-14 20:27:06+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5310",
-              "summary": "create workflow 1480",
-              "committer": "mredul",
-              "time": "2020-09-14 19:55:59+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5311",
-              "summary": "create workflow 1479",
-              "committer": "mredul",
-              "time": "2020-09-14 18:06:27+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5312",
-              "summary": "create workflow 1478",
-              "committer": "mredul",
-              "time": "2020-09-14 17:34:52+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5313",
-              "summary": "create workflow 1477",
-              "committer": "mredul",
-              "time": "2020-09-14 16:54:18+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5314",
-              "summary": "create workflow 1476",
-              "committer": "mredul",
-              "time": "2020-09-14 15:08:17+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5315",
-              "summary": "create workflow 1475",
-              "committer": "mredul",
-              "time": "2020-09-14 14:32:53+06:00"
-            },
-            {
-              "hex": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5316",
-              "summary": "create workflow 1474",
-              "committer": "mredul",
-              "time": "2020-09-14 14:00:04+06:00"
-            }
-        ]
-        data.forEach(wfVersion => {
-            self.wfVersionList.push({
-                hex: wfVersion.hex,
-                name: wfVersion.summary
-            }); 
-        });
-        
-        self.initiateWfVersionSelectionDdl();
-        //remove these block while get the version list above
     };
 
     self.initiateWfVersionSelectionDdl = function () {

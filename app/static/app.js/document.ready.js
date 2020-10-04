@@ -443,6 +443,14 @@ function toggleProvView(selectedTab) {
             $("#compareDiv").hide();
             $("#compareTxtDiv").show();
             break;
+
+        default:
+            $("#provenance").show();
+            $("#provDiagramOverview").show();
+            $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
+            break;            
     }
 }
 

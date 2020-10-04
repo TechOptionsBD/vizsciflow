@@ -234,7 +234,9 @@ function RunnablesViewModel() {
             diagramReload("provenance");				    //reload the graph
             diagramReload("provDiagramOverview");	        //reload the overview
 
-            $('.nav-tabs a[href="#provenancetab"]').tab('show');
+            $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
+                $('#liProvenanceTab').show();
+            });
             
             if(monitorTimer){
                 clearInterval(monitorTimer); 

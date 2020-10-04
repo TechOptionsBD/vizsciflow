@@ -505,7 +505,7 @@ def graphs():
                 from ..biowl.dsl.provobj import Run
                 runid = request.form.get('monitor')
                 run = Run.get(id = runid)
-                return View.graph(run)
+                return json.dumps(View.graph(run))
             elif request.form.get('nodeinfo'):
                 from ..graphutil import NodeItem
                 node = NodeItem.load(request.form.get('nodeinfo'))

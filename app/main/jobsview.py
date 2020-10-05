@@ -500,12 +500,17 @@ def graphs():
                 if not workflowId:
                     return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
                 else:
-                    return build_graph(workflowId)
+                    return build_graph(workflowId)               
             elif request.form.get('monitor'):
-                from ..biowl.dsl.provobj import Run
-                runid = request.form.get('monitor')
-                run = Run.get(id = runid)
-                return json.dumps(View.graph(run))
+                from ..biowl.dsl.provobj import Monitor
+                
+                if request.form.get('duration'):
+                    return jsonify(duration=Monitor.time(request.form.get('duration')))
+                else:
+                    from ..biowl.dsl.provobj import Run
+                    runid = request.form.get('monitor')
+                    run = Run.get(id = runid)
+                    return json.dumps(View.graph(run))
             elif request.form.get('nodeinfo'):
                 from ..graphutil import NodeItem
                 node = NodeItem.load(request.form.get('nodeinfo'))
@@ -574,7 +579,7 @@ def runnables():
             for runnable_id in ids:
                 runnable = runnableManager.get_runnable(int(runnable_id))
                 if runnable:
-                    if not runnable.completed():
+                    if not runnable.completed:
                         stop_script(runnable.celery_id)
                         sync_task_status_with_db(runnable)
                     run_biowl(runnable.workflow_id, runnable.script, runnable.arguments, False, False)    

@@ -36,8 +36,7 @@ def run_script(self, runnable_id, args):
         
         if self and self.request:
             runnable.celery_id = self.request.id
-        runnable.status = Status.STARTED
-        runnable.update()
+        runnable.set_status(Status.STARTED)
 
         with Timer() as t:
             parser = WorkflowParser(PythonGrammar())   
@@ -48,13 +47,13 @@ def run_script(self, runnable_id, args):
             prog = parser.parse(runnable.script)
             machine.run(prog)
                             
-        runnable.status = Status.SUCCESS
+        runnable.set_status(Status.SUCCESS, False)
     except (ParseException, Exception) as e:
-        runnable.status = Status.FAILURE
+        runnable.set_status(Status.FAILURE, False)
         machine.context.err.append(str(e))
     finally:
         os.chdir(curdir)
-        runnable.duration = float("{0:.3f}".format(t.secs))
+        #runnable.duration = float("{0:.3f}".format(t.secs))
         runnable.error = "\n".join(machine.context.err)
         runnable.out = "\n".join(machine.context.out)
         runnable.view = json.dumps(machine.context.view if hasattr(machine.context, 'view') else '')
@@ -70,9 +69,9 @@ def stop_script(task_id):
     celery.control.revoke(task_id, terminate=True)
 
 def sync_task_status_with_db(runnable):
-    if runnable.celery_id and runnable.status != 'FAILURE' and runnable.status != 'SUCCESS' and runnable.status != 'REVOKED':
+    if runnable.celery_id and not runnable.completed:
         celeryTask = run_script.AsyncResult(runnable.celery_id)
-        runnable.status = celeryTask.state
+        runnable.set_status(celeryTask.state, False)
         
         if celeryTask.state != 'PENDING':
             if celeryTask.state != 'FAILURE' and celeryTask.state != 'REVOKED':
@@ -88,7 +87,7 @@ def sync_task_status_with_db(runnable):
 def sync_task_status_with_db_for_user(user_id):
     runnables = runnableManager.runnables_of_user(user_id)
     for runnable in runnables:
-        if not runnable.completed():
+        if not runnable.completed:
             sync_task_status_with_db(runnable)
 
 def generate_graph_from_workflow(workflow_id):

@@ -21,6 +21,11 @@ def graph():
     return g.graph
  
 bytes_in_gb = 1024 * 1024
+def neotime_duration_to_ms(duration):
+    return duration[0] * 2629800000 + duration[1] * 86400000 + duration[2] * 1000 + duration[3]/1000000
+
+def neotime_duration_to_s(duration):
+    return neotime_duration_to_ms(duration)/1000
 
 def neotime2StrfTime(date):
     if isinstance(date, neotime.DateTime):
@@ -348,8 +353,8 @@ class RunnableItem(NodeItem): #number1
     view = Property("view", "")
     
     script = Property("script", "")
-    status = Property("status", "")
-    duration = Property("duration", 0)
+    status = Property("status", Status.RECEIVED)
+    _duration = Property("duration", neotime.Duration())
     arguments = Property("arguments", "")
     provenance = Property("provenance", False)
     
@@ -357,36 +362,17 @@ class RunnableItem(NodeItem): #number1
     users = RelatedFrom(UserItem, "USERRUN")
     workflows = RelatedFrom(WorkflowItem, "WORKFLOWRUN")
     
+    cpu_init = Property("cpu_init", psutil.cpu_percent())
+    memory_init = Property("memory_init", (psutil.virtual_memory()[2])/bytes_in_gb)
+    
+    cpu_run = Property("cpu_run", 0.0)
+    memory_run = Property("memory_run", 0.0)
+    
+    _started_on = Property("started_on", neotime.DateTime.min)
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
-        if not self.celery_id:
-            self.celery_id = 0
-        
-        if not self.out:
-            self.out = ""
-        
-        if not self.error:
-            self.error = ""
-            
-        if not self.view:
-            self.view = ""
-        
-        if not self.script:
-            self.script = ""
-        
-        if not self.status:
-            self.status = Status.RECEIVED
-            
-        if not self.duration:
-            self.duration = 0
-        
-        if not self.arguments:
-            self.arguments = ""
-        
-        if not self.provenance:
-            self.provenance = False
-            
+                    
     @property
     def user_id(self):
         return list(self.users)[0].user_id
@@ -395,6 +381,14 @@ class RunnableItem(NodeItem): #number1
     def workflow_id(self):
         return list(self.workflows)[0].workflow_id
     
+    @property
+    def duration(self):
+        if self.status == Status.STARTED:
+            self._duration = neotime.DateTime.utc_now() - self._started_on
+            #graph().push(self)
+            
+        return self._duration    
+        
     def update(self):
         graph().push(self)
         
@@ -462,8 +456,27 @@ class RunnableItem(NodeItem): #number1
     def load_if(condition = None):
         pass
     
+    def update_cpu_memory(self):
+        self.cpu_run = psutil.cpu_percent()
+        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb
+        
+    def set_status(self, value, update = True):
+        self.status = value
+        
+        if value == Status.STARTED:
+            self._started_on = neotime.DateTime.utc_now()
+            self.update_cpu_memory()
+    
+        if value == Status.SUCCESS or value == Status.FAILURE or value == Status.REVOKED:
+            self._duration = neotime.DateTime.utc_now() - self._started_on
+            self.update_cpu_memory()
+        
+        if update:
+            self.update()
+        
+    @property        
     def completed(self):
-        return self.status == 'SUCCESS' or self.status == 'FAILURE' or self.status == 'REVOKED'
+        return self.status == Status.SUCCESS or self.status == Status.FAILURE or self.status == Status.REVOKED
     
     def json(self):
         j = NodeItem.json(self)
@@ -471,14 +484,14 @@ class RunnableItem(NodeItem): #number1
             'user_id': self.user_id,
             'workflow_id': self.workflow_id,
             'celery_id': self.celery_id,
-            'memory': (psutil.virtual_memory()[2])/bytes_in_gb,
-            'cpu': (psutil.cpu_percent()),
+            'memory': self.memory_run,
+            'cpu': self.cpu_run,
             'out': self.out,
             'error': self.error,
             'view': self.view,
 #            'script': self.script,
             'status': self.status,
-            'duration': self.duration,
+            'duration': "{0:.3f}".format(neotime_duration_to_s(self.duration)),
             'arguments': str(self.arguments),
             'name': self.name
             })
@@ -505,9 +518,9 @@ class RunnableItem(NodeItem): #number1
             'name': self.name,
             'status': self.status,
             'err': error,
-            'duration': self.duration,
-            'created_on': str(self.created_on) if self.created_on else '',
-            'modified_on': str(self.modified_on) if self.modified_on else ''
+            'duration': "{0:.3f}".format(neotime_duration_to_s(self.duration)),
+            'created_on': neotime2StrfTime(self.created_on),
+            'modified_on': neotime2StrfTime(self.modified_on)
         }
         
     def to_json_log(self):
@@ -522,7 +535,7 @@ class RunnableItem(NodeItem): #number1
             'status': self.status,
             'out': self.out,
             'err': self.error,
-            'duration': self.duration,
+            'duration': "{0:.3f}".format(neotime_duration_to_s(self.duration)),
             'log': log
         }
         
@@ -531,7 +544,7 @@ class RunnableItem(NodeItem): #number1
             'id': self.id,
             'user_id': self.user_id,
             'name': self.name,
-            'modified_on': str(self.modified_on) if self.modified_on else '',
+            'modified_on': neotime2StrfTime(self.modified_on),
             'status': self.status
         }
         
@@ -541,26 +554,31 @@ class ModuleItem(NodeItem):
     outputs = RelatedTo("ValueItem", "OUTPUT")
     logs = RelatedTo("TaskLogItem", "LOG")
     
-    name = Property("name")
-    package = Property("package")
-    status = Property("status")
-        
+    name = Property("name", "")
+    package = Property("package", "")
+    status = Property("status", Status.RECEIVED)
+    
+    cpu_init = Property("cpu_init", psutil.cpu_percent())
+    memory_init = Property("memory_init", (psutil.virtual_memory()[2])/bytes_in_gb)
+    
+    cpu_run = Property("cpu_run", 0)
+    memory_run = Property("memory_run", 0)
+    
+    _started_on = Property("started_on", neotime.DateTime.min)
+    _duration = Property("duration", neotime.Duration())
+    
     def __init__(self, name, package = None, **kwargs):
         super().__init__(**kwargs)
-        if not self.name:
-            self.name = name
-        if not self.status:
-            self.status = Status.RECEIVED
-        if not self.package:
-            self.package = package
+        self.name = name
+        self.package = package
     
     def json(self):
         j = NodeItem.json(self)
         j.update({
             'event': 'RUN-CREATE',
             'name':self.name,
-            'memory': (psutil.virtual_memory()[2])/bytes_in_gb,
-            'cpu': (psutil.cpu_percent()),
+            'memory': str(self.memory_run),
+            'cpu': str(self.cpu_run),
             'status': self.status           
         })
         
@@ -574,7 +592,15 @@ class ModuleItem(NodeItem):
     @property
     def run_id(self):
         return list(self.runs)[0].id
-
+    
+    @property
+    def duration(self):
+        if self.status == Status.STARTED:
+            self._duration = neotime.DateTime.utc_now() - self._started_on
+            #graph().push(self)
+            
+        return self._duration  
+    
     @staticmethod
     def load(module_id, name = None, package = None):
         if module_id:
@@ -592,20 +618,29 @@ class ModuleItem(NodeItem):
         
     def start(self):
         self.status = Status.STARTED
-        self.created_on = datetime.utcnow()
+        self._started_on = neotime.DateTime.utc_now()
+        
+        self._duration = neotime.Duration()
+        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb
+        self.cpu_run = psutil.cpu_percent()
+                    
         self.add_log(Status.STARTED, LogType.INFO)
         graph().push(self)
     
     def succeeded(self):
         self.status = Status.SUCCESS
         self.add_log(Status.SUCCESS, LogType.INFO)
-        self.modified_on = datetime.utcnow()
+        self.modified_on = neotime.DateTime.utc_now()
+        self._duration = neotime.DateTime.utc_now() - self._started_on
+        
         graph().push(self)
     
     def failed(self, log = "Task Failed."):
         self.status = Status.FAILURE
         self.add_log(log, LogType.INFO)
         self.modified_on = datetime.utcnow()
+        self._duration = neotime.DateTime.utc_now() - self._started_on
+        
         graph().push(self)
                     
     def add_log(self, log, logtype =  LogType.ERROR):
@@ -703,8 +738,6 @@ class TaskLogItem(NodeItem):
         j = NodeItem.json(self)
         j.update({
             'event': 'LOG-CREATE',
-            'memory': (psutil.virtual_memory()[2])/bytes_in_gb,
-            'cpu': (psutil.cpu_percent()),
             'type': self.logtype,
             'log': self.logtext
             })

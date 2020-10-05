@@ -1,10 +1,9 @@
 import os
-from json import dumps
 import itertools
 import operator
 
-from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem
-from ...models import User as DbUser
+from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem, NodeItem
+from ...models import User as DbUser, Status
 from app.util import Utility
 from dsl.datatype import DataType
 from .pluginmgr import plugincollection
@@ -525,31 +524,59 @@ class View(object):
     @staticmethod             
     def compare(node1, node2, deep = True):
         return node1.compare(node1, node2, deep)
+
+    @staticmethod             
+    def plugin(name, data):
+        from pathlib import Path
+        appdir = Path(os.path.abspath(__file__)).parents[2]
+        pluginview = {"html": {
+            "url": os.path.join(appdir, 'templates/plugins', name, name + '.html'),
+            "data": data
+            }}
+        return pluginview
    
 class Monitor(object):
     
-    def time(self, node_id):
+    @staticmethod
+    def time(id):
+        node = NodeItem.load(id)
+        if not node:
+            raise ValueError("Node doesn't exist: {0}".format(id))
+        
+        if issubclass(node, RunnableItem) or issubclass(node, ModuleItem):
+            return node.duration, node.cpu_run
+    
+    @staticmethod    
+    def proptime(id):
+        node = NodeItem.load(id)
+        
+        if issubclass(node, ModuleItem):
+            runitem = node.runs[0]
+            return node.duration, node.cpu_run, runitem.cpu_run
+        elif issubclass(node, ModuleItem):
+            runitem = node.runs[0]
+            return node.duration, node.cpu_run, runitem.cpu_run
+    
+    @staticmethod
+    def metric():
         pass
     
-    def proportional_time(self, id):
+    @staticmethod
+    def aggr(property):
         pass
     
-    def metric(self):
+    @staticmethod
+    def proportional_aggr(property):
         pass
     
-    def aggr(self, property):
-        pass
-    
-    def proportional_aggr(self, property):
-        pass
-    
-    def aggr_metric(self):
+    @staticmethod
+    def aggr_metric():
         pass
     
 class Stat(object):
     @staticmethod
-    def Similarity(g1, g2):
-        pass
+    def similarity(g1, g2):
+        g1.compare(g1, g2)
     
     @staticmethod
     def get(condition):

@@ -168,6 +168,15 @@ color:#333;
   overflow: auto;
 }
 
+@media screen and (min-width: 768px) {
+  #showMessageModal {
+      top : 0;
+      left: auto;
+      bottom: auto;
+      overflow: visible;
+  }
+}
+
 .marginRow{
    margin:4px !important; 
  }

@@ -241,6 +241,18 @@ function provgraphViewModel()
 							$("#showMessageModal").find('.modal-body #NodeInfo').append("<li>"+key+" : "+value+"</li>")
 						}
 					)
+
+					if (!($('.modal.in').length)) {
+						$('.modal-dialog').css({
+							top: 0,
+							left: 0
+						});
+					}
+					
+					$('#showMessageModal .modal-dialog').draggable({
+						handle: ".modal-header"
+					});
+
 					$('#showMessageModal').modal('show');
 						
 				}).fail(function(jqXHR){

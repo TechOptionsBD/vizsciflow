@@ -426,6 +426,7 @@ function toggleProvView(selectedTab) {
         case "graph":
             $("#compareDiv").hide();
             $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
             $("#provenance").show();
             $("#provDiagramOverview").show();
             break;
@@ -434,6 +435,7 @@ function toggleProvView(selectedTab) {
             $("#provenance").hide();
             $("#provDiagramOverview").hide();
             $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
             $("#compareDiv").show();
             break;
 
@@ -441,9 +443,18 @@ function toggleProvView(selectedTab) {
             $("#provenance").hide();
             $("#provDiagramOverview").hide();
             $("#compareDiv").hide();
+            $("#pluginViewDiv").hide();
             $("#compareTxtDiv").show();
             break;
 
+        case "plugin":
+            $("#provenance").hide();
+            $("#provDiagramOverview").hide();
+            $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").show();
+            break;
+            
         default:
             $("#provenance").show();
             $("#provDiagramOverview").show();

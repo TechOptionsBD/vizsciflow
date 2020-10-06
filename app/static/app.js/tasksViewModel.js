@@ -35,11 +35,12 @@ function TasksViewModel() {
     self.videoTypes = ["3gp", "axv", "dl", "dif", "dv", "fli", "gl", "ts", "ogv", "mxu", "flv", "lsf", "lsx", "mng", "asf",
         "asx", "wm", "wmv", "wmx", "wvx", "mpv", "mkv", "avi", "m1v", "mov", "movie", "mp4", "mpa", "mpe", "mpeg", "mpg", "webm"];
 
-        self.itemName = ko.observable();
-        self.itemSrc = ko.observable();
-        self.currentItemPath = ko.observable();
-        self.isListView = ko.observable(true);
-        self.sliderItems = ko.observableArray();
+    self.itemName = ko.observable();
+    self.itemSrc = ko.observable();
+    self.pluginHtmlSrc = ko.observable();
+    self.currentItemPath = ko.observable();
+    self.isListView = ko.observable(true);
+    self.sliderItems = ko.observableArray();
 
     self.serviceaccesstypes = ko.observableArray([
         {
@@ -383,7 +384,30 @@ function TasksViewModel() {
 
     function provCompTxt(data){
         $('#txtComparisonDiv').text(data)
-        
+
+    }
+
+    function pluginHtmlViewer(data) {
+        // self.pluginHtmlSrc(data.url)
+
+        var oReq = new XMLHttpRequest();
+        oReq.open('GET', self.dataSourcesURI + "?" + 'file_data=' + data.url, true);
+        oReq.responseType = "arraybuffer";
+
+        oReq.send();
+        // self.itemName(data.url);
+        oReq.onload = function (oEvent) {
+            if (this.status == 200) {
+                var arrayBuffer = oReq.response;
+                var blob = new Blob([arrayBuffer], { type: "text/html" });
+                var reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onload = function () {
+                    var base64UrlString = reader.result;
+                    self.pluginHtmlSrc(base64UrlString);
+                }
+            }
+        };
     }
 
     self.createCompView = function (view) {
@@ -411,6 +435,7 @@ function TasksViewModel() {
         if(view.graph !== undefined){
             $("#compareDiv").hide();
             $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
             $("#provenance").show();
             $("#provDiagramOverview").show();
             
@@ -422,6 +447,7 @@ function TasksViewModel() {
                 $("#provenance").hide();
                 $("#provDiagramOverview").hide();
                 $("#compareTxtDiv").hide();
+                $("#pluginViewDiv").hide();
                 $("#compareDiv").show();
             }
 
@@ -433,10 +459,23 @@ function TasksViewModel() {
                 $("#provenance").hide();
                 $("#provDiagramOverview").hide();
                 $("#compareDiv").hide();
+                $("#pluginViewDiv").hide();
                 $("#compareTxtDiv").show();
             }
 
             provCompTxt(view.textcompare[0]);
+        }
+
+        if (view.plugin !== undefined) {
+            if (view.graph === undefined) {
+                $("#provenance").hide();
+                $("#provDiagramOverview").hide();
+                $("#compareDiv").hide();
+                $("#compareTxtDiv").hide();
+                $("#pluginViewDiv").show();
+            }
+
+            pluginHtmlViewer(view.plugin[0].html);
         }
     }
 

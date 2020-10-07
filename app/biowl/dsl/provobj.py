@@ -526,12 +526,12 @@ class View(object):
         return node1.compare(node1, node2, deep)
 
     @staticmethod             
-    def plugin(name, data):
+    def plugin(name, data = None):
         from pathlib import Path
         appdir = Path(os.path.abspath(__file__)).parents[2]
-        pluginview = {"html": {
+        pluginview = {"plugin": {
             "url": os.path.join(appdir, 'templates/plugins', name, name + '.html'),
-            "data": data
+            "data": data if data else ""
             }}
         return pluginview
    

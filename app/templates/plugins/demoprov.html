@@ -1,10 +1,31 @@
 <!DOCTYPE html>
 <html>
+<head>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script>
+    $( document ).ready(function() {
+		alert('test');
+        var data = {
+            getUserDataFromSession: function() {
+                var userData = window.sessionStorage.getItem('userObject');
+				alert(userData);
+                console.log(userData);
+                return JSON.parse(userData);
+            }
+        }
+        var userdata =data.getUserDataFromSession();
+		if (userdata && userdata.UserData) {
+			alert(userdata.UserData[0]);
+		}
+    });
+    
+    </script>
+</head>
 <body>
 
 <h2>Demo HTML</h2>
 
-<p>This is the demo html code. User can change it for their use.</p>
+<p>This is a demo page. Tool developer can implement their own provenance visualization using the userdata object.</p>
 
 <div>
 <a href="http://127.0.0.1:5000/static/biodsl-help.html">Here is the manual</a>

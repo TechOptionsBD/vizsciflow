@@ -210,15 +210,16 @@ function ProvPluginsViewModel() {
 
         function areYouSure(confirmation){
             if(confirmation == true){
-                ajaxcalls.simple('/provenance', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){
+                ajaxcalls.simple('/provenance', 'GET', { 'delete': item.pluginID(), 'confirm':'true' }).done(function (data){
                     if (data === undefined)
                             return;
                     
-                    if (data.return == 'deleted'){
-                        serviceDeleted();
+                    if (data.success){
+                        serviceDeleted(data.success);
                     }
-                    else if (data.return == 'error')
-                        alert("ERROR");
+                    else if (data.error){
+                        alert(data.error);
+					}
                     
                 }).fail(function (jqXHR) {
                     alert("status="+jqXHR.status);
@@ -228,33 +229,35 @@ function ProvPluginsViewModel() {
                 return;
         }
  
-	    function serviceDeleted(){
-            alert("SERVICE DELETED!");          
+	    function serviceDeleted(msg){
+            alert(msg);          
 
             index = self.provplugins.indexOf(item);
-            if (self.provplugins()[index].serviceID()== item.serviceID()){
+            if (self.provplugins()[index].pluginID()== item.pluginID()){
                 self.provplugins.splice( index, 1 );            //delete this service from obsarevalbe array                                                                
             }  
         }
 	
 	    var x = $(event.target).attr('id');
 	    if (x === "delete") {
-	    	ajaxcalls.simple('/provenance', 'GET', { 'service_id': item.serviceID() }).done(function (data) {
+	    	ajaxcalls.simple('/provenance', 'GET', { 'delete': item.pluginID() }).done(function (data) {
         		if (data === undefined)
                         return;    
 
-                data = data.return;
-
-                if(data == 'shared'){
+                if (data.success){
+                    serviceDeleted(data.success);
+                }
+                else if (data.error) {
+					alert(data.error);
+				}
+                else if(data.shared){
                     confirmation = confirm("This is a shared service. You still want to delete "+item.name()+"()?");
                     areYouSure(confirmation);
                 }
-                else if (data == 'not_shared'){
+                else if (data.notshared){
                     confirmation = confirm("Do you want to delete "+item.name()+"()?");
                 	areYouSure(confirmation);
-                }        			
-        		else if (data == 'error')
-        			alert("ERROR");
+                }
         		                                
             }).fail(function (jqXHR) {
                     alert("status="+jqXHR.status);

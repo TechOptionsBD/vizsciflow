@@ -13,13 +13,25 @@ class PluginItem(object):
 
     def __init__(self):
         self.description = 'UNKNOWN'
-
+    
     def perform_operation(self, *arg, **kwargs):
         """The method that we expect all plugins to implement. This is the
         method that our framework will call
         """
         raise NotImplementedError
-
+    
+    def info(self):
+        return {
+            "name": type(self).__name__,
+            "package": "",
+            "desc": self.description,
+            "example": "",
+            "access": "1",
+            "isowner": "False",
+            "sharewith": "",
+            "pluginID": type(self).__name__
+        }
+    
 class PluginCollection(object):
     """Upon creation, this class will read the plugins package for modules
     that contain a class definition that is inheriting from the Plugin class

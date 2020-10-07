@@ -26,7 +26,9 @@ from werkzeug.utils import secure_filename
 from ..runmgr import runnableManager
 from ..biowl.dsl.provobj import View, Run
 
+from ..biowl.dsl.pluginmgr import plugincollection
 from config import Config
+
 prov_base = Config.PROVENANCE_DIR
 html_base = Config.HTML_DIR
 
@@ -93,19 +95,10 @@ def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
     
 def get_provenance_plugins():
-    from ..biowl.dsl.pluginmgr import plugincollection
+    
     plugins = []
-    for v in plugincollection.plugins:
-        plugins.append({
-            "name": v,
-            "package": "",
-            "desc": "",
-            "example": "",
-            "access": "1",
-            "isowner": "False",
-            "sharewith": "",
-            "pluginID": 1 
-            })
+    for _,v in plugincollection.plugins.items():
+        plugins.append(v.info())
     
     return json.dumps({'provplugins':  plugins}) 
 
@@ -118,12 +111,31 @@ def demo_provenance_add():
         demoprovenance['html'] = f.read()
     return jsonify(demoprovenance= demoprovenance)
 
+def delete_plugin():
+    pluginid = request.args.get("delete")
+    if 'confirm' in request.args and request.args.get("confirm") == "true":
+        if pluginid in plugincollection.plugins:
+            plugincollection.plugins.pop(pluginid)
+            return json.dumps({"success": "Plugin {0} successfully deleted.".format(pluginid)})
+        else:
+            return json.dumps({"error": "Plugin {0} doesn't exist.".format(pluginid)})
+    else:
+#         shared_service_check = ServiceAccess.check(service_id) 
+#         if shared_service_check:  
+#             return json.dumps({'return':'shared'})
+#         else:
+#             return json.dumps({'return':'not_shared'})
+        return json.dumps({'notshared':'notshared'})
+    return json.dumps({'error':'Unknown error'})
+
 @main.route('/provenance', methods=['GET', 'POST'])
 @login_required
 def provenance():
     try:
         if 'users' in request.args:
-            return get_users()
+            return get_users()        
+        elif 'delete' in request.args:
+            return delete_plugin()
         elif 'demoprovenanceadd' in request.args:
             return demo_provenance_add()
         elif request.method == "POST" and request.form.get('html'):
@@ -211,7 +223,7 @@ def provenance():
                 result['out'].append("Library successfully added.")
             except Exception as e:
                 result['err'].append(str(e))
-            return json.dumps(result)
+            return json.dumps(result)            
         else:
             return get_provenance_plugins()
     

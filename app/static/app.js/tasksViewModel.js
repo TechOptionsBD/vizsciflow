@@ -387,6 +387,11 @@ function TasksViewModel() {
 
     }
 
+	function storeUserDataInSession(userData) {
+    	var userObjectString = JSON.stringify(userData);
+    	window.sessionStorage.setItem('userObject', userData);
+	}
+	
     function pluginHtmlViewer(data) {
         // self.pluginHtmlSrc(data.url)
 
@@ -403,6 +408,9 @@ function TasksViewModel() {
                 var reader = new FileReader();
                 reader.readAsDataURL(blob);
                 reader.onload = function () {
+					if (data.data !== undefined && data.data)
+						storeUserDataInSession(data.data);
+						
                     var base64UrlString = reader.result;
                     self.pluginHtmlSrc(base64UrlString);
                 }
@@ -475,7 +483,7 @@ function TasksViewModel() {
                 $("#pluginViewDiv").show();
             }
 
-            pluginHtmlViewer(view.plugin[0].html);
+            pluginHtmlViewer(view.plugin[0].plugin);
         }
     }
 

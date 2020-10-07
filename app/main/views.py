@@ -331,6 +331,14 @@ def get_filecontent(path):
     image_binary = fs.read(path)
     return send_file(io.BytesIO(image_binary), mimetype='image/jpeg', as_attachment=True, attachment_filename=fs.basename(path))
 
+def get_filedata(path):
+    # construct data source tree
+    path = path.strip()
+    with open(path, 'rb') as reader:
+        file_binary = reader.read()
+        mime = mimetypes.guess_type(path)[0]
+        return send_file(io.BytesIO(file_binary), mimetype=mime, as_attachment=True, attachment_filename=os.path.basename(path))
+
 def upload_biowl(file, request):
     
     fullpath = request.form['path'] 
@@ -637,8 +645,10 @@ def metadata():
 def datasources():
     if request.form.get('download'):
         return download_biowl(request.form['download'])
-    elif request.args.get('filecontent'):
+    elif 'filecontent' in request.args:
         return get_filecontent(request.args.get('filecontent'))
+    elif 'file_data' in request.args:
+        return get_filedata(request.args.get('file_data'))    
     elif request.files and request.files['upload']:
         return json.dumps({'path' : upload_biowl(request.files['upload'], request)})
     elif request.args.get('addfolder'):

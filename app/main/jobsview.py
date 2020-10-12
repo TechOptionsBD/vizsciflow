@@ -519,7 +519,6 @@ def graphs():
                 if request.form.get('duration'):
                     return jsonify(duration=Monitor.time(request.form.get('duration')))
                 else:
-                    from ..biowl.dsl.provobj import Run
                     runid = request.form.get('monitor')
                     run = Run.get(id = runid)
                     return json.dumps(View.graph(run))

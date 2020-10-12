@@ -3,12 +3,12 @@ import itertools
 import operator
 
 from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem, NodeItem
-from ...models import User as DbUser, Status
+from ...models import User as DbUser
+from ...models import Workflow as DBWorkflow
 from app.util import Utility
 from dsl.datatype import DataType
 from .pluginmgr import plugincollection
 
-    
 def EmptyIfNull(value):
     return value if value else ""
     
@@ -101,10 +101,10 @@ class Data():
         return Data(id = id, path = path)
        
     def json(self):
-        value = self._node.value
+        value = self._node.value()
         if self._node.valuetype == DataType.File or self._node.valuetype == DataType.Folder:
-            fs = Utility.fs_by_prefix_or_default(self._node.value)
-            value = fs.basename(self._node.value)
+            fs = Utility.fs_by_prefix_or_default(value)
+            value = fs.basename(value)
         this_node = {"key": self._node.id, "type": "Data", "name": value}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
 #         for output in self.Metadata():
@@ -179,14 +179,17 @@ class Module(object):
     def get(name, package = None):
         return Module(name = name, package = package)
     
+    def name(self):
+        return self._node.name()
+    
     def outputs(self):
-        return [Data(data_item=output) for output in self._node.outputs]
+        return [Data(data_item=output) for output in self._node.outputs()]
         
     def inputs(self):
-        return [Data(data_item=arg) for arg in self._node.inputs]
+        return [Data(data_item=arg) for arg in self._node.inputs()]
     
     def json(self):
-        this_node = {"key": self._node.id, "type": "Module", "name": self._node.name}
+        this_node = {"key": self._node.id, "type": "Module", "name": self._node.name()}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
        
         for outdata in self.outputs():
@@ -290,7 +293,7 @@ class Run(object):
         
     def modules(self, index = None, name = None):
         modules = []
-        moduleItems = self._node.modules
+        moduleItems = self._node.modules()
         if index:
             modules.append(Module(moduleItem=moduleItems[int(index)]))
         elif name:
@@ -309,7 +312,7 @@ class Run(object):
     def compare(run1, run2, deep = False):
         node1 = run1._node if run1 else None
         node2 = run2._node if run2 else None
-        json = [{"Heading": { "Title": "Run", "First": node1.name if node1 else "", "Second": node2.name if node2 else ""}, 
+        json = [{"Heading": { "Title": "Run", "First": node1.name() if node1 else "", "Second": node2.name() if node2 else ""}, 
                      "Properties": [
                          {
                              "Name": "ID",
@@ -360,20 +363,20 @@ class Run(object):
                     addsize = len(from2)
                     if run2:
                         for m2 in run2.modules():
-                            if m1._node.name == m2._node.name and m2 not in from2:
+                            if m1._node.name() == m2._node.name() and m2 not in from2:
                                 json.extend(Module.compare(m1, m2, deep))
-                                from2.append(m1._node.name)
+                                from2.append(m1._node.name())
                     if addsize == len(from2):
                         json.extend(Module.compare(m1, None))
                 
             for m2 in run2.modules():
-                if m2._node.name not in from2:
+                if m2._node.name() not in from2:
                     json.extend(Module.compare(None, m2))
                     
         return json
        
     def json(self):
-        this_node = {"key": self._node.id, "type": "Run", "name": self._node.name}
+        this_node = {"key": self._node.id, "type": "Run", "name": self._node.name()}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
         for module in self.modules():
             json = merge_json(json, module.json(), 'Module')
@@ -399,19 +402,19 @@ class Workflow(object):
     
     @staticmethod
     def get(id = None):
-        try:        
-            workflowItems = WorkflowItem.load(int(id) if id else None)
-            if workflowItems:
-                if not isinstance(workflowItems, list):
-                    return Workflow(workflowItem = workflowItems)
-            
-            return [Workflow(workflowItem = workflow) for workflow in workflowItems]
-        except:
-            raise ValueError("Workflow with id {0} doesn't exist.", id)
+        workflowItems = WorkflowItem.load(int(id) if id else None)
+        if workflowItems:
+            return [Workflow(workflowItem = workflow) for workflow in workflowItems] if isinstance(workflowItems, list) else Workflow(workflowItem = workflowItems)
+        else:
+            from .vizsciflowgraphgen import GraphGenerator
+            workflowItems = DBWorkflow.query.get(id) if id else DBWorkflow.query.all()
+            if not workflowItems:
+                raise ValueError("Workflow with id {0} doesn't exist.", id)
+            return [Workflow(workflowItem = GraphGenerator.generate_workflow_graph(workflow.id, workflow.name, workflow.script)) for workflow in workflowItems] if isinstance(workflowItems, list) else Workflow(workflowItem = GraphGenerator.generate_workflow_graph(workflowItems.id, workflowItems.name, workflowItems.script))
         
     def modules(self, index = None, name = None):
         modules = []
-        moduleItems = self._node.modules
+        moduleItems = self._node.modules()
         if index:
             modules.append(Module(moduleItem=moduleItems[int(index)]))
         elif name:

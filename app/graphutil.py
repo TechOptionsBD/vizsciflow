@@ -6,7 +6,7 @@ from flask import g
 import psutil
 from datetime import datetime
 
-from .ogmex import GraphObject, Property, RelatedTo, RelatedFrom
+from .ogmex import Model, Property, RelatedTo, RelatedFrom
 from py2neo import NodeMatcher
 from py2neo import Graph
 import neotime
@@ -35,7 +35,7 @@ def neotime2StrfTime(date):
                                  tzinfo=date.tzinfo)
     return date.strftime("%d-%m-%Y %H:%M:%S")
 
-class NodeItem(GraphObject):
+class NodeItem(Model):
 #     __primarykey__ = "id"
     _created_on = Property("created_on")
     _modified_on = Property("modified_on")
@@ -113,6 +113,17 @@ class NodeItem(GraphObject):
         if  label in registry:
             return registry[label].wrap(node)
 
+    @staticmethod
+    def matchItems(cypher, **parameters):
+        registry = {'UserItem':UserItem, 'WorkflowItem':WorkflowItem, 'ModuleItem':ModuleItem, 'ValueItem':ValueItem, 'RunnableItem': RunnableItem}
+        
+        c = graph().run(cypher, parameters)
+        for node in iter(c):
+            graphnode = node['n']
+            label = list(graphnode.labels)[0]
+            if  label in registry:
+                yield registry[label].wrap(graphnode)
+        
 class UserItem(NodeItem):
     user_id = Property("user_id")
     name = Property("username")
@@ -184,29 +195,28 @@ class WorkflowItem(NodeItem):
     
     
 class DataItem(NodeItem):
-    value = None
+    _value = Property("value", "")
     def __init__(self, **kwargs):
         super().__init__(**kwargs)   
    
     @staticmethod
     def create(value, **kwargs):
         item = DataItem(*kwargs)
-        item.value = value
+        item._value = value
         return item
     
     def json(self):
         j = NodeItem.json(self)
-        j['value'] = self.value
+        j['value'] = self._value
         return j
        
 class ValueItem(DataItem):
     datatype =  Property("datatype")
     valuetype = Property("valuetype")
-    name = Property('name', 'value')
-    value = Property('value')
+    _name = Property('name', 'value')
     
-    inputs = RelatedTo("ModuleItem", "INPUT")
-    outputs = RelatedFrom("ModuleItem", "OUTPUT")
+    _inputs = RelatedTo("ModuleItem", "INPUT")
+    _outputs = RelatedFrom("ModuleItem", "OUTPUT")
     
     #allocations = RelatedTo("DataAllocationItem", "ALLOCATION")
     users = RelatedFrom(UserItem, 'ACCESS')
@@ -214,19 +224,21 @@ class ValueItem(DataItem):
     def __init__(self, value, valuetype, **kwargs):
         super().__init__(**kwargs)
 
-        if not self.value:
-            self.value = value
-        if not self.datatype:
-            self.datatype =  str(type(value)) #str(self.__class__.__name__) #val_type#
-        if not self.valuetype:
-            self.valuetype = valuetype # if valuetype else str(DataType.Value) #str(type(self.value))
-        if not self.name:
-            self.name = 'value'
+        self._value = value
+        self.datatype =  str(type(value)) #str(self.__class__.__name__) #val_type#
+        self.valuetype = valuetype # if valuetype else str(DataType.Value) #str(type(self.value))
+        self._name = 'value'
+    
+    def name(self):
+        return self._name
+    
+    def value(self):
+        return self._value
     
     @staticmethod
     def create(value, valuetype, **kwargs):
         item = ValueItem(value, valuetype, **kwargs)        
-        item.name = "value"
+        item._name = "value"
         graph().push(item)
         return item
     
@@ -249,29 +261,29 @@ class ValueItem(DataItem):
 
     def __add__(self, other):
         if self.valuetype == "value":
-            return self.value + other.value
+            return self._value + other._value
         elif self.valuetype == DataType.File or self.valuetype == DataType.Folder:
-            FolderItem(self.value) + other.value
+            FolderItem(self._value) + other._value
         else:
             raise NotImplementedError
     
     def __sub__(self, other):
         if self.valuetype == "value":
-            return self.value - other.value
+            return self._value - other._value
         elif self.valuetype == DataType.File or self.valuetype == DataType.Folder:
-            FolderItem(self.value) - other.value
+            FolderItem(self._value) - other._value
         else:
             raise NotImplementedError
     
     def __mul__(self, other):
         if self.valuetype == "value":
-            return self.value * other.value
+            return self._value * other._value
         else:
             raise NotImplementedError
     
     def __truediv__(self, other):
         if self.valuetype == "value":
-            return self.value / other.value
+            return self._value / other._value
         else:
             raise NotImplementedError
                     
@@ -283,7 +295,7 @@ class ValueItem(DataItem):
             'valuetype': self.valuetype,
             'memory': (psutil.virtual_memory()[2])/bytes_in_gb,
             'cpu': (psutil.cpu_percent()),
-            'name': self.name
+            'name': self._name
         })
         return j
             
@@ -346,7 +358,7 @@ class DataPropertyItem(NodeItem):
     
 class RunnableItem(NodeItem): #number1
     celery_id = Property("celery_id", 0)
-    name = Property("name")
+    _name = Property("name")
     
     out = Property("out", "")
     error = Property("error", "")
@@ -358,7 +370,7 @@ class RunnableItem(NodeItem): #number1
     arguments = Property("arguments", "")
     provenance = Property("provenance", False)
     
-    modules = RelatedTo("ModuleItem", "MODULE", "id(b)")
+    _modules = RelatedTo("ModuleItem", "MODULE", "id(b)")
     users = RelatedFrom(UserItem, "USERRUN")
     workflows = RelatedFrom(WorkflowItem, "WORKFLOWRUN")
     
@@ -371,7 +383,7 @@ class RunnableItem(NodeItem): #number1
     _started_on = Property("started_on", neotime.DateTime.min)
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
-        self.name = name
+        self._name = name
                     
     @property
     def user_id(self):
@@ -388,9 +400,15 @@ class RunnableItem(NodeItem): #number1
             #graph().push(self)
             
         return self._duration    
+    
+    def name(self):
+        return self._name
         
     def update(self):
         graph().push(self)
+    
+    def modules(self):
+        return self._modules
         
     @staticmethod
     def load_runnables_from_cypher(cypher):
@@ -411,16 +429,21 @@ class RunnableItem(NodeItem): #number1
         else: # this will be very resource-intensive. never call it.
             return list(RunnableItem.match(graph()).limit(sys.maxsize))
     
-    @staticmethod
-    def load_for_users(user_id):
-        user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
-        if not user:
-            return []
-        return [r for r in user.runs if not r.provenance]
+#     @staticmethod
+#     def load_for_users(user_id):
+#         user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
+#         if not user:
+#             return []
+#         return [r for r in user.runs if not r.provenance]
     
+    @staticmethod
+    def load_for_users(user_id):        
+        cypher = "MATCH (n:RunnableItem)<-[:USERRUN]-(u:UserItem) WHERE u.user_id = $id AND n.provenance = FALSE RETURN n"
+        return NodeItem.matchItems(cypher, id=user_id)
+        
     def add_module(self, function_name, package):
         item = ModuleItem(function_name, package)
-        self.modules.add(item)
+        self._modules.add(item)
         graph().push(self)
         graph().pull(self)
         return item
@@ -493,7 +516,7 @@ class RunnableItem(NodeItem): #number1
             'status': self.status,
             'duration': "{0:.3f}".format(neotime_duration_to_s(self.duration)),
             'arguments': str(self.arguments),
-            'name': self.name
+            'name': self._name
             })
         return j
        
@@ -515,7 +538,7 @@ class RunnableItem(NodeItem): #number1
             error = (self._error[:60] + '...') if len(self.error) > 60 else self.error
         return {
             'id': self.id,
-            'name': self.name,
+            'name': self._name,
             'status': self.status,
             'err': error,
             'duration': "{0:.3f}".format(neotime_duration_to_s(self.duration)),
@@ -526,7 +549,7 @@ class RunnableItem(NodeItem): #number1
     def to_json_log(self):
         log = []
         
-        for module in self.modules:
+        for module in self._modules:
             log.append(module.to_json_log())
 
         return {
@@ -543,18 +566,18 @@ class RunnableItem(NodeItem): #number1
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'name': self.name,
+            'name': self._name,
             'modified_on': neotime2StrfTime(self.modified_on),
             'status': self.status
         }
         
 class ModuleItem(NodeItem):
     runs = RelatedFrom(RunnableItem, "MODULE")
-    inputs = RelatedFrom(ValueItem, "INPUT")
-    outputs = RelatedTo("ValueItem", "OUTPUT")
+    _inputs = RelatedFrom(ValueItem, "INPUT")
+    _outputs = RelatedTo("ValueItem", "OUTPUT")
     logs = RelatedTo("TaskLogItem", "LOG")
     
-    name = Property("name", "")
+    _name = Property("name", "")
     package = Property("package", "")
     status = Property("status", Status.RECEIVED)
     
@@ -569,20 +592,29 @@ class ModuleItem(NodeItem):
     
     def __init__(self, name, package = None, **kwargs):
         super().__init__(**kwargs)
-        self.name = name
+        self._name = name
         self.package = package
     
     def json(self):
         j = NodeItem.json(self)
         j.update({
             'event': 'RUN-CREATE',
-            'name':self.name,
+            'name':self._name,
             'memory': str(self.memory_run),
             'cpu': str(self.cpu_run),
             'status': self.status           
         })
         
         return j 
+
+    def name(self):
+        return self._name
+        
+    def inputs(self):
+        return self._inputs
+    
+    def outputs(self):
+        return self._outputs
     
     def prop_from_node(self, node):
         NodeItem.prop_from_node(self, node, "name", "status")
@@ -592,7 +624,7 @@ class ModuleItem(NodeItem):
     @property
     def run_id(self):
         return list(self.runs)[0].id
-    
+           
     @property
     def duration(self):
         if self.status == Status.STARTED:
@@ -601,6 +633,10 @@ class ModuleItem(NodeItem):
             
         return self._duration  
     
+    @duration.setter
+    def duration(self, value):
+        self._duration = value
+        
     @staticmethod
     def load(module_id, name = None, package = None):
         if module_id:
@@ -653,9 +689,9 @@ class ModuleItem(NodeItem):
     
     def add_arg(self, datatype, value):
         if isinstance(value, ValueItem):
-            self.inputs.add(value)
+            self._inputs.add(value)
         else:
-            for data in self.inputs:
+            for data in self._inputs:
                 if data.datatype == datatype and data.value == value:
                     value = data
                     break
@@ -664,14 +700,14 @@ class ModuleItem(NodeItem):
                 if not value:
                     data = ValueItem(value, datatype)
                     graph().push(data)
-                self.inputs.add(data)
+                self._inputs.add(data)
 
         graph().push(self)
         
         return value
     
     def add_input(self, user_id, datatype, value, rights):
-        for data in self.inputs:
+        for data in self._inputs:
             if data.datatype == datatype and data.value == value:
                 return data.allocate_for_user(user_id, rights)
                             
@@ -682,7 +718,7 @@ class ModuleItem(NodeItem):
         
         data.allocate_for_user(user_id, rights)
         
-        self.inputs.add(data)
+        self._inputs.add(data)
         graph().push(self)
         
         return data
@@ -702,7 +738,7 @@ class ModuleItem(NodeItem):
                 else:
                     data.allocate_for_user(runitem.user_id, AccessRights.Write)
                 
-            self.outputs.add(data)
+            self._outputs.add(data)
             result += (d[1],)
         
         graph().push(self)
@@ -711,10 +747,10 @@ class ModuleItem(NodeItem):
     
     def to_json_log(self):
         
-        data = [{ "datatype": data.valuetype, "data": data.value} for data in self.outputs]
+        data = [{ "datatype": data.valuetype, "data": data._value} for data in self._outputs]
             
         return { 
-            'name': self.name if self.name else "", 
+            'name': self._name if self._name else "", 
             'status': self.status,
             'data': data
         }

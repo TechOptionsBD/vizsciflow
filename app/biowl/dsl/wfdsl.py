@@ -160,6 +160,9 @@ class Module(GraphNode):
         self.properties = PropertyDict()
         self._symtab = None
 
+    def name(self):
+        return self._name
+    
     def add_symtab(self):
         self._symtab = SymbolTable()
                 

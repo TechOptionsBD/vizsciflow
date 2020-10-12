@@ -504,17 +504,27 @@ class GraphGenerator(object):
             stmt = prog.asList()
             self.eval(stmt, self._workflow)
         except Exception as err:
-            self.context.err.append("Error at line {0}: {1}".format(self.line, err))
+            msg = "Error at line {0}: {1}".format(self.line, err)
+            self.context.err.append(msg)
+            raise ValueError(msg)
     
-    def run_workflow(self, id, name, script):
+    def create_workflow_graph(self, id, name, script):
         parser = WorkflowParser(PythonGrammar())
         prog = parser.parse(script)
         
         self._workflow = Workflow(None, id, name)
         #self.wfroot = Workflow.Create(workflow.id, workflow.name)._node
-        
         self.run(prog)
-        return View.graph(self._workflow)
+        return self._workflow
+    
+    @staticmethod
+    def generate_workflow_graph(id, name, script):
+        graphgen = GraphGenerator()
+        return graphgen.create_workflow_graph(id, name, script)
+    
+    @staticmethod    
+    def generate_workflow_graph_json(id, name, script):
+        return View.graph(GraphGenerator.generate_workflow_graph(id, name, script))
         #NodeItem.push(self.wfroot)
         #return View.graph(self.wfroot)
         

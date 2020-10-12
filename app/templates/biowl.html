@@ -3321,7 +3321,23 @@ function typeInTextarea(el, newText) {
 								runnablesViewModel.loadHistory(ids[0], false);
 							} 
 	            			else if (reportId > 0) {
-	            				runnablesViewModel.loadHistory(reportId, false);
+								if ($.isEmptyObject(runnablesViewModel.items())) {
+									reportId = 0;
+								}
+								else
+								{
+									var found = false;
+									$.each(runnablesViewModel.items(), function(index, item){
+										if (item.id() == reportId) {
+											found = true;
+											return false;
+										}
+									});
+									if (found)
+	            						runnablesViewModel.loadHistory(reportId, false);
+									else
+										reportId = 0;
+								}
 	            			}
 	                    }, 10000); //  refresh the executables once in 10 seconds
 	            	}

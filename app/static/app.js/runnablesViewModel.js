@@ -234,6 +234,14 @@ function RunnablesViewModel() {
             diagramReload("provenance");				    //reload the graph
             diagramReload("provDiagramOverview");	        //reload the overview
 
+            //hide all div except graph
+            $(".provTabCombo").empty();
+            $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
+            $("#provenance").show();
+            $("#provDiagramOverview").show();
+
             if(handleModeViewModel.getMode() !== 'provMode')
                 handleModeViewModel.setMode('provMode');
             

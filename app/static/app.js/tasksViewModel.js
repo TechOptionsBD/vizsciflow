@@ -40,6 +40,7 @@ function TasksViewModel() {
     self.pluginHtmlSrc = ko.observable();
     self.currentItemPath = ko.observable();
     self.isListView = ko.observable(true);
+    self.shouldRunActivate = ko.observable(true);
     self.sliderItems = ko.observableArray();
 
     self.serviceaccesstypes = ko.observableArray([

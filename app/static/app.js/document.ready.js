@@ -224,6 +224,10 @@ $(document).ready(function () {
             var selectedProvView = $("select[name=provTabView]").val();
             toggleProvView(selectedProvView)
         }
+        if(x === "#scripttab")
+            tasksViewModel.shouldRunActivate(true)
+        else
+            tasksViewModel.shouldRunActivate(false)
     });
 
     //for execstatus printing

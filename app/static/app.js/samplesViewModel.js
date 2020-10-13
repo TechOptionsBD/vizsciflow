@@ -240,7 +240,7 @@ function SamplesViewModel(sampleViewModel) {
     };
 
     self.wfSelectionChange = function (obj, event) {
-        if (self.selectedWfId1() !== undefined && ko.toJS(self.selectedWfId1()[0]) == ko.toJS(self.selectedWfId2()[0])) {
+        if (self.selectedWfId1() !== undefined && self.selectedWfId1()[0] == self.selectedWfId2()[0]) {
             //display versions selection ddl
             self.getAllVersion(self.selectedWfId1()[0]);
 
@@ -396,6 +396,7 @@ function SamplesViewModel(sampleViewModel) {
             }
         
             else if (x === "copyProv") {
+                handleModeViewModel.setMode('provMode');
                 var content = "workflow = Workflow.Get(id="+ item.id() +")"
                               +"\r\nprint(View.Graph(workflow))"; 
                 

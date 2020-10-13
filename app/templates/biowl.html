@@ -2842,6 +2842,7 @@ function typeInTextarea(el, newText) {
         	   'icon': 'glyphicon glyphicon-paste',
         	   'separator_after': true,
                'action' : function(data) {
+				   handleModeViewModel.setMode('provMode');
             	   var inst = $.jstree.reference(data.reference);
             	   var node = inst.get_node(data.reference);
 				   copyProvSnippetToEditor(node.original);

@@ -200,7 +200,7 @@ function RunnablesViewModel() {
 
         //runnableID insert button
 	    if (x === "insert2Editor") {
-            $('.nav-tabs a[href="#scripttab"]').tab('show');
+            handleModeViewModel.setMode('provMode');
 
             var content = "run = Run.Get(id = "+ item.id() +")"
                           +"\r\nprint(View.Graph(run))"; 
@@ -234,6 +234,9 @@ function RunnablesViewModel() {
             diagramReload("provenance");				    //reload the graph
             diagramReload("provDiagramOverview");	        //reload the overview
 
+            if(handleModeViewModel.getMode() !== 'provMode')
+                handleModeViewModel.setMode('provMode');
+            
             $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
                 $('#liProvenanceTab').show();
             });

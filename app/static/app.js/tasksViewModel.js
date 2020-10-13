@@ -825,6 +825,7 @@ function TasksViewModel() {
 	    	var content =  "module = Module.Get(name = '"+ item.name() +"'" + package + ")"
                             +"\r\nprint(View.Graph(module))"; 
             
+            handleModeViewModel.setMode('provMode');
             var pos = editor.selection.getCursor();
             editor.session.insert(pos, content + "\r\n");
             editor.focus();

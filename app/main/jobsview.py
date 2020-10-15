@@ -104,10 +104,9 @@ def get_provenance_plugins():
 
 def demo_provenance_add():
     demoprovenance = {'script':'', 'html': ''}
-    base = os.path.join(os.path.dirname(basedir), 'biowl')
-    with open(os.path.join(prov_base, 'demoprov.py'), 'r') as f:
+    with open(os.path.join(prov_base, 'DemoProvenance', 'DemoProvenance.py'), 'r') as f:
         demoprovenance['script'] = f.read()
-    with open(os.path.join(html_base, 'demoprov.html'), 'r') as f:
+    with open(os.path.join(html_base, 'DemoProvenance', 'DemoProvenance.html'), 'r') as f:
         demoprovenance['html'] = f.read()
     return jsonify(demoprovenance= demoprovenance)
 

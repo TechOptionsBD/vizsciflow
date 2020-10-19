@@ -177,6 +177,12 @@ color:#333;
   }
 }
 
+#showMessageModal .modal-body{
+  max-height: 200px;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
 .marginRow{
    margin:4px !important; 
  }

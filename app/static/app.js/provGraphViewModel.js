@@ -46,7 +46,7 @@ function provgraphViewModel()
 					{ observed: provDiagram });
 				provOverview.grid.visible = true;
 
-				function geoFunc(geoname = "file") {
+				function geoFunc(geoname = "info") {
 					var geo = icons[geoname];
 					if (typeof geo === "string") {
 						geo = icons[geoname] = go.Geometry.parse(geo, true);  // fill each geometry
@@ -67,10 +67,29 @@ function provgraphViewModel()
 							},
 							new go.Binding("fill", "color"),
 							new go.Binding("figure", "shape")),
+
+						$$(go.Shape,
+							{ 
+								alignment: go.Spot.TopRight, 
+								alignmentFocus: go.Spot.TopRight,
+								row: 0,
+								margin: 3,
+								maxSize: new go.Size(13, 13),
+								margin: 3, 
+								fill: "white", 
+								strokeWidth: 0 
+							},
+							{ 
+								click: function(e, obj) {
+									self.showMessageModal(obj.part.data);
+									e.handled = true; 
+								} 
+							},
+							new go.Binding("geometry", "geo", geoFunc)),
 						$$(go.Panel, "Table",
 							$$(go.TextBlock, 
 								{
-									row: 0,
+									row: 1,
 									margin: 3,
 									maxSize: new go.Size(80, NaN),
 									stroke: "white",								//node name color
@@ -85,36 +104,6 @@ function provgraphViewModel()
 									)
 								}
 							),
-							$$(go.Shape, "Circle",
-								{ 
-									row: 1,
-									margin: 3,
-									maxSize: new go.Size(25, 25),
-									fill: "lightcoral", 
-									strokeWidth: 0
-								},
-								{ 
-									click: function(e, obj) { 
-										self.showMessageModal(obj.part.data);
-										e.handled = true; 
-									} 
-								}),
-							$$(go.Shape,
-								{ 
-									row: 1,
-									margin: 3,
-									maxSize: new go.Size(15, 15),
-									margin: 3, 
-									fill: "white", 
-									strokeWidth: 0 
-								},
-								{ 
-									click: function(e, obj) {
-										self.showMessageModal(obj.part.data);
-										e.handled = true; 
-									} 
-								},
-								new go.Binding("geometry", "geo", geoFunc)),
 							$$(go.TextBlock,
 							{
 								row: 2,
@@ -250,8 +239,8 @@ function provgraphViewModel()
 					else
 						node.color = 'Black';
 
-					// node.name += '\n';								//add a new line after node name
-					node.geo = "file";
+					node.name += '\n';								//add a new line after node name
+					node.geo = "info";
 				});
 
 				//creating graph using model data 

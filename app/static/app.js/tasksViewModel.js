@@ -419,11 +419,137 @@ function TasksViewModel() {
         };
     }
 
+    function createLineChart() {
+        var ctx = document.getElementById('canvasLineChart').getContext('2d');
+        var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ["Jan", "Feb", "March", "April", "May", "June"],
+                datasets: [{
+                    label: '# of Data',
+                    data: [12, 19, 3, 5, 2, 3],
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        stacked: false
+                    }]
+                }
+            }
+        });
+    }
+
+    function createPieChart() {
+        var ctx = document.getElementById('canvasPieChart').getContext('2d');
+        var pieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                datasets: [{
+                    label: '# of Data',
+                    data: [12, 19, 3, 5, 2, 3],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            }
+        });
+    }
+
+    function createBarChart() {
+        var ctx = document.getElementById('canvasBarChart').getContext('2d');
+        var barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                datasets: [{
+                    label: '# of Data',
+                    data: [12, 19, 3, 5, 2, 3],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+    }
+    
+    function createHeatMapChart() {
+        // let ctx = document.getElementById('canvasHeatMap').getContext('2d');
+        // let data = {
+        //     labels : ['0h','1h','2h','3h','4h','5h','6h','7h','8h','9h','10h','11h'],
+        //     datasets : [
+        //       {
+        //         label: 'Monday',
+        //         data: [8, 6, 5, 7, 9, 8, 1, 6, 3, 3, 8, 7]
+        //       },
+        //       {
+        //         label: 'Tuesday',
+        //         data: [6, 8, 5, 6, 5, 5, 7, 0, 0, 3, 0, 7]
+        //       },
+        //       {
+        //         label: 'Wednesday',
+        //         data: [8, 5, 6, 4, 2, 2, 3, 0, 2, 0, 10, 8]
+        //       },
+        //       {
+        //         label: 'Thursday',
+        //         data: [4, 0, 7, 4, 6, 3, 2, 4, 2, 10, 8, 2]
+        //       },
+        //       {
+        //         label: 'Friday',
+        //         data: [1, 0, 0, 7, 0, 4, 1, 3, 4, 5, 1, 10]
+        //       }
+        //     ]
+        //   };
+        // var heatMap = new Chart(ctx).HeatMap(data, {});
+    }
+
     self.createCompView = function (view) {
         if(view == undefined)
             return;
 
         // view = JSON.parse(data['view'])
+        view.lineChart = 'line Chart';
+        view.pieChart = 'pie Chart';
+        view.barChart = 'bar Chart';
+        view.heatMap = 'heat Map';
 
         let provTabDdl = document.getElementsByClassName("provTabCombo");
         $(".provTabCombo").empty();
@@ -445,6 +571,10 @@ function TasksViewModel() {
             $("#compareDiv").hide();
             $("#compareTxtDiv").hide();
             $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#provePieCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
             $("#provenance").show();
             $("#provDiagramOverview").show();
             
@@ -457,6 +587,10 @@ function TasksViewModel() {
                 $("#provDiagramOverview").hide();
                 $("#compareTxtDiv").hide();
                 $("#pluginViewDiv").hide();
+                $("#proveBarCharts").hide();
+                $("#provePieCharts").hide();
+                $("#proveHeatMap").hide();
+                $("#proveLineCharts").hide();
                 $("#compareDiv").show();
             }
 
@@ -469,6 +603,10 @@ function TasksViewModel() {
                 $("#provDiagramOverview").hide();
                 $("#compareDiv").hide();
                 $("#pluginViewDiv").hide();
+                $("#proveBarCharts").hide();
+                $("#provePieCharts").hide();
+                $("#proveHeatMap").hide();
+                $("#proveLineCharts").hide();
                 $("#compareTxtDiv").show();
             }
 
@@ -481,10 +619,78 @@ function TasksViewModel() {
                 $("#provDiagramOverview").hide();
                 $("#compareDiv").hide();
                 $("#compareTxtDiv").hide();
+                $("#proveBarCharts").hide();
+                $("#provePieCharts").hide();
+                $("#proveHeatMap").hide();
+                $("#proveLineCharts").hide();
                 $("#pluginViewDiv").show();
             }
 
             pluginHtmlViewer(view.plugin[0].plugin);
+        }
+
+        if(view.lineChart){
+            if (view.graph === undefined) {
+                $("#provenance").hide();
+                $("#provDiagramOverview").hide();
+                $("#compareDiv").hide();
+                $("#compareTxtDiv").hide();
+                $("#pluginViewDiv").hide();
+                $("#proveBarCharts").hide();
+                $("#provePieCharts").hide();
+                $("#proveHeatMap").hide();
+                $("#proveLineCharts").show();
+            }
+
+            createLineChart();
+        }
+
+        if (view.pieChart) {
+            if (view.graph === undefined) {
+                $("#provenance").hide();
+                $("#provDiagramOverview").hide();
+                $("#compareDiv").hide();
+                $("#compareTxtDiv").hide();
+                $("#pluginViewDiv").hide();
+                $("#proveBarCharts").hide();
+                $("#proveHeatMap").hide();
+                $("#proveLineCharts").hide();
+                $("#provePieCharts").show();
+            }
+
+            createPieChart();
+        }
+
+        if (view.barChart) {
+            if (view.graph === undefined) {
+                $("#provenance").hide();
+                $("#provDiagramOverview").hide();
+                $("#compareDiv").hide();
+                $("#compareTxtDiv").hide();
+                $("#pluginViewDiv").hide();
+                $("#proveBarCharts").show();
+                $("#proveHeatMap").hide();
+                $("#proveLineCharts").hide();
+                $("#provePieCharts").hide();
+            }
+
+            createBarChart();
+        }
+
+        if (view.heatMap) {
+            if (view.graph === undefined) {
+                $("#provenance").hide();
+                $("#provDiagramOverview").hide();
+                $("#compareDiv").hide();
+                $("#compareTxtDiv").hide();
+                $("#pluginViewDiv").hide();
+                $("#proveBarCharts").hide();
+                $("#proveHeatMap").show();
+                $("#proveLineCharts").hide();
+                $("#provePieCharts").hide();
+            }
+
+            createHeatMapChart();
         }
     }
 

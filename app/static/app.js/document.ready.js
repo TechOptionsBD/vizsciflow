@@ -433,6 +433,10 @@ function toggleProvView(selectedTab) {
             $("#pluginViewDiv").hide();
             $("#provenance").show();
             $("#provDiagramOverview").show();
+            $("#proveBarCharts").hide();
+            $("#provePieCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
             break;
 
         case "compare":
@@ -440,6 +444,10 @@ function toggleProvView(selectedTab) {
             $("#provDiagramOverview").hide();
             $("#compareTxtDiv").hide();
             $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#provePieCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
             $("#compareDiv").show();
             break;
 
@@ -448,6 +456,10 @@ function toggleProvView(selectedTab) {
             $("#provDiagramOverview").hide();
             $("#compareDiv").hide();
             $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#provePieCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
             $("#compareTxtDiv").show();
             break;
 
@@ -456,15 +468,71 @@ function toggleProvView(selectedTab) {
             $("#provDiagramOverview").hide();
             $("#compareDiv").hide();
             $("#compareTxtDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#provePieCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
             $("#pluginViewDiv").show();
             break;
-            
+        
+        case "lineChart":
+            $("#provenance").hide();
+            $("#provDiagramOverview").hide();
+            $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#provePieCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").show();
+            break;
+
+        case "pieChart":
+            $("#provenance").hide();
+            $("#provDiagramOverview").hide();
+            $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
+            $("#provePieCharts").show();
+            break;
+
+        case "barChart":
+            $("#provenance").hide();
+            $("#provDiagramOverview").hide();
+            $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
+            $("#proveBarCharts").show();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
+            $("#provePieCharts").hide();
+            break;
+
+        case "heatMap":
+            $("#provenance").hide();
+            $("#provDiagramOverview").hide();
+            $("#compareDiv").hide();
+            $("#compareTxtDiv").hide();
+            $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#proveHeatMap").show();
+            $("#proveLineCharts").hide();
+            $("#provePieCharts").hide();
+            break;
+
         default:
             $("#provenance").show();
             $("#provDiagramOverview").show();
             $("#compareDiv").hide();
             $("#compareTxtDiv").hide();
             $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
+            $("#provePieCharts").hide();
             break;            
     }
 }

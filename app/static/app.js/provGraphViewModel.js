@@ -46,6 +46,13 @@ function provgraphViewModel()
 					{ observed: provDiagram });
 				provOverview.grid.visible = true;
 
+				function geoFunc(geoname = "file") {
+					var geo = icons[geoname];
+					if (typeof geo === "string") {
+						geo = icons[geoname] = go.Geometry.parse(geo, true);  // fill each geometry
+					}
+					return geo;
+				}
 
 				provDiagram.nodeTemplate = $$(go.Node, "Spot",
 					{ selectionAdorned: false },  
@@ -63,7 +70,6 @@ function provgraphViewModel()
 						$$(go.Panel, "Table",
 							$$(go.TextBlock, 
 								{
-									name: 'nodeName',
 									row: 0,
 									margin: 3,
 									maxSize: new go.Size(80, NaN),
@@ -79,6 +85,36 @@ function provgraphViewModel()
 									)
 								}
 							),
+							$$(go.Shape, "Circle",
+								{ 
+									row: 1,
+									margin: 3,
+									maxSize: new go.Size(25, 25),
+									fill: "lightcoral", 
+									strokeWidth: 0
+								},
+								{ 
+									click: function(e, obj) { 
+										self.showMessageModal(obj.part.data);
+										e.handled = true; 
+									} 
+								}),
+							$$(go.Shape,
+								{ 
+									row: 1,
+									margin: 3,
+									maxSize: new go.Size(15, 15),
+									margin: 3, 
+									fill: "white", 
+									strokeWidth: 0 
+								},
+								{ 
+									click: function(e, obj) {
+										self.showMessageModal(obj.part.data);
+										e.handled = true; 
+									} 
+								},
+								new go.Binding("geometry", "geo", geoFunc)),
 							$$(go.TextBlock,
 							{
 								row: 2,
@@ -87,9 +123,8 @@ function provgraphViewModel()
 								stroke: "white",							//node type color
 								font: "bold 6pt sans-serif"					//node type font
 							},
-							new go.Binding("text", "type").makeTwoWay()),
-							),
-							
+							new go.Binding("text", "type").makeTwoWay())
+						),
 							//newly added for contaxt menu
 							$$(go.TextBlock),
 							{
@@ -192,12 +227,12 @@ function provgraphViewModel()
 									  setsPortSpots: false
 									});
 
-				provDiagram.addDiagramListener("ObjectSingleClicked",
-					function(e) {
-						var part = e.subject.part;
-						if (!(part instanceof go.Link)) 
-							self.showMessageModal(part.data);
-					});
+				// provDiagram.addDiagramListener("ObjectSingleClicked",
+				// 	function(e) {
+				// 		var part = e.subject.part;
+				// 		if (!(part instanceof go.Link)) 
+				// 			self.showMessageModal(part.data);
+				// 	});
 					
 				let typeArr = [];
 				let colorArr = ['DarkSlateGray', 'SteelBlue', 'Teal', 'Indigo', 'MidnightBlue', 'IndianRed', 'DeepSkyBlue', 'DarkSalmon', 'DarkGreen', 'DarkOrange'];
@@ -215,7 +250,8 @@ function provgraphViewModel()
 					else
 						node.color = 'Black';
 
-					node.name += '\n';								//add a new line after node name
+					// node.name += '\n';								//add a new line after node name
+					node.geo = "file";
 				});
 
 				//creating graph using model data 
@@ -238,7 +274,14 @@ function provgraphViewModel()
 					data = JSON.parse(data)
 					Object.entries(data).forEach(
 						([key, value]) => {
-							$("#showMessageModal").find('.modal-body #NodeInfo').append("<li>"+key+" : "+value+"</li>")
+							if(value){
+								if(key === 'name'){
+									$("#showMessageModal").find('h4#NodeName').text(value)
+								}
+								else{
+									$("#showMessageModal").find('.modal-body #NodeInfo').append("<li>"+key+" : "+value+"</li>")
+								}
+							}
 						}
 					)
 

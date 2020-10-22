@@ -385,17 +385,9 @@ function TasksViewModel() {
 
     function provCompTxt(data){
         $('#txtComparisonDiv').text(data)
-
     }
-
-	function storeUserDataInSession(userData) {
-    	var userObjectString = JSON.stringify(userData);
-    	window.sessionStorage.setItem('userObject', userData);
-	}
 	
     function pluginHtmlViewer(data) {
-        // self.pluginHtmlSrc(data.url)
-
         var oReq = new XMLHttpRequest();
         oReq.open('GET', self.dataSourcesURI + "?" + 'file_data=' + data.url, true);
         oReq.responseType = "arraybuffer";
@@ -409,11 +401,13 @@ function TasksViewModel() {
                 var reader = new FileReader();
                 reader.readAsDataURL(blob);
                 reader.onload = function () {
-					if (data.data !== undefined && data.data)
-						storeUserDataInSession(data.data);
-						
                     var base64UrlString = reader.result;
                     self.pluginHtmlSrc(base64UrlString);
+
+					if (data.data !== undefined && data.data){
+                        var frame = $("#pluginHtmlView")[0]; /*the iframe DOM object*/
+                        frame.contentWindow.postMessage({call:'sendValue', value: data.data}, "*"); /*frame domain url or '*'*/
+                    }
                 }
             }
         };
@@ -623,7 +617,7 @@ function TasksViewModel() {
             pluginHtmlViewer(view.plugin[0].plugin);
         }
 
-        if(view.lineChart){
+        if(view.lineChart !== undefined){
             if (view.graph === undefined) {
                 $("#provenance").hide();
                 $("#provDiagramOverview").hide();
@@ -639,7 +633,7 @@ function TasksViewModel() {
             createLineChart();
         }
 
-        if (view.pieChart) {
+        if (view.pieChart !== undefined) {
             if (view.graph === undefined) {
                 $("#provenance").hide();
                 $("#provDiagramOverview").hide();
@@ -655,23 +649,23 @@ function TasksViewModel() {
             createPieChart();
         }
 
-        if (view.barChart) {
+        if (view.barChart !== undefined) {
             if (view.graph === undefined) {
                 $("#provenance").hide();
                 $("#provDiagramOverview").hide();
                 $("#compareDiv").hide();
                 $("#compareTxtDiv").hide();
                 $("#pluginViewDiv").hide();
-                $("#proveBarCharts").show();
                 $("#proveHeatMap").hide();
                 $("#proveLineCharts").hide();
                 $("#provePieCharts").hide();
+                $("#proveBarCharts").show();
             }
 
             createBarChart();
         }
 
-        if (view.heatMap) {
+        if (view.heatMap !== undefined) {
             if (view.graph === undefined) {
                 $("#provenance").hide();
                 $("#provDiagramOverview").hide();
@@ -679,9 +673,9 @@ function TasksViewModel() {
                 $("#compareTxtDiv").hide();
                 $("#pluginViewDiv").hide();
                 $("#proveBarCharts").hide();
-                $("#proveHeatMap").show();
                 $("#proveLineCharts").hide();
                 $("#provePieCharts").hide();
+                $("#proveHeatMap").show();
             }
 
             createHeatMapChart();

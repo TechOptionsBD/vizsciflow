@@ -224,7 +224,7 @@ class ValueItem(DataItem):
     def __init__(self, value, valuetype, **kwargs):
         super().__init__(**kwargs)
 
-        self._value = value
+        self._value = ValueItem.to_primitive(value)
         self.datatype =  str(type(value)) #str(self.__class__.__name__) #val_type#
         self.valuetype = valuetype # if valuetype else str(DataType.Value) #str(type(self.value))
         self._name = 'value'
@@ -232,9 +232,16 @@ class ValueItem(DataItem):
     def name(self):
         return self._name
     
+    def set_name(self, value):
+        self._name = value
+        
     def value(self):
         return self._value
     
+    @staticmethod
+    def to_primitive(value):
+        return value if isinstance(value, (int, float, bool, str)) else str(value)
+
     @staticmethod
     def create(value, valuetype, **kwargs):
         item = ValueItem(value, valuetype, **kwargs)        
@@ -575,7 +582,7 @@ class ModuleItem(NodeItem):
     runs = RelatedFrom(RunnableItem, "MODULE")
     _inputs = RelatedFrom(ValueItem, "INPUT")
     _outputs = RelatedTo("ValueItem", "OUTPUT")
-    logs = RelatedTo("TaskLogItem", "LOG")
+    logs = RelatedTo("TaskLogItem", "LOG", "id(b)")
     
     _name = Property("name", "")
     package = Property("package", "")
@@ -706,14 +713,16 @@ class ModuleItem(NodeItem):
         
         return value
     
-    def add_input(self, user_id, datatype, value, rights):
+    def add_input(self, user_id, datatype, value, rights, **kwargs):
         for data in self._inputs:
             if data.datatype == datatype and data.value == value:
                 return data.allocate_for_user(user_id, rights)
                             
         data = ValueItem.get_by_type_value(datatype, value)
         if not data:
-            data = ValueItem(value, datatype)
+            data = ValueItem(value, datatype) #  data = ValueItem(str(value), datatype)
+            if "name" in kwargs:
+                data.set_name(kwargs['name'])
             graph().push(data)
         
         data.allocate_for_user(user_id, rights)
@@ -733,6 +742,8 @@ class ModuleItem(NodeItem):
                 data = ValueItem.get_by_type_value(d[0], d[1])
                 if not data:
                     data = ValueItem(str(d[1]), d[0], task_id = self.id, job_id = runitem.id, workflow_id = runitem.workflow_id)
+                    if len(d) > 2:
+                        data.set_name(d[2])
                     data.allocate_for_user(runitem.user_id, AccessRights.Owner)                    
                     graph().push(data)
                 else:

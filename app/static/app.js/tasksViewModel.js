@@ -680,6 +680,7 @@ function TasksViewModel() {
 
             createHeatMapChart();
         }
+        toggleProvView(provTabDdl[0].options[0].value)
     }
 
     self.buildGoSimpleGraph = function (task) {

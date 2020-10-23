@@ -203,7 +203,7 @@ function RunnablesViewModel() {
             handleModeViewModel.setMode('provMode');
 
             var content = "run = Run.Get(id = "+ item.id() +")"
-                          +"\r\nprint(View.Graph(run))"; 
+                          +"\r\nView.Graph(run)"; 
             
             var pos = editor.selection.getCursor();
             editor.session.insert(pos, content + "\r\n");

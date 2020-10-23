@@ -1012,7 +1012,7 @@ function TasksViewModel() {
 				package = ", package = '" + item.package() +"'";
 			}
 	    	var content =  "module = Module.Get(name = '"+ item.name() +"'" + package + ")"
-                            +"\r\nprint(View.Graph(module))"; 
+                            +"\r\nView.Graph(module)"; 
             
             handleModeViewModel.setMode('provMode');
             var pos = editor.selection.getCursor();

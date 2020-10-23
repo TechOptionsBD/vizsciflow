@@ -272,7 +272,7 @@ function ProvPluginsViewModel() {
 				package = ", package = '" + item.package() +"'";
 			}
 	    	var content =  "module = Module.Get(name = '"+ item.name() +"'" + package + ")"
-                            +"\r\nprint(View.Graph(module))"; 
+                            +"\r\nView.Graph(module)"; 
             
             var pos = editor.selection.getCursor();
             editor.session.insert(pos, content + "\r\n");

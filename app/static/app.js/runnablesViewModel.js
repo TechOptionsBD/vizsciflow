@@ -3,10 +3,10 @@ function RunnablesViewModel() {
     self.runnablesURI = '/runnables';
     self.graphsURI = '/graphs';
     self.items = ko.observableArray();
+    self.monitorTimer = ko.observable();
     self.historyLoading = false;
     self.clicks = 0;
     self.timer = null;
-    let monitorTimer = false;
 
     self.copyToEditorDblClick = function (itme, event) {
         event.preventDefault();
@@ -249,16 +249,15 @@ function RunnablesViewModel() {
                 $('#liProvenanceTab').show();
             });
             
-            if(monitorTimer){
-                clearInterval(monitorTimer); 
-                monitorTimer = false;
+            if(self.monitorTimer()){
+                self.clearMonitorTimer()
             }
 
-            monitorTimer = setInterval(() => {
+            self.monitorTimer(setInterval(() => {
                 item.status() !== 'SUCCESS'
                 ?   getGraphData()
                 :   stopRefreshGraph()
-            }, 1000);
+            }, 1000))
 
             function getGraphData () {
                 ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (newData) {
@@ -276,10 +275,15 @@ function RunnablesViewModel() {
 
             function stopRefreshGraph(){
                 getGraphData();
-                clearInterval(monitorTimer)
-                monitorTimer = false;
+                clearInterval(self.monitorTimer())
+                self.monitorTimer(false);
             }
             
         }
+    }
+
+    self.clearMonitorTimer = function() {
+        clearInterval(self.monitorTimer()); 
+        self.monitorTimer(false);
     }
 }

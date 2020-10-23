@@ -325,6 +325,9 @@ function TasksViewModel() {
         }
 
         json = JSON.stringify(json)
+        if(runnablesViewModel.monitorTimer()){
+            runnablesViewModel.clearMonitorTimer()
+        }
         provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
     }
 

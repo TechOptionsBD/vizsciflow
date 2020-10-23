@@ -175,8 +175,9 @@ class Library(LibraryBase):
                 data = [f if isinstance(f, FolderItem) else FolderItem(f) for f in data]
             else:
                 datatype = DataType.Custom
-        
-            dataAndType.append((datatype, data))
+            
+            name = returnstup[i]["name"] if "name" in returnstup[i] else ""
+            dataAndType.append((datatype, data, name))
         
         for i in range(mincount, len(resulttup)):
             dataAndType.append((DataType.Unknown, resulttup[i]))

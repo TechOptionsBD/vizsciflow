@@ -40,7 +40,7 @@ class Config:
     GRAPHDB = 'bolt://localhost:7687'
     GRAPHDB_USER = 'neo4j'
     GRAPHDB_PASSWORD = 'sr-hadoop'
-    DATA_GRAPH = True
+    DATA_MODE = 1 # 0 = DB, 1 = Graph, 2 = Mock
 
     @staticmethod
     def init_app(app):

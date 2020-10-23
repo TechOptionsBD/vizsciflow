@@ -4,6 +4,7 @@ from config import Config
 from .models import Data, AccessRights, DataAllocation, DataProperty, TaskData
 from dsl.datatype import DataType
 from .graphutil import ValueItem
+from .mocks.datamocks import PersistanceMock
 
 class GraphPersistance():
 #     @staticmethod
@@ -69,10 +70,6 @@ class GraphPersistance():
     def add_task_data(dataAndType, task):
         return task.add_outputs(dataAndType)
     
-    @staticmethod
-    def is_data_item(value):
-        return isinstance(value, ValueItem)
-    
 class DBPersistance():
 #     @staticmethod
 #     def Save(dataitem):
@@ -129,7 +126,12 @@ class DBPersistance():
         
 class DataManager():
     def __init__(self):
-        self.persistance = GraphPersistance() if Config.DATA_GRAPH else DBPersistance() 
+        if Config.DATA_MODE == 0:
+            self.persistance = DBPersistance()
+        elif Config.DATA_MODE == 1:
+            self.persistance = GraphPersistance()
+        else:
+            self.persistance = PersistanceMock()
     
     def Save(self, dataitem):
         return self.persistance.Save(dataitem)
@@ -185,7 +187,7 @@ class DataManager():
                     elif 'folder' in paramType:
                         paramType = DataType.Folder
                 
-                task.add_input(user_id, paramType, args[i], AccessRights.Read)
+                task.add_input(user_id, paramType, args[i], AccessRights.Read, name = params[i]["name"] if i < len(params) and 'name' in params[i] else "")
                            
     def SaveMetaData(self, user, rights, category, key, value):
 

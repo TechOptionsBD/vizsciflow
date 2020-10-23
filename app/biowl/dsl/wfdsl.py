@@ -407,7 +407,7 @@ class Workflow(Module):
     
     def json(self):
         this_node = {"key": self.__workflow_id, "type": "Workflow", "name": self._name if self._name else ""}
-        this_json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
+        #this_json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
         
         json = { "nodeDataArray" : [], "linkDataArray":[]}
         for module in self.modules():

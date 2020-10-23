@@ -2,6 +2,7 @@ from config import Config
 
 from .models import Runnable, Workflow, Task
 from .graphutil import RunnableItem, WorkflowItem
+from .mocks.runmocks import ModuleManagerMock
 
 class GraphModuleManager():
 #     @staticmethod
@@ -128,8 +129,14 @@ class DBModuleManager():
     
 class RunnableManager:
     def __init__(self):
-        self.manager = GraphModuleManager() if Config.DATA_GRAPH else DBModuleManager()
-        self.dbmanager = DBModuleManager() if Config.DATA_GRAPH else self.manager # we need this line as long as we have pre-provenance data in the rdbms
+        if Config.DATA_MODE == 0:
+            self.manager = DBModuleManager()
+        elif Config.DATA_MODE == 1:
+            self.manager = GraphModuleManager()
+        else:
+            self.manager = ModuleManagerMock()
+            
+        self.dbmanager = DBModuleManager() if Config.DATA_MODE != 0 else self.manager # we need this line as long as we have pre-provenance data in the rdbms
 
     def add_module(self, workflow_id, package, function_name):
         return self.manager.add_module(workflow_id, package, function_name)

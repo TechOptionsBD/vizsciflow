@@ -7,9 +7,9 @@ from dsl.fileop import FolderItem
 from app.runmgr import runnableManager
 from app.datamgr import dataManager
 
-from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plugin
+from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plugin, Stat, Monitor
 
-registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin}
+registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
 
 class Library(LibraryBase):
     def __init__(self):

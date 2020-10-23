@@ -499,7 +499,7 @@ function toggleProvView(selectedTab) {
             $("#provePieCharts").show();
             break;
 
-        case "barChart":
+        case "cpu":
             $("#provenance").hide();
             $("#provDiagramOverview").hide();
             $("#compareDiv").hide();

@@ -126,7 +126,7 @@ class Data():
     def compare(data1, data2, deep = False):
         node1 = data1._node if data1 else None
         node2 = data2._node if data2 else None
-        json = [{"Heading": { "Title": "Data", "First": node1.name if node1 else "", "Second": node2.name if node2 else ""}, 
+        json = [{"Heading": { "Title": "Data", "First": node1.name() if node1 else "", "Second": node2.name() if node2 else ""}, 
                      "Properties": [
                          {
                              "Name": "ID",
@@ -204,7 +204,7 @@ class Module(object):
     def compare(module1, module2, deep = False):
         node1 = module1._node if module1 else None
         node2 = module2._node if module2 else None
-        json = [{"Heading": { "Title": "Module", "First": node1.name if node1 else "", "Second": node2.name if node2 else ""}, 
+        json = [{"Heading": { "Title": "Module", "First": node1.name() if node1 else "", "Second": node2.name() if node2 else ""}, 
                      "Properties": [
                          {
                              "Name": "ID",
@@ -233,13 +233,13 @@ class Module(object):
                          },
                          {
                              "Name": "Inputs",
-                             "First": str(len(node1.inputs)) if node1 else "",
-                             "Second": str(len(node2.inputs)) if node2 else ""
+                             "First": str(len(node1.inputs())) if node1 else "",
+                             "Second": str(len(node2.inputs())) if node2 else ""
                          },
                          {
                              "Name": "Outputs",
-                             "First": str(len(node1.outputs)) if node1 else "",
-                             "Second": str(len(node2.outputs)) if node2 else ""
+                             "First": str(len(node1.outputs())) if node1 else "",
+                             "Second": str(len(node2.outputs())) if node2 else ""
                          }
                          ]
                      }]
@@ -293,12 +293,12 @@ class Run(object):
         
     def modules(self, index = None, name = None):
         modules = []
-        moduleItems = self._node.modules()
-        if index:
-            modules.append(Module(moduleItem=moduleItems[int(index)]))
+        moduleItems = list(self._node.modules())
+        if index is not None:
+            return Module(moduleItem=moduleItems[int(index)])
         elif name:
             for module in moduleItems:
-                if module.name == name:
+                if module.name() == name:
                     modules.append(Module(moduleItem=module))
         else:
             for module in moduleItems:
@@ -351,8 +351,8 @@ class Run(object):
                         },
                          {
                              "Name": "Modules",
-                             "First": str(len(node1.modules)) if node1 else "",
-                             "Second": str(len(node2.modules)) if node2 else ""
+                             "First": str(len(node1.modules())) if node1 else "",
+                             "Second": str(len(node2.modules())) if node2 else ""
                          }
                          ]
                      }]
@@ -363,14 +363,15 @@ class Run(object):
                     addsize = len(from2)
                     if run2:
                         for m2 in run2.modules():
-                            if m1._node.name() == m2._node.name() and m2 not in from2:
+                            if m1.name() == m2.name() and m2 not in from2:
                                 json.extend(Module.compare(m1, m2, deep))
-                                from2.append(m1._node.name())
+                                from2.append((m2.name(), m2._node.id))
+                                break
                     if addsize == len(from2):
                         json.extend(Module.compare(m1, None))
                 
             for m2 in run2.modules():
-                if m2._node.name() not in from2:
+                if (m2.name(), m2._node.id) not in from2:
                     json.extend(Module.compare(None, m2))
                     
         return json
@@ -515,6 +516,13 @@ class Plugin():
     
     def apply(self, *args, **kwargs):
         return self._plugin.perform_operation(*args, **kwargs)
+
+def isiterable(p_object):
+    try:
+        iter(p_object)
+    except TypeError: 
+        return False
+    return True
         
 class View(object):
     def __init__(self):
@@ -522,7 +530,13 @@ class View(object):
     
     @staticmethod
     def graph(node):
-        return node.json()
+        if isiterable(node):
+            json = { "nodeDataArray" : [], "linkDataArray":[]}
+            for n in node:
+                json = merge_json(json, n.json(), ""     )
+            return json
+        else:
+            return node.json()
 
     @staticmethod             
     def compare(node1, node2, deep = True):
@@ -579,7 +593,21 @@ class Monitor(object):
 class Stat(object):
     @staticmethod
     def similarity(g1, g2):
-        g1.compare(g1, g2)
+        return View.compare(g1, g2)
+    
+    @staticmethod
+    def cpu(node):        
+        if not isiterable(node):
+            node = [node]
+        
+        labels = []
+        datasets = []
+        
+        for n in node:
+            labels.append(n._node.name())
+            datasets.append(n._node.cpu_run)
+            
+        return { "labels" : labels, "datasets":{"label": "CPU at Execution", "data": datasets}}
     
     @staticmethod
     def get(condition):

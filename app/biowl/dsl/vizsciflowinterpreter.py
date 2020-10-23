@@ -8,7 +8,15 @@ from .provobj import *
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):
         super().__init__(Context(Library(), VizSciFlowSymbolTable))
-        
+    
+    def prepare_view(self, function, result):
+        if not hasattr(self.context, 'view'):
+            self.context.view = {}
+        if function in self.context.view:
+            self.context.view[function].append(result)
+        else:
+            self.context.view[function] = [result]
+                
     def dofunc(self, expr):
         '''
         Execute func expression.
@@ -29,13 +37,8 @@ class VizSciFlowInterpreter(Interpreter):
             if package in registry:
                 args, kwargs = Library.split_args(v)
                 result = getattr(registry[package], function.lower())(*args, **kwargs)
-                if package == "View":
-                    if not hasattr(self.context, 'view'):
-                        self.context.view = {}
-                    if function.lower() in self.context.view:
-                        self.context.view[function.lower()].append(result)
-                    else:
-                        self.context.view[function.lower()] = [result]
+                if package == "View" or package == "Stat"  or package == "Monitor":
+                    self.prepare_view(function.lower(), result)
                 return result
            
         # call task if exists

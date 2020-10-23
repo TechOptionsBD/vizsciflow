@@ -465,31 +465,24 @@ function TasksViewModel() {
         });
     }
 
-    function createBarChart() {
+
+	function dynamicColors() {
+        var r = Math.floor(Math.random() * 255);
+        var g = Math.floor(Math.random() * 255);
+        var b = Math.floor(Math.random() * 255);
+        return "rgba(" + r + "," + g + "," + b + ", 0.5)";
+    }
+
+    function createBarChart(d) {
         var ctx = document.getElementById('canvasBarChart').getContext('2d');
         var barChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                labels: d.labels,
                 datasets: [{
-                    label: '# of Data',
-                    data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
+                    label: d.datasets.label,
+                    data: d.datasets.data,
+					backgroundColor: dynamicColors,
                     borderWidth: 1
                 }]
             },
@@ -534,11 +527,11 @@ function TasksViewModel() {
             return;
 
         // view = JSON.parse(data['view'])
-        view.lineChart = 'line Chart';
-        view.pieChart = 'pie Chart';
-        view.barChart = 'bar Chart';
-        view.heatMap = 'heat Map';
-
+        //view.lineChart = 'line Chart';
+        //view.pieChart = 'pie Chart';
+        //view.barChart = 'bar Chart';
+        //view.heatMap = 'heat Map';
+		
         let provTabDdl = document.getElementsByClassName("provTabCombo");
         $(".provTabCombo").empty();
         
@@ -649,7 +642,7 @@ function TasksViewModel() {
             createPieChart();
         }
 
-        if (view.barChart !== undefined) {
+        if (view.cpu !== undefined) {
             if (view.graph === undefined) {
                 $("#provenance").hide();
                 $("#provDiagramOverview").hide();
@@ -662,7 +655,7 @@ function TasksViewModel() {
                 $("#proveBarCharts").show();
             }
 
-            createBarChart();
+            createBarChart(view.cpu[0]);
         }
 
         if (view.heatMap !== undefined) {

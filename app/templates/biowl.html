@@ -363,11 +363,11 @@
 						</div>
 						
 						<!-- job history floating toolbar -->
-						<span class="runnableToolbar service-toolbar" data-bind="visible: id()">
+						<span class="runnableToolbar service-toolbar" data-bind="visible: handleModeViewModel.shouldProvElemShow()">
 							<span class="glyphicon glyphicon-export" id="insert2Editor" data-bind="event: {click: $parent.runnableToolbar}" title="Provenance"></span>
 						</span>
 
-						<span class="runnableToolbar service-toolbar" data-bind="visible: id()" style="right: 2em;">
+						<span class="runnableToolbar service-toolbar" data-bind="visible: handleModeViewModel.shouldProvElemShow()" style="right: 2em;">
 							<span class="fa fa-desktop" id="monitorGraph" data-bind="event: {click: $parent.runnableToolbar}" title="Monitor Execution"></span>
 						</span>
 						
@@ -790,7 +790,7 @@
 
 								<!-- service floating toolbar for owner only -->
 								<span id="serviceToolbar" class="service-toolbar" data-bind="visible: isOwner()">
-									<span id="copyProv" title="Provenance" data-bind="event: {click: $parent.serviceToolbar} "
+									<span id="copyProv" title="Provenance" data-bind="visible: handleModeViewModel.shouldProvElemShow(), event: {click: $parent.serviceToolbar} "
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Prov.
 									</span>
@@ -843,7 +843,7 @@
 								</button>
 								<button style="margin-right: 10px;" class="btn btn-primary"
 									data-toggle="tooltip" data-placement="top" title="Compare"
-									data-bind="click: compareWf">
+									data-bind="visible: handleModeViewModel.shouldProvElemShow(), click: compareWf">
 									<i class="fa fa-exchange toolbar-icon"></i>
 								</button>
 							</span> 
@@ -876,7 +876,7 @@
 								
 								<!-- workflow toolbar for owner only -->
 								<span id='workflowDropdown' class='service-toolbar workflow-toolbar' data-bind="visible: isOwner() == true">
-									<span id="copyProv" title="Provenance" data-bind="event: {click: $parent.workflowToolbar} "
+									<span id="copyProv" title="Provenance" data-bind="visible: handleModeViewModel.shouldProvElemShow(), event: {click: $parent.workflowToolbar} "
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Prov.
 									</span>								
@@ -2858,7 +2858,6 @@ function typeInTextarea(el, newText) {
         	   'icon': 'glyphicon glyphicon-paste',
         	   'separator_after': true,
                'action' : function(data) {
-				   handleModeViewModel.setMode('provMode');
             	   var inst = $.jstree.reference(data.reference);
             	   var node = inst.get_node(data.reference);
 				   copyProvSnippetToEditor(node.original);
@@ -2883,15 +2882,15 @@ function typeInTextarea(el, newText) {
             	   showTab("liMetadataTab");
             	}
            }
-       }
+	   }
+	   
+		if (handleModeViewModel.getMode() !== 'provMode' || node.type === 'level_1') {
+			delete items.item2;
+		} else if (node.type === 'level_2') {
+			delete items.item1;
+		}
 
-       if (node.type === 'level_1') {
-           delete items.item2;
-       } else if (node.type === 'level_2') {
-           delete items.item1;
-       }
-
-       return items;
+		return items;
    }
    
    ko.bindingHandlers.jstree = {
@@ -3153,11 +3152,14 @@ function typeInTextarea(el, newText) {
 		
 		function HandleModeViewModel() {
             var self = this;
-            self.currentMode = ko.observable('wfMode');
+			self.currentMode = ko.observable('wfMode');
+			self.shouldProvElemShow = ko.observable(false);
+			
 			
             self.setMode = function(id) {
 				if(id == 'wfMode'){
 					self.currentMode('wfMode')
+					self.shouldProvElemShow(false)
     				$("#provMode").removeClass("active-mode");
     				$("#wfMode").addClass("active-mode");
 					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
@@ -3178,6 +3180,7 @@ function typeInTextarea(el, newText) {
 				}
 				else if(id == 'provMode'){
 					self.currentMode('provMode')
+					self.shouldProvElemShow(true)
     				$("#wfMode").removeClass("active-mode");
     				$("#provMode").addClass("active-mode");
 					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {

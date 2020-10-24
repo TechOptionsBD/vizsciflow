@@ -246,18 +246,10 @@ $(document).ready(function () {
     });
 
     //job history floating toolbar visibility based on active tab 
-    $(document).on('mouseenter', '#runnablesHistory', function (e) {
-        // var activeTab = $("#exTabBiowl ul li.active").attr('id');
-		// if (activeTab === "liScriptTab") 
-        //     $(this).find(".runnableToolbar").css("display", "block");
-        // else
-        //     $(this).find(".runnableToolbar").css("display", "none");
-        $(this).find(".runnableToolbar").css("display", "block");
-
-    }).on('mouseleave', '#runnablesHistory', function () {
-        $(this).find(".runnableToolbar").css("display", "none");
-    });
-      
+    // var activeTab = $("#exTabBiowl ul li.active").attr('id');
+    // if (activeTab === "liScriptTab") 
+    //     $(this).find(".runnableToolbar").css("display", "block");
+    
     //handling any service addition on click
     $("#visual").droppable({
 

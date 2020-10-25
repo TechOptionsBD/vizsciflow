@@ -348,17 +348,20 @@ function TasksViewModel() {
                         td.style.borderLeftStyle = 'hidden';
                         td.style.borderBottomStyle = 'hidden';
                         td.style.width = 'fit-content';
+                        td.style.backgroundColor = 'lightGray'
                     
 
                         var td = tr.insertCell();
                         td.appendChild(document.createTextNode(value['First']));
                         td.style.fontWeight = 'bold';
                         td.style.textAlign = 'center';
-                        
+                        td.style.backgroundColor = 'lightGray'
+
                         var td = tr.insertCell();
                         td.appendChild(document.createTextNode(value['Second']));
                         td.style.fontWeight = 'bold';
                         td.style.textAlign = 'center';
+                        td.style.backgroundColor = 'lightGray'
                     }
                     else if(key == "Properties"){
                         value.forEach(tableData => {

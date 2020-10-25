@@ -4,6 +4,7 @@ function RunnablesViewModel() {
     self.graphsURI = '/graphs';
     self.items = ko.observableArray();
     self.monitorTimer = ko.observable();
+    self.shouldTaskCompareActive = ko.observable(false);
     self.historyLoading = false;
     self.clicks = 0;
     self.timer = null;
@@ -89,6 +90,31 @@ function RunnablesViewModel() {
 
     self.about = function () {
         window.open("static/biodsl-help.html#jobs", '_blank');
+    }
+
+    self.compareTask = function() {
+        selectedIds = self.selectedIds()
+        if(self.shouldTaskCompareActive()){
+            ajaxcalls.simple(self.runnablesURI, 'GET', {'compare': selectedIds[0], 'with': selectedIds[1]}).done(function (res) {
+                $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
+                    $('#liProvenanceTab').show();
+                });
+                tasksViewModel.createCompView(res.view)
+            }).fail(function (jqXHR) {
+                showXHRText(jqXHR);
+            });
+        }
+    }
+
+    self.toggleTaskCompareBtn = function(){
+        selectedIds = self.selectedIds()
+        if(selectedIds.length === 2){
+            self.shouldTaskCompareActive(true)
+        }
+        else{
+            self.shouldTaskCompareActive(false)
+        }
+        return true
     }
 
     self.copyToEditor = function (item) {

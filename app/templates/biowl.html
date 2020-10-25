@@ -322,6 +322,11 @@
 								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
 							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Compare"
+								data-bind="enable: shouldTaskCompareActive, visible: handleModeViewModel.shouldProvElemShow(), click: compareTask">
+								<i class="fa fa-exchange toolbar-icon"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
 								data-placement="top" title="Restart Execution"
 								data-bind="click: restart">
 								<i class="glyphicon glyphicon-repeat toolbar-icon"></i>
@@ -355,7 +360,7 @@
 						data-bind=" css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }">
 						<div class="col-md-1" style="padding-left: 0; margin-right: 5px;">
 							<input type="checkbox" class="form-check-input" style="margin-left: 10px"
-								data-bind="checked: selected" /> 
+								data-bind="checked: selected, event: {click: $parent.toggleTaskCompareBtn}"/> 
 						</div>
 						<div class="col-md-10" style="vertical-align: middle; padding-left: 0;" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}">
 							<img class="history-item-img" width="16px" height="16px" data-bind="attr:{src: statusImg}" />

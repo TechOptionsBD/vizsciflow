@@ -278,7 +278,7 @@ class Module(object):
         
 class Run(object):
     def __init__(self, id = None, runItem = None):
-        self._node = RunnableItem.load(id = id) if id else runItem
+        self._node = RunnableItem.load(id) if id else runItem
     
     @staticmethod
     def get(id = None, workflow_id = None):

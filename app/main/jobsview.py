@@ -582,6 +582,12 @@ def runnables():
                     new_status.append(runnable)
                     sync_task_status_with_db(runnable)
             return jsonify(runnables =[i.to_json_log() for i in new_status])
+        if request.args.get('compare'):
+            run_id1 = int(request.args.get('compare'))
+            run_id2 = int(request.args.get('with'))
+            view = {}
+            view['compare'] = [View.compare(Run(id = run_id1), Run(id = run_id2))]
+            return json.dumps({"view": view})
         elif request.args.get('restart'):
             ids = request.args.get('restart')
             ids = ids.split(",")

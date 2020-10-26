@@ -109,6 +109,7 @@ function ProvPluginsViewModel() {
 	// /provenance?demoserviceadd
 	self.beginAddProvPlugin = function () {
         $("#add-library-info").val("");
+        $("#add-prov-library-info").text("");
         $.getJSON('/provenance?demoprovenanceadd', function (demoprovenance) {
             addProvPluginViewModel.getCodeEditor().setValue(demoprovenance.demoprovenance.script, 1);
             addProvPluginViewModel.getHtmlEditor().setValue(demoprovenance.demoprovenance.html, 1);

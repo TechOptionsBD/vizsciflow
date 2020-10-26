@@ -3154,6 +3154,23 @@ function typeInTextarea(el, newText) {
                 });
             }
 		}
+
+		function ScriptViewModel() {
+			var self = this;
+			self.prevModeScript = ko.observable('')
+
+			self.getPrevModeScript = function(){
+				return self.prevModeScript()
+			}
+			self.setPrevScript = function(){
+				var currentScript = editor.session.getValue()
+				editor.session.setValue("");
+				editor.session.insert(editor.selection.getCursor(), self.prevModeScript());
+				editor.focus();
+				self.prevModeScript(currentScript)
+			}
+		}
+		var scriptViewModel = new ScriptViewModel();
 		
 		function HandleModeViewModel() {
             var self = this;
@@ -3162,11 +3179,14 @@ function typeInTextarea(el, newText) {
 			
 			
             self.setMode = function(id) {
+				if(self.currentMode() !== id){
+					scriptViewModel.setPrevScript();
+				}
 				if(id == 'wfMode'){
 					self.currentMode('wfMode')
 					self.shouldProvElemShow(false)
-    				$("#provMode").removeClass("active-mode");
-    				$("#wfMode").addClass("active-mode");
+					$("#provMode").removeClass("active-mode");
+					$("#wfMode").addClass("active-mode");
 					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
 						$("#exTabBiowl ul li:first").addClass('active');	
 					});
@@ -3186,8 +3206,8 @@ function typeInTextarea(el, newText) {
 				else if(id == 'provMode'){
 					self.currentMode('provMode')
 					self.shouldProvElemShow(true)
-    				$("#wfMode").removeClass("active-mode");
-    				$("#provMode").addClass("active-mode");
+					$("#wfMode").removeClass("active-mode");
+					$("#provMode").addClass("active-mode");
 					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
 						$("#exTabBiowl ul li:first").addClass('active');	
 					});

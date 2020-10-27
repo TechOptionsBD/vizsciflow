@@ -331,8 +331,18 @@ function TasksViewModel() {
         provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
     }
 
-    function provCompTable(data){
-        var tbl = document.getElementById("comparisonTbl");
+    function provCompTable(data, tableNo){
+        let tbl = $('<div/>', {
+            'id': `compareDiv:${tableNo}`,
+            'style': 'height:92%; overflow-y: auto;'
+        }).append(
+            $('<table>', {
+                'id': `comparisonTbl:${tableNo}`
+            })
+        );
+
+        // var tbl = document.getElementById("comparisonTbl");
+        $(`#comparisonTbl:${tableNo} tr`).remove();            //removing previous table data
         
         data.forEach(row => {
             Object.entries(row).forEach(
@@ -543,7 +553,6 @@ function TasksViewModel() {
         
         diagramReload("provenance");				//removing the graph
         diagramReload("provDiagramOverview");		//removing the overview
-        $("#comparisonTbl tr").remove();            //removing previous table data
 
         for (const val in view) {
             let option = document.createElement("option");

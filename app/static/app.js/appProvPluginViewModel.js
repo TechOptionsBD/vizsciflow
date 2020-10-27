@@ -138,7 +138,7 @@ function AddProvPluginViewModel(userName) {
 	                provpluginsViewModel.load();
 	            }
 	
-	 			$('#add').modal('hide');
+	 			$('#addProv').modal('hide');
 			}
         });
     }

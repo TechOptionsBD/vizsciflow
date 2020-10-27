@@ -219,7 +219,7 @@ def provenance():
     #                 else:
     #                     access = 2
     #                     sharedusers = False              
-                result['out'].append("Library successfully added.")
+                result['out'].append("Provenance plugin {0} successfully added.".format(scriptname))
             except Exception as e:
                 result['err'].append(str(e))
             return json.dumps(result)            

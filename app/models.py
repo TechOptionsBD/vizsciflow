@@ -597,6 +597,7 @@ class Workflow(db.Model):
     public = db.Column(db.Boolean, default=False)
     temp = db.Column(db.Boolean, default=False)
     derived = db.Column(db.Integer, nullable=True)
+    args = db.Column(JSON, nullable=True)
     
     accesses = db.relationship('WorkflowAccess', backref='workflow', lazy=True, cascade="all,delete-orphan") 
     runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflow', lazy='dynamic')
@@ -615,13 +616,14 @@ class Workflow(db.Model):
             raise
     
     @staticmethod
-    def create(user_id, name, desc, script, access, users, temp=False, derived = 0):
+    def create(user_id, name, desc, script, access, users, temp=False, derived = 0, args = None):
         try:
             wf = Workflow()
             wf.user_id = user_id
             wf.name = name
             wf.desc = desc
             wf.script = script
+            wf.args = args
             wf.public = True if access == 0 else False
                 
             
@@ -751,7 +753,8 @@ class Workflow(db.Model):
             'user': self.user.username,
             'name': self.name,
             'desc': self.desc,
-            'script': self.script
+            'script': self.script,
+            'args': self.args
         }
         return json_post
     

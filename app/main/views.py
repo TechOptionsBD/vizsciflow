@@ -780,7 +780,7 @@ class Samples():
         #return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
 
     @staticmethod
-    def create_workflow(user, name, desc, script, publicaccess, users, temp, derived = 0):
+    def create_workflow(user, name, desc, script, publicaccess, users, temp, derived = 0, args = None):
         access = 9
         if script and name:
             if publicaccess == 'true':
@@ -792,12 +792,12 @@ class Samples():
                 else:
                     access = 2
                     users = False   
-            return Workflow.create(user, name, desc if desc else '', script, access, users, temp, derived)
+            return Workflow.create(user, name, desc if desc else '', script, access, users, temp, derived, args)
 
     @staticmethod
-    def add_workflow(user, name, desc, script, access, users, temp):
+    def add_workflow(user, name, desc, script, access, users, temp, args):
         try:
-            workflow = Samples.create_workflow(user, name, desc, script, access, users, temp)
+            workflow = Samples.create_workflow(user, name, desc, script, access, users, temp, 0, args)
             return json.dumps(workflow.to_json_info());
         except:
             return json.dumps({})
@@ -882,7 +882,7 @@ def workflow_rev_compare(request):
 def samples():
     try:
         if request.form.get('sample'):
-            return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
+            return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False, request.form.get('args') if request.form.get('args') else None)
         elif request.args.get('sample_id'):
             workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
             return json.dumps(workflow.to_json())

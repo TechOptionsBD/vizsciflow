@@ -113,7 +113,7 @@ function TasksViewModel() {
     }
 
     self.beginAddLibrary = function () {
-        $("#add-library-info").val("");
+        $("#add-library-info").text("");
         $.getJSON('/functions?demoserviceadd', function (demoservice) {
             addLibraryViewModel.getCodeEditor().setValue(demoservice.demoservice.script, 1);
             addLibraryViewModel.getMapperEditor().setValue(demoservice.demoservice.mapper, 1);

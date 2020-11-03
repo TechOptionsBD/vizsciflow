@@ -1099,55 +1099,86 @@
 
 
 
-<div id="addSample" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered modal-md" role="document">
+<div id="addSample" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 				<h4 id="addSampleDialogLabel">Add Workflow</h4>
 			</div>
 			<div class="modal-body">
-				<form class="form-horizontal">
-					<div class="control-group">
-						<div class="span-sm-20">
-							<div class="row service-form-group">
-								<label class="span-sm-4" for="sampleName">Name</label>
-								<div class="span-sm-16">
-									<input class="form-control" data-bind="value: name" type="text" id="sampleName" placeholder="Name">
-								</div>
+				<div class="control-group">
+					<div class="span-sm-20">
+						<div class="row service-form-group">
+							<label class="span-sm-4" for="sampleName">Name</label>
+							<div class="span-sm-16">
+								<input class="form-control" data-bind="value: name" type="text" id="sampleName" placeholder="Name">
 							</div>
-						</div>
-						<div class="span-sm-20">
-							<div class="row service-form-group">
-								<label class="span-sm-4" for="sampleDesc">Description</label>
-								<div class="span-sm-16">
-									<input class="form-control" data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description">
-								</div>
-							</div>
-						</div>
-						<div class="span-sm-20">
-							<hr>
-						</div>
-						<label for="sample">Script:</label>
-						<div class="controls">
-							<textarea rows="18" style="width: 540px;" id="sample"></textarea>
 						</div>
 					</div>
-					<div class="row service-form-group">
-						<label class="span-sm-2" for="access">Public</label>
-						<div class="span-sm-2">
-							<input type="checkbox" id="access" data-bind="checked: access">
+					<div class="span-sm-20">
+						<div class="row service-form-group">
+							<label class="span-sm-4" for="sampleDesc">Description</label>
+							<div class="span-sm-16">
+								<input class="form-control" data-bind="value: desc" type="text" id="sampleDesc" placeholder="Description">
+							</div>
 						</div>
-						<label for="" class="span-sm-4">Share with</label>
+					</div>
+					<div class="span-sm-20">
+						<hr>
+					</div>
+
+					<div class="span-sm-20">
 						<div class="span-sm-12">
-							<select id="wfUserSelection" multiple="multiple" class="form-control" data-bind="options: userList, 
-								 optionsText: 'name', 
-								 optionsValue: 'id', 
-								 selectedOptions: selectedSharingUsers">
-							</select>
+							<label for="sample">Script:</label>
+							<div class="controls">
+								<textarea rows="18" style="width: 60%;" id="sample"></textarea>
+							</div>	
+
+							<div class="row service-form-group">
+								<label class="span-sm-2" for="access">Public</label>
+								<div class="span-sm-2">
+									<input type="checkbox" id="access" data-bind="checked: access">
+								</div>
+								<label for="" class="span-sm-5">Share with</label>
+								<div class="span-sm-11">
+									<select id="wfUserSelection" multiple="multiple" class="form-control" data-bind="options: userList, 
+										optionsText: 'name', 
+										optionsValue: 'id', 
+										selectedOptions: selectedSharingUsers">
+									</select>
+								</div>
+							</div>
+						</div>
+	
+						<div class="span-sm-8">
+							<div style="display: flex">
+								<h4>Arguments:</h4>
+								<button class="btn btn-primary" style="right: 0em; position: absolute;" data-bind="click: addArgs, visible: wfArgs().length == 0">Add</button>	
+							</div>
+							
+							<form role="form" data-bind="foreach: wfArgs" style="overflow-x: hidden; overflow-y: auto; max-height: 45vh;">
+								<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;">
+									<a style="float: right;" class="btn btn-sm btn-primary" title="Add"
+										data-bind="click: $parent.addArgs, visible: $index() === ($parent.wfArgs().length-1)"><i
+											class="fa fa-plus"></i></a>
+									<a style="float: right;" class="btn btn-sm btn-danger" title="Remove"
+										data-bind="click: $parent.removeArgs.bind($data)"><i class="fa fa-minus"></i></a>
+								</div>
+								<div data-bind="foreach: $data.items">
+									<div class="row service-form-group">
+										<label class="span-sm-6" data-bind="text: key"></label>
+										<div class="span-sm-14">
+											<input type="text" class="form-control" id="package"
+												data-bind="value: value, valueUpdate: 'keyup'">
+										</div>
+									</div>
+								</div>
+								<hr data-bind="visible: $index() != ($parent.wfArgs().length-1)">
+							</form>
 						</div>
 					</div>
-				</form>
+				</div>
 			</div>
 			<div class="modal-footer">
 				<button data-bind="click: addSample" class="btn btn-primary">Add</button>

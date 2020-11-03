@@ -30,6 +30,10 @@ function SampleViewModel() {
             formdata.append('sharedusers', self.selectedSharingUsers());
         }
 
+        if(self.wfArgs() !== null){
+            formdata.append('args', ko.toJSON(self.wfArgs));
+        }
+
         ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
             if (!$.isEmptyObject(data)) {
                 data = JSON.parse(data);
@@ -41,7 +45,24 @@ function SampleViewModel() {
             samplesViewModel.load();
         });
     }
+
+    self.wfArgs = ko.observableArray();
+
+    self.addArgs = function () {
+        self.wfArgs.push(
+            ko.observableDictionary({
+                name: '',
+                type: '',
+                desc: ''
+            })
+        );
+    };
     
+    self.removeArgs = function (data, e) {
+        self.wfArgs.remove(data);
+    };
+
+
     self.getCodeEditor = function() { return self.sampleEditor; }
 
     self.getUsers = function () { 

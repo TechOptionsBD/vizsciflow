@@ -796,11 +796,8 @@ class Samples():
 
     @staticmethod
     def add_workflow(user, name, desc, script, access, users, temp, args):
-        try:
-            workflow = Samples.create_workflow(user, name, desc, script, access, users, temp, 0, args)
-            return json.dumps(workflow.to_json_info());
-        except:
-            return json.dumps({})
+        workflow = Samples.create_workflow(user, name, desc, script, access, users, temp, 0, args)
+        return json.dumps(workflow.to_json_info());
                 
     @staticmethod
     def add_sample(sample, name, desc, shared):

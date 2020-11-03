@@ -625,23 +625,16 @@ class Workflow(db.Model):
             wf.script = script
             wf.args = args
             wf.public = True if access == 0 else False
-                
             
             wf.temp = temp
-            if users: users = list(users.split(","))
+            if users:
+                users = list(users.split(","))
             if (access == AccessType.SHARED and users):
                 for user_id in users:
                     user = User.query.filter(User.id == user_id).first()
                     if user:
-                        wf.accesses.append(WorkflowAccess(user_id = user.id, rights = 0x01))
-#             if (access == AccessType.SHARED and user):
-#                 for user_id in user:
-# #                 for usr in user:
-# #                     print(usr)
-# #                     user_id, rights = usr.split(":")
-#                     user = User.query.filter(User.id == user_id).first()
-#                     if user:
-#                         service.accesses.append(ServiceAccess(user_id = user.id, rights = 0x01))
+                        wf.accesses.append(WorkflowAccess(user_id = user.id, rights = AccessRights.Read))
+
             db.session.add(wf)
             db.session.commit()
             

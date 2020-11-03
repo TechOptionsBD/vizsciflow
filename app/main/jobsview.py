@@ -17,7 +17,7 @@ from datetime import datetime
 import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
-from ..models import Workflow, AccessType, Service, ServiceAccess, User
+from ..models import Workflow, AccessType, Service, ServiceAccess, User, Permission
 from . import main
 from .views import Samples, AlchemyEncoder
 from flask_login import login_required, current_user
@@ -37,7 +37,22 @@ basedir = os.path.dirname(os.path.abspath(__file__))
 def update_workflow(user_id, workflow_id, script):
     if workflow_id:
         workflow = Workflow.query.get(workflow_id)
-        if workflow.temp:
+        writeaccess = workflow.temp
+        
+        if not writeaccess:
+            if workflow.public:
+                writeaccess = user_id == workflow.user_id
+                if not writeaccess:
+                    permissions = workflow.user.role.permissions
+                    if permissions & Permission.ADMINISTER or permissions & Permission.MODERATE_WORKFLOWS:
+                        writeaccess = True
+            if not writeaccess:
+                accesses = workflow.accesses#.query.filter(user_id = WorkflowAccess.user_id)
+                for access in accesses:
+                    if access.user_id == user_id and access.rights == AccessRights.Write or access.rights == AccessRights.Owner:
+                        writeaccess = True
+        
+        if writeaccess:
             workflow.update_script(script)
         else:
             workflow = Samples.create_workflow(user_id, workflow.name, workflow.desc, script, AccessType.PRIVATE, '', True, workflow.id)

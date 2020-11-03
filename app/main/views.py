@@ -882,7 +882,7 @@ def workflow_rev_compare(request):
 def samples():
     try:
         if request.form.get('sample'):
-            return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False, request.form.get('args') if request.form.get('args') else None)
+            return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False, json.loads(request.form.get('args')) if request.form.get('args') else None)
         elif request.args.get('sample_id'):
             workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
             return json.dumps(workflow.to_json())

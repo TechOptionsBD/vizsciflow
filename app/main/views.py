@@ -730,7 +730,7 @@ class Samples():
     def get_workflows_info(workflows, access):
         workflow_list = []
         for workflow in workflows:
-            json_info = workflow.to_json_info()
+            json_info = workflow.to_json()
             json_info["access"] = access
             json_info["is_owner"] = json_info["user"] == current_user.username
             workflow_list.append(json_info)

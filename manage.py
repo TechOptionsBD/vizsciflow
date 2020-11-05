@@ -5,6 +5,7 @@ from flask_restful import Api
 from flask_restful.utils import cors
 from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, request, make_response
+# from builtins import None
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -20,9 +21,8 @@ if os.path.exists('.env'):
             os.environ[var[0]] = var[1]
 
 from app import app, db
-from flask_script import Manager
+from flask_script import Manager, Server
 from flask_migrate import Migrate
-
 
 
 manager = Manager(app)
@@ -104,13 +104,20 @@ def run_workflow_api():
     curl -H 'Content-Type: application/json'  -u mainulhossain@gmail.com:aaa -X GET -d '{"id":"332", "args":"data='/storage',data2='/storag22'"}' http://127.0.0.1:5000/api/run
     '''
     try:
-        workflow_id = request.json.get('id')
-        args = request.json.get('args') if request.json.get('args') else ''
-        args = args.split(',')
-        args = [arg for arg in args if arg]
-                
-        immediate = request.json.get('immediate').lower() == 'true' if request.json.get('immediate') else False
-        runnable = run_biowl(workflow_id, '', args, immediate)
+        
+        if request.args.get("args"):
+            args = request.args.get('args')
+            print(args)
+#             args = args.split(',')
+#             args = [arg for arg in args if arg]
+            print(args)
+        else:
+            args = ''
+        workflow_id = request.args.get('id')
+        print(args)
+        script = None
+        immediate = request.args.get('immediate').lower() == 'true' if request.args.get('immediate') else False
+        runnable = run_biowl(workflow_id, script, args, True)
         return jsonify(runnableId = runnable.id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
@@ -126,7 +133,8 @@ def get_status_api():
     wget --user mainulhossain@gmail.com --password aaa "http://127.0.0.1:5000/api/status?id=7"
     '''
     runid = request.args.get('id') if request.args.get('id') else ''
-    return get_task_status(int(runid)) if runid else get_user_status(current_user.id)
+    status = get_task_status(int(runid)) if runid else get_user_status(current_user.id)
+    return status
 
 
 def make_shell_context():
@@ -184,4 +192,11 @@ def deploy():
 
 
 if __name__ == '__main__':
+    manager.add_command("runserver", Server(
+    use_debugger = True,
+    use_reloader = True,
+    host = '0.0.0.0',
+    port = 8080) )
     manager.run()
+
+    

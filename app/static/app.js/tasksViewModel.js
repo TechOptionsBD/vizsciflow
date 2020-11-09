@@ -402,8 +402,21 @@ function TasksViewModel() {
         })
     }
 
-    function provCompTxt(data){
-        $('#txtComparisonDiv').text(data)
+    function provCompTxt(data, itemNo = null){
+        if(itemNo !== null){
+            let textCompareDivId = 'textcompare:'+itemNo;
+            $('#textCompareMainDiv').append('<div id="'+textCompareDivId+'" style="height:39em; overflow-y: auto; background: #add8e62e;"></div>');
+            var textCompareDiv = document.getElementById(textCompareDivId);
+            var paragraph = document.createElement('p');
+            paragraph.id = "textComparisonDiv"+itemNo;
+            paragraph.textContent = data
+            textCompareDiv.appendChild(paragraph);
+        }
+        else{
+            $('#textCompareMainDiv').append('<div id="textcompare" style="height:39em; overflow-y: auto; background: #add8e62e;"></div>');
+            $("#textcompare").append('<p id="textComparisonDiv"></p>');
+            $('#textComparisonDiv').text(data)
+        }
     }
 	
     function pluginHtmlViewer(data) {
@@ -599,19 +612,16 @@ function TasksViewModel() {
         }
 
         if(view.textcompare !== undefined){
-            if(view.graph === undefined){
-                $("#provenance").hide();
-                $("#provDiagramOverview").hide();
-                $("#compareDiv").hide();
-                $("#pluginViewDiv").hide();
-                $("#proveBarCharts").hide();
-                $("#provePieCharts").hide();
-                $("#proveHeatMap").hide();
-                $("#proveLineCharts").hide();
-                $("#compareTxtDiv").show();
+            $("#textCompareDiv").empty();
+            
+            if(view.textcompare.length === 1){
+                provCompTxt(view.textcompare[0]);
             }
-
-            provCompTxt(view.textcompare[0]);
+            else{
+                view.textcompare.forEach((item, index) => {
+                    provCompTxt(item, index+1);
+                })
+            }
         }
 
         if (view.plugin !== undefined) {

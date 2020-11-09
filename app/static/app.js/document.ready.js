@@ -420,9 +420,14 @@ $(document).ready(function () {
 function toggleProvView(selectedTab) {
     $("#provViewerBody").children().hide();
 
-    if(selectedTab.includes('compare')){
+    if(selectedTab.startsWith('compare')){
         $("#tblCompareDiv").show();
         $("#tblCompareDiv").children().hide();
+        document.getElementById(selectedTab).style.display='block';
+    }
+    else if(selectedTab.startsWith('textcompare')){
+        $("#textCompareMainDiv").show();
+        $("#textCompareMainDiv").children().hide();
         document.getElementById(selectedTab).style.display='block';
     }
     // let provTabDdl = document.getElementsByClassName("provTabCombo");
@@ -440,30 +445,6 @@ function toggleProvView(selectedTab) {
     //         $("#provePieCharts").hide();
     //         $("#proveHeatMap").hide();
     //         $("#proveLineCharts").hide();
-    //         break;
-
-    //     case "compare":
-    //         $("#provenance").hide();
-    //         $("#provDiagramOverview").hide();
-    //         $("#compareTxtDiv").hide();
-    //         $("#pluginViewDiv").hide();
-    //         $("#proveBarCharts").hide();
-    //         $("#provePieCharts").hide();
-    //         $("#proveHeatMap").hide();
-    //         $("#proveLineCharts").hide();
-    //         $("#tblCompareDiv").show();
-    //         break;
-
-    //     case "textcompare":
-    //         $("#provenance").hide();
-    //         $("#provDiagramOverview").hide();
-    //         $("#tblCompareDiv").hide();
-    //         $("#pluginViewDiv").hide();
-    //         $("#proveBarCharts").hide();
-    //         $("#provePieCharts").hide();
-    //         $("#proveHeatMap").hide();
-    //         $("#proveLineCharts").hide();
-    //         $("#compareTxtDiv").show();
     //         break;
 
     //     case "plugin":

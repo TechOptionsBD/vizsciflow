@@ -94,13 +94,13 @@
   margin-right: -16px;
 }
 
-#comparisonTbl{
+.comparisonTbl{
   width: 90%; 
   border: 1px solid black; 
   margin: 2% 5%;
 }
 
-#comparisonTbl td{
+.comparisonTbl td{
   border: 1px solid black; 
 }
 

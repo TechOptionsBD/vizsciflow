@@ -418,115 +418,126 @@ $(document).ready(function () {
 // }
 
 function toggleProvView(selectedTab) {
-    switch (selectedTab) {   
-        case "graph":
-            $("#compareDiv").hide();
-            $("#compareTxtDiv").hide();
-            $("#pluginViewDiv").hide();
-            $("#provenance").show();
-            $("#provDiagramOverview").show();
-            $("#proveBarCharts").hide();
-            $("#provePieCharts").hide();
-            $("#proveHeatMap").hide();
-            $("#proveLineCharts").hide();
-            break;
+    $("#provViewerBody").children().hide();
 
-        case "compare":
-            $("#provenance").hide();
-            $("#provDiagramOverview").hide();
-            $("#compareTxtDiv").hide();
-            $("#pluginViewDiv").hide();
-            $("#proveBarCharts").hide();
-            $("#provePieCharts").hide();
-            $("#proveHeatMap").hide();
-            $("#proveLineCharts").hide();
-            $("#compareDiv").show();
-            break;
-
-        case "textcompare":
-            $("#provenance").hide();
-            $("#provDiagramOverview").hide();
-            $("#compareDiv").hide();
-            $("#pluginViewDiv").hide();
-            $("#proveBarCharts").hide();
-            $("#provePieCharts").hide();
-            $("#proveHeatMap").hide();
-            $("#proveLineCharts").hide();
-            $("#compareTxtDiv").show();
-            break;
-
-        case "plugin":
-            $("#provenance").hide();
-            $("#provDiagramOverview").hide();
-            $("#compareDiv").hide();
-            $("#compareTxtDiv").hide();
-            $("#proveBarCharts").hide();
-            $("#provePieCharts").hide();
-            $("#proveHeatMap").hide();
-            $("#proveLineCharts").hide();
-            $("#pluginViewDiv").show();
-            break;
-        
-        case "lineChart":
-            $("#provenance").hide();
-            $("#provDiagramOverview").hide();
-            $("#compareDiv").hide();
-            $("#compareTxtDiv").hide();
-            $("#pluginViewDiv").hide();
-            $("#proveBarCharts").hide();
-            $("#provePieCharts").hide();
-            $("#proveHeatMap").hide();
-            $("#proveLineCharts").show();
-            break;
-
-        case "pieChart":
-            $("#provenance").hide();
-            $("#provDiagramOverview").hide();
-            $("#compareDiv").hide();
-            $("#compareTxtDiv").hide();
-            $("#pluginViewDiv").hide();
-            $("#proveBarCharts").hide();
-            $("#proveHeatMap").hide();
-            $("#proveLineCharts").hide();
-            $("#provePieCharts").show();
-            break;
-
-        case "cpu":
-            $("#provenance").hide();
-            $("#provDiagramOverview").hide();
-            $("#compareDiv").hide();
-            $("#compareTxtDiv").hide();
-            $("#pluginViewDiv").hide();
-            $("#proveBarCharts").show();
-            $("#proveHeatMap").hide();
-            $("#proveLineCharts").hide();
-            $("#provePieCharts").hide();
-            break;
-
-        case "heatMap":
-            $("#provenance").hide();
-            $("#provDiagramOverview").hide();
-            $("#compareDiv").hide();
-            $("#compareTxtDiv").hide();
-            $("#pluginViewDiv").hide();
-            $("#proveBarCharts").hide();
-            $("#proveHeatMap").show();
-            $("#proveLineCharts").hide();
-            $("#provePieCharts").hide();
-            break;
-
-        default:
-            $("#provenance").show();
-            $("#provDiagramOverview").show();
-            $("#compareDiv").hide();
-            $("#compareTxtDiv").hide();
-            $("#pluginViewDiv").hide();
-            $("#proveBarCharts").hide();
-            $("#proveHeatMap").hide();
-            $("#proveLineCharts").hide();
-            $("#provePieCharts").hide();
-            break;            
+    if(selectedTab.includes('compare')){
+        $("#tblCompareDiv").show();
+        $("#tblCompareDiv").children().hide();
+        document.getElementById(selectedTab).style.display='block';
     }
+    // let provTabDdl = document.getElementsByClassName("provTabCombo");
+    // provTabDdl[0].options.forEach(option => {
+    //     console.log(option.value+"=>"+selectedTab)
+    // });
+    // switch (selectedTab) {   
+    //     case "graph":
+    //         $("#tblCompareDiv").hide();
+    //         $("#compareTxtDiv").hide();
+    //         $("#pluginViewDiv").hide();
+    //         $("#provenance").show();
+    //         $("#provDiagramOverview").show();
+    //         $("#proveBarCharts").hide();
+    //         $("#provePieCharts").hide();
+    //         $("#proveHeatMap").hide();
+    //         $("#proveLineCharts").hide();
+    //         break;
+
+    //     case "compare":
+    //         $("#provenance").hide();
+    //         $("#provDiagramOverview").hide();
+    //         $("#compareTxtDiv").hide();
+    //         $("#pluginViewDiv").hide();
+    //         $("#proveBarCharts").hide();
+    //         $("#provePieCharts").hide();
+    //         $("#proveHeatMap").hide();
+    //         $("#proveLineCharts").hide();
+    //         $("#tblCompareDiv").show();
+    //         break;
+
+    //     case "textcompare":
+    //         $("#provenance").hide();
+    //         $("#provDiagramOverview").hide();
+    //         $("#tblCompareDiv").hide();
+    //         $("#pluginViewDiv").hide();
+    //         $("#proveBarCharts").hide();
+    //         $("#provePieCharts").hide();
+    //         $("#proveHeatMap").hide();
+    //         $("#proveLineCharts").hide();
+    //         $("#compareTxtDiv").show();
+    //         break;
+
+    //     case "plugin":
+    //         $("#provenance").hide();
+    //         $("#provDiagramOverview").hide();
+    //         $("#tblCompareDiv").hide();
+    //         $("#compareTxtDiv").hide();
+    //         $("#proveBarCharts").hide();
+    //         $("#provePieCharts").hide();
+    //         $("#proveHeatMap").hide();
+    //         $("#proveLineCharts").hide();
+    //         $("#pluginViewDiv").show();
+    //         break;
+        
+    //     case "lineChart":
+    //         $("#provenance").hide();
+    //         $("#provDiagramOverview").hide();
+    //         $("#tblCompareDiv").hide();
+    //         $("#compareTxtDiv").hide();
+    //         $("#pluginViewDiv").hide();
+    //         $("#proveBarCharts").hide();
+    //         $("#provePieCharts").hide();
+    //         $("#proveHeatMap").hide();
+    //         $("#proveLineCharts").show();
+    //         break;
+
+    //     case "pieChart":
+    //         $("#provenance").hide();
+    //         $("#provDiagramOverview").hide();
+    //         $("#tblCompareDiv").hide();
+    //         $("#compareTxtDiv").hide();
+    //         $("#pluginViewDiv").hide();
+    //         $("#proveBarCharts").hide();
+    //         $("#proveHeatMap").hide();
+    //         $("#proveLineCharts").hide();
+    //         $("#provePieCharts").show();
+    //         break;
+
+    //     case "cpu":
+    //         $("#provenance").hide();
+    //         $("#provDiagramOverview").hide();
+    //         $("#tblCompareDiv").hide();
+    //         $("#compareTxtDiv").hide();
+    //         $("#pluginViewDiv").hide();
+    //         $("#proveBarCharts").show();
+    //         $("#proveHeatMap").hide();
+    //         $("#proveLineCharts").hide();
+    //         $("#provePieCharts").hide();
+    //         break;
+
+    //     case "heatMap":
+    //         $("#provenance").hide();
+    //         $("#provDiagramOverview").hide();
+    //         $("#tblCompareDiv").hide();
+    //         $("#compareTxtDiv").hide();
+    //         $("#pluginViewDiv").hide();
+    //         $("#proveBarCharts").hide();
+    //         $("#proveHeatMap").show();
+    //         $("#proveLineCharts").hide();
+    //         $("#provePieCharts").hide();
+    //         break;
+
+    //     default:
+    //         $("#provenance").show();
+    //         $("#provDiagramOverview").show();
+    //         $("#tblCompareDiv").hide();
+    //         $("#compareTxtDiv").hide();
+    //         $("#pluginViewDiv").hide();
+    //         $("#proveBarCharts").hide();
+    //         $("#proveHeatMap").hide();
+    //         $("#proveLineCharts").hide();
+    //         $("#provePieCharts").hide();
+    //         break;            
+    // }
 }
 
 function hideTabInit() {

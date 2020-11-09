@@ -331,18 +331,21 @@ function TasksViewModel() {
         provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
     }
 
-    function provCompTable(data, tableNo){
-        let tbl = $('<div/>', {
-            'id': `compareDiv:${tableNo}`,
-            'style': 'height:92%; overflow-y: auto;'
-        }).append(
-            $('<table>', {
-                'id': `comparisonTbl:${tableNo}`
-            })
-        );
-
-        // var tbl = document.getElementById("comparisonTbl");
-        $(`#comparisonTbl:${tableNo} tr`).remove();            //removing previous table data
+    function provCompTable(data, tableNo = null){
+        if(tableNo !== null){
+            let comparisonTblId = 'compare:'+tableNo;
+            $('#tblCompareDiv').append('<div id="'+comparisonTblId+'" style="height:39em; overflow-y: auto;"></div>');
+            var comparisonTblDiv = document.getElementById(comparisonTblId);
+            var tbl = document.createElement('table');
+            tbl.id = "comparisonTbl"+tableNo;
+            tbl.className = 'comparisonTbl';
+            comparisonTblDiv.appendChild(tbl);
+        }
+        else{
+            $('#tblCompareDiv').append('<div id="compare" style="height:39em; overflow-y: auto;"></div>');
+            $("#compare").append('<table id="comparisonTbl" class="comparisonTbl"></table>');
+            var tbl = document.getElementById("comparisonTbl");
+        }
         
         data.forEach(row => {
             Object.entries(row).forEach(
@@ -542,12 +545,6 @@ function TasksViewModel() {
         if(view == undefined)
             return;
 
-        // view = JSON.parse(data['view'])
-        //view.lineChart = 'line Chart';
-        //view.pieChart = 'pie Chart';
-        //view.barChart = 'bar Chart';
-        //view.heatMap = 'heat Map';
-		
         let provTabDdl = document.getElementsByClassName("provTabCombo");
         $(".provTabCombo").empty();
         
@@ -555,11 +552,22 @@ function TasksViewModel() {
         diagramReload("provDiagramOverview");		//removing the overview
 
         for (const val in view) {
-            let option = document.createElement("option");
-            option.value = val;
-            option.autocomplete = "off";
-            option.text = val.charAt(0).toUpperCase() + val.slice(1);
-            provTabDdl[0].appendChild(option);
+            if(view[val].length === 1){
+                let option = document.createElement("option");
+                option.value = val;
+                option.autocomplete = "off";
+                option.text = val.charAt(0).toUpperCase() + val.slice(1);
+                provTabDdl[0].appendChild(option);
+            }
+            else{
+                view[val].forEach((item, index) => {
+                    let option = document.createElement("option");
+                    option.value = val + ":" + (index+1);
+                    option.autocomplete = "off";
+                    option.text = val.charAt(0).toUpperCase() + val.slice(1) + ":" + (index+1);
+                    provTabDdl[0].appendChild(option);
+                })
+            }
         }
         provTabDdl[0].options[0].selected = true;
 
@@ -578,19 +586,16 @@ function TasksViewModel() {
         }
 
         if(view.compare !== undefined){
-            if(view.graph === undefined){
-                $("#provenance").hide();
-                $("#provDiagramOverview").hide();
-                $("#compareTxtDiv").hide();
-                $("#pluginViewDiv").hide();
-                $("#proveBarCharts").hide();
-                $("#provePieCharts").hide();
-                $("#proveHeatMap").hide();
-                $("#proveLineCharts").hide();
-                $("#compareDiv").show();
+            $("#tblCompareDiv").empty();
+            
+            if(view.compare.length === 1){
+                provCompTable(view.compare[0]);
             }
-
-            provCompTable(view.compare[0]);
+            else{
+                view.compare.forEach((item, index) => {
+                    provCompTable(item, index+1);
+                })
+            }
         }
 
         if(view.textcompare !== undefined){

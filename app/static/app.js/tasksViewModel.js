@@ -565,7 +565,7 @@ function TasksViewModel() {
         diagramReload("provDiagramOverview");		//removing the overview
 
         for (const val in view) {
-            if(view[val].length === 1){
+            if(val === 'graph' || view[val].length === 1){
                 let option = document.createElement("option");
                 option.value = val;
                 option.autocomplete = "off";

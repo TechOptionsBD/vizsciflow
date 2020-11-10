@@ -214,6 +214,10 @@ function TasksViewModel() {
         }
     }
 
+    self.runGraph = function (task) {
+        self.buildGoDetailGraph();
+    }
+
     function diagramReload(diagramName){
         var diagramDiv = document.getElementById(diagramName);
         if (diagramDiv !== null) {
@@ -331,18 +335,21 @@ function TasksViewModel() {
         provgraphviewmodel.show(JSON.parse(json));         //calling provenance graph
     }
 
-    function provCompTable(data, tableNo){
-        let tbl = $('<div/>', {
-            'id': `compareDiv:${tableNo}`,
-            'style': 'height:92%; overflow-y: auto;'
-        }).append(
-            $('<table>', {
-                'id': `comparisonTbl:${tableNo}`
-            })
-        );
-
-        // var tbl = document.getElementById("comparisonTbl");
-        $(`#comparisonTbl:${tableNo} tr`).remove();            //removing previous table data
+    function provCompTable(data, tableNo = null){
+        if(tableNo !== null){
+            let comparisonTblId = 'compare:'+tableNo;
+            $('#tblCompareDiv').append('<div id="'+comparisonTblId+'" style="height:39em; overflow-y: auto;"></div>');
+            var comparisonTblDiv = document.getElementById(comparisonTblId);
+            var tbl = document.createElement('table');
+            tbl.id = "comparisonTbl"+tableNo;
+            tbl.className = 'comparisonTbl';
+            comparisonTblDiv.appendChild(tbl);
+        }
+        else{
+            $('#tblCompareDiv').append('<div id="compare" style="height:39em; overflow-y: auto;"></div>');
+            $("#compare").append('<table id="comparisonTbl" class="comparisonTbl"></table>');
+            var tbl = document.getElementById("comparisonTbl");
+        }
         
         data.forEach(row => {
             Object.entries(row).forEach(
@@ -399,8 +406,21 @@ function TasksViewModel() {
         })
     }
 
-    function provCompTxt(data){
-        $('#txtComparisonDiv').text(data)
+    function provCompTxt(data, itemNo = null){
+        if(itemNo !== null){
+            let textCompareDivId = 'textcompare:'+itemNo;
+            $('#textCompareMainDiv').append('<div id="'+textCompareDivId+'" style="height:39em; overflow-y: auto; background: #add8e62e;"></div>');
+            var textCompareDiv = document.getElementById(textCompareDivId);
+            var paragraph = document.createElement('p');
+            paragraph.id = "textComparisonDiv"+itemNo;
+            paragraph.textContent = data
+            textCompareDiv.appendChild(paragraph);
+        }
+        else{
+            $('#textCompareMainDiv').append('<div id="textcompare" style="height:39em; overflow-y: auto; background: #add8e62e;"></div>');
+            $("#textcompare").append('<p id="textComparisonDiv"></p>');
+            $('#textComparisonDiv').text(data)
+        }
     }
 	
     function pluginHtmlViewer(data) {
@@ -542,12 +562,6 @@ function TasksViewModel() {
         if(view == undefined)
             return;
 
-        // view = JSON.parse(data['view'])
-        //view.lineChart = 'line Chart';
-        //view.pieChart = 'pie Chart';
-        //view.barChart = 'bar Chart';
-        //view.heatMap = 'heat Map';
-		
         let provTabDdl = document.getElementsByClassName("provTabCombo");
         $(".provTabCombo").empty();
         
@@ -555,11 +569,22 @@ function TasksViewModel() {
         diagramReload("provDiagramOverview");		//removing the overview
 
         for (const val in view) {
-            let option = document.createElement("option");
-            option.value = val;
-            option.autocomplete = "off";
-            option.text = val.charAt(0).toUpperCase() + val.slice(1);
-            provTabDdl[0].appendChild(option);
+            if(val === 'graph' || view[val].length === 1){
+                let option = document.createElement("option");
+                option.value = val;
+                option.autocomplete = "off";
+                option.text = val.charAt(0).toUpperCase() + val.slice(1);
+                provTabDdl[0].appendChild(option);
+            }
+            else{
+                view[val].forEach((item, index) => {
+                    let option = document.createElement("option");
+                    option.value = val + ":" + (index+1);
+                    option.autocomplete = "off";
+                    option.text = val.charAt(0).toUpperCase() + val.slice(1) + ":" + (index+1);
+                    provTabDdl[0].appendChild(option);
+                })
+            }
         }
         provTabDdl[0].options[0].selected = true;
 
@@ -578,35 +603,29 @@ function TasksViewModel() {
         }
 
         if(view.compare !== undefined){
-            if(view.graph === undefined){
-                $("#provenance").hide();
-                $("#provDiagramOverview").hide();
-                $("#compareTxtDiv").hide();
-                $("#pluginViewDiv").hide();
-                $("#proveBarCharts").hide();
-                $("#provePieCharts").hide();
-                $("#proveHeatMap").hide();
-                $("#proveLineCharts").hide();
-                $("#compareDiv").show();
+            $("#tblCompareDiv").empty();
+            
+            if(view.compare.length === 1){
+                provCompTable(view.compare[0]);
             }
-
-            provCompTable(view.compare[0]);
+            else{
+                view.compare.forEach((item, index) => {
+                    provCompTable(item, index+1);
+                })
+            }
         }
 
         if(view.textcompare !== undefined){
-            if(view.graph === undefined){
-                $("#provenance").hide();
-                $("#provDiagramOverview").hide();
-                $("#compareDiv").hide();
-                $("#pluginViewDiv").hide();
-                $("#proveBarCharts").hide();
-                $("#provePieCharts").hide();
-                $("#proveHeatMap").hide();
-                $("#proveLineCharts").hide();
-                $("#compareTxtDiv").show();
+            $("#textCompareDiv").empty();
+            
+            if(view.textcompare.length === 1){
+                provCompTxt(view.textcompare[0]);
             }
-
-            provCompTxt(view.textcompare[0]);
+            else{
+                view.textcompare.forEach((item, index) => {
+                    provCompTxt(item, index+1);
+                })
+            }
         }
 
         if (view.plugin !== undefined) {
@@ -690,15 +709,6 @@ function TasksViewModel() {
         }
         toggleProvView(provTabDdl[0].options[0].value)
     }
-
-    self.buildGoSimpleGraph = function (task) {
-        var updateDlg = self.updateWorkflow();
-        if (updateDlg) {
-            updateDlg.on('hidden.bs.modal', function () { self.buildGraphInternal(task); });
-        }
-        else
-            self.buildSimpleGraphInternal(task);
-    }
     
     self.buildGoDetailGraph = function (task) {
         var updateDlg = self.updateWorkflow();
@@ -709,50 +719,6 @@ function TasksViewModel() {
             self.buildDetailGraphInternal(task);
     }
     
-    self.buildSimpleGraphInternal = function (task) {
-        if (!$.trim(editor.getSession().getValue()))
-            return;
-
-        var formdata = new FormData();
-
-        formdata.append('workflowId', parseInt(workflowId));
-        ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function (data) {
-
-        	data = JSON.parse(data);
-            
-        	 //if JSON is empty, clear both canvas
-            if ($.isEmptyObject(data)){
-            	var graphdiv = document.getElementById("graph");
-            	var overviewdiv = document.getElementById("DiagramOverview");                
-                if(graphdiv == null)
-    				return;    			
-                else {
-    				graph = document.querySelector('canvas');
-    				context = graph.getContext('2d');
-    				context.clearRect(0, 0, graph.width, graph.height);
-    			}
-    			
-    			if(overviewdiv == null)
-    				return;    			
-                else {
-    				overview = overviewdiv.querySelector('canvas');
-    				context = overview.getContext('2d');
-    				context.clearRect(0, 0, overview.width, overview.height);
-    			}
-            }
-        	
-        	else if (data === undefined)
-                return;
-
-            simplegojsGraph.show(data);
-            //d3graph.show(data);
-
-        }).fail(function (jqXHR, textStatus) {
-            $('#refresh').hide();
-            showXHRText(jqXHR);
-        });
-    }
-    
     self.buildDetailGraphInternal = function (task) {
         if (!$.trim(editor.getSession().getValue()))
             return;
@@ -760,42 +726,23 @@ function TasksViewModel() {
         var formdata = new FormData();
 
         formdata.append('workflowId', parseInt(workflowId));
-        ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function (data) {
-                    	
-            data = JSON.parse(data);
-            
-            //if JSON is empty, clear both canvas
-            if ($.isEmptyObject(data)){
-            	var graphdiv = document.getElementById("graph");
-            	var overviewdiv = document.getElementById("DiagramOverview");                
-                if(graphdiv == null)
-    				return;    			
-                else {
-    				graph = document.querySelector('canvas');
-    				context = graph.getContext('2d');
-    				context.clearRect(0, 0, graph.width, graph.height);
-    			}
-    			
-    			if(overviewdiv == null)
-    				return;    			
-                else {
-    				overview = overviewdiv.querySelector('canvas');
-    				context = overview.getContext('2d');
-    				context.clearRect(0, 0, overview.width, overview.height);
-                }
-                // diagramReload("graph");				    //reload the graph
-                // diagramReload("DiagramOverview");		//reload the overview
-            }
-        	
-        	else if (data === undefined)
-                return;
-            
-            detailgojsGraph.show(data);
-            //d3graph.show(data);
 
-        }).fail(function (jqXHR, textStatus) {
-            $('#refresh').hide();
-            showXHRText(jqXHR);
+        $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
+            $('#liProvenanceTab').show();
+            ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function (data) {
+                data = JSON.parse(data);
+                if (data === undefined)
+                    return;
+                
+                // detailgojsGraph.show(data);
+                provgraphviewmodel.show(data);
+
+            }).fail(function (jqXHR, textStatus) {
+                $('#refresh').hide();
+                showXHRText(jqXHR);
+            });
+
+            $(this).off('shown.bs.tab')
         });
     }
 

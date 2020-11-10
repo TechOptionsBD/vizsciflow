@@ -2,6 +2,7 @@ function SamplesViewModel(sampleViewModel) {
     var self = this;
     self.samplesURI = '/samples';
     self.tasksURI = '/functions';
+    self.graphsURI = '/graphs';
     self.clicks = 0;
     self.timer = null;
     self.items = ko.observableArray();
@@ -338,39 +339,61 @@ function SamplesViewModel(sampleViewModel) {
         });
     };
 
+    function diagramReload(diagramName){
+        var diagramDiv = document.getElementById(diagramName);
+        if (diagramDiv !== null) {
+            var olddiag = go.Diagram.fromDiv(diagramDiv);
+            if (olddiag !== null){
+                olddiag.div = null;
+                diagramDiv = null;
+            }
+        }
+    }
+
+    function getGraphData(formdata){
+        ajaxcalls.form(self.graphsURI, 'POST' , formdata).done(function (graphData) {
+            if (graphData === undefined || graphData === null)
+                return;
+                
+            provgraphviewmodel.show(JSON.parse(graphData))
+        }).fail(function (jqXHR, textStatus) {
+            showXHRText(jqXHR);
+        });
+    }
+        
+    function areYouSure(confirmation, item){
+        if(confirmation == true){
+            ajaxcalls.simple(self.samplesURI, 'GET', { 'workflow_id': item.id(), 'confirm':'true' }).done(function (data){               	          
+                if (data === undefined)
+                        return;
+                
+                if (data.return == 'deleted'){
+                    workflowDeleted(item);
+                }
+                else if (data.return == 'error')
+                    alert("ERROR");
+                
+            }).fail(function (jqXHR) {
+                alert("Status: "+jqXHR.status);
+            });  
+        }
+        else
+            return;
+    }
+
+    function workflowDeleted(item){
+        alert("WORKFLOW DELETED!");
+        
+        //delete this service from obsarevalbe array                                                                
+        index = self.items.indexOf(item);
+        if (self.items()[index].id()== item.id()){
+            self.items.splice( index, 1 );
+        } 
+    }
+
     //workflow delete button
     self.workflowToolbar = function (item, event) {
 	    event.stopPropagation();
-        
-        function areYouSure(confirmation){
-            if(confirmation == true){
-                ajaxcalls.simple(self.samplesURI, 'GET', { 'workflow_id': item.id(), 'confirm':'true' }).done(function (data){               	          
-                    if (data === undefined)
-                            return;
-                    
-                    if (data.return == 'deleted'){
-                        workflowDeleted();
-                    }
-                    else if (data.return == 'error')
-                        alert("ERROR");
-                    
-                }).fail(function (jqXHR) {
-                    alert("Status: "+jqXHR.status);
-                });  
-            }
-            else
-                return;
-        }
- 
-	    function workflowDeleted(){
-	    	alert("WORKFLOW DELETED!");
-            
-            //delete this service from obsarevalbe array                                                                
-            index = self.items.indexOf(item);
-            if (self.items()[index].id()== item.id()){
-                self.items.splice( index, 1 );
-            } 
-	    }
 	    
 	    var x = $(event.target).attr('id');
 	    if (x === "delete") {
@@ -383,27 +406,59 @@ function SamplesViewModel(sampleViewModel) {
                 
                 if(data == 'shared'){
                     confirmation = confirm("This is a shared workflow. You still want to delete "+item.name()+" workflow?");
-                    areYouSure(confirmation);
+                    areYouSure(confirmation, item);
                 }
                 else if (data == 'not_shared'){
                     confirmation = confirm("Do you want to delete "+item.name()+" workflow?");
-                	areYouSure(confirmation);
+                	areYouSure(confirmation, item);
                 }       			
         		else if (data == 'error')
         			alert("ERROR");
                 }).fail(function (jqXHR) {
                         alert("Status: "+jqXHR.status);
                 }); 
-            }
+        }
         
-            else if (x === "copyProv") {
-                handleModeViewModel.setMode('provMode');
-                var content = "workflow = Workflow.Get(id="+ item.id() +")"
-                              +"\r\nprint(View.Graph(workflow))"; 
-                
-                var pos = editor.selection.getCursor();
-                editor.session.insert(pos, content + "\r\n");
-                editor.focus();
+        else if (x === "copyProv") {
+            handleModeViewModel.setMode('provMode');
+            var content = "workflow = Workflow.Get(id="+ item.id() +")"
+                            +"\r\nprint(View.Graph(workflow))"; 
+            
+            var pos = editor.selection.getCursor();
+            editor.session.insert(pos, content + "\r\n");
+            editor.focus();
+        }
+
+        else if( x === 'showGraph'){
+            var formdata = new FormData();
+            formdata.append('workflow', parseInt(item.id()));
+
+            diagramReload("provenance");				    //reload the graph
+            diagramReload("provDiagramOverview");	        //reload the overview
+
+            //hide all div except graph
+            $(".provTabCombo").empty();
+            $("#tblCompareDiv").hide();
+            $("#textCompareMainDiv").hide();
+            $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#provePieCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
+            $("#provenance").show();
+            $("#provDiagramOverview").show();
+            
+            if ($('.nav-tabs a[href="#provenancetab"]').is(':visible')){
+                getGraphData(formdata)
             }
+
+            else{
+                $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
+                    $('#liProvenanceTab').show();
+                    getGraphData(formdata)                    
+                    $(this).off('shown.bs.tab')
+                });
+            }
+        }
     }
 }

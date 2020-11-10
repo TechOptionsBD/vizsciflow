@@ -214,6 +214,10 @@ function TasksViewModel() {
         }
     }
 
+    self.runGraph = function (task) {
+        self.buildGoDetailGraph();
+    }
+
     function diagramReload(diagramName){
         var diagramDiv = document.getElementById(diagramName);
         if (diagramDiv !== null) {
@@ -705,15 +709,6 @@ function TasksViewModel() {
         }
         toggleProvView(provTabDdl[0].options[0].value)
     }
-
-    self.buildGoSimpleGraph = function (task) {
-        var updateDlg = self.updateWorkflow();
-        if (updateDlg) {
-            updateDlg.on('hidden.bs.modal', function () { self.buildGraphInternal(task); });
-        }
-        else
-            self.buildSimpleGraphInternal(task);
-    }
     
     self.buildGoDetailGraph = function (task) {
         var updateDlg = self.updateWorkflow();
@@ -724,50 +719,6 @@ function TasksViewModel() {
             self.buildDetailGraphInternal(task);
     }
     
-    self.buildSimpleGraphInternal = function (task) {
-        if (!$.trim(editor.getSession().getValue()))
-            return;
-
-        var formdata = new FormData();
-
-        formdata.append('workflowId', parseInt(workflowId));
-        ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function (data) {
-
-        	data = JSON.parse(data);
-            
-        	 //if JSON is empty, clear both canvas
-            if ($.isEmptyObject(data)){
-            	var graphdiv = document.getElementById("graph");
-            	var overviewdiv = document.getElementById("DiagramOverview");                
-                if(graphdiv == null)
-    				return;    			
-                else {
-    				graph = document.querySelector('canvas');
-    				context = graph.getContext('2d');
-    				context.clearRect(0, 0, graph.width, graph.height);
-    			}
-    			
-    			if(overviewdiv == null)
-    				return;    			
-                else {
-    				overview = overviewdiv.querySelector('canvas');
-    				context = overview.getContext('2d');
-    				context.clearRect(0, 0, overview.width, overview.height);
-    			}
-            }
-        	
-        	else if (data === undefined)
-                return;
-
-            simplegojsGraph.show(data);
-            //d3graph.show(data);
-
-        }).fail(function (jqXHR, textStatus) {
-            $('#refresh').hide();
-            showXHRText(jqXHR);
-        });
-    }
-    
     self.buildDetailGraphInternal = function (task) {
         if (!$.trim(editor.getSession().getValue()))
             return;
@@ -775,42 +726,23 @@ function TasksViewModel() {
         var formdata = new FormData();
 
         formdata.append('workflowId', parseInt(workflowId));
-        ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function (data) {
-                    	
-            data = JSON.parse(data);
-            
-            //if JSON is empty, clear both canvas
-            if ($.isEmptyObject(data)){
-            	var graphdiv = document.getElementById("graph");
-            	var overviewdiv = document.getElementById("DiagramOverview");                
-                if(graphdiv == null)
-    				return;    			
-                else {
-    				graph = document.querySelector('canvas');
-    				context = graph.getContext('2d');
-    				context.clearRect(0, 0, graph.width, graph.height);
-    			}
-    			
-    			if(overviewdiv == null)
-    				return;    			
-                else {
-    				overview = overviewdiv.querySelector('canvas');
-    				context = overview.getContext('2d');
-    				context.clearRect(0, 0, overview.width, overview.height);
-                }
-                // diagramReload("graph");				    //reload the graph
-                // diagramReload("DiagramOverview");		//reload the overview
-            }
-        	
-        	else if (data === undefined)
-                return;
-            
-            detailgojsGraph.show(data);
-            //d3graph.show(data);
 
-        }).fail(function (jqXHR, textStatus) {
-            $('#refresh').hide();
-            showXHRText(jqXHR);
+        $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
+            $('#liProvenanceTab').show();
+            ajaxcalls.form(self.graphsURI, 'POST', formdata).done(function (data) {
+                data = JSON.parse(data);
+                if (data === undefined)
+                    return;
+                
+                // detailgojsGraph.show(data);
+                provgraphviewmodel.show(data);
+
+            }).fail(function (jqXHR, textStatus) {
+                $('#refresh').hide();
+                showXHRText(jqXHR);
+            });
+
+            $(this).off('shown.bs.tab')
         });
     }
 

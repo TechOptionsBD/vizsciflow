@@ -76,7 +76,6 @@
 <script src="/static/app.js/runnablesViewModel.js"></script>
 <script src="/static/app.js/addLibraryViewModel.js"></script>
 <script src="/static/app.js/aceEditor.js"></script>
-<script src="/static/app.js/simpleGraphViewModel.js"></script>
 <script src="/static/app.js/detailGraphViewModel.js"></script>
 <script src="/static/app.js/sampleViewModel.js"></script>
 <script src="/static/app.js/controlFlowViewModel.js"></script>
@@ -443,7 +442,6 @@
 									<i class="glyphicon glyphicon-menu-hamburger"></i>
 								</button>
 								<ul class="dropdown-menu" role="menu" aria-labelledby="btnEditorTabs" id="editortabs-dropdown" >
-									<li><a class="btn btn-secondary"  href="#liGraphTab">Graph Tab</a></li>
 									<li><a class="btn btn-secondary"  href="#liProvenanceTab">Provenance</a></li>
 									<li><a class="btn btn-secondary"  href="#liVisualTab">Visual Tab</a></li>
 									<li> <a class="btn btn-secondary" href="#liMetadataTab">Metadata</a></li>
@@ -476,7 +474,6 @@
 						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
 							<ul class="nav nav-tabs marginBottom">
 								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
-								<li id="liGraphTab"><a href="#graphtab" data-toggle="tab">Graph <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance Viewer<button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
 								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
@@ -490,10 +487,6 @@
 						<div class="tab-content">
 							<div class="tab-pane fade in active scriptstyle" id="scripttab">
 								<div id="editor" class="editorstyle"></div>
-							</div>
-							<div class="tab-pane fade" id="graphtab" style="position: relative;">
-								<div style="width: 100%; height: 100%; z-index: 0;" id="graph"></div>
-								<div id="DiagramOverview"></div>
 							</div>
 
 							<div class="tab-pane fade ui-droppable" id="provenancetab" style="position: relative;">	
@@ -572,22 +565,23 @@
 				<div class="panel-body" style="padding: 0; margin: 1vh 0 1vh 0;">
 					<button id="runBioWL" class="btn pull-left btn-primary btn-lg"
 						style="margin-right: 5px;" data-bind="enable: shouldRunActivate, click: runBioWL">Run</button>
+					
+					<button id="runGraph" class="btn pull-left btn-primary btn-lg"
+						style="margin-right: 5px; padding: 10px 4px;" data-bind="visible: handleModeViewModel.shouldGraphBtnShow(), enable: shouldRunActivate, event: {click: runGraph}">Graph</button>
+					
 					<button class="btn pull-left btn-primary btn-lg"
 						style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
-					
-					<!-- <button id="runProvenance" class="btn pull-left btn-primary btn-lg"
-						style="margin-right: 5px; padding: 10px 4px;" data-bind="click: runProvenance">Provenance</button> -->
 
-						<div style="margin-top: 8px">
-					<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
-						id="immediate"> <span class="label-immediate">Immediate</span>
-					</label> 
-					<span
-						class="badge badge-primary">Time: <span id="duration"
-						class="badge badge-light" style="vertical-align: baseline;">0s</span>
-					</span> <span
-						class="glyphicon glyphicon-repeat normal-right-spinner pull-right"
-						id="refresh"></span>
+					<div style="margin-top: 8px">
+						<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
+							id="immediate"> <span class="label-immediate">Immediate</span>
+						</label> 
+						<span
+							class="badge badge-primary">Time: <span id="duration"
+							class="badge badge-light" style="vertical-align: baseline;">0s</span>
+						</span> <span
+							class="glyphicon glyphicon-repeat normal-right-spinner pull-right"
+							id="refresh"></span>
 					</div>
 				</div>
 				<div id="outputPanel" class="panel panel-primary">
@@ -882,7 +876,12 @@
 									<span id="copyProv" title="Provenance" data-bind="visible: handleModeViewModel.shouldProvElemShow(), event: {click: $parent.workflowToolbar} "
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Prov.
-									</span>								
+									</span>
+
+									<span id="showGraph" title="Graph" data-bind="visible: handleModeViewModel.shouldProvElemShow(), event: {click: $parent.workflowToolbar}"
+										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Graph
+									</span>
 									
 									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.workflowToolbar} "></span>
 								</span>
@@ -3195,7 +3194,7 @@ function typeInTextarea(el, newText) {
             var self = this;
 			self.currentMode = ko.observable('wfMode');
 			self.shouldProvElemShow = ko.observable(false);
-			
+			self.shouldGraphBtnShow = ko.observable(false);
 			
             self.setMode = function(id) {
 				if(self.currentMode() !== id){
@@ -3204,13 +3203,13 @@ function typeInTextarea(el, newText) {
 				if(id == 'wfMode'){
 					self.currentMode('wfMode')
 					self.shouldProvElemShow(false)
+					self.shouldGraphBtnShow(true)
 					$("#provMode").removeClass("active-mode");
 					$("#wfMode").addClass("active-mode");
 					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
 						$("#exTabBiowl ul li:first").addClass('active');	
 					});
 
-					$('#liGraphTab').show();
 					$('#liBrowserTab').show();
 					$('#liOutput').show();
 					$('#liProvenanceTab').hide();
@@ -3225,6 +3224,7 @@ function typeInTextarea(el, newText) {
 				else if(id == 'provMode'){
 					self.currentMode('provMode')
 					self.shouldProvElemShow(true)
+					self.shouldGraphBtnShow(false)
 					$("#wfMode").removeClass("active-mode");
 					$("#provMode").addClass("active-mode");
 					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
@@ -3232,7 +3232,6 @@ function typeInTextarea(el, newText) {
 					});
 
 					$('#liProvenanceTab').show();
-					$('#liGraphTab').hide();
 					$('#liBrowserTab').hide();
 					$('#liOutput').hide();
 

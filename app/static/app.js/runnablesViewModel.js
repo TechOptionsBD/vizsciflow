@@ -262,12 +262,16 @@ function RunnablesViewModel() {
 
             //hide all div except graph
             $(".provTabCombo").empty();
-            $("#compareDiv").hide();
-            $("#compareTxtDiv").hide();
+            $("#tblCompareDiv").hide();
+            $("#textCompareMainDiv").hide();
             $("#pluginViewDiv").hide();
+            $("#proveBarCharts").hide();
+            $("#provePieCharts").hide();
+            $("#proveHeatMap").hide();
+            $("#proveLineCharts").hide();
             $("#provenance").show();
             $("#provDiagramOverview").show();
-
+            
             if(handleModeViewModel.getMode() !== 'provMode')
                 handleModeViewModel.setMode('provMode');
             

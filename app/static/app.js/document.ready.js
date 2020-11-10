@@ -141,10 +141,6 @@ $(document).ready(function () {
         }
     });
 
-
-    $("#graphtab").css('height', $("#scripttab").css('height'));
-    // $("#graph").css('max-height', $("#graphtab").height() - $(".graph-panel-heading").height()-45);
-
     $("#visualtab").css('height', $("#scripttab").css('height'));
 
     $("#provenancetab").css('height', $("#scripttab").css('height'));
@@ -208,11 +204,6 @@ $(document).ready(function () {
 
 	$("#exTabBiowl").on('shown.bs.tab', function (e) {
 		var x = $(e.target).attr('href');
-		if (x === "#graphtab") {
-            // var checked = $('select[name="graphTabView"]').val();
-            // toggleGraphView(checked);
-            tasksViewModel.buildGoDetailGraph();
-        }
         if (x === "#visualtab") {
             var visualdiv = visualtab.querySelector('canvas');
             if(visualdiv == null)
@@ -222,7 +213,8 @@ $(document).ready(function () {
         }
         else if (x === "#provenancetab") {
             var selectedProvView = $("select[name=provTabView]").val();
-            toggleProvView(selectedProvView)
+            if(selectedProvView !== null)
+                toggleProvView(selectedProvView)
         }
         if(x === "#scripttab")
             tasksViewModel.shouldRunActivate(true)
@@ -310,11 +302,7 @@ $(document).ready(function () {
 				samplesViewModel.dropNLoadIntoEditor(v);
 			}
 		}
-    });
-    
-    // $("select[name=graphTabView]").on('click', function (k) {
-    //     toggleGraphView(k.currentTarget.value);
-    // }); 
+    }); 
    
     //service delete button on hovar
     $(document).on('mouseenter', '.deleteService', function () {
@@ -402,20 +390,6 @@ $(document).ready(function () {
           
     //   });
 });
-
-// function toggleGraphView(selectedTab) {
-//     switch (selectedTab) {   
-//         case "0":
-//             tasksViewModel.buildGoSimpleGraph();
-//             break;
-//         case "1":
-//             tasksViewModel.buildGoDetailGraph();
-//             break;
-//         default:
-//             tasksViewModel.buildGoSimpleGraph();
-//             break;
-//     }
-// }
 
 function toggleProvView(selectedTab) {
     if(selectedTab.startsWith('graph')){

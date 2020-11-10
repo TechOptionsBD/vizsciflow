@@ -400,6 +400,10 @@ class Workflow(Module):
     def id(self, workflow_id):
         self.__workflow_id = workflow_id
     
+    @staticmethod
+    def get(id = None):
+        return Workflow(workflow_id=id)        
+    
     def push(self, graph):        
         super.push(graph)
         

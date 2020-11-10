@@ -536,6 +536,12 @@ def graphs():
                     runid = request.form.get('monitor')
                     run = Run.get(id = runid)
                     return json.dumps(View.graph(run))
+            elif request.form.get('workflow'):
+                from ..biowl.dsl.wfdsl import Workflow
+                
+                wfid = request.form.get('workflow')
+                wf = Workflow.get(workflow_id = wfid)
+                return json.dumps(View.graph(wf))
             elif request.form.get('nodeinfo'):
                 from ..graphutil import NodeItem
                 node = NodeItem.load(request.form.get('nodeinfo'))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-
+import json
 from flask_restful import Api
 from flask_restful.utils import cors
 from flask_httpauth import HTTPBasicAuth
@@ -28,7 +28,7 @@ from flask_migrate import Migrate
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-from app.models import User, Follow, Role, Permission, Post, Comment
+from app.models import User, Follow, Role, Permission, Post, Comment, Workflow
 from flask_script import Shell
 from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user
@@ -81,18 +81,41 @@ def get_functions_api():
     finally:
         logout_user()
 
+# @app.route('/api/workflow', methods=['GET'])
+# @auth.login_required
+# def get_workflows_api():
+#     '''
+#     Usage:
+#     /api/workflow?access=0&tags=curation
+#     '''
+#     try:
+#         tags = request.args.get('tags') if request.args.get('tags') else ''
+#         tags = tags.split(',') if tags else []
+#         access = request.args.get('access') if request.args.get('access') else ''
+#         return Samples.get_samples_as_list(int(access), *tags)
+#     finally:
+#         logout_user()
+        
+        
 @app.route('/api/workflow', methods=['GET'])
 @auth.login_required
 def get_workflows_api():
     '''
     Usage:
-    /api/workflow?access=0&tags=curation
+    /api/workflow?info=<workflow_id>&props=id;name;desc&access=0
     '''
     try:
-        tags = request.args.get('tags') if request.args.get('tags') else ''
-        tags = tags.split(',') if tags else []
-        access = request.args.get('access') if request.args.get('access') else ''
-        return Samples.get_samples_as_list(int(access), *tags)
+        props = request.args.get('props')
+        props = props.split(",")
+        if request.args.get('info'):
+            workflow_list = []
+            workflow = Workflow.query.filter_by(id = request.args.get('info'))
+            workflow_list.extend(Samples.get_workflow_details(workflow, props))
+            return json.dumps(workflow_list)
+        else:
+            workflow_id = ''
+            access = request.args.get('access') if request.args.get('access') else ''
+            return Samples.get_workflow_list(workflow_id, props, int(access))
     finally:
         logout_user()
 
@@ -104,20 +127,10 @@ def run_workflow_api():
     curl -H 'Content-Type: application/json'  -u mainulhossain@gmail.com:aaa -X GET -d '{"id":"332", "args":"data='/storage',data2='/storag22'"}' http://127.0.0.1:5000/api/run
     '''
     try:
-        
-        if request.args.get("args"):
-            args = request.args.get('args')
-            print(args)
-#             args = args.split(',')
-#             args = [arg for arg in args if arg]
-            print(args)
-        else:
-            args = ''
+        args = request.args.get('args') if request.args.get("args") else ''
         workflow_id = request.args.get('id')
-        print(args)
-        script = None
         immediate = request.args.get('immediate').lower() == 'true' if request.args.get('immediate') else False
-        runnable = run_biowl(workflow_id, script, args, True)
+        runnable = run_biowl(workflow_id, None, args, immediate)
         return jsonify(runnableId = runnable.id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
@@ -192,11 +205,11 @@ def deploy():
 
 
 if __name__ == '__main__':
-    manager.add_command("runserver", Server(
-    use_debugger = True,
-    use_reloader = True,
-    host = '0.0.0.0',
-    port = 8080) )
+#     manager.add_command("runserver", Server(
+#     use_debugger = True,
+#     use_reloader = True,
+#     host = '0.0.0.0',
+#     port = 8080) )
     manager.run()
 
     

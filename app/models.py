@@ -776,7 +776,7 @@ class Workflow(db.Model):
         name = json_post.get('name')
         if name is None:
             raise ValidationError('workflow does not have a name')
-        return Workflow(name=name)
+        return Workflow(name=name)   
     
 #db.event.listen(Workflow.body, 'set', Workflow.on_changed_body)
 

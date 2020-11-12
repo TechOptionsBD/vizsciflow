@@ -26,6 +26,7 @@ from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from ..biowl.exechelper import func_exec_stdout
 from ..biowl.dsl.provobj import View, Run
+from abc import abstractstaticmethod
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -832,6 +833,31 @@ class Samples():
         finally:
             return json.dumps({ 'out': '', 'err': ''})
     
+    @staticmethod
+    def get_workflow_details(workflows, props):
+        workflow_details = []
+        for workflow in workflows:
+            json = {}
+            for name in props:
+                data = getattr(workflow, name)
+                json.update({name:data})
+            workflow_details.append(json)
+        return workflow_details
+    
+    @staticmethod
+    def get_workflow_list(workflow_id, props, access):
+        workflow_list = []
+        if access == 0 or access == 3:
+            workflows = Workflow.query.filter(Workflow.public == True)
+            workflow_list.extend(Samples.get_workflow_details(workflows, props))
+        if access == 1 or access == 3:
+            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id)))
+            workflow_list.extend(Samples.get_workflow_details(workflows, props))
+        if access == 2 or access == 3:
+            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id))
+            workflow_list.extend(Samples.get_workflow_details(workflows, props))
+        
+        return json.dumps(workflow_list) 
 
 def workflow_compare(workflow1, workflow2):
     try:

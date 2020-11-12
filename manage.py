@@ -108,9 +108,8 @@ def get_workflows_api():
         props = request.args.get('props')
         props = props.split(",")
         if request.args.get('info'):
-            workflow_list = []
             workflow = Workflow.query.filter_by(id = request.args.get('info'))
-            workflow_list.extend(Samples.get_workflow_details(workflow, props))
+            workflow_list = (Samples.get_a_workflow_details(workflow, props))
             return json.dumps(workflow_list)
         else:
             workflow_id = ''

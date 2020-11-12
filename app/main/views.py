@@ -834,6 +834,15 @@ class Samples():
             return json.dumps({ 'out': '', 'err': ''})
     
     @staticmethod
+    def get_a_workflow_details(workflows, props):
+        json = {}
+        for workflow in workflows:
+            for name in props:
+                data = getattr(workflow, name)
+                json.update({name:data})
+        return json
+
+    @staticmethod
     def get_workflow_details(workflows, props):
         workflow_details = []
         for workflow in workflows:

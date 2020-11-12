@@ -81,25 +81,25 @@ def get_functions_api():
     finally:
         logout_user()
 
-# @app.route('/api/workflow', methods=['GET'])
-# @auth.login_required
-# def get_workflows_api():
-#     '''
-#     Usage:
-#     /api/workflow?access=0&tags=curation
-#     '''
-#     try:
-#         tags = request.args.get('tags') if request.args.get('tags') else ''
-#         tags = tags.split(',') if tags else []
-#         access = request.args.get('access') if request.args.get('access') else ''
-#         return Samples.get_samples_as_list(int(access), *tags)
-#     finally:
-#         logout_user()
-        
-        
 @app.route('/api/workflow', methods=['GET'])
 @auth.login_required
 def get_workflows_api():
+    '''
+    Usage:
+    /api/workflow?access=0&tags=curation
+    '''
+    try:
+        tags = request.args.get('tags') if request.args.get('tags') else ''
+        tags = tags.split(',') if tags else []
+        access = request.args.get('access') if request.args.get('access') else ''
+        return Samples.get_samples_as_list(int(access), *tags)
+    finally:
+        logout_user()
+        
+         
+@app.route('/api/ver2/workflow', methods=['GET'])
+@auth.login_required
+def get_workflows():
     '''
     Usage:
     /api/workflow?info=<workflow_id>&props=id;name;desc&access=0

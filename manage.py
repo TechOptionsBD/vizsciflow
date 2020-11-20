@@ -5,7 +5,6 @@ from flask_restful import Api
 from flask_restful.utils import cors
 from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, request, make_response
-# from builtins import None
 
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
@@ -21,9 +20,8 @@ if os.path.exists('.env'):
             os.environ[var[0]] = var[1]
 
 from app import app, db
-from flask_script import Manager, Server
+from flask_script import Manager
 from flask_migrate import Migrate
-
 
 manager = Manager(app)
 migrate = Migrate(app, db)
@@ -34,6 +32,7 @@ from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user
 from app.main.views import Samples, load_data_sources_biowl
 from app.main.jobsview import run_biowl, get_user_status, get_task_status, get_functions, save_and_run_workflow
+from flask_cors import cross_origin
 
 api = Api(app)
 api.decorators=[cors.crossdomain(origin='*')]
@@ -56,11 +55,13 @@ def verify_password(username, password):
     return False
 
 @app.route('/api/datasources')
+@cross_origin(supports_credentials=True)
 @auth.login_required
 def get_datasources():
-    return jsonify({'datasources': load_data_sources_biowl() })
+    return jsonify({'datasources': load_data_sources_biowl(True) })
 
 @app.route('/api/script', methods=['POST'])
+@cross_origin(supports_credentials=True)
 @auth.login_required
 def run_script_api():
     try:
@@ -74,6 +75,7 @@ def run_script_api():
         logout_user()
         
 @app.route('/api/functions', methods=['GET'])
+@cross_origin(supports_credentials=True)
 @auth.login_required
 def get_functions_api():
     try:
@@ -82,6 +84,7 @@ def get_functions_api():
         logout_user()
 
 @app.route('/api/workflow', methods=['GET'])
+@cross_origin(supports_credentials=True)
 @auth.login_required
 def get_workflows_api():
     '''
@@ -95,30 +98,9 @@ def get_workflows_api():
         return Samples.get_samples_as_list(int(access), *tags)
     finally:
         logout_user()
-        
-         
-@app.route('/api/ver2/workflow', methods=['GET'])
-@auth.login_required
-def get_workflows():
-    '''
-    Usage:
-    /api/workflow?info=<workflow_id>&props=id;name;desc&access=0
-    '''
-    try:
-        props = request.args.get('props')
-        props = props.split(",")
-        if request.args.get('info'):
-            workflow = Workflow.query.filter_by(id = request.args.get('info'))
-            workflow_list = (Samples.get_a_workflow_details(workflow, props))
-            return json.dumps(workflow_list)
-        else:
-            workflow_id = ''
-            access = request.args.get('access') if request.args.get('access') else ''
-            return Samples.get_workflow_list(workflow_id, props, int(access))
-    finally:
-        logout_user()
 
 @app.route('/api/run', methods=['GET'])
+@cross_origin(supports_credentials=True)
 @auth.login_required
 def run_workflow_api():
     '''
@@ -128,8 +110,11 @@ def run_workflow_api():
     try:
         args = request.args.get('args') if request.args.get("args") else ''
         workflow_id = request.args.get('id')
+        args = args.split(',')
+        args = [arg for arg in args if arg]
+                
         immediate = request.args.get('immediate').lower() == 'true' if request.args.get('immediate') else False
-        runnable = run_biowl(workflow_id, None, args, immediate)
+        runnable = run_biowl(workflow_id, '', args, immediate)
         return jsonify(runnableId = runnable.id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
@@ -137,6 +122,7 @@ def run_workflow_api():
         logout_user()
         
 @app.route('/api/status', methods=['GET'])
+@cross_origin(supports_credentials=True)
 @auth.login_required
 def get_status_api():
     '''
@@ -204,11 +190,4 @@ def deploy():
 
 
 if __name__ == '__main__':
-#     manager.add_command("runserver", Server(
-#     use_debugger = True,
-#     use_reloader = True,
-#     host = '0.0.0.0',
-#     port = 8080) )
     manager.run()
-
-    

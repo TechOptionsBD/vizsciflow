@@ -26,7 +26,7 @@ from flask_migrate import Migrate
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-from app.models import User, Follow, Role, Permission, Post, Comment, Workflow
+from app.models import User, Follow, Role, Permission, Post, Comment
 from flask_script import Shell
 from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user
@@ -40,7 +40,7 @@ auth = HTTPBasicAuth()
 
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
+#    response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
     return response

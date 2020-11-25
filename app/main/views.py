@@ -833,6 +833,7 @@ class Samples():
         finally:
             return json.dumps({ 'out': '', 'err': ''})
     
+    #written_by: Moksedul Islam
     @staticmethod
     def get_a_workflow_details(workflows, props):
         json = {}
@@ -842,6 +843,7 @@ class Samples():
                 json.update({name:data})
         return json
 
+    #written_by: Moksedul Islam
     @staticmethod
     def get_workflow_details(workflows, props):
         workflow_details = []
@@ -853,6 +855,7 @@ class Samples():
             workflow_details.append(json)
         return workflow_details
     
+    #written_by: Moksedul Islam
     @staticmethod
     def get_workflow_list(workflow_id, props, access):
         workflow_list = []

@@ -6,6 +6,7 @@ from flask_restful.utils import cors
 from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, request, make_response
 
+
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
     import coverage
@@ -20,13 +21,13 @@ if os.path.exists('.env'):
             os.environ[var[0]] = var[1]
 
 from app import app, db
-from flask_script import Manager
+from flask_script import Manager, Server
 from flask_migrate import Migrate
 
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-from app.models import User, Follow, Role, Permission, Post, Comment
+from app.models import User, Follow, Role, Permission, Post, Comment, Workflow
 from flask_script import Shell
 from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user
@@ -98,6 +99,32 @@ def get_workflows_api():
         return Samples.get_samples_as_list(int(access), *tags)
     finally:
         logout_user()
+        
+         
+@app.route('/api/ver2/workflow', methods=['GET'])
+@cross_origin(supports_credentials=True)
+@auth.login_required
+def get_workflows():
+    '''
+    written_by: Moksedul Islam
+    Usage:
+    This api returns workflow with it's property according to requested param(props).
+    So it can be use for multi purpose.
+    /api/workflow?info=<workflow_id>&props=id;name;desc&access=0
+    '''
+    try:
+        props = request.args.get('props')
+        props = props.split(",")
+        if request.args.get('info'):
+            workflow = Workflow.query.filter_by(id = request.args.get('info'))
+            workflow_list = (Samples.get_a_workflow_details(workflow, props))
+            return json.dumps(workflow_list)
+        else:
+            workflow_id = ''
+            access = request.args.get('access') if request.args.get('access') else ''
+            return Samples.get_workflow_list(workflow_id, props, int(access))
+    finally:
+        logout_user()
 
 @app.route('/api/run', methods=['GET'])
 @cross_origin(supports_credentials=True)
@@ -114,7 +141,7 @@ def run_workflow_api():
         args = [arg for arg in args if arg]
                 
         immediate = request.args.get('immediate').lower() == 'true' if request.args.get('immediate') else False
-        runnable = run_biowl(workflow_id, '', args, immediate)
+        runnable = run_biowl(workflow_id, None, args, immediate)
         return jsonify(runnableId = runnable.id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
@@ -190,4 +217,11 @@ def deploy():
 
 
 if __name__ == '__main__':
+##    written by: Moksedul Islam 
+##    To run vizsciflow in different port as debugger mode. 
+#    manager.add_command("runserver", Server(
+#    use_debugger = True,
+#    use_reloader = True,
+#    host = '0.0.0.0',
+#    port = 8080) )
     manager.run()

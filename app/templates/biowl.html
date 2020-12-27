@@ -169,7 +169,7 @@
 					<button class="close closeComponent" title="Close" type="button">×</button>
 					<div class="row" style="padding-left: 15px">
 							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="0"  checked="checked" autocomplete="off">Data Sources</label>
-							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Datasets</label>
+							<!-- <label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Datasets</label> -->
 						<!-- <div>
 							<h4 class="col-sm-6">Data Sources</h4>
 						</div> -->
@@ -448,7 +448,7 @@
 									<li> <a class="btn btn-secondary" href="#liFilterHistoryTab">Filter History</a></li>
 									<li> <a class="btn btn-secondary" href="#liBrowserTab">Browser</a></li>
 									<!-- <li> <a class="btn btn-secondary"  href="#liOutputVizTab">Visual Output</a></li> -->
-									<li> <a class="btn btn-secondary" href="#liDataset">Dataset</a></li>
+									<!--<li> <a class="btn btn-secondary" href="#liDataset">Dataset</a></li> -->
 									<li> <a class="btn btn-secondary" href="#liOutput">Output</a></li>
 								</ul>
 							</div>
@@ -569,9 +569,6 @@
 					<button id="runGraph" class="btn pull-left btn-primary btn-lg"
 						style="margin-right: 5px; padding: 10px 4px;" data-bind="visible: handleModeViewModel.shouldGraphBtnShow(), enable: shouldRunActivate, event: {click: runGraph}">Graph</button>
 					
-					<button class="btn pull-left btn-primary btn-lg"
-						style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
-
 					<div style="margin-top: 8px">
 						<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
 							id="immediate"> <span class="label-immediate">Immediate</span>
@@ -587,12 +584,16 @@
 				<div id="outputPanel" class="panel panel-primary">
 					<div class="panel-heading">
 						<button class="close closeComponent" title="Close" type="button">×</button>
-						<h4>&nbsp;</h4>
-					</div>
-					<div class="panel panel-primary"
-					style="padding: 0px; border: 0; margin: 4px">
+						<div class="row">
+							<div class="col-sm-8">
+								<h4 class="pull-left">Results</h4>
+								<button class="btn btn-info pull-right" data-toggle="tooltip" data-placement="top" title="Clear"	data-bind="click: clearResults">
+									<span class="glyphicon glyphicon-remove-sign toolbar-icon">Clear</span>
+								</button>
+							</div>
+						</div>
+					 </div>
 					
-					</div>
 					<div id="exTab2" class="extab2">
 						<ul class="nav nav-tabs">
 							<li class="active"><a href="#1" data-toggle="tab">Log</a></li>

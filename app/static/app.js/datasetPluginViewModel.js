@@ -1,6 +1,6 @@
 function DatasetPluginViewModel() {
   var self = this;
-  self.scidatamgrURI = 'https://p2irc-data-dev.usask.ca/'
+  self.scidatamgrURI = 'https://p2irc-data-dev.usask.ca'
   self.datasetList = ko.observableArray();
   let datasetList;
 

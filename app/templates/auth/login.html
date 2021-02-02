@@ -42,20 +42,18 @@
             console.log(casTicket)
 
             ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
-            ajaxcalls.simple('/auth/usask/login', 'GET', { service: 'http://localhost:5000/auth/login', ticket: casTicket }).done(function(data) {    
+            ajaxcalls.simple('/auth/usask/login', 'GET', { service: 'http://vizsciflow.usask.ca/auth/login', ticket: casTicket }).done(function(data) {    
                 if (data === undefined)
                     return;
                 
                 console.log(data)
-                
+                /*
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('userName', data.user);
                 localStorage.setItem('loginStatus', true);
                 localStorage.setItem('isNewUser', data.isNewUser);
                 localStorage.setItem('refresh_token', data.refresh_token);
-                
-                $.redirect('/');
-
+                */
             }).fail(function(jqXHR) {
                 showXHRText(jqXHR);
             });  

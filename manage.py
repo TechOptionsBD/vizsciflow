@@ -30,8 +30,7 @@ migrate = Migrate(app, db)
 from app.models import User, Follow, Role, Permission, Post, Comment, Workflow
 from flask_script import Shell
 from flask_migrate import MigrateCommand
-# from flask_login import login_user, logout_user, current_user
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_login import login_user, logout_user, current_user
 from app.main.views import Samples, load_data_sources_biowl
 from app.main.jobsview import run_biowl, get_user_status, get_task_status, get_functions, save_and_run_workflow
 from flask_cors import cross_origin
@@ -40,8 +39,6 @@ api = Api(app)
 api.decorators=[cors.crossdomain(origin='*')]
 auth = HTTPBasicAuth()
 
-def get_current_user(username):
-    return User.query.filter_by(username=username).first()
 
 @app.after_request
 def after_request(response):
@@ -61,13 +58,13 @@ def verify_password(username, password):
 
 @app.route('/api/datasources')
 @cross_origin(supports_credentials=True)
-@jwt_required
+@auth.login_required
 def get_datasources():
     return jsonify({'datasources': load_data_sources_biowl(True) })
 
 @app.route('/api/script', methods=['POST'])
 @cross_origin(supports_credentials=True)
-@jwt_required
+@auth.login_required
 def run_script_api():
     try:
         script = request.json.get('script')
@@ -81,7 +78,7 @@ def run_script_api():
         
 @app.route('/api/functions', methods=['GET'])
 @cross_origin(supports_credentials=True)
-@jwt_required
+@auth.login_required
 def get_functions_api():
     try:
         return get_functions(0)
@@ -90,7 +87,7 @@ def get_functions_api():
 
 @app.route('/api/workflow', methods=['GET'])
 @cross_origin(supports_credentials=True)
-@jwt_required
+@auth.login_required
 def get_workflows_api():
     '''
     Usage:
@@ -107,7 +104,7 @@ def get_workflows_api():
          
 @app.route('/api/ver2/workflow', methods=['GET'])
 @cross_origin(supports_credentials=True)
-@jwt_required
+@auth.login_required
 def get_workflows():
     '''
     written_by: Moksedul Islam
@@ -132,7 +129,7 @@ def get_workflows():
 
 @app.route('/api/run', methods=['GET'])
 @cross_origin(supports_credentials=True)
-@jwt_required
+@auth.login_required
 def run_workflow_api():
     '''
     Usage:
@@ -154,14 +151,13 @@ def run_workflow_api():
         
 @app.route('/api/status', methods=['GET'])
 @cross_origin(supports_credentials=True)
-@jwt_required
+@auth.login_required
 def get_status_api():
     '''
     Usage:
     curl -u mainulhossain@gmail.com:aaa -X GET  http://127.0.0.1:5000/api/status?id=7
     wget --user mainulhossain@gmail.com --password aaa "http://127.0.0.1:5000/api/status?id=7"
     '''
-    current_user = get_current_user(get_jwt_identity())
     
     runid = request.args.get('id') if request.args.get('id') else ''
     status = get_task_status(int(runid)) if runid else get_user_status(current_user.id)
@@ -223,4 +219,12 @@ def deploy():
 
 
 if __name__ == '__main__':
+# #    written by: Moksedul Islam 
+# #    To run vizsciflow in different port as debugger mode.
+#  
+#     manager.add_command("runserver", Server(
+#     use_debugger = True,
+#     use_reloader = True,
+#     host = '0.0.0.0',
+#     port = 8080) )
     manager.run()

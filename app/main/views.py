@@ -12,8 +12,7 @@ import time
 from flask import Flask, render_template, redirect, url_for, abort, flash, request, \
     current_app, make_response
 from flask import send_from_directory, jsonify, send_file
-# from flask_login import login_required, current_user
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 from sqlalchemy import and_, or_
 
@@ -31,9 +30,6 @@ from ..biowl.dsl.provobj import View, Run
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.abspath(__file__))
-
-def get_current_user(username):
-    return User.query.filter_by(username=username).first()
 
 @main.after_app_request
 def after_request(response):
@@ -69,9 +65,8 @@ def user(username):
 
 
 @main.route('/edit-profile', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def edit_profile():
-    current_user = get_current_user(get_jwt_identity())
     form = EditProfileForm()
     if form.validate_on_submit():
         current_user.name = form.name.data
@@ -87,7 +82,7 @@ def edit_profile():
 
 
 @main.route('/edit-profile/<int:id>', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 @admin_required
 def edit_profile_admin(id):
     user = User.query.get_or_404(id)
@@ -95,7 +90,7 @@ def edit_profile_admin(id):
     if form.validate_on_submit():
         user.email = form.email.data
         user.username = form.username.data
-        #user.confirmed = form.confirmed.data
+        user.confirmed = form.confirmed.data
         user.role = Role.query.get(form.role.data)
         user.name = form.name.data
         user.location = form.location.data
@@ -115,7 +110,6 @@ def edit_profile_admin(id):
 
 @main.route('/post/<int:id>', methods=['GET', 'POST'])
 def post(id):
-    current_user = get_current_user(get_jwt_identity())
     post = Post.query.get_or_404(id)
     form = CommentForm()
     if form.validate_on_submit():
@@ -142,9 +136,8 @@ def workflow(id):
     return render_template('workflow.html', workflows=[workflow])
                            
 @main.route('/edit/<int:id>', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def edit(id):
-    current_user = get_current_user(get_jwt_identity())
     post = Post.query.get_or_404(id)
     if current_user != post.author and \
             not current_user.can(Permission.ADMINISTER):
@@ -160,10 +153,9 @@ def edit(id):
 
 
 @main.route('/follow/<username>')
-@jwt_required
+@login_required
 @permission_required(Permission.FOLLOW)
 def follow(username):
-    current_user = get_current_user(get_jwt_identity())
     user = User.query.filter_by(username=username).first()
     if user is None:
         flash('Invalid user.')
@@ -177,10 +169,9 @@ def follow(username):
 
 
 @main.route('/unfollow/<username>')
-@jwt_required
+@login_required
 @permission_required(Permission.FOLLOW)
 def unfollow(username):
-    current_user = get_current_user(get_jwt_identity())
     user = User.query.filter_by(username=username).first()
     if user is None:
         flash('Invalid user.')
@@ -228,7 +219,7 @@ def followed_by(username):
 
 
 @main.route('/all')
-@jwt_required
+@login_required
 def show_all():
     resp = make_response(redirect(url_for('.index')))
     resp.set_cookie('show_followed', '', max_age=30*24*60*60)
@@ -236,7 +227,7 @@ def show_all():
 
 
 @main.route('/followed')
-@jwt_required
+@login_required
 def show_followed():
     resp = make_response(redirect(url_for('.index')))
     resp.set_cookie('show_followed', '1', max_age=30*24*60*60)
@@ -244,7 +235,7 @@ def show_followed():
 
 
 @main.route('/moderate')
-@jwt_required
+@login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate():
     page = request.args.get('page', 1, type=int)
@@ -257,7 +248,7 @@ def moderate():
 
 
 @main.route('/moderate/enable/<int:id>')
-@jwt_required
+@login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate_enable(id):
     comment = Comment.query.get_or_404(id)
@@ -268,7 +259,7 @@ def moderate_enable(id):
 
 
 @main.route('/moderate/disable/<int:id>')
-@jwt_required
+@login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate_disable(id):
     comment = Comment.query.get_or_404(id)
@@ -286,9 +277,8 @@ def contact():
     return render_template('contact.html')
 
 @main.route('/tasklogs', methods=['POST'])
-@jwt_required
+@login_required
 def translate():
-    current_user = get_current_user(get_jwt_identity())
     workflow_id = request.form['text'] #request.args.get('workflow_id')
     workflow_id = Utility.ValueOrNone(workflow_id)
     if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
@@ -297,7 +287,6 @@ def translate():
         return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
 
 def load_data_sources_biowl(recursive):
-    current_user = get_current_user(get_jwt_identity())
      # construct data source tree
     datasources = DataSource.query.filter_by(active = True)
     datasource_tree = []
@@ -352,8 +341,6 @@ def get_filedata(path):
         return send_file(io.BytesIO(file_binary), mimetype=mime, as_attachment=True, attachment_filename=os.path.basename(path))
 
 def upload_biowl(file, request):
-    current_user = get_current_user(get_jwt_identity())
-    
     fullpath = request.form['path'] 
     fs = Utility.fs_by_prefix_or_default(fullpath)
     saved_path = fs.save_upload(file, fullpath)
@@ -398,10 +385,9 @@ def upload_biowl(file, request):
     
 @main.route('/biowl', methods=['GET', 'POST'])
 @main.route('/', methods = ['GET', 'POST'])
-# @jwt_required
+#@login_required
 def index():
-#     current_user = get_current_user(get_jwt_identity())
-    return render_template('biowl.html', username= "")
+    return render_template('biowl.html', username= current_user.username if current_user.is_authenticated else "")
 
 def sizeof_fmt(num, suffix='B'):
     magnitude = int(math.floor(math.log(num, 1024)))
@@ -420,8 +406,7 @@ def load_metadataproperties():
     return { 'visualizers': visualizers, 'mimetypes': datamimetypes}
 
 def load_metadata(path):
-    current_user = get_current_user(get_jwt_identity())
-    
+
     metadata = {}
     
     ds = Utility.ds_by_prefix_or_default(path)
@@ -502,7 +487,6 @@ def load_metadata(path):
     return metadata
     
 def save_metadata(request):
-    current_user = get_current_user(get_jwt_identity())
     path = request.form.get('save')
     newname = request.form.get('filename')
     
@@ -544,7 +528,6 @@ def save_metadata(request):
             DataProperty.add(data.id, name, desc)
 
 def search_and_filter(path, filters):
-    current_user = get_current_user(get_jwt_identity())
     filters = json.loads(filters)
     filters = filters if not filters or type(filters) is list else [filters]
     selected_filters = []
@@ -558,7 +541,6 @@ def search_and_filter(path, filters):
     return FilterManager.listdirR(fs, path, filters);
 
 def load_filter_history():
-    current_user = get_current_user(get_jwt_identity())
     filters = FilterHistory.query.filter(FilterHistory.user_id == current_user.id)
     histories = []
     for f in filters:
@@ -567,7 +549,6 @@ def load_filter_history():
     return jsonify(histories = histories)
 
 def load_filters():
-    current_user = get_current_user(get_jwt_identity())
     filters = Filter.query.filter(Filter.user_id == current_user.id)
     histories = []
     for f in filters:
@@ -585,7 +566,6 @@ def load_script_from_filter(path, filter_id):
     return script
 
 def save_filters(name, filters):
-    current_user = get_current_user(get_jwt_identity())
     filters = json.loads(filters)
     Filter.add(current_user.id, name, filters)
     return ""
@@ -621,7 +601,7 @@ def update_datasets(dataset_id, schema):
     return json.dumps({})
 
 @main.route('/filters', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def filters():
     if request.args.get('filterhistory'):
         return load_filter_history()
@@ -639,7 +619,7 @@ def filters():
         return json.dumps(delete_filter(request.args.get('delete')))
 
 @main.route('/datasets', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def datasets():
     if request.args.get("save"):
         return save_datasets(request.args.get("save"))
@@ -651,7 +631,7 @@ def datasets():
     return load_datasets()
 
 @main.route('/metadata', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def metadata():
     return json.dumps({})
     if request.args.get('load'):
@@ -662,7 +642,7 @@ def metadata():
         return json.dumps(save_metadata(request))
        
 @main.route('/datasources', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def datasources():
     if request.form.get('download'):
         return download_biowl(request.form['download'])
@@ -727,7 +707,6 @@ class Samples():
        
     @staticmethod
     def load_samples(sample_def_file, user, access):
-        current_user = get_current_user(get_jwt_identity())
         samples = []
         if not os.path.isfile(sample_def_file) or not sample_def_file.endswith(".json"):
             return samples
@@ -750,7 +729,6 @@ class Samples():
     
     @staticmethod
     def get_workflows_info(workflows, access):
-        current_user = get_current_user(get_jwt_identity())
         workflow_list = []
         for workflow in workflows:
             json_info = workflow.to_json()
@@ -761,7 +739,6 @@ class Samples():
 
     @staticmethod
     def get_samples_as_list(access, *args):
-        current_user = get_current_user(get_jwt_identity())
         terms = []
         for v in args:
             terms.append("tag='{0}'".format(v))
@@ -825,7 +802,6 @@ class Samples():
                 
     @staticmethod
     def add_sample(sample, name, desc, shared):
-        current_user = get_current_user(get_jwt_identity())
         this_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(this_path) #set dir of this file to current directory
         samplesdir = os.path.normpath(os.path.join(this_path, '../biowl/samples'))
@@ -896,7 +872,6 @@ class Samples():
         return json.dumps(workflow_list) 
 
 def workflow_compare(workflow1, workflow2):
-    current_user = get_current_user(get_jwt_identity())
     try:
         from ..jobs import generate_graph_from_workflow
         from ..runmgr import runnableManager
@@ -938,9 +913,8 @@ def workflow_rev_compare(request):
         return make_response(jsonify(err=str(e)), 500)
     
 @main.route('/samples', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def samples():
-    current_user = get_current_user(get_jwt_identity())
     try:
         if request.form.get('sample'):
             return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False, json.loads(request.form.get('args')) if request.form.get('args') else None)

@@ -20,8 +20,7 @@ regex.DEFAULT_VERSION = regex.VERSION1
 from ..models import Workflow, AccessType, Service, ServiceAccess, User, Permission
 from . import main
 from .views import Samples, AlchemyEncoder
-# from flask_login import login_required, current_user
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 from ..runmgr import runnableManager
@@ -35,8 +34,6 @@ html_base = Config.HTML_DIR
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
-def get_current_user(username):
-    return User.query.filter_by(username=username).first()
 
 def update_workflow(user_id, workflow_id, script):
     if workflow_id:
@@ -147,7 +144,7 @@ def delete_plugin():
     return json.dumps({'error':'Unknown error'})
 
 @main.route('/provenance', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def provenance():
     try:
         if 'users' in request.args:
@@ -346,7 +343,7 @@ def check_service_function(request):
 
                           
 @main.route('/functions', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def functions():
     try:
         if request.method == "GET":
@@ -521,7 +518,7 @@ def functions():
 
 
 @main.route('/graphs', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def graphs():
     try:    
         if request.method == "POST":
@@ -584,7 +581,7 @@ def get_task_full_status(runnable_id):
 #      return json.dumps( { "payload": b64_text, "extention": file_extension} )
      
 @main.route('/runnables', methods=['GET', 'POST'])
-@jwt_required
+@login_required
 def runnables():
     from ..jobs import stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
     try:

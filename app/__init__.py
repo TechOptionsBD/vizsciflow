@@ -10,11 +10,9 @@ from flask_pagedown import PageDown
 import flask_sijax
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
 
 from config import config, Config
 
-jwt = JWTManager()
 
 bootstrap = Bootstrap()
 mail = Mail()
@@ -44,7 +42,6 @@ def create_app(config_name):
     login_manager.init_app(app)
     pagedown.init_app(app)
     celery.conf.update(app.config)
-    jwt.init_app(app)
     
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask_sslify import SSLify

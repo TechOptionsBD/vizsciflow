@@ -40,6 +40,11 @@ class Config:
     GRAPHDB = 'bolt://localhost:7687'
     GRAPHDB_USER = 'neo4j'
     GRAPHDB_PASSWORD = 'sr-hadoop'
+    
+    CAS_SERVER = 'https://cas.usask.ca'
+    CAS_AFTER_LOGIN = 'usask_login'
+    CAS_AFTER_LOGOUT = 'usask_logout'
+    
     DATA_MODE = 1 # 0 = DB, 1 = Graph, 2 = Mock
 
     @staticmethod

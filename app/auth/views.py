@@ -1,16 +1,48 @@
 import os
 
-from flask import render_template, redirect, request, url_for, flash
+from flask import render_template, redirect, request, url_for, flash, jsonify, has_request_context
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.urls import url_parse
 
-from . import auth
+from . import auth, cas
 from .. import db
 from ..email import send_email
 from ..models import User, DataSource, DataSourceAllocation, AccessRights
 from ..util import Utility
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm
+
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                jwt_required)
+
+from flask import (_request_ctx_stack, current_app, request, session, url_for,
+                   has_request_context)
+
+from flask.signals import Namespace
+
+_signals = Namespace()
+user_logged_in = _signals.signal('logged-in')
+
+def user_usask_login(user, remember=False, fresh=True):
+
+    user_id = getattr(user, current_app.login_manager.id_attribute)()
+    session['user_id'] = user_id
+    session['_fresh'] = fresh
+    session['_id'] = create_access_token(user_id)
+
+    if remember:
+        session['remember'] = 'set'
+
+    _request_ctx_stack.top.user = user
+
+    user_logged_in.send(current_app._get_current_object(), user=_get_user())
+    return True
+
+def _get_user():
+    if has_request_context() and not hasattr(_request_ctx_stack.top, 'user'):
+        current_app.login_manager._load_user()
+
+    return getattr(_request_ctx_stack.top, 'user', None)
 
 
 @auth.before_app_request
@@ -51,18 +83,34 @@ def login():
         if user is None or not user.verify_password(form.password.data):
             flash(_('Invalid username or password'))
             return redirect(url_for('auth.login'))
-        login_user(user, remember=form.remember_me.data)
+        user_usask_login(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('main.index')
         return redirect(next_page)
     return render_template('auth/login.html', form=form)
 
+@auth.route('/usask/login', methods=['GET', 'POST'])
+def usask_login():
+    ticket = request.args.get('ticket')
+    service_url = request.args.get('service')
+    isValid, username, atrributes = cas.validate(service_url,ticket)
+    user = User.query.filter_by(username=username).first()
+    
+    user_usask_login(user, remember=False)
+    
+    if user is None:
+        return redirect(url_for('auth.register'))
+    
+    else:
+        return redirect(url_for('main.index'))
+
 @auth.route('/logout')
 @login_required
 def logout():
     logout_user()
     flash('You have been logged out.')
+    # return render_template('auth/logout.html')
     return redirect(url_for('main.index'))
 
 

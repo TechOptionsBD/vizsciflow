@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from flask_login import login_required, current_user
+# from flask_login import login_required, current_user
 from ..models import Permission, Role, User, Workflow, WorkItem, DataSource, Data, DataType, OperationSource, Operation
 from ..operations.executor import workflow_executor
 from flask import current_app

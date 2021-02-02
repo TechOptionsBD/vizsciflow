@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/0.4.0/gridstack.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.css" integrity="sha512-/zs32ZEJh+/EO2N1b0PEdoA10JkdC3zJ8L5FTiQu82LR9S/rOQNfQN7U59U9BC12swNeRAz3HSzIL2vpp4fv3w==" crossorigin="anonymous" />
+<link rel="stylesheet" href="/static/library/scidatamanager/styles/style.css">
 
 <script src="https://cdn.anychart.com/releases/8.9.0/js/anychart-base.min.js"></script>
 <script src="https://cdn.anychart.com/releases/8.9.0/js/anychart-heatmap.min.js"></script>
@@ -42,6 +43,11 @@
 <script src="/static/library/d3/d3-selection-multi.min.js"></script>
 <!-- <script src="http://d3js.org/d3.v4.min.js" type="text/javascript"></script>
 <script src="http://d3js.org/d3-selection-multi.v1.js"></script> -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="/static/library/scidatamanager/dataset-ui.js"></script>
+<script src="/static/library/scidatamanager/static-data.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" integrity="sha512-s+xg36jbIujB2S2VKfpGmlC3T5V2TF3lY48DX7u2r9XzGzgPsa6wTpOQA7J9iffvdeBN0q9tKzRxVxw1JviZPg==" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/knockout.contextmenu@1.0.0/src/knockout.contextmenu.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
@@ -83,6 +89,7 @@
 <script src="/static/app.js/monitorGraphViewModel.js"></script>
 <script src="/static/app.js/provPluginsViewModel.js"></script>
 <script src="/static/app.js/appProvPluginViewModel.js"></script>
+<script src="/static/app.js/datasetPluginViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl-span-rules.css')}}">
@@ -169,7 +176,7 @@
 					<button class="close closeComponent" title="Close" type="button">×</button>
 					<div class="row" style="padding-left: 15px">
 							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="0"  checked="checked" autocomplete="off">Data Sources</label>
-							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Datasets</label>
+							<!-- <label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Datasets</label> -->
 						<!-- <div>
 							<h4 class="col-sm-6">Data Sources</h4>
 						</div> -->
@@ -286,6 +293,27 @@
 						</div>
 					</div>
 			</div>
+			
+			<!-- scidatamanager plugin panel -->
+			<div id="datasetPluginPanel" class="panel panel-primary">
+				<div class="panel-heading">
+					<button class="close closeComponent" title="Close" type="button">×</button>
+					<div class="row">
+						<div style="display : block">
+							<h4 class="col-sm-8">SciDataManager Plugin</h4>
+
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Update Plugin Title"
+								data-bind="click: reload">
+								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+							</button>
+						</div>
+					</div>
+				</div> 
+				<div class="panel-body" style="max-height: 50vh; overflow-y: auto;">
+					<div id="datasetPlugin"></div>
+				</div>
+			</div>
+
 			<div id="searchHistoryPanel" class="panel panel-primary">
 				<div class="panel-heading">
 					<button class="close closeComponent" title="Close" type="button">×</button>
@@ -448,7 +476,7 @@
 									<li> <a class="btn btn-secondary" href="#liFilterHistoryTab">Filter History</a></li>
 									<li> <a class="btn btn-secondary" href="#liBrowserTab">Browser</a></li>
 									<!-- <li> <a class="btn btn-secondary"  href="#liOutputVizTab">Visual Output</a></li> -->
-									<li> <a class="btn btn-secondary" href="#liDataset">Dataset</a></li>
+									<!--<li> <a class="btn btn-secondary" href="#liDataset">Dataset</a></li> -->
 									<li> <a class="btn btn-secondary" href="#liOutput">Output</a></li>
 								</ul>
 							</div>
@@ -569,9 +597,6 @@
 					<button id="runGraph" class="btn pull-left btn-primary btn-lg"
 						style="margin-right: 5px; padding: 10px 4px;" data-bind="visible: handleModeViewModel.shouldGraphBtnShow(), enable: shouldRunActivate, event: {click: runGraph}">Graph</button>
 					
-					<button class="btn pull-left btn-primary btn-lg"
-						style="margin-right: 5px;" data-bind="click: clearResults">Clear</button>
-
 					<div style="margin-top: 8px">
 						<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
 							id="immediate"> <span class="label-immediate">Immediate</span>
@@ -587,12 +612,16 @@
 				<div id="outputPanel" class="panel panel-primary">
 					<div class="panel-heading">
 						<button class="close closeComponent" title="Close" type="button">×</button>
-						<h4>&nbsp;</h4>
-					</div>
-					<div class="panel panel-primary"
-					style="padding: 0px; border: 0; margin: 4px">
+						<div class="row">
+							<div class="col-sm-8">
+								<h4 class="pull-left">Results</h4>
+								<button class="btn btn-info pull-right" data-toggle="tooltip" data-placement="top" title="Clear"	data-bind="click: clearResults">
+									<span class="glyphicon glyphicon-remove-sign toolbar-icon">Clear</span>
+								</button>
+							</div>
+						</div>
+					 </div>
 					
-					</div>
 					<div id="exTab2" class="extab2">
 						<ul class="nav nav-tabs">
 							<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
@@ -3358,7 +3387,10 @@ function typeInTextarea(el, newText) {
        	filterViewModel.loadHistory();
        	filterViewModel.loadSavedFilters();
        	showFilterHistory();           
-    
+	   
+		ko.applyBindings(datasetViewModel, $('#datasetPluginPanel')[0]);
+		datasetViewModel.renderDataset()
+
     $(window).on('unload', function() {
         if (refreshId != 0)
             clearInterval(refreshId);

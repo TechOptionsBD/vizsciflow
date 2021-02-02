@@ -31,6 +31,29 @@ def merge_json_seq(json, other_json, relation, opposite_link = False):
     
     return json
 
+class Node(object):
+    __id = None
+    __label = None
+    
+    def __init__(self):
+        pass
+    
+    @property
+    def id(self):
+        return self.__id
+    
+    @id.setter
+    def id(self, newvalue):
+        self.__id = newvalue
+    
+    @property
+    def label(self):
+        return self.__lable
+    
+    @id.setter
+    def id(self, newvalue):
+        self.__label = newvalue
+    
 class GraphNode(object):
     __node = None
     __primarykey__ = "__id__"

@@ -220,7 +220,7 @@ class GraphGenerator(object):
         :param expr:
         '''
         if len(left) == 1:
-            parentNode.modules().add(AssignModule(parentNode, left[0], right))
+            parentNode.modules().append(AssignModule(parentNode, left[0], right))
         elif left[0] == 'LISTIDX':
             left = left[1]
             idx = self.eval(left[1])
@@ -275,7 +275,8 @@ class GraphGenerator(object):
             right = self.eval(right, parentNode)
             for i in range(1, len(left)):
                 if left[i] != '_':
-                    self.doassign_noeval(left[i], right[i - 1], parentNode)
+                    val = right[i - 1] if isinstance(right, tuple) and len(right) >= i else right
+                    self.doassign_noeval(left[i], val, parentNode)
                     
     def dofor(self, expr, parentNode):
         '''

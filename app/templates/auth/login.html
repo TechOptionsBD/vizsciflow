@@ -20,7 +20,7 @@
 <div class="col-md-4">
     {{ wtf.quick_form(form) }}
     <br>
-    <button class="btn btn-default" onclick="location.href='https://cas.usask.ca/cas/login?service=http://vizsciflow.usask.ca/auth/login'" type="button">
+    <button class="btn btn-default" onclick="location.href='https://cas.usask.ca/cas/login?service=https://vizsciflow.usask.ca/auth/login'" type="button">
         <img src="../../static/usask_logo.jpg" height="50" width="50"/>
         Usask login
     </button>
@@ -42,7 +42,7 @@
             console.log(casTicket)
 
             ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
-            ajaxcalls.simple('/auth/usask/login', 'GET', { service: 'http://vizsciflow.usask.ca/auth/login', ticket: casTicket }).done(function(data) {    
+            ajaxcalls.simple('/auth/usask/login', 'GET', { service: 'https://vizsciflow.usask.ca/auth/login', ticket: casTicket }).done(function(data) {    
                 if (data === undefined)
                     return;
                 

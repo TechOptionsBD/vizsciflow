@@ -12,6 +12,7 @@ from ..util import Utility
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm
 
+
 @auth.before_app_request
 def before_request():
     if current_user.is_authenticated:
@@ -57,6 +58,7 @@ def login():
         return redirect(next_page)
     return render_template('auth/login.html', form=form)
 
+
 @auth.route('/usask/login', methods=['GET', 'POST'])
 def usask_login():
     ticket = request.args.get('ticket')
@@ -69,6 +71,7 @@ def usask_login():
     else:
         login_user(user)
         return redirect(url_for('main.index'))
+
 
 @auth.route('/logout')
 @login_required

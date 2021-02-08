@@ -26,7 +26,7 @@ from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from ..biowl.exechelper import func_exec_stdout
 from ..biowl.dsl.provobj import View, Run
-
+from abc import abstractstaticmethod
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -341,6 +341,7 @@ def get_filedata(path):
         return send_file(io.BytesIO(file_binary), mimetype=mime, as_attachment=True, attachment_filename=os.path.basename(path))
 
 def upload_biowl(file, request):
+    
     fullpath = request.form['path'] 
     fs = Utility.fs_by_prefix_or_default(fullpath)
     saved_path = fs.save_upload(file, fullpath)
@@ -406,7 +407,6 @@ def load_metadataproperties():
     return { 'visualizers': visualizers, 'mimetypes': datamimetypes}
 
 def load_metadata(path):
-
     metadata = {}
     
     ds = Utility.ds_by_prefix_or_default(path)

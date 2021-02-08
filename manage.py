@@ -142,7 +142,7 @@ def run_workflow_api():
         args = [arg for arg in args if arg]
                 
         immediate = request.args.get('immediate').lower() == 'true' if request.args.get('immediate') else False
-        runnable = run_biowl(workflow_id, None, args, True)
+        runnable = run_biowl(workflow_id, None, args, immediate)
         return jsonify(runnableId = runnable.id)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
@@ -158,7 +158,6 @@ def get_status_api():
     curl -u mainulhossain@gmail.com:aaa -X GET  http://127.0.0.1:5000/api/status?id=7
     wget --user mainulhossain@gmail.com --password aaa "http://127.0.0.1:5000/api/status?id=7"
     '''
-    
     runid = request.args.get('id') if request.args.get('id') else ''
     status = get_task_status(int(runid)) if runid else get_user_status(current_user.id)
     return status
@@ -219,12 +218,11 @@ def deploy():
 
 
 if __name__ == '__main__':
-# #    written by: Moksedul Islam 
-# #    To run vizsciflow in different port as debugger mode.
-#  
-#     manager.add_command("runserver", Server(
-#     use_debugger = True,
-#     use_reloader = True,
-#     host = '0.0.0.0',
-#     port = 8080) )
+##    written by: Moksedul Islam 
+##    To run vizsciflow in different port as debugger mode. 
+#    manager.add_command("runserver", Server(
+#    use_debugger = True,
+#    use_reloader = True,
+#    host = '0.0.0.0',
+#    port = 8080) )
     manager.run()

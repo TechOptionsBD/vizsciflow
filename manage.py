@@ -39,7 +39,6 @@ api = Api(app)
 api.decorators=[cors.crossdomain(origin='*')]
 auth = HTTPBasicAuth()
 
-
 @app.after_request
 def after_request(response):
 #    response.headers.add('Access-Control-Allow-Origin', '*')

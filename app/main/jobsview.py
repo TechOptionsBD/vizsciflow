@@ -34,7 +34,6 @@ html_base = Config.HTML_DIR
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
-
 def update_workflow(user_id, workflow_id, script):
     if workflow_id:
         workflow = Workflow.query.get(workflow_id)

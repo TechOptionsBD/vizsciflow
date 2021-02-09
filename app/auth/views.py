@@ -4,7 +4,7 @@ from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.urls import url_parse
 
-from . import auth, cas
+from . import auth
 from .. import db
 from ..email import send_email
 from ..models import User, DataSource, DataSourceAllocation, AccessRights
@@ -57,21 +57,6 @@ def login():
             next_page = url_for('main.index')
         return redirect(next_page)
     return render_template('auth/login.html', form=form)
-
-
-@auth.route('/usask/login', methods=['GET', 'POST'])
-def usask_login():
-    ticket = request.args.get('ticket')
-    service_url = request.args.get('service')
-    isValid, username, atrributes = cas.validate(service_url,ticket)
-    user = User.query.filter_by(username=username).first()
-    
-    if user is None:
-        return redirect(url_for('auth.register'))
-    else:
-        login_user(user)
-        return redirect(url_for('main.index'))
-
 
 @auth.route('/logout')
 @login_required

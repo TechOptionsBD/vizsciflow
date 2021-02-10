@@ -11,6 +11,8 @@
             itemBodyClass: '',
             dataItemClass: '',
             onItemClick: $.noop,
+            onItemDrag: $.noop,
+            onItemRightClick: $.noop,
             onItemExpand: $.noop,
             onItemExpanded: $.noop,
             onItemClosing: $.noop,
@@ -32,6 +34,24 @@
             };
         };
 
+        // bind events on datasetItem
+        const evBind = (jqObj, data) => {
+            
+            jqObj.on('click',function (event) {
+                settings.onItemClick.call(null,event, data);
+            });
+
+            jqObj.on('drag', function(event){
+                settings.onItemDrag.call(null, event, data);
+            });
+
+            jqObj.on('mousedown', function(event){
+                if (event.which === 3) {
+                    settings.onItemRightClick.call(null, event, data);
+                }
+            });
+        }
+
         self.renderList = function () {
             if (!settings.data.length) {
                 console.log("No data supplied!");
@@ -40,9 +60,7 @@
             settings.data.forEach(ele => {
                 let dataItem = createItem(ele);
                 
-                dataItem.on('click', ele,function (event) {
-                    settings.onItemClick.call(null,event, ele);
-                });
+                evBind(dataItem, ele)
 
                 //appending every dataset item
                 self.append(dataItem);
@@ -82,9 +100,8 @@
             }
 
             const element = createItem(data);
-            element.on('click', data,function (event) {
-                settings.onItemClick.call(null,event, data);
-            });
+            
+            evBind(element, data);
 
             self.append(element);
             bindItemBodyEvents(data);
@@ -120,12 +137,12 @@
                     <div class="card-header ${settings.itemHeaderClass}">
                         <div class='container-fluid'>
                             <div class='row'>
-                                <div class='col-xs-11 col-sm-10 col-md-10'>
+                                <div class='col-xs-9 col-sm-9 col-md-10 col-lg-10'>
                                     <h4 style="margin-bottom: 1vh">
                                         <strong>${data.title}</strong>
                                     </h4>
                                 </div>
-                                <div class="col-xs-1 col-sm-2 col-md-2">
+                                <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2">
                                     <button class="btn collapsed" id='dataset-item-expand-${data.id}' style="margin-top:1vh" data-toggle="collapse" data-target="#data-list-item-body-${data.id}" aria-expanded="false" aria-controls="data-list-item-${data.id}">
                                         <i class="glyphicon glyphicon-triangle-bottom"></i>
                                     </button>
@@ -135,10 +152,10 @@
                                 </div>
                             </div>
                             <div class='row px-4'>
-                                <div class='col-xs-10 col-sm-10 col-md-11'>
+                                <div class='col-xs-9 col-sm-8 col-md-10 col-lg-9'>
                                     <p>${data.group}</p>
                                 </div>
-                                <div class='col-xs-2 col-sm-2 col-md-1'>
+                                <div class='col-xs-3 col-sm-4 col-md-2 col-lg-3'>
                                     <p>${data.type}</p>
                                 </div>
                             </div>

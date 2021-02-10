@@ -32,7 +32,7 @@ function DatasetPluginViewModel() {
     self.datasetList([]);
 
     // fetching api data
-    ajaxcalls.simple(self.scidatamgrURI + '/api/plugin/datasets', 'GET', { secret_key: '6D59713374367639', username: 'C M Khaled Saifullah', pageNum: '1', numOfItems: '10' }).done(function(dataset) {    
+    ajaxcalls.simple(self.scidatamgrURI + '/api/plugin/datasets', 'GET', { secret_key: '6D59713374367639', username: 'C M Khaled Saifullah', pageNum: '1', numOfItems: '50' }).done(function(dataset) {    
       if (dataset === undefined)
         return;
       
@@ -49,6 +49,13 @@ function DatasetPluginViewModel() {
     self.renderDataset()
   }
 
+  self.copyToEditor = function (item) {
+      exmpl = `data = \'${item.url}\'`
+      var pos = editor.selection.getCursor();
+      editor.session.insert(pos, exmpl + "\r\n");
+      editor.focus();
+  }
+
   const onItemClick = function (e, data) {
     console.log('onItemClick');
   }
@@ -58,7 +65,7 @@ function DatasetPluginViewModel() {
   }
     
   const onDataItemDoubleClick = function (e, data) {
-    console.log('onDataItemDoubleClick');
+    self.copyToEditor(data)
   }
 
   const onItemExpand = function (e, dataset) {

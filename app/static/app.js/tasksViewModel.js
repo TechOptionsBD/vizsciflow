@@ -159,7 +159,7 @@ function TasksViewModel() {
 
     self.runBioWLInternal = function (task) {
         if (!workflowId) {
-            $("#error").val("Workflow is not updated. Change the code and run again.");
+            $("#error").val("Workflow is not updated or it is not saved. Change the code and run again.");
             return;
         }
 
@@ -267,7 +267,7 @@ function TasksViewModel() {
 
     self.runProvenanceInternal = function (task) {
         if (!workflowId) {
-            $("#error").val("Workflow is not updated. Change the code and run again.");
+            $("#error").val("Workflow is not updated or it is not saved. Change the code and run again.");
             return;
         }
 

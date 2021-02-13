@@ -4,6 +4,7 @@ import os
 import io
 import json
 import bleach
+import logging
 from flask import current_app, request, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 #from flask_login import current_user
@@ -46,7 +47,7 @@ repo = None
 try:
     repo = git_access()
 except:
-    print("No local repository. Versioning of workflow will not work.")
+    logging.error("No local repository. Versioning of workflow will not work.")
         
 class AlchemyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -640,10 +641,13 @@ class Workflow(db.Model):
             
             if repo:
                 # save the script in workflows folder for git version
-                with open(wf.scriptpath, "w+") as f:
-                    f.write(script)
-                    repo.git.add(wf.scriptpath)
-                    repo.git.commit('-m', 'create workflow ' + str(wf.id))
+                try:
+                    with open(wf.scriptpath, "w+") as f:
+                        f.write(script)
+                        repo.git.add(wf.scriptpath)
+                        repo.git.commit('-m', 'create workflow ' + str(wf.id))
+                except Exception as e:
+                    logging.error("Git error: " + e.message)
             
             return wf
         except SQLAlchemyError:
@@ -659,6 +663,7 @@ class Workflow(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+
     @staticmethod
     def commit_changes(branch = 'master', message='update' ):
         has_changed = False
@@ -693,8 +698,8 @@ class Workflow(db.Model):
             
             try:
                 self.git_write(script)
-            except:
-                raise
+            except Exception as e:
+                logging.error("Git error while updating workflow: " + e.message)
         except:
             db.session.rollback()
             raise
@@ -719,8 +724,9 @@ class Workflow(db.Model):
                     'time': str(c.committed_datetime)
                     }
                 revisions.append(revision)
-            except:
-                pass
+            except Exception as e:
+                logging.error("Git error in revisions: " + e.message)
+
         if revisions:
             return revisions
         self.git_write(self.script)
@@ -859,7 +865,7 @@ class Service(db.Model):
         try:
             service =  Service.query.filter(Service.id == service_id)
             if users:
-                for user_id in user:
+                for user_id in users:
                     user = User.query.filter(User.id == user_id).first()
                     if user:
                         service.accesses.append(ServiceAccess(user_id = user.id, rights = 0x01))

@@ -19,7 +19,8 @@
                 //"--no-debugger"
             ],
             "envFile": "${workspaceRoot}/.venv",
-            "jinja": true
+            "jinja": true,
+            "justMyCode": false
         }
         // ,{
         //     "name": "Python: Remote Attach",

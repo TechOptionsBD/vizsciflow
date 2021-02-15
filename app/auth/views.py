@@ -4,7 +4,7 @@ from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.urls import url_parse
 
-from . import auth
+from . import auth, cas
 from .. import db
 from ..email import send_email
 from ..models import User, DataSource, DataSourceAllocation, AccessRights
@@ -45,6 +45,8 @@ def unconfirmed():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
+    if request.args.get('ticket'):
+        return usask_login(request.args)
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -57,6 +59,23 @@ def login():
             next_page = url_for('main.index')
         return redirect(next_page)
     return render_template('auth/login.html', form=form)
+
+def usask_login(args):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    
+    isValid, username, atrributes = cas.validate('https://vizsciflow.usask.ca/auth/login', args.get('ticket'))
+    if not username:
+        flash('Invalid username or password')
+        return redirect(url_for('auth.login'))
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        user = User(username=username, oid=1)
+    login_user(user, remember=False)
+    next_page = args.get('next')
+    if not next_page or url_parse(next_page).netloc != '':
+        next_page = url_for('main.index')
+    return redirect(next_page)
 
 @auth.route('/logout')
 @login_required

@@ -140,6 +140,8 @@ class User(UserMixin, db.Model):
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.Text)
+    oid = db.Column(db.Integer, default=0, nullable=True)
+
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     workflows = db.relationship('Workflow', backref='user', lazy='dynamic')
     services = db.relationship('Service', backref='user', lazy='dynamic')
@@ -282,8 +284,12 @@ class User(UserMixin, db.Model):
             url = 'https://secure.gravatar.com/avatar'
         else:
             url = 'http://www.gravatar.com/avatar'
-        hash = self.avatar_hash or hashlib.md5(
-            self.email.encode('utf-8')).hexdigest()
+        
+        hash = None
+        if self.email:
+            hash = self.avatar_hash or hashlib.md5(
+                self.email.encode('utf-8')).hexdigest()
+
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
 
@@ -356,7 +362,8 @@ login_manager.anonymous_user = AnonymousUser
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    if user_id and user_id.isdecimal() and user_id.isascii():
+        return User.query.get(int(user_id))
 
 
 class Post(db.Model):

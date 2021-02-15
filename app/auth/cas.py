@@ -56,7 +56,7 @@ def validate(service_url,ticket):
 
             cas_attributes = attributes
     else:
-        print("invalid")
+        print("CAS Authentication Failure.")
 
     return isValid,cas_username,cas_attributes
 

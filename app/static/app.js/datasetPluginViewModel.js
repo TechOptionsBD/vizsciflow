@@ -32,7 +32,7 @@ function DatasetPluginViewModel() {
     self.datasetList([]);
 
     // fetching api data
-    ajaxcalls.simple(self.scidatamgrURI + '/api/plugin/datasets', 'GET', { secret_key: '6D59713374367639', username: 'C M Khaled Saifullah', pageNum: '1', numOfItems: '50' }).done(function(dataset) {    
+    ajaxcalls.simple(self.scidatamgrURI + '/api/plugin/datasets', 'GET', { secret_key: '6D59713374367639', username: username, pageNum: '1', numOfItems: '50' }).done(function(dataset) {    
       if (dataset === undefined)
         return;
       
@@ -69,7 +69,7 @@ function DatasetPluginViewModel() {
   }
 
   const onItemExpand = function (e, dataset) {
-    ajaxcalls.simple(self.scidatamgrURI + `/api/plugin/dataset/${dataset.id}/data`, 'GET', { secret_key: '6D59713374367639', username: 'C M Khaled Saifullah' }).done(function(data) {    
+    ajaxcalls.simple(self.scidatamgrURI + `/api/plugin/dataset/${dataset.id}/data`, 'GET', { secret_key: '6D59713374367639', username: username }).done(function(data) {    
       if (data === undefined)
         return;
       

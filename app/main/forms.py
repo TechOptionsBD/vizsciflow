@@ -4,8 +4,7 @@ from wtforms import StringField, TextAreaField, BooleanField, SelectField,\
 from wtforms.validators import Required, Length, Email, Regexp
 from wtforms import ValidationError
 from flask_pagedown.fields import PageDownField
-from ..models import Role, User
-
+from ..managers.usermgr import usermanager
 
 class NameForm(Form):
     name = StringField('What is your name?', validators=[Required()])
@@ -41,12 +40,12 @@ class EditProfileAdminForm(Form):
 
     def validate_email(self, field):
         if field.data != self.user.email and \
-                User.query.filter_by(email=field.data).first():
+                usermanager.get_by_email(field.data).first():
             raise ValidationError('Email already registered.')
 
     def validate_username(self, field):
         if field.data != self.user.username and \
-                User.query.filter_by(username=field.data).first():
+                usermanager.get_by_username(field.data).first():
             raise ValidationError('Username already in use.')
 
 

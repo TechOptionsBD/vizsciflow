@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm as Form
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import Required, Length, Email, Regexp, EqualTo
 from wtforms import ValidationError
-from ..models import User
+from ..managers.usermgr import usermanager
 
 
 class LoginForm(Form):
@@ -26,11 +26,11 @@ class RegistrationForm(Form):
     submit = SubmitField('Register')
 
     def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first():
+        if usermanager.get_by_email(field.data):
             raise ValidationError('Email already registered.')
 
     def validate_username(self, field):
-        if User.query.filter_by(username=field.data).first():
+        if usermanager.get_by_username(field.data):
             raise ValidationError('Username already in use.')
 
 
@@ -57,7 +57,7 @@ class PasswordResetForm(Form):
     submit = SubmitField('Reset Password')
 
     def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first() is None:
+        if usermanager.get_by_email(field.data) is None:
             raise ValidationError('Unknown email address.')
 
 
@@ -68,5 +68,5 @@ class ChangeEmailForm(Form):
     submit = SubmitField('Update Email Address')
 
     def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first():
+        if usermanager.get_by_email(field.data):
             raise ValidationError('Email already registered.')

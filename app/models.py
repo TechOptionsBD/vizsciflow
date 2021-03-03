@@ -6,7 +6,8 @@ import json
 import bleach
 import logging
 from flask import current_app, request, url_for
-from flask_login import UserMixin, AnonymousUserMixin
+from flask_login import UserMixin
+
 #from flask_login import current_user
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from markdown import markdown
@@ -24,10 +25,12 @@ from sqlalchemy import func
 
 from app.exceptions import ValidationError
 
-from . import db, login_manager
+from . import db
 #from sqlalchemy.sql.expression import desc
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
+from .common import Permission, AccessRights, AccessType, Status, LogType
+from collections import namedtuple
 
 import git
 import pathlib
@@ -65,16 +68,6 @@ class AlchemyEncoder(json.JSONEncoder):
             return fields
     
         return json.JSONEncoder.default(self, obj)
-
-class Permission:
-    FOLLOW = 0x01
-    COMMENT = 0x02
-    WRITE_ARTICLES = 0x04
-    WRITE_WORKFLOWS = 0x08
-    MODERATE_COMMENTS = 0x10
-    MODERATE_WORKFLOWS = 0x20
-    ADMINISTER = 0x80
-
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -212,6 +205,14 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def verify_and_update_password(self, oldpassword, password):
+        if not check_password_hash(self.password_hash, oldpassword):
+            return False
+        self.password = password
+        db.session.add(self)
+        return True
+
+
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'confirm': self.id})
@@ -348,23 +349,6 @@ class User(UserMixin, db.Model):
         #return '%r , %i' %(self.username, self.id)
         #return "<User(id='%s', username='%s')>" %(self.id, self.username)
         #'{'id' : self.id, 'username' : self.username}' #
-
-
-class AnonymousUser(AnonymousUserMixin):
-    def can(self, permissions):
-        return False
-
-    def is_administrator(self):
-        return False
-
-login_manager.anonymous_user = AnonymousUser
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    if user_id and user_id.isdecimal() and user_id.isascii():
-        return User.query.get(int(user_id))
-
 
 class Post(db.Model):
     __tablename__ = 'posts'
@@ -543,54 +527,7 @@ class Dataset(db.Model):
         
     def __repr__(self):
         return '<Dataset %r>' % self.id
-    
-
-class AccessRights:
-    NotSet = 0x00
-    Read = 0x01
-    Write = 0x02
-    Owner = 0x07
-    Request = 0x8
-    
-    @staticmethod
-    def hasRight(rights, checkRight):
-        if checkRight == 0:
-            return rights == 0
-        return (rights & checkRight) == checkRight
-    
-    @staticmethod
-    def requested(rights):
-        return AccessRights.Requested(rights, AccessRights.Request)
-    
-    @staticmethod
-    def readRequested(rights):
-        return AccessRights.Requested(rights) and (AccessRights.Requested(rights, AccessRights.Read) or AccessRights.Requested(rights, AccessRights.Write))
-    
-    @staticmethod
-    def writeRequested(rights):
-        return AccessRights.Requested(rights) and AccessRights.Requested(rights, AccessRights.Write)
-    
-    @staticmethod
-    def rights_to_string(checkRights):
-        if checkRights & AccessRights.Owner:
-            return "Owner"
-        
-        rightStr = ""
-        if checkRights & AccessRights.Request:
-            rightStr = "Request"
-        else:
-            if checkRights & AccessRights.Read:
-                rightStr = "Read"
-            if checkRights & AccessRights.Write:
-                rightStr += "Write"
-            
-        return rightStr
-
-class AccessType:
-    PUBLIC = 0
-    SHARED = 1
-    PRIVATE = 2
-        
+          
 class Workflow(db.Model):
     __tablename__ = "workflows"
     id = db.Column(db.Integer, primary_key=True)
@@ -624,17 +561,13 @@ class Workflow(db.Model):
             raise
     
     @staticmethod
-    def create(user_id, name, desc, script, access, users, temp=False, derived = 0, args = None):
+    def create(access, users, **kwargs):
         try:
-            wf = Workflow()
-            wf.user_id = user_id
-            wf.name = name
-            wf.desc = desc
-            wf.script = script
-            wf.args = args
+            wf = Workflow(**kwargs)
+            #name, desc, script, access, users, temp=False, derived = 0, args = None
+            access = int(kwargs['access']) if 'access' in kwargs else 0
             wf.public = True if access == 0 else False
-            
-            wf.temp = temp
+            users = int(kwargs['users']) if 'users' in kwargs else None
             if users:
                 users = list(users.split(","))
             if (access == AccessType.SHARED and users):
@@ -650,7 +583,7 @@ class Workflow(db.Model):
                 # save the script in workflows folder for git version
                 try:
                     with open(wf.scriptpath, "w+") as f:
-                        f.write(script)
+                        f.write(kwargs['script'])
                         repo.git.add(wf.scriptpath)
                         repo.git.commit('-m', 'create workflow ' + str(wf.id))
                 except Exception as e:
@@ -838,13 +771,12 @@ class Service(db.Model):
     #accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
     accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
-    
+    tasks = db.relationship('Task', cascade="all,delete-orphan", backref='service', lazy='dynamic')
+
     @staticmethod
-    def add(user_id, value, access, users):
+    def add(access, users, **kwargs):
         try:
-            service = Service()
-            service.user_id = user_id
-            service.value = value
+            service = Service(**kwargs)
             service.active = True
             service.public = True if access == AccessType.PUBLIC else False
 
@@ -902,7 +834,7 @@ class Service(db.Model):
     def get_first_service_by_name_package(name, package = None):
         services = Service.get_service_by_name_package(name, package)
         if services and services.first():
-            return services.first().value
+            return services.first()
         
     @staticmethod
     def get_service_by_name_package(name, package = None):
@@ -944,7 +876,7 @@ class Service(db.Model):
         return samples
         
     @staticmethod
-    def get_first_by_name_package_with_access(user_id, name, package = None):
+    def get_module_by_name_package_for_user_access(user_id, name, package = None):
         services = Service.get_service_by_name_package(name, package)
         if services:
             service = services.first()
@@ -955,7 +887,7 @@ class Service(db.Model):
                 for access in service.accesses:
                     if access.user_id == user_id:
                         value["access"] = "shared" if service.user_id != user_id else "private"
-                        break;
+                        break
             return value
         
     @staticmethod
@@ -1021,10 +953,20 @@ class ServiceAccess(db.Model):
             shared = ServiceAccess.query.filter(ServiceAccess.service_id == service_id).with_entities(ServiceAccess.id, ServiceAccess.user_id)
             shared_user = json.dumps([r.user_id for r in shared], cls=AlchemyEncoder)
             return shared_user
-
         except SQLAlchemyError:
             db.session.rollback()
             raise
+
+    @staticmethod
+    def get(self, **kwargs):
+        try:
+            shared = Service.query.filter_by(**kwargs).with_entities(ServiceAccess.id, ServiceAccess.user_id)
+            shared_user = json.dumps([r.user_id for r in shared], cls=AlchemyEncoder)
+            return shared_user
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
         
     
     def remove(serviced_id):
@@ -1045,11 +987,7 @@ class ServiceAccess(db.Model):
     
     def check(serviced_id):
         try:
-            val = db.session.query(exists().where(ServiceAccess.service_id == serviced_id)).scalar()
-            if val:
-                return True 
-            else:
-                return False
+            return bool(db.session.query(exists().where(ServiceAccess.service_id == serviced_id)).scalar())
         except SQLAlchemyError:
             db.session.rollback()
             raise    
@@ -1106,7 +1044,7 @@ class DataSourceAllocation(db.Model):
         return DataSourceAllocation.query.join(DataPermission, DataPermission.data_id == DataSourceAllocation.id).filter(and_(DataPermission.user_id == user_id, DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
 
     @staticmethod
-    def get_by_url(ds_id, url):
+    def get_allocation_by_url(ds_id, url):
         return DataSourceAllocation.query.filter(and_(DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
     
     def has_right(self, user_id, checkRight):
@@ -1178,25 +1116,12 @@ class TaskStatus(db.Model):
             'id': self.id,
             'name': self.name
             }
-class Status:
-    PENDING = 'PENDING'
-    RECEIVED = 'RECEIVED'
-    STARTED = 'STARTED'
-    SUCCESS = 'SUCCESS'
-    FAILURE = 'FAILURE'
-    REVOKED = 'REVOKED'
-    RETRY = 'RETRY'
-
-class LogType:
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
     
 class Task(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
     runnable_id = db.Column(db.Integer, db.ForeignKey('runnables.id'))
-    name = db.Column(db.Text)
+    service_id = db.Column(db.Integer, db.ForeignKey('services.id'))
     started_on = db.Column(db.DateTime, default=datetime.utcnow)
     ended_on = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Text)    
@@ -1204,14 +1129,12 @@ class Task(db.Model):
     
     tasklogs = db.relationship('TaskLog', cascade="all,delete-orphan", backref='task', lazy='dynamic')
     outputs = db.relationship('TaskData', cascade="all,delete-orphan", backref='task', order_by="asc(TaskData.id)", lazy='subquery')
+    inputs = db.relationship('InData', cascade="all,delete-orphan", backref='task', order_by="asc(InData.id)", lazy='subquery')
 
     @staticmethod
-    def create_task(runnable_id, name = None):
+    def create_task(runnable_id, service_id):
         try:
-            task = Task()
-            task.runnable_id = runnable_id
-            task.name = name
-            task.status = Status.RECEIVED
+            task = Task(runnable_id=runnable_id, service_id=service_id, status=Status.RECEIVED)
             task.tasklogs.append(TaskLog(log=Status.RECEIVED, type=LogType.INFO)) # 2 = Created
             db.session.add(task)
             db.session.commit()
@@ -1269,13 +1192,28 @@ class Task(db.Model):
             db.session.rollback()
             raise
         
-    def add_inputs(self, user_id, datatype, value, rights):
+    def add_input(self, user_id, datatype, value, rights, **kwargs):
         data = Data.get_by_type_value(datatype, value)
         if not data:
-            data = Data.add(value, datatype, "")
-        DataAllocation.add(user_id, data.id, rights)
+            data = Data.add(value, datatype, **kwargs)
+        
+        data.allocate_for_user(user_id, rights)
+
+        InData.add(self.id, data.id)
+        #self.inputs.append()
         return data
-            
+    
+    def add_output(self, datatype, value, **kwargs):
+        data = Data.get_by_type_value(datatype, value)
+        if not data:
+            data = Data.add(value, datatype, **kwargs)
+        
+        data.allocate_for_user(self.runnable.user_id, AccessRights.Owner)
+        DataProperty.add(data.id, "execution {0}".format(self.id), { 'workflow': { 'task_id': self.id, 'job_id': self.runnable_id, 'workflow_id': self.runnable.workflow_id, 'inout': 'out'} })
+        TaskData.add(self.id, data.id)
+
+        return data
+
     def to_json_log(self):
 #         data = self.data
 #         if data and data.startswith('[') and data.endswith(']'):
@@ -1288,13 +1226,24 @@ class Task(db.Model):
             data.append({ "datatype": dataitem.value["type"], "data": dataitem.value["value"]})
             
         log = { 
-            'name': self.name if self.name else "", 
+            'name': self.name,
             'status': self.status,
             'data': data
         }
 #         if self.status == Status.SUCCESS and (self.datatype & DataType.FileList) > 0:
 #             log['data'] = log['data'].strip('}{').split(',')
         return log
+
+    @property
+    def name(self):
+        return self.service.value["name"]
+    @property
+    def package(self):
+        return self.service.value["package"] if "package" in self.service.value else ""
+    @property
+    def moduledef(self):
+        v = self.service.value
+        return namedtuple("value", v.keys())(*v.values())
        
 class TaskLog(db.Model):
     __tablename__ = 'tasklogs'
@@ -1318,18 +1267,20 @@ class Runnable(db.Model):
     workflow_id  = db.Column(db.Integer, db.ForeignKey('workflows.id', ondelete='CASCADE'), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     celery_id = db.Column(db.String(64))
-    #name = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
     script = db.Column(db.Text, nullable=False)
     arguments = db.Column(db.Text, default='')
     out = db.Column(db.Text, default='')
-    err = db.Column(db.Text, default='')
+    error = db.Column(db.Text, default='')
+    view = db.Column(db.Text, default='')
     duration = db.Column(db.Integer, default = 0)
+    started_on = db.Column(db.DateTime, default=datetime.utcnow)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
     
     tasks = db.relationship('Task', backref='runnable', order_by="asc(Task.id)", lazy='subquery', cascade="all,delete-orphan") 
-    
+    #runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflow', lazy='dynamic')
+
     def updateTime(self):
         try:
             self.modified_on = datetime.utcnow()
@@ -1358,7 +1309,31 @@ class Runnable(db.Model):
     def completed(self):
         return self.status == 'SUCCESS' or self.status == 'FAILURE' or self.status == 'REVOKED'
     
-    def to_json(self):
+    def set_status(self, value, update = True):
+        self.status = value
+    
+        if value == Status.STARTED:
+            self.started_on = datetime.utcnow()
+            #self.update_cpu_memory()
+    
+        if value == Status.SUCCESS or value == Status.FAILURE or value == Status.REVOKED:
+            self.duration = (datetime.utcnow() - self.started_on).total_seconds()
+            #self.update_cpu_memory()
+        
+        if update:
+            self.update()
+
+    # @property
+    # def view(self):
+    #     if 'view' in self.value:
+    #         return self.value['view']
+    
+    # @view.setter
+    # def view(self, value):
+    #     self.value['view'] = value
+    #     flag_modified(self, 'value')
+
+    def json(self):
         
         return {
             'id': self.id,
@@ -1366,21 +1341,22 @@ class Runnable(db.Model):
             'script': self.script,
             'status': self.status,
             'out': self.out,
-            'err': self.err,
-            'duration': self.duration,
+            'error': self.error,
+            'duration': str(self.duration),
             'created_on': str(self.created_on),
-            'modified_on': str(self.modified_on)
+            'modified_on': str(self.modified_on),
+            'view': self.view
         }
     
     def to_json_tooltip(self):
-        err = ""
-        if err:
-            err = (self.err[:60] + '...') if len(self.err) > 60 else self.err
+        error = ""
+        if error:
+            error = (self.error[:60] + '...') if len(self.error) > 60 else self.error
         return {
             'id': self.id,
             'name': self.workflow.name,
             'status': self.status,
-            'err': err,
+            'error': error,
             'duration': self.duration,
             'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '',
             'modified_on': self.modified_on.strftime("%d-%m-%Y %H:%M:%S") if self.modified_on else ''
@@ -1397,7 +1373,7 @@ class Runnable(db.Model):
             'script': self.script,
             'status': self.status,
             'out': self.out,
-            'err': self.err,
+            'error': self.error,
             'duration': self.duration,
             'log': log
         }
@@ -1414,13 +1390,7 @@ class Runnable(db.Model):
     @staticmethod
     def create(user_id, workflow_id, script, args):
         try:
-            runnable = Runnable()
-            runnable.workflow_id = workflow_id
-            runnable.user_id = user_id
-            runnable.script = script
-            runnable.args = args
-            runnable.status = Status.PENDING
-            
+            runnable = Runnable(workflow_id=workflow_id, user_id=user_id, script=script, arguments=args, status = Status.PENDING)
             db.session.add(runnable)
             db.session.commit()
             return runnable
@@ -1430,6 +1400,12 @@ class Runnable(db.Model):
     
     def get_user(self):
         return User.query.get(self.user_id)
+    @property
+    def modules(self):
+        return self.tasks
+    @property
+    def name(self):
+        return Workflow.query.get(self.workflow_id).name
 
 class Filter(db.Model):
     __tablename__ = 'filters'
@@ -1768,15 +1744,20 @@ class Data(db.Model):
     
     @staticmethod
     def get_by_type_value(datatype, value):
-        return Data.query.filter(and_(Data.value["valuetype"].astest == datatype, Data.value["value"].astest == value))
+        return Data.query.filter(and_(Data.value["valuetype"].astext.cast(db.Integer) == datatype, Data.value["value"].astext.cast(db.Text) == value)).first()
     
     @staticmethod
     def get_by_path(fullpath):
-        return Data.query.filter(and_(Data.value["path"].astest == os.path.dirname(fullpath), Data.value["name"].astest == os.path.basename(fullpath))).first()
-    
+        return Data.query.filter(and_(Data.value["path"] == cast(os.path.dirname(fullpath), JSON), Data.value["name"] == cast(os.path.basename(fullpath), JSON))).first()
+
+    @property
+    def name(self):
+        if self.value and self.value["name"] != None:
+            return self.value["name"]
+
     def rename(self, name):
-        if (name == self.value["name"]):
-            return name
+        if (self.name == name):
+            return self.name
         
         try:
             self.value["name"] = name
@@ -1809,11 +1790,14 @@ class Data(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
-        
+
+    def allocate_for_user(self, user_id, rights):
+        return DataAllocation.add(user_id, self.id, rights)
+
     @staticmethod
-    def add(value, valuetype, path, **kwargs):
+    def add(value, valuetype, **kwargs):
         datavalue = dict(kwargs)
-        datavalue.update({"value": value, "type": str(valuetype), "path": path, "datatype": str(type(value)), "created": str(datetime.utcnow()), "modified": str(datetime.utcnow())})
+        datavalue.update({"value": value, "type": str(valuetype), "datatype": str(type(value)), "created": str(datetime.utcnow()), "modified": str(datetime.utcnow())})
         return Data.add_json(datavalue, Data())
 
     @staticmethod
@@ -1842,14 +1826,12 @@ class DataAllocation(db.Model):
         try:
             allocation = DataAllocation.query.filter(and_(DataAllocation.user_id == user_id, DataAllocation.data_id == data_id)).first()
             if not allocation:
-                allocation = DataAllocation()
-                allocation.user_id = user_id
-                allocation.data_id = data_id
+                allocation = DataAllocation(user_id = user_id, data_id=data_id, rights=rights)
                 db.session.add(allocation)
             elif allocation.rights >= rights:
                 return allocation
-                
-            allocation.rights = rights
+            else:
+                allocation.rights = rights
             db.session.commit()
             return allocation
         
@@ -1945,12 +1927,35 @@ class TaskData(db.Model):
     @staticmethod
     def add(task_id, data_id):
         try:
-            taskdata = TaskData()
-            taskdata.task_id = task_id
-            taskdata.data_id = data_id
+            taskdata = TaskData(task_id = task_id, data_id = data_id)
             db.session.add(taskdata)
             db.session.commit()
             return taskdata
         except SQLAlchemyError:
             db.session.rollback()
             raise
+    @property
+    def value(self):
+        v = Data.query.get(self.data_id).value
+        return namedtuple("value", v.keys())(*v.values())
+
+class InData(db.Model):
+    __tablename__ = 'indata'
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, ForeignKey('tasks.id'))
+    data_id = db.Column(db.Integer, ForeignKey('data.id'))
+    
+    @staticmethod
+    def add(task_id, data_id):
+        try:
+            indata = InData(task_id = task_id, data_id = data_id)
+            db.session.add(indata)
+            db.session.commit()
+            return indata
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    @property
+    def value(self):
+        v = Data.query.get(self.data_id).value
+        return namedtuple("value", v.keys())(*v.values())

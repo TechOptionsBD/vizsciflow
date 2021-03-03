@@ -1,5 +1,4 @@
 from dsl.symtab import SymbolTable
-from ..datamgr import dataManager
 
 class VizSciFlowSymbolTable(SymbolTable):
     '''
@@ -19,7 +18,6 @@ class VizSciFlowSymbolTable(SymbolTable):
         :param name:
         :param value:
         '''
-        #if not dataManager.is_data_item(value):
             
         self.vars[name] = value
         return self.get_var(name)

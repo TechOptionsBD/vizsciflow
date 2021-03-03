@@ -1,9 +1,9 @@
 from flask import jsonify, request, g, url_for, current_app
 from .. import db
-from ..models import Post, Permission, Comment
+from ..models import Post, Comment
 from . import api
 from .decorators import permission_required
-
+from ..common import Permission
 
 @api.route('/comments/')
 def get_comments():

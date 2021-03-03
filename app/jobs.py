@@ -5,6 +5,7 @@ from celery.contrib.abortable import AbortableTask
 
 import os
 import json
+import logging
 from pyparsing import ParseException
 
 from config import Config
@@ -15,14 +16,15 @@ from dsl.parser import WorkflowParser
 from app.biowl.dsl.vizsciflowgraphgen import GraphGenerator
 from dsl.wftimer import Timer
 
-from .models import Status, Workflow
-from .runmgr import runnableManager
+from .common import Status
+from .managers.runmgr import runnablemanager
+from .managers.workflowmgr import workflowmanager
 from .biowl.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
             
 @celery.task(bind=True, base = AbortableTask)
 def run_script(self, runnable_id, args):
     
-    runnable = runnableManager.get_runnable(runnable_id)
+    runnable = runnablemanager.get_runnable(id=runnable_id)
 
     machine = VizSciFlowInterpreter()
     
@@ -36,7 +38,7 @@ def run_script(self, runnable_id, args):
         
         if self and self.request:
             runnable.celery_id = self.request.id
-        runnable.set_status(Status.STARTED)
+        runnable.set_status(Status.STARTED, True)
 
         with Timer() as t:
             parser = WorkflowParser(PythonGrammar())   
@@ -49,11 +51,11 @@ def run_script(self, runnable_id, args):
                             
         runnable.set_status(Status.SUCCESS, False)
     except (ParseException, Exception) as e:
-        runnable.set_status(Status.FAILURE, False)
+        logging.error(str(e))
         machine.context.err.append(str(e))
+        runnable.set_status(Status.FAILURE, False)
     finally:
         os.chdir(curdir)
-        #runnable.duration = float("{0:.3f}".format(t.secs))
         runnable.error = "\n".join(machine.context.err)
         runnable.out = "\n".join(machine.context.out)
         runnable.view = json.dumps(machine.context.view if hasattr(machine.context, 'view') else '')
@@ -85,13 +87,14 @@ def sync_task_status_with_db(runnable):
     return runnable.status
     
 def sync_task_status_with_db_for_user(user_id):
-    runnables = runnableManager.runnables_of_user(user_id)
+    runnables = runnablemanager.runnables_of_user(user_id)
     for runnable in runnables:
         if not runnable.completed:
             sync_task_status_with_db(runnable)
 
 def generate_graph_from_workflow(workflow_id):
-    workflow = Workflow.query.get(workflow_id)
+
+    workflow = workflowmanager.get(id = workflow_id)
     return generate_graph(workflow.id, workflow.name, workflow.script)
 
 def generate_graph(workflow_id, name, script):

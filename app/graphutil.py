@@ -11,8 +11,9 @@ from py2neo import NodeMatcher
 from py2neo import Graph
 import neotime
 
-from .models import Status, Workflow, LogType, AccessRights, DataType, User
+from .common import Status, LogType, AccessRights
 from dsl.fileop import FolderItem
+from dsl.datatype import DataType
 
 def graph():
     if 'graph' not in g:
@@ -143,11 +144,15 @@ class UserItem(NodeItem):
         else: # this will be very resource-intensive. never call it.
             return list(UserItem.match(graph()).limit(sys.maxsize))
 
+    # @staticmethod
+    # def Create(user_id):
+    #     user = UserItem(User.query.get(user_id).username)
+    #     user.user_id = user_id
+    #     return user
+    
     @staticmethod
-    def Create(user_id):
-        user = UserItem(User.query.get(user_id).username)
-        user.user_id = user_id
-        return user
+    def Create(username):
+        return UserItem(username)
             
     @property
     def Runs(self):
@@ -212,7 +217,7 @@ class DataItem(NodeItem):
        
 class ValueItem(DataItem):
     datatype =  Property("datatype")
-    valuetype = Property("valuetype")
+    _type = Property("valuetype")
     _name = Property('name', 'value')
     
     _inputs = RelatedTo("ModuleItem", "INPUT")
@@ -221,30 +226,36 @@ class ValueItem(DataItem):
     #allocations = RelatedTo("DataAllocationItem", "ALLOCATION")
     users = RelatedFrom(UserItem, 'ACCESS')
     
-    def __init__(self, value, valuetype, **kwargs):
+    def __init__(self, value, _type, **kwargs):
         super().__init__(**kwargs)
 
         self._value = ValueItem.to_primitive(value)
         self.datatype =  str(type(value)) #str(self.__class__.__name__) #val_type#
-        self.valuetype = valuetype # if valuetype else str(DataType.Value) #str(type(self.value))
+        self._type = _type # if valuetype else str(DataType.Value) #str(type(self.value))
         self._name = 'value'
     
+    @property
     def name(self):
         return self._name
     
     def set_name(self, value):
         self._name = value
-        
+
+    @property    
     def value(self):
         return self._value
     
+    @property
+    def type(self):
+        return self._type
+
     @staticmethod
     def to_primitive(value):
         return value if isinstance(value, (int, float, bool, str)) else str(value)
 
     @staticmethod
-    def create(value, valuetype, **kwargs):
-        item = ValueItem(value, valuetype, **kwargs)        
+    def create(value, _type, **kwargs):
+        item = ValueItem(value, _type, **kwargs)        
         item._name = "value"
         graph().push(item)
         return item
@@ -408,12 +419,14 @@ class RunnableItem(NodeItem): #number1
             
         return self._duration    
     
+    @property
     def name(self):
         return self._name
         
     def update(self):
         graph().push(self)
     
+    @property
     def modules(self):
         return self._modules
         
@@ -458,16 +471,8 @@ class RunnableItem(NodeItem): #number1
     @staticmethod
     def create(user_id, workflow_id, script, provenance, args):
         user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
-        if not user:
-            user = UserItem.Create(user_id)
-        
-        dbWorkflow = Workflow.query.get(workflow_id)  
         workflow = WorkflowItem.match(graph()).where("_.workflow_id = {0}".format(workflow_id)).first()
-        if not workflow:
-            workflow = WorkflowItem(dbWorkflow.name)
-            workflow.workflow_id = workflow_id
-            user.workflows.add(workflow)
-            
+
         item = RunnableItem(workflow.name)
         item.script = script
         item.args = args
@@ -614,12 +619,15 @@ class ModuleItem(NodeItem):
         
         return j 
 
+    @property
     def name(self):
         return self._name
         
+    @property
     def inputs(self):
         return self._inputs
     
+    @property
     def outputs(self):
         return self._outputs
     

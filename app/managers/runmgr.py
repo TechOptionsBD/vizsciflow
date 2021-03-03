@@ -1,8 +1,9 @@
 from config import Config
 
-from .models import Runnable, Workflow, Task
-from .graphutil import RunnableItem, WorkflowItem
-from .mocks.runmocks import ModuleManagerMock
+from ..models import Runnable, Task, Service
+from ..graphutil import RunnableItem, WorkflowItem
+from ..mocks.runmocks import ModuleManagerMock
+from .workflowmgr import workflowmanager
 
 class GraphModuleManager():
 #     @staticmethod
@@ -57,9 +58,6 @@ class GraphModuleManager():
         runnableItem = RunnableItem.load(runnable_id)
         return runnableItem.add_module(function_name, package)
     
-    @staticmethod
-    def get_workflow(workflow_id):
-        return Workflow.query.get(workflow_id)    
     
 #    @staticmethod
 #     def create_workflow(user_id, name, desc, script, access, users, temp, derived = 0):
@@ -75,12 +73,8 @@ class GraphModuleManager():
 #         return workflow
     
     @staticmethod
-    def create_workflow(user_id, name, desc, script, access, users, temp, derived = 0):
-        return Workflow.create(user_id, name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
-
-    @staticmethod
-    def get_runnable(runnable_id):
-        return RunnableItem.load(runnable_id)
+    def get_runnables(**kwargs):
+        return RunnableItem.load(**kwargs)
     
     @staticmethod
     def runnables_of_user(user_id):
@@ -102,30 +96,25 @@ class DBModuleManager():
 #         metadata = Data.add(json)
 #         DataAllocation.add(user, metadata.id, rights)
 #         return Property.add(data.id, metadata.id)
-    
-    @staticmethod
-    def get_workflow(workflow_id):
-        return Workflow.query.get(workflow_id)
-    
-    @staticmethod
-    def create_workflow(user_id, name, desc, script, access, users, temp, derived = 0):
-        return Workflow.create(user_id, name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
-    
+       
     @staticmethod
     def create_runnable(user_id, workflow_id, script, provenance, args):
         return Runnable.create(user_id, workflow_id, script, args)
     
     @staticmethod
-    def get_runnable(runnable_id):
-        return Runnable.query.get(int(runnable_id))
+    def get_runnables(**kwargs):
+        return Runnable.query.filter_by(**kwargs)
     
     @staticmethod
     def create_task(runnable_id, function_name, package):
-        return Task.create_task(runnable_id, function_name)
+        service = Service.get_first_service_by_name_package(function_name, package)
+        if service:
+            return Task.create_task(runnable_id, service.id)
     
     @staticmethod
     def runnables_of_user(user_id):
-        return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id)
+        from ..models import Workflow
+        return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.created_on.desc())
     
 class RunnableManager:
     def __init__(self):
@@ -149,21 +138,14 @@ class RunnableManager:
     
     def update_runnable(self, properties):
         return self.manager.update_runnable(properties)
+        
+    def get_runnables(self, **kwargs):
+        return self.manager.get_runnables(**kwargs)
     
-    def get_workflow(self, workflow_id):
-        return self.manager.get_workflow(workflow_id)
-    
-    def create_workflow(self, user_id, name, desc, script, access, users, temp, derived = 0):
-        raise NotImplementedError
-        if script and name:
-            users = users.split(";") if users else []
-            return self.manager.create_workflow(user_id, name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
-    
-    def get_runnable(self, runnable_id):
-        return self.manager.get_runnable(runnable_id)
-    
+    def get_runnable(self, **kwargs):
+        return self.get_runnables(**kwargs).first()
+
     def runnables_of_user(self, user_id):
-        #Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.id.desc())
         return self.manager.runnables_of_user(user_id)
     
-runnableManager = RunnableManager()
+runnablemanager = RunnableManager()

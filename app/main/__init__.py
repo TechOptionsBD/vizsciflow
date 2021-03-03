@@ -4,7 +4,7 @@ main = Blueprint('main', __name__)
 
 from config import Config
 from . import views, errors, jobsview
-from ..models import Permission
+from ..common import Permission
 
 @main.app_context_processor
 def inject_permissions():

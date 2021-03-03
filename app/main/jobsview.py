@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import json
@@ -17,17 +18,20 @@ from datetime import datetime
 import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
-from ..models import Workflow, AccessType, Service, ServiceAccess, User, Permission
 from . import main
 from .views import Samples, AlchemyEncoder
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
-from ..runmgr import runnableManager
 from ..biowl.dsl.provobj import View, Run
 
 from ..biowl.dsl.pluginmgr import plugincollection
 from config import Config
+from ..managers.usermgr import usermanager
+from ..managers.workflowmgr import workflowmanager
+from ..managers.runmgr import runnablemanager
+from ..common import AccessType, Permission
+from ..managers.modulemgr import modulemanager
 
 prov_base = Config.PROVENANCE_DIR
 html_base = Config.HTML_DIR
@@ -36,7 +40,7 @@ basedir = os.path.dirname(os.path.abspath(__file__))
 
 def update_workflow(user_id, workflow_id, script):
     if workflow_id:
-        workflow = Workflow.query.get(workflow_id)
+        workflow = workflowmanager.get(id=workflow_id)
         writeaccess = workflow.temp
         
         if not writeaccess:
@@ -62,8 +66,8 @@ def update_workflow(user_id, workflow_id, script):
     
 def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
     from ..jobs import run_script
-    workflow = Workflow.query.get(workflow_id)
-    runnable = runnableManager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, provenance, args)
+    workflow = workflowmanager.get(id=workflow_id)
+    runnable = runnablemanager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, provenance, args)
             
     if immediate:
         run_script(runnable.id, args)
@@ -248,25 +252,25 @@ def provenance():
     
 def share_service(share_service):
     service_id, access = share_service["serviceID"], share_service["access"]
-    string = ServiceAccess.get_by_service_id(service_id)
+    string = modulemanager.get_access(service_id=service_id)
     share_list = string.strip('][').split(', ') if string != '[]' else None#.replace("'", "") 
     if access:
         if share_list:
             for user in share_list:
-                ServiceAccess.remove_user(service_id, user)
-        Service.update_access(service_id, access)
+                modulemanager.remove_user_access(service_id, user)
+        modulemanager.update_access(service_id, access)
         return json.dumps({'return':'public'})         
     else:
         sharing_with = share_service["sharedWith"] if "sharedWith" in share_service.keys() else []
         if share_list:
             for user in share_list:
                 if int(user) not in sharing_with:
-                    ServiceAccess.remove_user(service_id, user)
+                    modulemanager.remove_user_access(service_id, user)
                 else:
                     sharing_with.remove(int(user))
-        Service.update_access(service_id, access) 
+        modulemanager.update_access(service_id, access) 
         if sharing_with != []: 
-            ServiceAccess.add(service_id, sharing_with)      
+            modulemanager.add_user_access(service_id, sharing_with)
             return json.dumps({'return':'shared'})
         else:
             return json.dumps({'return':'private'})
@@ -275,10 +279,10 @@ def share_service(share_service):
 def delete_service(service_id):
     if 'confirm' in request.args:
         if request.args.get("confirm") == "true":
-            Service.remove(current_user.id, service_id)       
+            modulemanager.remove(current_user.id, service_id)       
             return json.dumps({'return':'deleted'})
     else:
-        shared_service_check = ServiceAccess.check(service_id) 
+        shared_service_check = modulemanager.check_access(service_id) 
         if shared_service_check:  
             return json.dumps({'return':'shared'})
         else:
@@ -286,7 +290,7 @@ def delete_service(service_id):
     return json.dumps({'return':'error'})
 
 def get_users():
-    result = User.query.filter(current_user.id != User.id).with_entities(User.id, User.username)
+    result = usermanager.get_other_users_with_entities(current_user.id, "id", "username")
     j = json.dumps([r for r in result], cls=AlchemyEncoder)
     return jsonify(j)
 
@@ -302,7 +306,7 @@ def add_demo_service():
 def code_completion(codecompletion):
         keywords = [{"package": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
         funcs = []
-        for func in Service.get_by_user(current_user.username):
+        for func in modulemanager.get_by_user(current_user.username, 0):
             if int(func.value['access']) < 2 or (func['user'] and func['user'] == current_user.username):
                 if codecompletion:
                     if not regex.match(codecompletion, func['name'], regex.IGNORECASE):
@@ -318,7 +322,7 @@ def code_completion(codecompletion):
         return json.dumps({'functions':  funcs})
     
 def check_service_function(request):
-    if Service.check_function(request.args.get('name'), request.args.get('package')):
+    if modulemanager.check_function(request.args.get('name'), request.args.get('package')):
         return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
     if 'script' in request.args and request.args.get('script') and 'mapper' in request.args and request.args.get('mapper'):
         try:
@@ -357,7 +361,7 @@ def functions():
             elif 'demoserviceadd' in request.args:
                 return add_demo_service()
             elif 'tooltip' in request.args:
-                func = Service.get_first_by_name_package_with_access(current_user.id, request.args.get('name'), request.args.get('package'))
+                func = modulemanager.get_module_by_name_package_for_user_access(current_user.id, request.args.get('name'), request.args.get('package'))
                 return json.dumps(func) if func else json.dumps("")
             elif 'users' in request.args:
                 return get_users()
@@ -375,7 +379,9 @@ def functions():
                         return jsonify(workflowId = workflow.id)
                     # Here we must have a valid workflow id
                     if not workflowId:
-                        return make_response(jsonify(err="Invalid workflow to run. Check if the workflow is already saved."), 500)
+                        err="Invalid workflow to run. Check if the workflow is already saved."
+                        logging.error(err)
+                        return make_response(jsonify(err=err), 500)
                     
                     args = request.form.get('args') if request.form.get('args') else ''
                     immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
@@ -384,6 +390,7 @@ def functions():
                     return jsonify(runnableId = runnable.id)
                 
                 except Exception as e:
+                    logging.error(str(e))
                     return make_response(jsonify(err=str(e)), 500)
             elif request.form.get('mapper'):
                 result = {"out": [], "err": []}
@@ -499,7 +506,7 @@ def functions():
                             if org:
                                 f['org'] = org
                             #func = json.dumps(f, indent=4)
-                            Service.add(current_user.id, f, access, sharedusers)
+                            modulemanager.add(user_id = current_user.id, value = f, access=access, users=sharedusers)
     #                 os.remove(base)
     #                 with open(base, 'w') as f:
     #                     f.write(json.dumps(data, indent=4))
@@ -513,6 +520,7 @@ def functions():
                 return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
     except Exception as e:
+        logging.error(str(e))
         return make_response(jsonify(err=str(e)), 500)
 
 
@@ -552,7 +560,7 @@ def graphs():
 
 def get_user_status(user_id):
     logs = []
-    runnables = runnableManager.runnables_of_user(user_id)
+    runnables = runnablemanager.runnables_of_user(user_id)
     for r in runnables:
         log = r.to_json_info()
         if (r.created_on + timedelta(minutes=5) > datetime.utcnow()):
@@ -562,15 +570,15 @@ def get_user_status(user_id):
     return jsonify(runnables = logs)
 
 def get_run(runnable_id):
-    runnable = runnableManager.get_runnable(runnable_id)
+    runnable = runnablemanager.get_runnable(id=runnable_id)
     return json.dumps(runnable.json())
 
 def get_task_status(runnable_id):
-    runnable = runnableManager.get_runnable(runnable_id)
+    runnable = runnablemanager.get_runnable(id=runnable_id)
     return json.dumps(runnable.to_json_log())
 
 def get_task_full_status(runnable_id):
-    runnable = runnableManager.get_runnable(runnable_id)
+    runnable = runnablemanager.get_runnable(id=runnable_id)
     return json.dumps(runnable.to_json_tooltip())
 # def get_task_output(path):
 #      remotepath = os.path.join('/home/mishuk/biowl/storage/', path)
@@ -597,7 +605,7 @@ def runnables():
             ids = ids.split(",")
             new_status = []
             for runnable_id in ids:
-                runnable = runnableManager.get_runnable(int(runnable_id))
+                runnable = runnablemanager.get_runnable(id=int(runnable_id))
                 if runnable:
                     stop_script(runnable.celery_id)
                     new_status.append(runnable)
@@ -614,7 +622,7 @@ def runnables():
             ids = ids.split(",")
             new_status = []
             for runnable_id in ids:
-                runnable = runnableManager.get_runnable(int(runnable_id))
+                runnable = runnablemanager.get_runnable(id=int(runnable_id))
                 if runnable:
                     if not runnable.completed:
                         stop_script(runnable.celery_id)
@@ -634,4 +642,4 @@ def runnables():
         return make_response(jsonify(err=str(e)), 500)
 
 def get_functions(access):
-    return json.dumps({'functions':  Service.get_by_user(current_user.id, access)})
+    return json.dumps({'functions':  modulemanager.get_by_user_access(current_user.id, access)})

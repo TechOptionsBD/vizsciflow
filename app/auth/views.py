@@ -7,11 +7,12 @@ from werkzeug.urls import url_parse
 from . import auth, cas
 from .. import db
 from ..email import send_email
-from ..models import User, DataSource, DataSourceAllocation, AccessRights
+from ..common import AccessRights
 from ..util import Utility
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm
-
+from ..managers.usermgr import usermanager
+from ..managers.datamgr import datamanager
 
 @auth.before_app_request
 def before_request():
@@ -49,7 +50,7 @@ def login():
         return usask_login(request.args)
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = usermanager.get_by_email(form.email.data)
         if user is None or not user.verify_password(form.password.data):
             flash('Invalid username or password')
             return redirect(url_for('auth.login'))
@@ -68,9 +69,9 @@ def usask_login(args):
     if not username:
         flash('Invalid username or password')
         return redirect(url_for('auth.login'))
-    user = User.query.filter_by(username=username).first()
+    user = usermanager.get_by_username(username).first()
     if not user:
-        user = User(username=username, oid=1)
+        user = usermanager.create_user(username=username, oid=1)
     login_user(user, remember=False)
     next_page = args.get('next')
     if not next_page or url_parse(next_page).netloc != '':
@@ -86,7 +87,7 @@ def logout():
 
 
 def allocate_storage(user):
-    datasources = DataSource.query.filter_by(active = True)
+    datasources = datamanager.get(active = True)
     for ds in datasources:
         try:
             fs = Utility.fs_by_prefix(ds.url)
@@ -94,9 +95,10 @@ def allocate_storage(user):
                 userpath = 'Libraries/' + user.username if ds.type == 'gfs' else '/' + user.username
                 if not fs.exists(userpath):
                     fs.makedirs(userpath)
-                DataSourceAllocation.add(user.id, ds.id, userpath, AccessRights.Owner)
+                
+                datamanager.add_allocation(user.id, ds.id, userpath, AccessRights.Owner)
                 if ds.public:
-                    DataSourceAllocation.add(user.id, ds.id, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
+                    datamanager.add_allocation(user.id, ds.id, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
         except:
             flash('Storage allocation on {0} has failed.'.format(ds.name))
 
@@ -104,11 +106,9 @@ def allocate_storage(user):
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(email=form.email.data,
+        user = usermanager.create_user(email=form.email.data,
                     username=form.username.data,
                     password=form.password.data)
-        db.session.add(user)
-        db.session.commit()
         try:
             allocate_storage(user)
         except:
@@ -148,9 +148,7 @@ def resend_confirmation():
 def change_password():
     form = ChangePasswordForm()
     if form.validate_on_submit():
-        if current_user.verify_password(form.old_password.data):
-            current_user.password = form.password.data
-            db.session.add(current_user)
+        if current_user.verify_and_update_password(form.old_password.data, form.password.data):
             flash('Your password has been updated.')
             return redirect(url_for('main.index'))
         else:
@@ -164,7 +162,7 @@ def password_reset_request():
         return redirect(url_for('main.index'))
     form = PasswordResetRequestForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = usermanager.get_by_email(form.email.data).first()
         if user:
             token = user.generate_reset_token()
             send_email(user.email, 'Reset Your Password',
@@ -183,7 +181,7 @@ def password_reset(token):
         return redirect(url_for('main.index'))
     form = PasswordResetForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = usermanager.get_by_email(form.email.data).first()
         if user is None:
             return redirect(url_for('main.index'))
         if user.reset_password(token, form.password.data):

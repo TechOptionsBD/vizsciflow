@@ -3,11 +3,14 @@ import itertools
 import operator
 
 from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem, NodeItem
-from ...models import User as DbUser
-from ...models import Workflow as DBWorkflow
 from app.util import Utility
 from dsl.datatype import DataType
 from .pluginmgr import plugincollection
+from ...managers.usermgr import usermanager
+from ...managers.workflowmgr import workflowmanager
+from ...managers.runmgr import runnablemanager
+from ...managers.modulemgr import modulemanager
+from ...managers.datamgr import datamanager
 
 def EmptyIfNull(value):
     return value if value else ""
@@ -98,11 +101,17 @@ class Data():
     
     @staticmethod
     def get(id = None, path = None):
-        return Data(id = id, path = path)
+        kwargs = {}
+        if id:
+            kwargs.update({'id': int(id)})
+        if path:
+            kwargs.update({'path': path})
+
+        return datamanager.get_datasource(**kwargs)
        
     def json(self):
-        value = self._node.value()
-        if self._node.valuetype == DataType.File or self._node.valuetype == DataType.Folder:
+        value = self._node.value.value
+        if int(self._node.value.type) == DataType.File or int(self._node.value.type) == DataType.Folder:
             fs = Utility.fs_by_prefix_or_default(value)
             value = fs.basename(value)
         this_node = {"key": self._node.id, "type": "Data", "name": value}
@@ -126,7 +135,7 @@ class Data():
     def compare(data1, data2, deep = False):
         node1 = data1._node if data1 else None
         node2 = data2._node if data2 else None
-        json = [{"Heading": { "Title": "Data", "First": node1.name() if node1 else "", "Second": node2.name() if node2 else ""}, 
+        json = [{"Heading": { "Title": "Data", "First": node1.name if node1 else "", "Second": node2.name if node2 else ""}, 
                      "Properties": [
                          {
                              "Name": "ID",
@@ -180,16 +189,16 @@ class Module(object):
         return Module(name = name, package = package)
     
     def name(self):
-        return self._node.name()
+        return self._node.name
     
     def outputs(self):
-        return [Data(data_item=output) for output in self._node.outputs()]
+        return [Data(data_item=output) for output in self._node.outputs]
         
     def inputs(self):
-        return [Data(data_item=arg) for arg in self._node.inputs()]
+        return [Data(data_item=arg) for arg in self._node.inputs]
     
     def json(self):
-        this_node = {"key": self._node.id, "type": "Module", "name": self._node.name()}
+        this_node = {"key": self._node.id, "type": "Module", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
        
         for outdata in self.outputs():
@@ -204,7 +213,9 @@ class Module(object):
     def compare(module1, module2, deep = False):
         node1 = module1._node if module1 else None
         node2 = module2._node if module2 else None
-        json = [{"Heading": { "Title": "Module", "First": node1.name() if node1 else "", "Second": node2.name() if node2 else ""}, 
+        value1 = node1.service.value if node1 and node1.service else None
+        value2 = node2.service.value if node2 and node2.service else None
+        json = [{"Heading": { "Title": "Module", "First": node1.name if node1 else "", "Second": node2.name if node2 else ""}, 
                      "Properties": [
                          {
                              "Name": "ID",
@@ -213,18 +224,18 @@ class Module(object):
                          },
                          {
                              "Name": "Package",
-                             "First": node1.package if node1 and node1.package else "",
-                             "Second": node2.package if node2 and node2.package else ""
+                             "First": value1["package"] if value1 and "package" in value1 else "",
+                             "Second": value2["package"] if value2 and "package" in value2 else ""
                          },
                          {
                              "Name": "Created",
-                             "First": str(node1.created_on) if node1 and node1.created_on else "",
-                             "Second": str(node2.created_on)  if node2 and node2.created_on else "",
+                             "First": str(value1["created_on"]) if value1 and "created_on" in value1 else "",
+                             "Second": str(value2["created_on"]) if value2 and "created_on" in value2 else "",
                          },
                          {
                              "Name": "Modified",
-                             "First": str(node1.modified_on) if node1 and node1.modified_on else "",
-                             "Second": str(node2.modified_on) if node2 and node2.modified_on else ""
+                             "First": str(value1["modified_on"]) if value1 and "modified_on" in value1 else "",
+                             "Second": str(value2["modified_on"]) if value2 and "modified_on" in value2 else "",
                          },
                          {
                              "Name": "Status",
@@ -233,13 +244,13 @@ class Module(object):
                          },
                          {
                              "Name": "Inputs",
-                             "First": str(len(node1.inputs())) if node1 else "",
-                             "Second": str(len(node2.inputs())) if node2 else ""
+                             "First": str(len(node1.inputs)) if node1 else "",
+                             "Second": str(len(node2.inputs)) if node2 else ""
                          },
                          {
                              "Name": "Outputs",
-                             "First": str(len(node1.outputs())) if node1 else "",
-                             "Second": str(len(node2.outputs())) if node2 else ""
+                             "First": str(len(node1.outputs)) if node1 else "",
+                             "Second": str(len(node2.outputs)) if node2 else ""
                          }
                          ]
                      }]
@@ -278,27 +289,32 @@ class Module(object):
         
 class Run(object):
     def __init__(self, id = None, runItem = None):
-        self._node = RunnableItem.load(id) if id else runItem
+        self._node = runnablemanager.get_runnable(id = id) if id else runItem
     
     @staticmethod
     def get(id = None, workflow_id = None):
-        try:        
-            runItems = RunnableItem.load(int(id) if id else None, int(workflow_id) if workflow_id else None)
+        try:
+            kwargs = {}
+            if id:
+                kwargs.update({'id': int(id)})
+            if workflow_id:
+                kwargs.update({'workflow_id': int(workflow_id)})
+            runItems = runnablemanager.get_runnable(**kwargs)
             if not isinstance(runItems, list):
                 return Run(runItem = runItems)
             
             return [Run(runItem = run) for run in runItems]
-        except:
-            raise ValueError("Runnable with id {0} doesn't exist.", id)
+        except Exception as e:
+            raise ValueError("Runnable cann't be retrieved. Error: ", str(e))
         
     def modules(self, index = None, name = None):
         modules = []
-        moduleItems = list(self._node.modules())
+        moduleItems = list(self._node.modules)
         if index is not None:
             return Module(moduleItem=moduleItems[int(index)])
         elif name:
             for module in moduleItems:
-                if module.name() == name:
+                if module.name == name:
                     modules.append(Module(moduleItem=module))
         else:
             for module in moduleItems:
@@ -312,7 +328,7 @@ class Run(object):
     def compare(run1, run2, deep = False):
         node1 = run1._node if run1 else None
         node2 = run2._node if run2 else None
-        json = [{"Heading": { "Title": "Run", "First": node1.name() if node1 else "", "Second": node2.name() if node2 else ""}, 
+        json = [{"Heading": { "Title": "Run", "First": node1.name if node1 else "", "Second": node2.name if node2 else ""}, 
                      "Properties": [
                          {
                              "Name": "ID",
@@ -351,8 +367,8 @@ class Run(object):
                         },
                          {
                              "Name": "Modules",
-                             "First": str(len(node1.modules())) if node1 else "",
-                             "Second": str(len(node2.modules())) if node2 else ""
+                             "First": str(len(node1.modules)) if node1 else "",
+                             "Second": str(len(node2.modules)) if node2 else ""
                          }
                          ]
                      }]
@@ -363,21 +379,21 @@ class Run(object):
                     addsize = len(from2)
                     if run2:
                         for m2 in run2.modules():
-                            if m1.name() == m2.name() and m2 not in from2:
+                            if m1.name == m2.name and m2 not in from2:
                                 json.extend(Module.compare(m1, m2, deep))
-                                from2.append((m2.name(), m2._node.id))
+                                from2.append((m2.name, m2._node.id))
                                 break
                     if addsize == len(from2):
                         json.extend(Module.compare(m1, None))
                 
             for m2 in run2.modules():
-                if (m2.name(), m2._node.id) not in from2:
+                if (m2.name, m2._node.id) not in from2:
                     json.extend(Module.compare(None, m2))
                     
         return json
        
     def json(self):
-        this_node = {"key": self._node.id, "type": "Run", "name": self._node.name()}
+        this_node = {"key": self._node.id, "type": "Run", "name": self._node.name}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
         for module in self.modules():
             json = merge_json(json, module.json(), 'Module')
@@ -385,37 +401,37 @@ class Run(object):
 
 class Workflow(object):
     def __init__(self, id = None, workflowItem = None):
-        self._node = WorkflowItem.load(id = id) if id else workflowItem
+        self._node = workflowmanager.get(id = id) if id else workflowItem
     
     @staticmethod
     def Create(id = None, name = None):
         workflow = None
         if id:
-            workflow = WorkflowItem.load(id = int(id) if id else None)
+            workflow = workflowmanager.get(id = int(id) if id else None)
             if workflow:
                 return workflow
         
         if not workflow:
-            workflow = WorkflowItem.Create(name)
+            workflow = workflowmanager.create(name = name)
             workflow.id = id
             
         return Workflow(workflowItem = workflow)
     
     @staticmethod
     def get(id = None):
-        workflowItems = WorkflowItem.load(int(id) if id else None)
+        workflowItems = workflowmanager.get(id = int(id) if id else None)
         if workflowItems:
             return [Workflow(workflowItem = workflow) for workflow in workflowItems] if isinstance(workflowItems, list) else Workflow(workflowItem = workflowItems)
         else:
             from .vizsciflowgraphgen import GraphGenerator
-            workflowItems = DBWorkflow.query.get(id) if id else DBWorkflow.query.all()
+            workflowItems = workflowmanager.get(id=id) if id else workflowmanager.get()
             if not workflowItems:
                 raise ValueError("Workflow with id {0} doesn't exist.", id)
             return [Workflow(workflowItem = GraphGenerator.generate_workflow_graph(workflow.id, workflow.name, workflow.script)) for workflow in workflowItems] if isinstance(workflowItems, list) else Workflow(workflowItem = GraphGenerator.generate_workflow_graph(workflowItems.id, workflowItems.name, workflowItems.script))
         
     def modules(self, index = None, name = None):
         modules = []
-        moduleItems = self._node.modules()
+        moduleItems = self._node.modules
         if index:
             modules.append(Module(moduleItem=moduleItems[int(index)]))
         elif name:
@@ -457,7 +473,7 @@ class User(object):
         try:
             userItems = None
             if not id and username:
-                user = DbUser.query.filter_by(username = username).first()
+                user = usermanager.get_by_username(username)
                 if user:
                     id = user.id
             
@@ -604,7 +620,7 @@ class Stat(object):
         datasets = []
         
         for n in node:
-            labels.append(n._node.name())
+            labels.append(n._node.name)
             datasets.append(n._node.cpu_run)
             
         return { "labels" : labels, "datasets":{"label": "CPU at Execution", "data": datasets}}

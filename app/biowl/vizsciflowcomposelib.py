@@ -1,8 +1,8 @@
-from ..models import Service
 from dsl.library import Pair
 from dsl.datatype import DataType
 from .vizsciflowlib import Library
 from .dsl.wfdsl import Data, Module
+from ..managers.modulemgr import modulemanager
 
 class LibraryComposition(Library):
     def __init__(self):
@@ -56,7 +56,7 @@ class LibraryComposition(Library):
                 package = pkgfunc[0]
                 function = pkgfunc[1]
             args = args[1:]
-        func = Service.get_first_service_by_name_package(function, package)
+        func = modulemanager.get_module_by_name_package(function, package)
         arguments, kwargs = LibraryComposition.split_args(args)
         storeArguments = list(arguments)
         for _, v in kwargs.items():

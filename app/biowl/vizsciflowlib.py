@@ -1,11 +1,11 @@
 from os import path
 
-from ..models import Service
 from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
 from dsl.fileop import FolderItem
-from app.runmgr import runnableManager
-from app.datamgr import dataManager
+from app.managers.runmgr import runnablemanager
+from app.managers.datamgr import datamanager
+from app.managers.modulemgr import modulemanager
 
 from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plugin, Stat, Monitor
 
@@ -28,8 +28,8 @@ class Library(LibraryBase):
             return dotaskstmt(self.tasks[name], args), set()
            
     def get_function(self, name, package = None):
-        services = Service.get_service_by_name_package(name, package)
-        return services.first().value
+        service = modulemanager.get_module_by_name_package(name, package)
+        return service.value
     
     @staticmethod
     def is_module(name, package = None):
@@ -43,7 +43,7 @@ class Library(LibraryBase):
                 return True
         if LibraryBase.check_function(name, package):
             return True
-        return Service.check_function(name, package)
+        return modulemanager.check_function(name, package)
         
     @staticmethod
     def check_functions(v):
@@ -55,14 +55,14 @@ class Library(LibraryBase):
     @staticmethod
     def generate_graph(workflow_id, package, function, args):
         
-        func = Service.get_first_service_by_name_package(function, package)
+        func = modulemanager.get_first_service_by_name_package(function, package).value
         arguments, kwargs = LibraryBase.split_args(args)
         storeArguments = list(arguments)
         for _, v in kwargs.items():
             storeArguments.append(v)
             
-        module = runnableManager.add_module(workflow_id, package, function)
-        dataManager.StoreModuleArgs(module, func["params"] if func["params"] else [], storeArguments)
+        module = runnablemanager.add_module(workflow_id, package, function)
+        datamanager.StoreModuleArgs(module, func["params"] if func["params"] else [], storeArguments)
                 
         result = Library.add_meta_data(func["returns"] if "returns" in func else "")
         
@@ -89,7 +89,7 @@ class Library(LibraryBase):
                     function = pkgfunc[1]
                 args = args[1:]
 
-            task = runnableManager.create_task(context.runnable, function, package)
+            task = runnablemanager.create_task(context.runnable, function, package)
             context.task_id = task.id
             task.start()
 
@@ -113,7 +113,7 @@ class Library(LibraryBase):
                     #provcls = getattr(".dsl.provobj", registry[function])
                     #return provcls(*arguments, **kwargs)
                     return provcls 
-                func = Service.get_first_service_by_name_package(function, package)
+                func = modulemanager.get_module_by_name_package(function, package).value
 
                 module_obj = load_module(func["module"])
                 function = getattr(module_obj, func["internal"])
@@ -122,7 +122,7 @@ class Library(LibraryBase):
                 for _, v in kwargs.items():
                     storeArguments.append(v)
                     
-                dataManager.StoreArgumentes(context.user_id, task, func["params"] if func["params"] else [], storeArguments)
+                datamanager.StoreArgumentes(context.user_id, task, func["params"] if func["params"] else [], storeArguments)
                 result = function(context, *arguments, **kwargs)
                 result = Library.add_meta_data(func["returns"] if "returns" in func else "", result, task)
                 
@@ -186,7 +186,7 @@ class Library(LibraryBase):
     @staticmethod
     def add_meta_data(returns, data, task):
         dataAndType = Library.GetDataAndTypeFromFunc(returns, data)
-        return dataManager.add_task_data(dataAndType, task)
+        return datamanager.add_task_data(dataAndType, task)
 
     def code_func(self, context, package, function, arguments):
         '''

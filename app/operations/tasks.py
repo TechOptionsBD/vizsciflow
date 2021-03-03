@@ -3,7 +3,7 @@ from __future__ import print_function
 from concurrent.futures import ThreadPoolExecutor
 from subprocess import call, check_output
 from past.builtins.misc import execfile
-from ..models import Task, TaskStatus, TaskLog, Workflow
+from ..models import Task, TaskStatus, TaskLog
 from .. import db
 from sqlalchemy import func
 from enum import Enum, IntEnum

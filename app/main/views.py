@@ -20,13 +20,16 @@ from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import Permission, AlchemyEncoder, Role, User, Post, Comment, Workflow, DataSource, WorkflowAccess, DataSourceAllocation, AccessRights, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset, AccessType
+from ..models import AlchemyEncoder, Post, Comment, WorkflowAccess, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
 from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from ..biowl.exechelper import func_exec_stdout
 from ..biowl.dsl.provobj import View, Run
-from abc import abstractstaticmethod
+from ..managers.usermgr import usermanager
+from ..managers.workflowmgr import workflowmanager
+from ..managers.datamgr import datamanager
+from ..common import Permission, AccessRights, AccessType
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -54,7 +57,7 @@ def server_shutdown():
 
 @main.route('/user/<username>')
 def user(username):
-    user = User.query.filter_by(username=username).first_or_404()
+    user = usermanager.get_by_username(username)
     page = request.args.get('page', 1, type=int)
     pagination = user.posts.order_by(Post.timestamp.desc()).paginate(
         page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
@@ -85,13 +88,13 @@ def edit_profile():
 @login_required
 @admin_required
 def edit_profile_admin(id):
-    user = User.query.get_or_404(id)
+    user = usermanager.get_or_404(id)
     form = EditProfileAdminForm(user=user)
     if form.validate_on_submit():
         user.email = form.email.data
         user.username = form.username.data
         user.confirmed = form.confirmed.data
-        user.role = Role.query.get(form.role.data)
+        user.role = usermanager.get_role(form.role.data)
         user.name = form.name.data
         user.location = form.location.data
         user.about_me = form.about_me.data
@@ -132,7 +135,7 @@ def post(id):
 
 @main.route('/workflow/<int:id>', methods=['GET', 'POST'])
 def workflow(id):
-    workflow = Workflow.query.get_or_404(id)
+    workflow = workflowmanager.get_or_404(id)
     return render_template('workflow.html', workflows=[workflow])
                            
 @main.route('/edit/<int:id>', methods=['GET', 'POST'])
@@ -156,7 +159,7 @@ def edit(id):
 @login_required
 @permission_required(Permission.FOLLOW)
 def follow(username):
-    user = User.query.filter_by(username=username).first()
+    user =  usermanager.get_by_username(username)
     if user is None:
         flash('Invalid user.')
         return redirect(url_for('.index'))
@@ -172,7 +175,7 @@ def follow(username):
 @login_required
 @permission_required(Permission.FOLLOW)
 def unfollow(username):
-    user = User.query.filter_by(username=username).first()
+    user =  usermanager.get_by_username(username)
     if user is None:
         flash('Invalid user.')
         return redirect(url_for('.index'))
@@ -186,7 +189,7 @@ def unfollow(username):
 
 @main.route('/followers/<username>')
 def followers(username):
-    user = User.query.filter_by(username=username).first()
+    user =  usermanager.get_by_username(username)
     if user is None:
         flash('Invalid user.')
         return redirect(url_for('.index'))
@@ -203,7 +206,7 @@ def followers(username):
 
 @main.route('/followed-by/<username>')
 def followed_by(username):
-    user = User.query.filter_by(username=username).first()
+    user =  usermanager.get_by_username(username)
     if user is None:
         flash('Invalid user.')
         return redirect(url_for('.index'))
@@ -288,7 +291,7 @@ def translate():
 
 def load_data_sources_biowl(recursive):
      # construct data source tree
-    datasources = DataSource.query.filter_by(active = True)
+    datasources = datamanager.get_datasources(active = True)
     datasource_tree = []
     for ds in datasources:
         try:
@@ -356,7 +359,7 @@ def upload_biowl(file, request):
     if not ds:
         return saved_path
        
-    data_alloc = DataSourceAllocation.add(current_user.id, ds.id, saved_path, AccessRights.Owner)
+    data_alloc = datamanager.add_allocation(current_user.id, ds.id, saved_path, AccessRights.Owner)
         
     if request.form.get('visualizer'):
         dbvisualizer = None
@@ -414,7 +417,7 @@ def load_metadata(path):
         return None # data source not added to the system
     
     # user must have at least read access
-    DataSourceAllocation.check_access_rights(current_user.id, path, AccessRights.Read)
+    datamanager.check_access_rights(current_user.id, path, AccessRights.Read)
 
     # sysprops
     fs = Utility.create_fs(ds)
@@ -426,16 +429,16 @@ def load_metadata(path):
         path = '/' + path
     
     # access rights in string
-    accessRights = DataSourceAllocation.access_rights_to_string(current_user.id, path)
+    accessRights = datamanager.access_rights_to_string(current_user.id, path)
 
     if not accessRights:
 #         if path.startswith('/' + current_user.username):
 #             rights = AccessRights.Owner
 #             ds = Utility.ds_by_prefix_or_default(path)
-#             data_alloc = DataSourceAllocation.add(current_user.id, ds.id, path, rights)
+#             data_alloc = datamanager.add(current_user.id, ds.id, path, rights)
 #         elif
         if path.startswith(ds.public):
-            user = User.query.get(current_user.id)
+            user =  usermanager.get_by_id(current_user.id)
             if user.is_administrator():
                 rights = AccessRights.Write
             else:
@@ -448,8 +451,7 @@ def load_metadata(path):
         
     metadata['sysprops'] = {'Name': fs.basename(path), 'Path': fs.dirname(path), 'Type': datatype, 'Size': sizeof_fmt(statinfo.st_size), 'Accessed on': time.ctime(statinfo.st_atime), 'Modified on': time.ctime(statinfo.st_mtime), 'Created on': time.ctime(statinfo.st_ctime), 'Permissions': accessRights}
     
-    #data_alloc = DataSourceAllocation.query.filter(and_(DataSourceAllocation.user_id == current_user.id, DataSourceAllocation.datasource_id == ds.id, DataSourceAllocation.url == path)).first()
-    data_alloc = DataSourceAllocation.add(current_user.id, ds.id, path, AccessRights.Read)
+    data_alloc = datamanager.add_allocation(current_user.id, ds.id, path, AccessRights.Read)
             
     metadata['mimetypes'] = {}
     if data_alloc:
@@ -491,7 +493,7 @@ def save_metadata(request):
     newname = request.form.get('filename')
     
     ds = Utility.ds_by_prefix_or_default(path)
-    data = DataSourceAllocation.get_by_url(ds.id, path)
+    data = datamanager.get_allocation_by_url(ds.id, path)
     
     fs = Utility.fs_by_prefix_or_default(path)
     if not fs:
@@ -501,7 +503,7 @@ def save_metadata(request):
         data.update_url(newpath)
         path = newpath    
 
-    DataSourceAllocation.check_access_rights(current_user.id, path, AccessRights.Read)
+    datamanager.check_access_rights(current_user.id, path, AccessRights.Read)
     
     if request.form.get('visualizers'):    
         visualizers = json.loads(request.form.get('visualizers'))
@@ -727,34 +729,6 @@ class Samples():
         finally:
             return samples
     
-    @staticmethod
-    def get_workflows_info(workflows, access):
-        workflow_list = []
-        for workflow in workflows:
-            json_info = workflow.to_json()
-            json_info["access"] = access
-            json_info["is_owner"] = json_info["user"] == current_user.username
-            workflow_list.append(json_info)
-        return workflow_list
-
-    @staticmethod
-    def get_samples_as_list(access, *args):
-        terms = []
-        for v in args:
-            terms.append("tag='{0}'".format(v))
-        samples = []
-        if access == 0 or access == 3:
-            workflows = Workflow.query.filter(Workflow.public == True).filter(or_(*terms))
-            samples.extend(Samples.get_workflows_info(workflows, AccessType.PUBLIC))
-            #workflows=Workflow.query.join(User).filter(User.role != None).join(Role).filter(and_(Role.permissions != None, Role.permissions.op('&')(Permission.ADMINISTER) == Permission.ADMINISTER)).filter(Workflow.accesses.any(WorkflowAccess.user_id.is_(None)))
-        if access == 1 or access == 3:
-            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id))).filter(or_(*terms)) # TODO: Do we need or_ operator here? 
-            samples.extend(Samples.get_workflows_info(workflows, AccessType.SHARED))
-        if access == 2 or access == 3:
-            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id)).filter(or_(*terms))
-            samples.extend(Samples.get_workflows_info(workflows, AccessType.PRIVATE))
-        
-        return json.dumps({'samples': samples})    
     
     @staticmethod
     def make_fn(path, prefix, ext, suffix):
@@ -793,7 +767,7 @@ class Samples():
                 else:
                     access = 2
                     users = False   
-            return Workflow.create(user, name, desc if desc else '', script, access, users, temp, derived, args)
+            return workflowmanager.create(user_id=user, name=name, desc=desc if desc else '', script=script, access=access, users=users, temp=temp, derived=derived, args=args)
 
     @staticmethod
     def add_workflow(user, name, desc, script, access, users, temp, args):
@@ -832,62 +806,24 @@ class Samples():
 #                json.dump(samples, fp, indent=4, separators=(',', ': '))
         finally:
             return json.dumps({ 'out': '', 'err': ''})
-    
-    #written_by: Moksedul Islam
-    @staticmethod
-    def get_a_workflow_details(workflows, props):
-        json = {}
-        for workflow in workflows:
-            for name in props:
-                data = getattr(workflow, name)
-                json.update({name:data})
-        return json
-
-    #written_by: Moksedul Islam
-    @staticmethod
-    def get_workflow_details(workflows, props):
-        workflow_details = []
-        for workflow in workflows:
-            json = {}
-            for name in props:
-                data = getattr(workflow, name)
-                json.update({name:data})
-            workflow_details.append(json)
-        return workflow_details
-    
-    #written_by: Moksedul Islam
-    @staticmethod
-    def get_workflow_list(workflow_id, props, access):
-        workflow_list = []
-        if access == 0 or access == 3:
-            workflows = Workflow.query.filter(Workflow.public == True)
-            workflow_list.extend(Samples.get_workflow_details(workflows, props))
-        if access == 1 or access == 3:
-            workflows = Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == current_user.id, Workflow.user_id != current_user.id)))
-            workflow_list.extend(Samples.get_workflow_details(workflows, props))
-        if access == 2 or access == 3:
-            workflows = Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == current_user.id))
-            workflow_list.extend(Samples.get_workflow_details(workflows, props))
-        
-        return json.dumps(workflow_list) 
-
+       
 def workflow_compare(workflow1, workflow2):
     try:
         from ..jobs import generate_graph_from_workflow
-        from ..runmgr import runnableManager
+        from ..managers.runmgr import runnablemanager
         from difflib import ndiff
         
         graph1 = generate_graph_from_workflow(workflow1)
         graph2 = generate_graph_from_workflow(workflow2)
         view = {"graph": [graph1, graph2] }
         
-        workflow = Workflow.query.get(workflow1)
+        workflow = workflowmanager.get(id=workflow1)
         wf_script1 = workflow.script
-        node1 = runnableManager.create_runnable(current_user.id, workflow1, wf_script1, provenance=True, args=None)
+        node1 = runnablemanager.create_runnable(current_user.id, workflow1, wf_script1, provenance=True, args=None)
         
-        workflow = Workflow.query.get(workflow2)
+        workflow = workflowmanager.get(id=workflow2)
         wf_script2 = workflow.script
-        node2 = runnableManager.create_runnable(current_user.id, workflow2, wf_script2, provenance=True, args=None)
+        node2 = runnablemanager.create_runnable(current_user.id, workflow2, wf_script2, provenance=True, args=None)
         view['compare'] = [View.compare(Run(runItem = node1), Run(runItem = node2))]
         
         diff = ndiff(wf_script1, wf_script2)              
@@ -902,7 +838,7 @@ def workflow_rev_compare(request):
     try:
         from ..jobs import generate_graph
         
-        workflow = Workflow.query.filter_by(id = request.args.get('revcompare')).first_or_404()
+        workflow = workflowmanager.get_or_404(request.args.get('revcompare'))
         
         revision1_script = workflow.revision_by_commit(request.args.get('revision1'))
         revision2_script = workflow.revision_by_commit(request.args.get('revision2'))
@@ -919,26 +855,26 @@ def samples():
         if request.form.get('sample'):
             return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False, json.loads(request.form.get('args')) if request.form.get('args') else None)
         elif request.args.get('sample_id'):
-            workflow = Workflow.query.filter_by(id = request.args.get('sample_id')).first_or_404()
+            workflow = workflowmanager.get_or_404(request.args.get('sample_id'))
             return json.dumps(workflow.to_json())
         elif request.args.get('revision'):
-            workflow = Workflow.query.filter_by(id = request.args.get('revision')).first_or_404()
+            workflow = workflowmanager.get_or_404(request.args.get('revision'))
             return json.dumps(workflow.revision_by_commit(request.args.get('hexsha')))
         elif request.args.get('compare'):
             return workflow_compare(int(request.args.get('compare')), int(request.args.get('with')))
         elif request.args.get('revcompare'):
             return workflow_rev_compare(request)
         elif request.args.get('revisions'):
-            workflow = Workflow.query.filter_by(id = request.args.get('revisions')).first_or_404()
+            workflow = workflowmanager.get_or_404(request.args.get('revisions'))
             return json.dumps(workflow.revisions)
         elif request.args.get('tooltip'):
-            workflow = Workflow.query.filter_by(id = request.args.get('tooltip')).first_or_404()
+            workflow = workflowmanager.get_or_404(request.args.get('tooltip'))
             return json.dumps(workflow.to_json_tooltip())   
         elif 'workflow_id' in request.args:
             workflow_id = request.args.get("workflow_id")
             if 'confirm' in request.args:
                 if request.args.get("confirm") == "true":
-                    Workflow.remove(current_user.id, workflow_id)       
+                    workflowmanager.remove(current_user.id, workflow_id)
                     return json.dumps({'return':'deleted'})
             else:
                 shared_Workflow_check = WorkflowAccess.check(workflow_id) 
@@ -949,7 +885,7 @@ def samples():
             return json.dumps({'return':'error'})
         
         access = int(request.args.get('access')) if request.args.get('access') else 0
-        return Samples.get_samples_as_list(access)
+        return workflowmanager.get_workflows_as_list(access, current_user)
     except Exception as e :
         return make_response(jsonify(err=str(e)), 500)
 

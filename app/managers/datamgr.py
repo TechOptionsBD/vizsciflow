@@ -1,10 +1,13 @@
 import os
 
 from config import Config
-from .models import Data, AccessRights, DataAllocation, DataProperty, TaskData
 from dsl.datatype import DataType
-from .graphutil import ValueItem
-from .mocks.datamocks import PersistanceMock
+from ..graphutil import ValueItem
+from ..mocks.datamocks import PersistanceMock
+from ..models import DataSourceAllocation, DataSource, Data, DataAllocation
+from ..common import AccessRights
+from sqlalchemy import and_, or_
+from .runmgr import runnablemanager
 
 class GraphPersistance():
 #     @staticmethod
@@ -95,6 +98,10 @@ class DBPersistance():
         DataSourceAllocation.get_access_rights(user_id, path)
     
     @staticmethod
+    def has_access_rights(user_id, path, checkRights):
+        return DataSourceAllocation.has_access_rights(user_id, path, checkRights)
+
+    @staticmethod
     def load(user_id, recursive):
         datasets = DataAllocation.query.filter_by(user_id = user_id)
         data_dict = {}
@@ -107,23 +114,30 @@ class DBPersistance():
     def add_task_data(dataAndType, task):
         result = ()        
         for d in dataAndType:
-            #ds = Utility.ds_by_prefix_or_default(str(d[1])) if isinstance(d[1], FolderItem) else d[1]
-            data = Data.get_by_type_value(datatype, value)
-            if not data:
-                data = Data.add(str(d[1]), d[0], "")
-            
-            TaskData.add(task.id, data.id)
-            DataAllocation.add(user_id, data.id, AccessRights.Owner)
-            workflow_id = runnableManager.get_runnable(task.runnable_id).workflow_id
-            DataProperty.add(data.id, "execution {0}".format(task.id), { 'workflow': { 'task_id': task.id, 'job_id': task.runnable_id, 'workflow_id': workflow_id, 'inout': 'out'} })
-            
+            task.add_output(d[0], str(d[1]))                        
             result += (d[1],)
         return result
     
     @staticmethod
     def is_data_item(value):
         return isinstance(value, Data)
-        
+    
+    @staticmethod
+    def add(user_id, datasource_id, url, rights):
+        return DataSourceAllocation.add(user_id, datasource_id, url, rights)
+
+    @staticmethod
+    def get_allocation(datasource_id, **kwargs):
+        return DataSourceAllocation.query.filter(datasource_id, **kwargs).first()
+    
+    @staticmethod
+    def get_datasources(**kwargs):
+        return DataSource.query.filter_by(**kwargs)
+
+    @staticmethod
+    def get_allocation_by_url(ds_id, url):
+        return DataSourceAllocation.query.filter(and_(DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
+
 class DataManager():
     def __init__(self):
         if Config.DATA_MODE == 0:
@@ -148,6 +162,9 @@ class DataManager():
     def access_rights_to_string(self, user_id, path):
         return AccessRights.rights_to_string(self.get_access_rights(user_id, path))
     
+    def has_access_rights(self, user_id, path, checkRights):
+        return self.persistance.has_access_rights(user_id, path, checkRights)
+
     def load(self, user_id, recursive):
         self.persistance.load(user_id, recursive)
     
@@ -161,7 +178,7 @@ class DataManager():
         if not isinstance(params, list):
             params = [params]
         for i in range(0, len(args)):
-            if not dataManager.is_data_item(args[i]):
+            if not datamanager.is_data_item(args[i]):
                 paramType = DataType.Value
                 if i < len(params):
                     paramType = params[i]["type"]
@@ -177,7 +194,7 @@ class DataManager():
         if not isinstance(params, list):
             params = [params]
         for i in range(0, len(args)):
-            if not dataManager.is_data_item(args[i]):
+            if not self.is_data_item(args[i]):
                 paramType = DataType.Value
                 if i < len(params):
                     paramType = params[i]["type"]
@@ -187,7 +204,7 @@ class DataManager():
                     elif 'folder' in paramType:
                         paramType = DataType.Folder
                 
-                task.add_input(user_id, paramType, args[i], AccessRights.Read, name = params[i]["name"] if i < len(params) and 'name' in params[i] else "")
+                task.add_input(user_id, paramType, str(args[i]), AccessRights.Read, name = params[i]["name"] if i < len(params) and 'name' in params[i] else "")
                            
     def SaveMetaData(self, user, rights, category, key, value):
 
@@ -201,5 +218,17 @@ class DataManager():
         json["category"] = category
         json["key"] = key
         return self.persistance.SaveMetadata(user, rights, json)
+
+    def add_allocation(self, user_id, datasource_id, url, rights):
+        return self.persistance.add(user_id, datasource_id, url, rights)
+    def get_allocation(self, datasource_id, **kwargs):
+        return self.persistance.get(datasource_id, **kwargs)
+    def get_datasource(self, **kwargs):
+        return self.get_datasources(**kwargs).first()
+    def get_datasources(self, **kwargs):
+        return self.persistance.get_datasources(**kwargs)
+    def get_allocation_by_url(self, ds_id, url):
+        return self.persistance.get_allocation_by_url(ds_id, url)
+
         
-dataManager = DataManager()
+datamanager = DataManager()

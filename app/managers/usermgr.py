@@ -7,10 +7,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask import current_app
 from config import Config
-from .models import User
-from .biowl.dsl.graphgen import GraphGenerator
+from ..models import User, Role
 
-graphgen = GraphGenerator(Config.GRAPHDB, Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD)
+class IUser(object):
+    def __init__(self, email, username, password, confirmed):
+        pass
 
 class UserItem(object):
     def __init__(self, email, username, password, confirmed):
@@ -185,10 +186,6 @@ class DBUser():
         return user.verify_password(password)
     
     @staticmethod
-    def get_by_username(self, username):
-        return User.query.filter_by(username = username).first()
-    
-    @staticmethod
     def ping(self, user):
         user.ping()
     
@@ -196,19 +193,55 @@ class DBUser():
     def add(email, username, password, confirmed):
         return User.add(email, username, password, confirmed)
     
+    @staticmethod
+    def add_self_follows(self):
+        return User.add_self_follows()
+
+    @staticmethod
+    def insert_roles():
+        return Role.insert_roles()
+    
+    @staticmethod
+    def get(**kwargs):
+         return User.query.filter_by(**kwargs).first()
+        
+    @staticmethod
+    def get_or_404(id):
+        return User.get_or_404(id)
+    
+    @staticmethod
+    def get_other_users_with_entities(id, *args):
+        return User.query.filter(id != User.id).with_entities(*args)
+
+    @staticmethod
+    def get_role(id):
+        return Role.query.get(id)
+
+    @staticmethod
+    def create_user(**kwargs):
+        return User(**kwargs)
 
 class UserManager():
     def __init__(self):
-        self.persistance = GraphUser() if Config.DATA_GRAPH else DBUser() 
+        if Config.DATA_MODE == 0:
+            self.persistance = DBUser()
+        else:
+            self.persistance = GraphUser()
     
+    def get(self, **kwargs):
+        return self.persistance.get(**kwargs)
+        
     def Save(self, dataitem):
         return self.persistance.Save(dataitem)
     
+    def create_user(self, **kwargs):
+        return self.persistance.create_user(**kwargs)
+
     def get_by_email(self, email):
-        return self.persistance.get_by_email(email)
+        return self.persistance.get(email=email)
     
     def get_by_username(self, username):
-        return self.persistance.get_by_username(username)
+        return self.persistance.get(username=username)
     
     def verify_auth_token(self, email):
         return self.persistance.verify_auth_token(email)
@@ -218,5 +251,20 @@ class UserManager():
     
     def add(self, email, username, password, confirmed):
         return self.persistance.add(email, username, password, confirmed)
+    
+    def insert_roles(self):
+        return self.persistance.insert_roles()
+    
+    def add_self_follows(self):
+        return self.persistance.add_self_follows()
+    
+    def get_or_404(self, id):
+        return self.persistance.get_or_404(id)
+
+    def get_other_users_with_entities(self, id, *args):
+        return self.persistance.get_other_users_with_entities(id, *args)
+    
+    def get_role(self, id):
+        return self.persistance.get_role(id)
     
 usermanager = UserManager()

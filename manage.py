@@ -6,7 +6,6 @@ from flask_restful.utils import cors
 from flask_httpauth import HTTPBasicAuth
 from flask import jsonify, request, make_response
 
-
 COV = None
 if os.environ.get('FLASK_COVERAGE'):
     import coverage
@@ -27,13 +26,15 @@ from flask_migrate import Migrate
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-from app.models import User, Follow, Role, Permission, Post, Comment, Workflow
+from app.common import Permission
 from flask_script import Shell
 from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user
-from app.main.views import Samples, load_data_sources_biowl
+from app.main.views import load_data_sources_biowl
 from app.main.jobsview import run_biowl, get_user_status, get_task_status, get_functions, save_and_run_workflow
 from flask_cors import cross_origin
+from app.managers.usermgr import usermanager
+from app.managers.workflowmgr import workflowmanager
 
 api = Api(app)
 api.decorators=[cors.crossdomain(origin='*')]
@@ -49,7 +50,7 @@ def after_request(response):
 
 @auth.verify_password
 def verify_password(username, password):
-    user = User.query.filter_by(email=username).first()
+    user = usermanager.get_by_email(username)
     if user is not None and user.verify_password(password):
         login_user(user)
         return True
@@ -96,10 +97,9 @@ def get_workflows_api():
         tags = request.args.get('tags') if request.args.get('tags') else ''
         tags = tags.split(',') if tags else []
         access = request.args.get('access') if request.args.get('access') else ''
-        return Samples.get_samples_as_list(int(access), *tags)
+        return workflowmanager.get_workflows_as_list(int(access), *tags)
     finally:
-        logout_user()
-        
+        logout_user()       
          
 @app.route('/api/ver2/workflow', methods=['GET'])
 @cross_origin(supports_credentials=True)
@@ -116,13 +116,13 @@ def get_workflows():
         props = request.args.get('props')
         props = props.split(",")
         if request.args.get('info'):
-            workflow = Workflow.query.filter_by(id = request.args.get('info'))
-            workflow_list = (Samples.get_a_workflow_details(workflow, props))
+            workflow = workflowmanager.get(id = request.args.get('info'))
+            workflow_list = (workflowmanager.get_a_workflow_details(workflow, props))
             return json.dumps(workflow_list)
         else:
             workflow_id = ''
             access = request.args.get('access') if request.args.get('access') else ''
-            return Samples.get_workflow_list(workflow_id, props, int(access))
+            return workflowmanager.get_workflow_list(workflow_id, props, int(access))
     finally:
         logout_user()
 
@@ -163,8 +163,8 @@ def get_status_api():
 
 
 def make_shell_context():
-    return dict(app=app, db=db, User=User, Follow=Follow, Role=Role,
-                Permission=Permission, Post=Post, Comment=Comment)
+    return dict(app=app, db=db, User=usermanager.User, Follow=usermanager.Follow, Role=usermanager.Role,
+                Permission=usermanager.Permission, Post=usermanager.Post, Comment=usermanager.Comment)
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
@@ -204,16 +204,15 @@ def profile(length=25, profile_dir=None):
 def deploy():
     """Run deployment tasks."""
     from flask_migrate import upgrade
-    from app.models import Role, User
 
     # migrate database to latest revision
     upgrade()
 
     # create user roles
-    Role.insert_roles()
+    usermanager.insert_roles()
 
     # create self-follows for all users
-    User.add_self_follows()
+    usermanager.add_self_follows()
 
 
 if __name__ == '__main__':

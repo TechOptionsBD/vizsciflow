@@ -18,7 +18,6 @@ class VizSciFlowSymbolGraph(SymbolTable):
         :param name:
         :param value:
         '''
-        #if not dataManager.is_data_item(value):
             
         self.vars[name] = value
         return self.get_var(name)

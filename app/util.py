@@ -1,14 +1,10 @@
-from __future__ import print_function
-
 import os
 from os import path
 from flask import g
 
-from .models import DataSource
-
 from app.biowl.fileop import HadoopFileSystem, GalaxyFileSystem
 from dsl.fileop import PosixFileSystem
-
+from .managers.datamgr import datamanager
 
 class Utility:
     @staticmethod
@@ -20,7 +16,7 @@ class Utility:
         
     @staticmethod
     def get_rootdir(datasource_id):
-        datasource = DataSource.query.get(datasource_id)
+        datasource =  datamanager.get_datasource(id = datasource_id)
         if datasource_id == 1:
             return path.join(datasource.url, datasource.root)
         if datasource_id == 2:
@@ -70,7 +66,7 @@ class Utility:
             return None
         path = str(path)
         dsdb = None
-        datasources = DataSource.query.all()
+        datasources = datamanager.get_datasources()
         for ds in datasources:
             if ds.prefix:
                 if path.startswith(ds.prefix):
@@ -82,7 +78,7 @@ class Utility:
                     dsdb = ds
                     break
         if not dsdb:
-            dsdb = DataSource.query.filter_by(type = "posix").first()
+            dsdb = datamanager.get_datasource(type = "posix")
         return dsdb
                 
     @staticmethod
@@ -90,7 +86,7 @@ class Utility:
         if not path:
             return None
         path = str(path)
-        datasources = DataSource.query.all()
+        datasources = datamanager.get_datasources()
         for ds in datasources:
             if ds.prefix:
                 if path.startswith(ds.prefix):
@@ -130,7 +126,7 @@ class Utility:
     
     @staticmethod
     def fs_by_typename(typename):
-        ds = DataSource.query.filter_by(type = typename).first()
+        ds = datamanager.get_datasource(type = typename)
         return Utility.create_fs(ds)
     
     @staticmethod

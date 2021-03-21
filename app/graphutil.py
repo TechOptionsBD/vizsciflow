@@ -143,7 +143,8 @@ class NodeItem(Model):
             'created_on': str(self.created_on),
             'modified_on': str(self.modified_on),
         }
-        j.update(self.properties)
+        for property in self.properties:
+            j.update({property.key: property})
         return j
     
     @staticmethod
@@ -1139,7 +1140,8 @@ class ModuleInvocationItem(NodeItem):
 
     @property
     def name(self):
-        return list(self.modules)[0].name
+        modules = list(self.modules)
+        return modules[0].name if modules else ""
         
     def prop_from_node(self, node):
         NodeItem.prop_from_node(self, node, "name", "status")
@@ -1148,7 +1150,8 @@ class ModuleInvocationItem(NodeItem):
     
     @property
     def run_id(self):
-        return list(self.runs)[0].id
+        runs = list(self.runs)
+        return runs.id if runs else 0
            
     # @property
     # def duration(self):

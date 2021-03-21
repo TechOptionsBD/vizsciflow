@@ -110,9 +110,9 @@ class Data():
         return datamanager.get_datasource(**kwargs)
        
     def json(self):
-        value = self._node.value.value
-        if int(self._node.value.type) == DataType.File or int(self._node.value.type) == DataType.Folder:
-            fs = Utility.fs_by_prefix_or_default(value)
+        value = self._node.value
+        if int(self._node.type) == DataType.File or int(self._node.type) == DataType.Folder:
+            fs = Utility.fs_by_prefix_or_guess(value)
             value = fs.basename(value)
         this_node = {"key": self._node.id, "type": "Data", "name": value}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
@@ -294,16 +294,11 @@ class Run(object):
     @staticmethod
     def get(id = None, workflow_id = None):
         try:
-            kwargs = {}
             if id:
-                kwargs.update({'id': int(id)})
+                return Run(runItem = runnablemanager.get_runnable(id = int(id)))
             if workflow_id:
-                kwargs.update({'workflow_id': int(workflow_id)})
-            runItems = runnablemanager.get_runnable(**kwargs)
-            if not isinstance(runItems, list):
-                return Run(runItem = runItems)
-            
-            return [Run(runItem = run) for run in runItems]
+                workflow = workflowmanager.get(id = workflow_id)
+                return [Run(runItem = run) for run in workflow.runs]
         except Exception as e:
             raise ValueError("Runnable cann't be retrieved. Error: ", str(e))
         

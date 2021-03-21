@@ -83,4 +83,5 @@ login_manager.anonymous_user = AnonymousUser
 def load_user(user_id):
     from .managers.usermgr import usermanager
     if user_id and user_id.isdecimal() and user_id.isascii():
-        return usermanager.get(id = int(user_id))
+        user = usermanager.get(id = int(user_id))
+        return user

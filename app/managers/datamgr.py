@@ -2,7 +2,7 @@ import os
 
 from config import Config
 from dsl.datatype import DataType
-from ..graphutil import ValueItem
+from ..graphutil import ValueItem, DataSourceItem
 from ..mocks.datamocks import PersistanceMock
 from ..models import DataSourceAllocation, DataSource, Data, DataAllocation
 from ..common import AccessRights
@@ -72,7 +72,23 @@ class GraphPersistance():
     @staticmethod
     def add_task_data(dataAndType, task):
         return task.add_outputs(dataAndType)
+
+    @staticmethod
+    def insert_datasources():
+        return DataSourceItem.insert_datasources()
     
+    @staticmethod
+    def get_datasources(**kwargs):
+        return DataSourceItem.get(**kwargs)
+    
+    @staticmethod
+    def add(user_id, datasource_id, url, rights):
+        return DataSourceItem.add(user_id, datasource_id, url, rights)
+    
+    @staticmethod
+    def has_access_rights(user_id, path, checkRights):
+        return DataSourceItem.has_access_rights(user_id, path, checkRights)
+
 class DBPersistance():
 #     @staticmethod
 #     def Save(dataitem):
@@ -138,14 +154,23 @@ class DBPersistance():
     def get_allocation_by_url(ds_id, url):
         return DataSourceAllocation.query.filter(and_(DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
 
+    @staticmethod
+    def insert_datasources():
+        return DataSource.insert_datasources()
+
 class DataManager():
     def __init__(self):
+
         if Config.DATA_MODE == 0:
             self.persistance = DBPersistance()
         elif Config.DATA_MODE == 1:
             self.persistance = GraphPersistance()
         else:
             self.persistance = PersistanceMock()
+
+        # self.persistance.insert_datasources()
+        # from ..graphutil import RoleItem
+        # RoleItem.insert_roles()
     
     def Save(self, dataitem):
         return self.persistance.Save(dataitem)
@@ -169,6 +194,9 @@ class DataManager():
         self.persistance.load(user_id, recursive)
     
     def add_task_data(self, dataAndType, task):
+        '''
+            It will return a tuple.
+        '''
         return self.persistance.add_task_data(dataAndType, task)
     
     def is_data_item(self, value):
@@ -197,14 +225,14 @@ class DataManager():
             if not self.is_data_item(args[i]):
                 paramType = DataType.Value
                 if i < len(params):
-                    paramType = params[i]["type"]
+                    paramType = params[i].type
                     paramType = paramType.lower().split('|')
                     if 'file' in paramType:
                         paramType = DataType.File
                     elif 'folder' in paramType:
                         paramType = DataType.Folder
                 
-                task.add_input(user_id, paramType, str(args[i]), AccessRights.Read, name = params[i]["name"] if i < len(params) and 'name' in params[i] else "")
+                task.add_input(user_id, paramType, str(args[i]), AccessRights.Read, name = params[i].name if i < len(params) and params[i].name else "")
                            
     def SaveMetaData(self, user, rights, category, key, value):
 
@@ -229,6 +257,9 @@ class DataManager():
         return self.persistance.get_datasources(**kwargs)
     def get_allocation_by_url(self, ds_id, url):
         return self.persistance.get_allocation_by_url(ds_id, url)
+
+    def insert_datasources(self):
+        return self.persistance.insert_datasources()
 
         
 datamanager = DataManager()

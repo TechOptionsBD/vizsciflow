@@ -1269,7 +1269,7 @@ class Runnable(db.Model):
     celery_id = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
     script = db.Column(db.Text, nullable=False)
-    arguments = db.Column(db.Text, default='')
+    args = db.Column(db.Text, default='')
     out = db.Column(db.Text, default='')
     error = db.Column(db.Text, default='')
     view = db.Column(db.Text, default='')
@@ -1341,7 +1341,7 @@ class Runnable(db.Model):
             'script': self.script,
             'status': self.status,
             'out': self.out,
-            'error': self.error,
+            'err': self.error,
             'duration': str(self.duration),
             'created_on': str(self.created_on),
             'modified_on': str(self.modified_on),
@@ -1356,7 +1356,7 @@ class Runnable(db.Model):
             'id': self.id,
             'name': self.workflow.name,
             'status': self.status,
-            'error': error,
+            'err': error,
             'duration': self.duration,
             'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '',
             'modified_on': self.modified_on.strftime("%d-%m-%Y %H:%M:%S") if self.modified_on else ''
@@ -1373,7 +1373,7 @@ class Runnable(db.Model):
             'script': self.script,
             'status': self.status,
             'out': self.out,
-            'error': self.error,
+            'err': self.error,
             'duration': self.duration,
             'log': log
         }
@@ -1390,7 +1390,7 @@ class Runnable(db.Model):
     @staticmethod
     def create(user_id, workflow_id, script, args):
         try:
-            runnable = Runnable(workflow_id=workflow_id, user_id=user_id, script=script, arguments=args, status = Status.PENDING)
+            runnable = Runnable(workflow_id=workflow_id, user_id=user_id, script=script, args=args, status = Status.PENDING)
             db.session.add(runnable)
             db.session.commit()
             return runnable
@@ -1924,6 +1924,8 @@ class TaskData(db.Model):
     task_id = db.Column(db.Integer, ForeignKey('tasks.id'))
     data_id = db.Column(db.Integer, ForeignKey('data.id'))
     
+    data = db.relationship("Data", foreign_keys=[data_id])
+
     @staticmethod
     def add(task_id, data_id):
         try:
@@ -1934,10 +1936,19 @@ class TaskData(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+    
+    @property
+    def type(self):
+        return self.data.value["type"]
+
     @property
     def value(self):
-        v = Data.query.get(self.data_id).value
-        return namedtuple("value", v.keys())(*v.values())
+        return self.data.value["value"]
+
+    # @property
+    # def value(self):
+    #     v = Data.query.get(self.data_id).value
+    #     return namedtuple("value", v.keys())(*v.values())
 
 class InData(db.Model):
     __tablename__ = 'indata'
@@ -1945,6 +1956,8 @@ class InData(db.Model):
     task_id = db.Column(db.Integer, ForeignKey('tasks.id'))
     data_id = db.Column(db.Integer, ForeignKey('data.id'))
     
+    data = db.relationship("Data", foreign_keys=[data_id])
+
     @staticmethod
     def add(task_id, data_id):
         try:
@@ -1955,7 +1968,16 @@ class InData(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+
+    @property
+    def type(self):
+        return self.data.value["type"]
+
     @property
     def value(self):
-        v = Data.query.get(self.data_id).value
-        return namedtuple("value", v.keys())(*v.values())
+        return self.data.value["value"]
+
+    # @property
+    # def value(self):
+    #     v = Data.query.get(self.data_id).value
+    #     return namedtuple("value", v.keys())(*v.values())

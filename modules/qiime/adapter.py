@@ -85,7 +85,7 @@ def run_qiime_demux_single(context, *args, **kwargs):
     paramindex, barcode = get_input_from_args(paramindex, 'barcode', *args, **kwargs)
     paramindex, barcodeCol = get_input_from_args(paramindex, 'barcodeCol', *args, **kwargs)
     
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     barcode = fs.normalize_path(barcode)
     
@@ -101,7 +101,7 @@ def run_qiime_demux_single(context, *args, **kwargs):
 def run_qiime_demux_summarize(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, output = get_output_filename_from_args(paramindex, fs, data, 'output', Path(os.path.basename(data)).stem, 'qzv', *args, **kwargs)
@@ -116,7 +116,7 @@ def run_qiime_demux_summarize(context, *args, **kwargs):
 def run_qiime_metadata_tabulate(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, output = get_output_filename_from_args(paramindex, fs, data, 'output', Path(os.path.basename(data)).stem, 'qzv', *args, **kwargs)
@@ -131,7 +131,7 @@ def run_qiime_metadata_tabulate(context, *args, **kwargs):
 def run_qiime_deblur_visualize_stats(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, output = get_output_filename_from_args(paramindex, fs, data, 'output', Path(os.path.basename(data)).stem, 'qzv', *args, **kwargs)
@@ -146,7 +146,7 @@ def run_qiime_deblur_visualize_stats(context, *args, **kwargs):
 def run_qiime_feature_table_summarize(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, metadata = get_input_from_args(paramindex, 'metadata', *args, **kwargs)
@@ -164,7 +164,7 @@ def run_qiime_feature_table_summarize(context, *args, **kwargs):
 def run_qiime_feature_table_tabulate_seqs(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, output = get_output_filename_from_args(paramindex, fs, data, 'output', Path(os.path.basename(data)).stem, 'qzv', *args, **kwargs)
@@ -179,7 +179,7 @@ def run_qiime_feature_table_tabulate_seqs(context, *args, **kwargs):
 def run_qiime_phylogeny_tree(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, alignedSeqs = get_output_filename_from_args(paramindex, fs, data, 'alignseqs', 'alignseqs', 'qza', *args, **kwargs)
@@ -197,7 +197,7 @@ def run_qiime_phylogeny_tree(context, *args, **kwargs):
 def run_qiime_diversity_core_metrics(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, table = get_input_from_args(paramindex, 'table', *args, **kwargs)
@@ -220,7 +220,7 @@ def run_qiime_diversity_core_metrics(context, *args, **kwargs):
 def run_qiime_diversity_alpha_significance(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, metadata = get_input_from_args(paramindex, 'metadata', *args, **kwargs)
@@ -238,7 +238,7 @@ def run_qiime_diversity_alpha_significance(context, *args, **kwargs):
 def run_qiime_diversity_beta_significance(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, metadata = get_input_from_args(paramindex, 'metadata', *args, **kwargs)
@@ -256,7 +256,7 @@ def run_qiime_diversity_beta_significance(context, *args, **kwargs):
 def run_qiime_emperor_plot(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, metadata = get_input_from_args(paramindex, 'metadata', *args, **kwargs)
@@ -275,7 +275,7 @@ def run_qiime_emperor_plot(context, *args, **kwargs):
 def run_qiime_diversity_alpha_rarefaction(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, table = get_input_from_args(paramindex, 'table', *args, **kwargs)
@@ -300,7 +300,7 @@ def run_qiime_diversity_alpha_rarefaction(context, *args, **kwargs):
 def run_qiime_feature_classifier_classify_sklearn(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, classifier = get_input_from_args(paramindex, 'classifier', *args, **kwargs)
@@ -318,7 +318,7 @@ def run_qiime_feature_classifier_classify_sklearn(context, *args, **kwargs):
 def run_qiime_taxa_barplot(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, table = get_input_from_args(paramindex, 'table', *args, **kwargs)
@@ -338,7 +338,7 @@ def run_qiime_taxa_barplot(context, *args, **kwargs):
 def run_qiime_taxa_collapse(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, table = get_input_from_args(paramindex, 'table', *args, **kwargs)
@@ -356,7 +356,7 @@ def run_qiime_taxa_collapse(context, *args, **kwargs):
 def run_qiime_feature_table_filter_samples(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, metadata = get_input_from_args(paramindex, 'metadata', *args, **kwargs)
@@ -374,7 +374,7 @@ def run_qiime_feature_table_filter_samples(context, *args, **kwargs):
 def run_qiime_composition_add_pseudocount(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'table', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
         
     paramindex, output = get_output_filename_from_args(paramindex, fs, data, 'output', Path(os.path.basename(data)).stem + "-composition", 'qza', *args, **kwargs)
@@ -389,7 +389,7 @@ def run_qiime_composition_add_pseudocount(context, *args, **kwargs):
 def run_qiime_composition_ancom(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, metadata = get_input_from_args(paramindex, 'metadata', *args, **kwargs)
@@ -408,7 +408,7 @@ def run_qiime_composition_ancom(context, *args, **kwargs):
 def run_qiime_dada2_denoise_single(context, *args, **kwargs):
     paramindex = 0
     paramindex, data = get_input_from_args(paramindex, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data) 
 
     paramindex, trimleft = get_input_from_args_optional(paramindex, 'trimleft', *args, **kwargs)
@@ -426,7 +426,7 @@ def run_qiime_dada2_denoise_single(context, *args, **kwargs):
      
 def run_qiime_deblur_denoise_16s(context, *args, **kwargs):
     paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
         
     paramindex, trimlen = get_input_from_args_optional(paramindex, 'trimlen', *args, **kwargs)
@@ -446,7 +446,7 @@ def run_qiime_deblur_denoise_16s(context, *args, **kwargs):
 
 def run_qiime_quality_qscore(context, *args, **kwargs):
     paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, repseqs = get_output_filename_from_args(paramindex, fs, data, 'seqs', 'filtered-seqs', 'qza', *args, **kwargs)
@@ -479,7 +479,7 @@ def check_output_file_exists(fs, output, cmdargs, msg):
 
 def run_qiime_import(context, *args, **kwargs):
     paramindex, data = get_input_from_args(0, 'data', *args, **kwargs)
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     paramindex, data_type = get_input_from_args_optional(paramindex, 'type', 'EMPSingleEndSequences', *args, **kwargs)            

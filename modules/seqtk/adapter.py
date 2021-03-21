@@ -1,13 +1,13 @@
 from os import path
 from pathlib import Path
-from app.biowl.exechelper .exechelper import func_exec_stdout
+from app.biowl.exechelper import func_exec_stdout
 from app.util import Utility
 
 seqtk = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'seqtk'))
 
 def run_seqtk(context, *args, **kwargs):
     
-    fs = Utility.fs_by_prefix_or_default(args[0])
+    fs = Utility.fs_by_prefix_or_guess(args[0])
     data = fs.normalize_path(args[0])
     output = fs.normalize_path(args[2])
     
@@ -33,7 +33,7 @@ def seqtk_fastq_to_fasta(context, *args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     output = ''
@@ -74,7 +74,7 @@ def seqtk_extract_sample(context, *args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     output = ''
@@ -134,7 +134,7 @@ def seqtk_trim(context, *args, **kwargs):
         data = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     data = fs.normalize_path(data)
     
     output = ''

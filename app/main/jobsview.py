@@ -30,7 +30,7 @@ from config import Config
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.runmgr import runnablemanager
-from ..common import AccessType, Permission
+from ..common import AccessType, Permission, AccessRights
 from ..managers.modulemgr import modulemanager
 
 prov_base = Config.PROVENANCE_DIR
@@ -67,7 +67,7 @@ def update_workflow(user_id, workflow_id, script):
 def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
     from ..jobs import run_script
     workflow = workflowmanager.get(id=workflow_id)
-    runnable = runnablemanager.create_runnable(current_user.id, workflow_id, script if script else workflow.script, provenance, args)
+    runnable = runnablemanager.create_runnable(current_user, workflow, script if script else workflow.script, provenance, args)
             
     if immediate:
         run_script(runnable.id, args)
@@ -627,7 +627,7 @@ def runnables():
                     if not runnable.completed:
                         stop_script(runnable.celery_id)
                         sync_task_status_with_db(runnable)
-                    run_biowl(runnable.workflow_id, runnable.script, runnable.arguments, False, False)    
+                    run_biowl(runnable.workflow_id, runnable.script, runnable.args, False, False)    
             return jsonify(runnables =[i.to_json_log() for i in new_status])
         
         sync_task_status_with_db_for_user(current_user.id)
@@ -642,4 +642,4 @@ def runnables():
         return make_response(jsonify(err=str(e)), 500)
 
 def get_functions(access):
-    return json.dumps({'functions':  modulemanager.get_by_user_access(current_user.id, access)})
+    return json.dumps({'functions':  modulemanager.get_all_by_user_access(current_user.id, access)})

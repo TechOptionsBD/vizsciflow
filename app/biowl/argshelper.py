@@ -56,7 +56,7 @@ def get_optional_posix_data_args(paramindex, keyname, context, *args, **kwargs):
         fs.write(dest, fssrc.read(data))
         data = dest
     else:
-        fs = Utility.fs_by_prefix_or_default(data)
+        fs = Utility.fs_by_prefix_or_guess(data)
         
     data = fs.normalize_path(str(data))
     
@@ -71,7 +71,7 @@ def get_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     fs = None
     if Utility.fs_type_by_prefix(data) != 'posix':
         tempdir = get_temp_dir(context, 'posix')
-        fssrc = Utility.fs_by_prefix(data)
+        fssrc = Utility.fs_by_prefix_or_guess(data)
         if not fssrc:
             raise ValueError("Data doesn't exist: " + str(data))
         fs = Utility.fs_by_prefix(tempdir)
@@ -79,7 +79,7 @@ def get_posix_data_args(paramindex, keyname, context, *args, **kwargs):
         fs.write(dest, fssrc.read(data))
         data = dest
     else:
-        fs = Utility.fs_by_prefix_or_default(data)
+        fs = Utility.fs_by_prefix_or_guess(data)
         
     data = fs.normalize_path(data)
     

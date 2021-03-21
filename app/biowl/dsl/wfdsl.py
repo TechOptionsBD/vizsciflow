@@ -125,7 +125,7 @@ class Data(GraphNode):
     def json(self):
         value = self.value
         if value and (self.valuetype == DataType.File or self.valuetype == DataType.Folder):
-            fs = Utility.fs_by_prefix_or_default(self.value)
+            fs = Utility.fs_by_prefix_or_guess(self.value)
             value = fs.basename(self.value)
         
         node_value = self.name if self.expected else self.value 

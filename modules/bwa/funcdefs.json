@@ -1,0 +1,39 @@
+{
+    "functions": [
+        {
+            "org": "srlab",
+            "package": "bwa",
+            "module": "modules.bwa.adapter",
+            "group": "Alignment",
+            "level": 0,
+            "name":"Align",
+            "internal":"run_bwa",
+            "desc": "Map with BWA. Mapping low-divergent sequences against a large reference genome, such as the human genome and is designed for Illumina sequence reads up to 100bp.",
+            "href": "services.html#bwa-align",
+            "returns":  [
+             {
+               "name": "data",
+               "type": "file|folder"
+             }
+            ],
+            "example":"data = bwa.Align(ref, data, data2='', index='') #single-read. Give valid data2 value for pair-read.",
+           "params": [
+             {
+               "name": "ref",
+               "type": "file",
+               "desc": "the reference genome."
+             },
+             {
+               "name": "data",
+               "type": "file|folder",
+               "desc": "Seq file for single read, forward seq file for pair-end. If folder, all .fastq/.fq files are recursively collected from that folder."
+             },
+            {
+               "name": "data2",
+               "type": "file|folder",
+               "desc": "Reverse seq file for pair-end. If folder, all .fastq/.fq files are recursively collected from that folder."
+             }
+           ]
+         }
+   ]
+}

@@ -42,10 +42,10 @@ def run_bwa(context, *args, **kwargs):
         indexpath = fs.join(fs.dirname(ref), indexpath)
         
         if not fs.exists(indexpath):
-            if not datamanager.has_access_rights(context.user_id, fs.dirname(ref), AccessRights.Write):
-                ref = fs.copyfile(ref, fs.join(get_temp_dir(context, fs.typename()), fs.basename(ref)))
-                indexpath = Path(ref).stem + ".bwt"
-                indexpath = fs.join(fs.dirname(ref), indexpath)
+            #if not datamanager.has_access_rights(context.user_id, fs.dirname(ref), AccessRights.Write):
+            ref = fs.copyfile(ref, fs.join(get_temp_dir(context, fs.typename()), fs.basename(ref)))
+            indexpath = Path(ref).stem + ".bwt"
+            indexpath = fs.join(fs.dirname(ref), indexpath)
             build_bwa_index(ref)
 
     if fs.isfile(data1):

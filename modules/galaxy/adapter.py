@@ -361,14 +361,14 @@ def local_upload_context(data, **kwargs):
             else:
                 raise ValueError('No http(s) or ftp addresses given.')
 
-    fs = Utility.fs_by_prefix_or_default(data)
+    fs = Utility.fs_by_prefix_or_guess(data)
     job = fs_upload_context(fs.normalize_path(data), **kwargs)
     return job['outputs'][0]['id']
     
 def get_dataset_context(data, **kwargs):
     
     if Utility.fs_type_by_prefix(data) == "gfs":
-        fs = Utility.fs_by_prefix_or_default(data)
+        fs = Utility.fs_by_prefix_or_guess(data)
         hda_ldda = 'ldda' if fs.islibrarydata(data) else 'hda'
         return hda_ldda, os.path.basename(data)
     else:
@@ -1454,7 +1454,7 @@ def run_download(*args, **kwargs):
     path = Utility.get_normalized_path(outdir)
     fullpath = os.path.join(path, name)
     gi.datasets.download_dataset(os.path.basename(data), file_path = fullpath, use_default_filename=False, wait_for_completion=True)
-    fs = Utility.fs_by_prefix_or_default(fullpath)       
+    fs = Utility.fs_by_prefix_or_guess(fullpath)       
     return fs.strip_root(fullpath)
 
 #library       

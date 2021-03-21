@@ -33,13 +33,13 @@ class GraphModuleManager():
 #         return Relationship(data, "METADATA", metadatanode)
     
     @staticmethod
-    def create_runnable(user_id, workflow_id, script, provenance, args):
-        return RunnableItem.create(user_id, workflow_id, script, provenance, args)
+    def create_runnable(user, workflow, script, provenance, args):
+        return RunnableItem.create(user, workflow, script, provenance, args)
     
 #     @staticmethod
 #     def update_runnable(properties):
 #         try:
-#             runnable = RunnableItem(properties['workflow_id'], properties['script'], properties['arguments'])
+#             runnable = RunnableItem(properties['workflow_id'], properties['script'], properties['args'])
 #             workflow = properties['workflow_id']
 #             result = runnable.update_json(properties)            
 #             print(result)
@@ -54,9 +54,9 @@ class GraphModuleManager():
         return workflowItem.add_module(package, function)
     
     @staticmethod
-    def create_task(runnable_id, function_name, package):
-        runnableItem = RunnableItem.load(runnable_id)
-        return runnableItem.add_module(function_name, package)
+    def invoke_module(runnable_id, function_name, package):
+        runnableItem = RunnableItem.get(id=runnable_id).first()
+        return runnableItem.invoke_module(function_name, package)
     
     
 #    @staticmethod
@@ -74,7 +74,7 @@ class GraphModuleManager():
     
     @staticmethod
     def get_runnables(**kwargs):
-        return RunnableItem.load(**kwargs)
+        return RunnableItem.get(**kwargs)
     
     @staticmethod
     def runnables_of_user(user_id):
@@ -98,15 +98,15 @@ class DBModuleManager():
 #         return Property.add(data.id, metadata.id)
        
     @staticmethod
-    def create_runnable(user_id, workflow_id, script, provenance, args):
-        return Runnable.create(user_id, workflow_id, script, args)
+    def create_runnable(user, workflow, script, provenance, args):
+        return Runnable.create(user.id, workflow.id, script, args)
     
     @staticmethod
     def get_runnables(**kwargs):
         return Runnable.query.filter_by(**kwargs)
     
     @staticmethod
-    def create_task(runnable_id, function_name, package):
+    def invoke_module(runnable_id, function_name, package):
         service = Service.get_first_service_by_name_package(function_name, package)
         if service:
             return Task.create_task(runnable_id, service.id)
@@ -130,11 +130,11 @@ class RunnableManager:
     def add_module(self, workflow_id, package, function_name):
         return self.manager.add_module(workflow_id, package, function_name)
     
-    def create_runnable(self, user_id, workflow_id, script, provenance, args):
-        return self.manager.create_runnable(user_id, workflow_id, script, provenance, args)
+    def create_runnable(self, user, workflow, script, provenance, args):
+        return self.manager.create_runnable(user, workflow, script, provenance, args)
     
-    def create_task(self, runnable_id, function_name, package):
-        return self.manager.create_task(runnable_id, function_name, package)
+    def invoke_module(self, runnable_id, function_name, package):
+        return self.manager.invoke_module(runnable_id, function_name, package)
     
     def update_runnable(self, properties):
         return self.manager.update_runnable(properties)

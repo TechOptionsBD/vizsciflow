@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import render_template, redirect, request, url_for, flash
@@ -54,7 +55,7 @@ def login():
         if user is None or not user.verify_password(form.password.data):
             flash('Invalid username or password')
             return redirect(url_for('auth.login'))
-        login_user(user, remember=form.remember_me.data)
+        login_user(user, remember=form.remember_me.data, force=True, fresh=True)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('main.index')
@@ -87,10 +88,10 @@ def logout():
 
 
 def allocate_storage(user):
-    datasources = datamanager.get(active = True)
+    datasources = datamanager.get_datasources(active = True)
     for ds in datasources:
         try:
-            fs = Utility.fs_by_prefix(ds.url)
+            fs = Utility.create_fs(ds)
             if fs:
                 userpath = 'Libraries/' + user.username if ds.type == 'gfs' else '/' + user.username
                 if not fs.exists(userpath):
@@ -99,7 +100,8 @@ def allocate_storage(user):
                 datamanager.add_allocation(user.id, ds.id, userpath, AccessRights.Owner)
                 if ds.public:
                     datamanager.add_allocation(user.id, ds.id, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
-        except:
+        except Exception as e:
+            logging.error('Storage allocation on {0} has failed: {1}'.format(ds.name, str(e)))
             flash('Storage allocation on {0} has failed.'.format(ds.name))
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -109,10 +111,10 @@ def register():
         user = usermanager.create_user(email=form.email.data,
                     username=form.username.data,
                     password=form.password.data)
-        try:
-            allocate_storage(user)
-        except:
-            pass
+        # try:
+        #     allocate_storage(user)
+        # except:
+        #     pass
 #         token = user.generate_confirmation_token()
 #         send_email(user.email, 'Confirm Your Account',
 #                    'auth/email/confirm', user=user, token=token)

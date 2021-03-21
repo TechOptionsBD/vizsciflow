@@ -20,7 +20,7 @@ from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import AlchemyEncoder, Post, Comment, WorkflowAccess, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
+from ..models import AlchemyEncoder, Post, Comment, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
 from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
@@ -279,15 +279,15 @@ def about():
 def contact():
     return render_template('contact.html')
 
-@main.route('/tasklogs', methods=['POST'])
-@login_required
-def translate():
-    workflow_id = request.form['text'] #request.args.get('workflow_id')
-    workflow_id = Utility.ValueOrNone(workflow_id)
-    if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
-        sql = 'SELECT workitems.id, MAX(time), taskstatus.name as status FROM workitems LEFT JOIN tasks ON workitems.id=tasks.workitem_id LEFT JOIN tasklogs ON tasklogs.task_id=tasks.id LEFT JOIN taskstatus ON tasklogs.status_id = taskstatus.id WHERE workitems.workflow_id=' + str(workflow_id) + ' GROUP BY workitems.id'
-        result = db.engine.execute(sql)
-        return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
+# @main.route('/tasklogs', methods=['POST'])
+# @login_required
+# def translate():
+#     workflow_id = request.form['text'] #request.args.get('workflow_id')
+#     workflow_id = Utility.ValueOrNone(workflow_id)
+#     if workflow_id is not None and Workflow.query.get(workflow_id) is not None:
+#         sql = 'SELECT workitems.id, MAX(time), taskstatus.name as status FROM workitems LEFT JOIN tasks ON workitems.id=tasks.workitem_id LEFT JOIN tasklogs ON tasklogs.task_id=tasks.id LEFT JOIN taskstatus ON tasklogs.status_id = taskstatus.id WHERE workitems.workflow_id=' + str(workflow_id) + ' GROUP BY workitems.id'
+#         result = db.engine.execute(sql)
+#         return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
 
 def load_data_sources_biowl(recursive):
      # construct data source tree
@@ -321,7 +321,7 @@ def load_data_sources_biowl(recursive):
 def download_biowl(path):
     # construct data source tree
     path = path.strip()
-    fs = Utility.fs_by_prefix_or_default(path)
+    fs = Utility.fs_by_prefix_or_guess(path)
     fullpath = fs.download(path)
     if not fullpath:
         abort(422)
@@ -331,7 +331,7 @@ def download_biowl(path):
 def get_filecontent(path):
     # construct data source tree
     path = path.strip()
-    fs = Utility.fs_by_prefix_or_default(path)
+    fs = Utility.fs_by_prefix_or_guess(path)
     image_binary = fs.read(path)
     return send_file(io.BytesIO(image_binary), mimetype='image/jpeg', as_attachment=True, attachment_filename=fs.basename(path))
 
@@ -346,7 +346,7 @@ def get_filedata(path):
 def upload_biowl(file, request):
     
     fullpath = request.form['path'] 
-    fs = Utility.fs_by_prefix_or_default(fullpath)
+    fs = Utility.fs_by_prefix_or_guess(fullpath)
     saved_path = fs.save_upload(file, fullpath)
     if not fs.isfile(saved_path):
         return saved_path
@@ -355,7 +355,7 @@ def upload_biowl(file, request):
         newpath = fs.join(fs.dirname(saved_path), request.form['filename'])
         saved_path = fs.rename(saved_path, newpath)
 
-    ds = Utility.ds_by_prefix_or_default(saved_path)
+    ds = Utility.ds_by_prefix_or_root(saved_path)
     if not ds:
         return saved_path
        
@@ -412,15 +412,11 @@ def load_metadataproperties():
 def load_metadata(path):
     metadata = {}
     
-    ds = Utility.ds_by_prefix_or_default(path)
-    if not ds:
-        return None # data source not added to the system
-    
     # user must have at least read access
     datamanager.check_access_rights(current_user.id, path, AccessRights.Read)
 
     # sysprops
-    fs = Utility.create_fs(ds)
+    fs = Utility.fs_by_prefix_or_guess(path)
     if not fs:
         return None
     
@@ -495,7 +491,7 @@ def save_metadata(request):
     ds = Utility.ds_by_prefix_or_default(path)
     data = datamanager.get_allocation_by_url(ds.id, path)
     
-    fs = Utility.fs_by_prefix_or_default(path)
+    fs = Utility.fs_by_prefix_or_guess(path)
     if not fs:
         raise ValueError("path not found")
     newpath = fs.rename(path, newname)
@@ -539,7 +535,7 @@ def search_and_filter(path, filters):
     
     FilterHistory.add(current_user.id, json.dumps(selected_filters))
     
-    fs = Utility.fs_by_prefix_or_default(path)
+    fs = Utility.fs_by_prefix_or_guess(path)
     return FilterManager.listdirR(fs, path, filters);
 
 def load_filter_history():
@@ -656,22 +652,22 @@ def datasources():
         return json.dumps({'path' : upload_biowl(request.files['upload'], request)})
     elif request.args.get('addfolder'):
         path = request.args['addfolder']
-        fileSystem = Utility.fs_by_prefix_or_default(path)
+        fileSystem = Utility.fs_by_prefix_or_guess(path)
         parent = path if fileSystem.isdir(path) else fileSystem.dirname(path)
         unique_filename = fileSystem.unique_fs_name(parent, 'newfolder', '')
         dirpath = fileSystem.strip_root(fileSystem.makedirs(unique_filename))
         return json.dumps({'text': fileSystem.basename(unique_filename), 'path' : dirpath, 'type': 'folder'})
     elif request.args.get('delete'):
         path = request.args['delete']
-        fileSystem = Utility.fs_by_prefix_or_default(path)
+        fileSystem = Utility.fs_by_prefix_or_guess(path)
         return json.dumps({'path' : fileSystem.remove(fileSystem.strip_root(path))})
     elif request.args.get('rename'):
-        fileSystem = Utility.fs_by_prefix_or_default(request.args['oldpath'])
+        fileSystem = Utility.fs_by_prefix_or_guess(request.args['oldpath'])
         oldpath = fileSystem.strip_root(request.args['oldpath'])
         newpath = os.path.join(os.path.dirname(oldpath), request.args['rename'])
         return json.dumps({'path' : fileSystem.rename(oldpath, newpath)})
     elif request.args.get('load'):
-        fs = Utility.fs_by_prefix_or_default(request.args['load'])
+        fs = Utility.fs_by_prefix_or_guess(request.args['load'])
         return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
         
     return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
@@ -772,7 +768,7 @@ class Samples():
     @staticmethod
     def add_workflow(user, name, desc, script, access, users, temp, args):
         workflow = Samples.create_workflow(user, name, desc, script, access, users, temp, 0, args)
-        return json.dumps(workflow.to_json_info());
+        return json.dumps(workflow.to_json_info())
                 
     @staticmethod
     def add_sample(sample, name, desc, shared):
@@ -877,7 +873,7 @@ def samples():
                     workflowmanager.remove(current_user.id, workflow_id)
                     return json.dumps({'return':'deleted'})
             else:
-                shared_Workflow_check = WorkflowAccess.check(workflow_id) 
+                shared_Workflow_check = workflowmanager.check(workflow_id) 
                 if shared_Workflow_check:  
                     return json.dumps({'return':'shared'})
                 else:

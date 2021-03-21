@@ -1,4 +1,4 @@
-from os import path
+import os
 
 from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
@@ -11,10 +11,18 @@ from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plug
 
 registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
 
+def iterable(obj):
+    try:
+        iter(obj)
+    except Exception:
+        return False
+    else:
+        return True
+
 class Library(LibraryBase):
     def __init__(self):
         self.tasks = {}
-        self.localdir = path.join(path.abspath(path.dirname(__file__)), 'storage')
+        self.localdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'storage')
     
     def add_task(self, name, expr):
         self.tasks[name] = expr
@@ -89,7 +97,7 @@ class Library(LibraryBase):
                     function = pkgfunc[1]
                 args = args[1:]
 
-            task = runnablemanager.create_task(context.runnable, function, package)
+            task = runnablemanager.invoke_module(context.runnable, function, package)
             context.task_id = task.id
             task.start()
 
@@ -113,32 +121,31 @@ class Library(LibraryBase):
                     #provcls = getattr(".dsl.provobj", registry[function])
                     #return provcls(*arguments, **kwargs)
                     return provcls 
-                func = modulemanager.get_module_by_name_package(function, package).value
+                func = modulemanager.get_module_by_name_package(function, package)
 
-                module_obj = load_module(func["module"])
-                function = getattr(module_obj, func["internal"])
+                module_obj = load_module(func.module)
+                function = getattr(module_obj, func.internal)
                 
                 storeArguments = list(arguments)
                 for _, v in kwargs.items():
                     storeArguments.append(v)
                     
-                datamanager.StoreArgumentes(context.user_id, task, func["params"] if func["params"] else [], storeArguments)
+                datamanager.StoreArgumentes(context.user_id, task, list(func.params) if func.params else [], storeArguments)
                 result = function(context, *arguments, **kwargs)
-                result = Library.add_meta_data(func["returns"] if "returns" in func else "", result, task)
+                result = Library.add_meta_data(list(func.returns) if iterable(func.returns) else [func.returns], result, task)
                 
                 task.succeeded()
                 
                 if not result:
                     return result
                 
-                if func["returns"]:
-                    if isinstance(func["returns"], list):
+                if func.returns:
+                    if iterable(func.returns) and len(list(func.returns)) > 1:
                         return result if isinstance(result, tuple) else (result,)
                     else:
                         return result[0]
                     
-                result = result if len(result) > 1 else result[0] if result else None
-            return result
+                return result if len(result) > 1 else result[0]
         except Exception as e:
             if task:
                 task.failed(str(e))
@@ -162,7 +169,7 @@ class Library(LibraryBase):
         for i in range(0, mincount):
             datatype = DataType.Unknown
             data = ''
-            returnsLower = returnstup[i]["type"].lower().split('|')
+            returnsLower = returnstup[i].type.lower().split('|')
             if 'file' in returnsLower :
                 datatype = datatype | DataType.File
                 data = resulttup[i] if isinstance(resulttup[i], FolderItem) else FolderItem(resulttup[i])
@@ -176,7 +183,7 @@ class Library(LibraryBase):
             else:
                 datatype = DataType.Custom
             
-            name = returnstup[i]["name"] if "name" in returnstup[i] else ""
+            name = returnstup[i].name if returnstup[i].name else ""
             dataAndType.append((datatype, data, name))
         
         for i in range(mincount, len(resulttup)):

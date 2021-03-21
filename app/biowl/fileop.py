@@ -11,6 +11,8 @@ import uuid
 import urllib
 import re
 from datetime import datetime
+from dsl.fileop import PosixFileSystem
+import requests
 
 __author__ = "Mainul Hossain"
 __date__ = "$Dec 10, 2016 2:23:14 PM$"
@@ -583,7 +585,133 @@ class GalaxyFileSystem():
         
         self.client.datasets.download_dataset(os.path.basename(path), file_path = localpath, use_default_filename=False)
         return localpath
+
+class HttpFileSystem():
+    timeout = 20 # 100s timeout
+    def __init__(self, url, root = None, temp = None, prefix = None):
+        u = urlsplit(url)
+        if u.scheme != 'http' and u.scheme != 'https':
+            raise ValueError("Invalid url address")
         
+        self.url = url
+        self._localdir = root
+        self.prefix = prefix
+        self.temp = temp
+    
+    def typename(self):
+        return "http"
+    
+    def basename(self, path):
+        u = urlsplit(path)
+        path = urlunparse((u.scheme, u.netloc, u.path, '', '', ''))
+        return os.path.basename(path)
+        
+    def normalize_path(self, path):
+        if self.prefix:
+            path = self.strip_prefix(path)
+            
+        if not self._localdir or path.startswith(self._localdir) or (self._localdir.endswith(os.sep) and path == self._localdir[:-1]):
+            return path
+        while path and path[0] == os.sep:
+            path = path[1:]    
+        return os.path.join(self._localdir, path)
+    
+    def normalize_fullpath(self, path):
+        return urljoin(self.url, self.normalize_path(path))
+    
+    def strip_prefix(self, path):
+        return path[len(self.prefix):] if self.prefix and path.startswith(self.prefix) else path
+    
+    def strip_root(self, path):
+        path = self.strip_prefix(path)
+        if path.startswith(self.url):
+            path = path[len(self.url):]
+        return path[len(self._localdir):] if path.startswith(self._localdir) else path
+    
+    def makedirs(self, path):
+        raise NotImplementedError("makedirs")
+        
+    def mkdir(self, path):
+        raise NotImplementedError("makedir")
+    
+    def unique_fs_name(self, path, prefix, ext):
+        return IOHelper.unique_fs_name(self, path, prefix, ext)
+    
+    def remove(self, path):
+        raise NotImplementedError("remove")
+           
+    def rename(self, oldpath, newpath):
+        raise NotImplementedError("rename")
+    
+    def get_files(self, path):
+        raise NotImplementedError("get_files")
+    
+    def get_folders(self, path):
+        raise NotImplementedError("get_folders")
+    
+    def copyfile(self, src, dst):
+        content = self.read(src)
+        if self.isdir(dst):
+            dst = os.path.join(dst, os.path.basename(src))
+        self.write(dst, content)
+        return self.normalize_fullpath(dst)
+    
+    def listdir(self, path):
+        raise NotImplementedError("listdir")
+    
+    def unique_filename(self, path, prefix, ext):
+        raise NotImplementedError("unique_filename")
+    
+    def make_unique_dir(self, path):
+        raise NotImplementedError("make_unique_dir")
+    
+    def exists(self, path):
+        response = requests.head(self.normalize_path(path))
+        return response.status_code == 200
+        
+    def isdir(self, path):
+        raise NotImplementedError("isdir")
+    
+    def isfile(self, path):
+        return self.exists(path)
+    
+    def join(self, path1, path2):
+        path1 = self.normalize_path(path1)
+        return os.path.join(path1, path2)
+    
+    def read(self, path):
+        path = self.normalize_path(path)
+        r = requests.get(path, allow_redirects=True)
+        return r.content
+    
+    def write(self, path, content):
+        if not self.canwrite:
+            raise ValueError("Read only file system")
+    
+    def make_json_item(self, path):
+        raise NotImplementedError("make_json_item")
+        
+    def make_json(self, path):
+        raise NotImplementedError("make_json")
+    
+    def make_json_r(self, path):
+        raise NotImplementedError("make_json_r")
+     
+    def save_upload(self, file, path):       
+        raise NotImplementedError("save_upload")
+        
+    def download(self, path):
+        path = self.normalize_path(path)
+        localpath = os.path.join(tempfile.gettempdir(), os.path.basename(path))
+        if os.path.exists(localpath):
+            fs = PosixFileSystem('/')
+            unique_dir = fs.make_unique_dir(os.path.dirname(localpath))
+            localpath = os.path.join(unique_dir, os.path.basename(path))
+        
+        with open(localpath, "wb") as writer:
+            writer.write(self.read(path))
+        return localpath
+
 class IOHelper():
     @staticmethod
     def getFileSystem(url):
@@ -649,6 +777,8 @@ class IOHelper():
     def unique_filename(path, prefix, ext):
         filesystem = IOHelper.getFileSystem(path)
         return IOHelper.unique_fs_name(filesystem, path, prefix, ext)
+
+
                         
 if __name__ == "__main__":
     print("Hello World")

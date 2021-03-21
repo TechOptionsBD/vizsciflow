@@ -18,6 +18,7 @@ class Config:
     #for provenance
     PROVENANCE_DIR = os.path.join(basedir, 'app/biowl/dsl/plugins')
     HTML_DIR = os.path.join(basedir, 'app/templates/plugins')
+    MODULE_DIR = os.path.join(basedir, 'modules')
     #MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
@@ -40,7 +41,7 @@ class Config:
     GRAPHDB = 'bolt://localhost:7687'
     GRAPHDB_USER = 'neo4j'
     GRAPHDB_PASSWORD = 'sr-hadoop'
-    DATA_MODE = 0 # 0 = DB, 1 = Graph, 2 = Elastic Search, 3 = Mock
+    DATA_MODE = 1 # 0 = DB, 1 = Graph, 2 = Elastic Search, 3 = Mock
 
     @staticmethod
     def init_app(app):

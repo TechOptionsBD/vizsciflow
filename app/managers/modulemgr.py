@@ -1,10 +1,52 @@
+import json
 from config import Config
 from ..models import Service, ServiceAccess
+from ..graphutil import ModuleItem, UserItem
+
+class obj(object):
+    def __init__(self, dict_):
+        self.__dict__.update(dict_)
+
+def dict2obj(d):
+    return json.loads(json.dumps(d), object_hook=obj)
 
 class GraphModuleManager():
     @staticmethod
     def get(**kwargs):
-        pass
+        return ModuleItem.get(**kwargs)
+    
+    @staticmethod
+    def get_modules_by_name_package(name, package):
+        return ModuleItem.get(name=name, package=package)
+
+    @staticmethod
+    def get_all_by_user_access(user_id, access):
+        ms = ModuleItem.get(public=False)
+        modules = [m.json() for m in ms]
+        u = UserItem.get(id=user_id)
+        for m in u.modules:
+            modules.append(m.json())
+        return modules
+    
+    @staticmethod
+    def get(**kwargs):
+        return ModuleItem.get(**kwargs)
+    
+    @staticmethod
+    def get_module_by_name_package(name, package):
+        return GraphModuleManager.get(name=name, package=package).first()
+    
+    @staticmethod
+    def add_user_access(user_id, access):
+        return ModuleItem.add_user_access(user_id, access)
+
+    @staticmethod
+    def insert_modules(url):
+        return ModuleItem.insert_modules(Config.MODULE_DIR)
+
+    @staticmethod
+    def get_module_by_name_package_for_user_access(user_id, name, package):
+        return ModuleItem.get_module_by_name_package_for_user_access(user_id, name, package)
 
 class DBModuleManager():
     @staticmethod
@@ -17,7 +59,7 @@ class DBModuleManager():
 
     @staticmethod
     def get_module_by_name_package(name, package):
-        return Service.get_first_service_by_name_package(name, package)
+        return dict2obj(Service.get_first_service_by_name_package(name, package).value)
         
     @staticmethod
     def get_modules_by_name_package(name, package):
@@ -32,11 +74,11 @@ class DBModuleManager():
         return Service.remove(user_id, module_id)
 
     @staticmethod
-    def get_by_user_access(user_id, access):
+    def get_all_by_user_access(user_id, access):
         return Service.get_by_user(user_id, access)
 
     @staticmethod
-    def add(access, users, **kwargs):
+    def add_user_access(access, users, **kwargs):
         return Service.add(access, users, **kwargs)
 
     @staticmethod
@@ -65,6 +107,8 @@ class ModuleManager():
             self.persistance = DBModuleManager()
         else:
             self.persistance = GraphModuleManager()
+        
+        # self.persistance.insert_modules(Config.MODULE_DIR)
 
     def get_module_by_name_package_for_user_access(self, user_id, name, package = None):
         return self.persistance.get_module_by_name_package_for_user_access(user_id, name, package)
@@ -85,11 +129,11 @@ class ModuleManager():
     def remove(self, user_id, module_id):
         return self.persistance.remove(user_id, module_id)
     
-    def get_by_user_access(self, user_id, access = 2):
-        return self.persistance.get_by_user_access(user_id, access)
+    def get_all_by_user_access(self, user_id, access = 2):
+        return self.persistance.get_all_by_user_access(user_id, access)
 
-    def add(self, access, users, **kwargs):
-        return self.persistance.add(access, users, **kwargs)
+    def add_user_access(self, access, users, **kwargs):
+        return self.persistance.add_user_access(access, users, **kwargs)
     
     def get_module(self, **kwargs):
         return self.get_modules(**kwargs).first()
@@ -106,5 +150,8 @@ class ModuleManager():
         self.persistance.add_user_access(service_id, sharing_with)
     def check_access(self, service_id):
         self.persistance.check_access(service_id)
+    
+    def get(self, **kwargs):
+        return self.persistance.get(**kwargs)
 
 modulemanager = ModuleManager()

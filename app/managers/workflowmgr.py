@@ -3,11 +3,24 @@ from ..models import Workflow, WorkflowAccess, Service
 from config import Config
 from sqlalchemy import and_, or_
 from ..common import AccessType
+from ..graphutil import WorkflowItem
 
 class GraphWorkflowManager():
     @staticmethod
     def get(**kwargs):
-        pass
+        return WorkflowItem.get(**kwargs)
+
+    @staticmethod
+    def get_workflows_as_list(access, user_id, *args):
+        return WorkflowItem.get_workflows_as_list(access, user_id, *args)
+    
+    @staticmethod
+    def create(**kwargs):
+        return WorkflowItem.Create(**kwargs)
+
+    @staticmethod
+    def get_or_404(id):
+        return WorkflowItem.get(id=id)
 
 class DBWorkflowManager():
     @staticmethod

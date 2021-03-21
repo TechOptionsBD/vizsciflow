@@ -33,6 +33,8 @@ from flask_login import login_user, logout_user, current_user
 from app.main.views import load_data_sources_biowl
 from app.main.jobsview import run_biowl, get_user_status, get_task_status, get_functions, save_and_run_workflow
 from flask_cors import cross_origin
+
+from app.managers.datamgr import datamanager
 from app.managers.usermgr import usermanager
 from app.managers.workflowmgr import workflowmanager
 
@@ -46,7 +48,6 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
     return response
-
 
 @auth.verify_password
 def verify_password(username, password):
@@ -163,8 +164,8 @@ def get_status_api():
 
 
 def make_shell_context():
-    return dict(app=app, db=db, User=usermanager.User, Follow=usermanager.Follow, Role=usermanager.Role,
-                Permission=usermanager.Permission, Post=usermanager.Post, Comment=usermanager.Comment)
+    return dict(app=app, db=db, User=usermanager.get_cls('user'), Follow=usermanager.get_cls('follow'), Role=usermanager.get_cls('role'),
+                Permission=Permission, Post=usermanager.get_cls('post'), Comment=usermanager.get_cls('comment'))
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
@@ -213,6 +214,14 @@ def deploy():
 
     # create self-follows for all users
     usermanager.add_self_follows()
+
+@manager.command
+def deploydb():
+    # create user roles
+    datamanager.insert_datasources()
+
+    # create user roles
+    usermanager.insert_roles()
 
 
 if __name__ == '__main__':

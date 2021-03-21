@@ -20,7 +20,7 @@ def run_flash(context, *args, **kwargs):
         data1 = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix_or_default(data1)
+    fs = Utility.fs_by_prefix_or_guess(data1)
     data1 = fs.normalize_path(data1)
     
     if 'data2' in kwargs.keys():
@@ -84,7 +84,7 @@ def run_flash_recursive(*args, **kwargs):
         indir = args[paramindex]
         paramindex +=1
     
-    fs = Utility.fs_by_prefix_or_default(indir)
+    fs = Utility.fs_by_prefix_or_guess(indir)
     indir = fs.normalize_path(indir)    
     
     outdir = ''

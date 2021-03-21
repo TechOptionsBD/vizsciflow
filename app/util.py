@@ -2,7 +2,7 @@ import os
 from os import path
 from flask import g
 
-from app.biowl.fileop import HadoopFileSystem, GalaxyFileSystem
+from app.biowl.fileop import HadoopFileSystem, GalaxyFileSystem, HttpFileSystem
 from dsl.fileop import PosixFileSystem
 from .managers.datamgr import datamanager
 
@@ -25,12 +25,12 @@ class Utility:
             return path.join(datasource.url, '/')
         return ""
     
-    @staticmethod
-    def get_fullpath(data):
-        #print(str(data_id), file=sys.stderr)
-        if data is None:
-            return ''
-        return path.join(Utility.get_rootdir(data.datasource_id), data.url)
+    # @staticmethod
+    # def get_fullpath(data):
+    #     #print(str(data_id), file=sys.stderr)
+    #     if data is None:
+    #         return ''
+    #     return path.join(Utility.get_rootdir(data.datasource_id), data.url)
     
     @staticmethod
     def get_quota_path(path, username):
@@ -39,7 +39,7 @@ class Utility:
         elif username and not path.startswith('public'):
             path = os.path.join(username, path)
         return path
-    
+
     @staticmethod
     def create_fs(ds):
         
@@ -61,25 +61,18 @@ class Utility:
         return fs
     
     @staticmethod
-    def ds_by_prefix_or_default(path):
+    def ds_by_prefix_or_root(path):
         if not path:
             return None
         path = str(path)
         dsdb = None
         datasources = datamanager.get_datasources()
         for ds in datasources:
-            if ds.prefix:
-                if path.startswith(ds.prefix):
-                    dsdb = ds
-                    break
+            if ds.prefix and path.startswith(ds.prefix):
+                return ds
                 
-            if ds.url:
-                if path.startswith(ds.url):
-                    dsdb = ds
-                    break
-        if not dsdb:
-            dsdb = datamanager.get_datasource(type = "posix")
-        return dsdb
+            if ds.url and path.startswith(ds.url):
+                return dsdb
                 
     @staticmethod
     def ds_by_prefix(path):
@@ -120,10 +113,17 @@ class Utility:
             return Utility.create_fs(ds)
         
     @staticmethod
-    def fs_by_prefix_or_default(path):
+    def fs_by_prefix_or_guess(path):
         ds = Utility.ds_by_prefix(path)
-        return Utility.create_fs(ds) if ds else Utility.fs_by_typename("posix")
-    
+
+        if not ds:
+            if path.startswith('http://') or path.startswith('https://'):
+                return HttpFileSystem(path)
+            else:
+                return Utility.fs_by_typename("posix")
+        else:
+            return Utility.create_fs(ds)
+   
     @staticmethod
     def fs_by_typename(typename):
         ds = datamanager.get_datasource(type = typename)
@@ -147,10 +147,10 @@ class Utility:
         
     @staticmethod
     def get_normalized_path(path):
-        fs = Utility.fs_by_prefix_or_default(path)
+        fs = Utility.fs_by_prefix_or_guess(path)
         return fs.normalize_path(str(path))
     
     @staticmethod
     def strip_root(path):
-        fs = Utility.fs_by_prefix_or_default(path)
+        fs = Utility.fs_by_prefix_or_guess(path)
         return fs.strip_root(str(path))

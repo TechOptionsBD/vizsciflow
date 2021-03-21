@@ -10,18 +10,22 @@
 			"runmode": "local",
 			"desc": "Measure the quality of a fastq file using fastqc tool.",
 			"href": "services.html#fastqc-CheckQuality",
-			"returns": "file|folder",
+			"returns": [
+				{
+					"name": "html",
+					"type": "file|folder"
+				},
+				{
+					"name": "zip",
+					"type": "file|folder"
+				}
+			],
 			"example": "fq_html = fastqc.CheckQuality(data)",
-			"example2": "fq_html = fastqc.CheckQuality(data, outdir='')",
 			"params": [
 				{
 					"name": "data",
-					"type": "file/folder",
+					"type": "file|folder",
 					"desc": "if folder, all .fastq and .fq files are recursively collected from that folder."
-				},
-				{
-					"name": "outdir",
-					"type": "folder"
 				}
 			]
 		}

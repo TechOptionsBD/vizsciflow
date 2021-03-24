@@ -19,3 +19,9 @@ class SessionManager():
             pass
         else:
             return graph_session()
+    
+    @staticmethod
+    def clear_graphdb():
+        if Config.DATA_MODE == 1:
+            graph = SessionManager.session()
+            graph.run("MATCH (n) DETACH DELETE n")

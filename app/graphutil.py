@@ -323,8 +323,7 @@ class UserItem(NodeItem, UserMixin):
     workflows = RelatedTo("WorkflowItem", "USERWORKFLOW")
     datasets = RelatedTo("ValueItem", "USERACCESS")
     modules = RelatedTo("ModuleItem", "USERMODULE")
-    #roles = RelatedFrom("RoleItem", "USERROLE")
-    role = None
+    roles = RelatedFrom("RoleItem", "ROLEUSER")
 
     def __init__(self, **kwargs):
         self.email = kwargs.pop('email', None)
@@ -338,19 +337,23 @@ class UserItem(NodeItem, UserMixin):
         self.oid = kwargs.pop('oid', 0)
 
         self.password = kwargs.pop('password', None)
+        super(UserItem, self).__init__(**kwargs)
 
-        if self.role is None:
-            if self.email == current_app.config['PHENOPROC_ADMIN']:
-                self.role = RoleItem.get(permissions=0xff).first()
-                self.role.users.add(self)
-            if self.role is None:
-                self.role = RoleItem.get(default=True).first()
-                self.role.users.add(self)
+        graph().push(self)
+
+        role = None
+        if self.email == current_app.config['PHENOPROC_ADMIN']:
+            role = RoleItem.get(permissions=0xff).first()
+            role.users.add(self)
+        if role is None:
+            role = RoleItem.get(default=True).first()
+            role.users.add(self)
+        if role:
+            self.roles.add(role)
+            
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
-        super(UserItem, self).__init__(**kwargs)
-    
     def gravatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:
             url = 'https://secure.gravatar.com/avatar'
@@ -364,6 +367,10 @@ class UserItem(NodeItem, UserMixin):
 
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
+
+    @property
+    def role(self):
+        return list(self.roles)[0]
 
     @property
     def password(self):
@@ -912,6 +919,7 @@ class RunnableItem(NodeItem): #number1
     memory_run = Property("memory_run", 0.0)
     
     started_on = Property("started_on", neotime.DateTime.min)
+
     def __init__(self, **kwargs):
         self.name = kwargs.pop('name', None)
         self.celery_id = kwargs.pop('celery_id', None)

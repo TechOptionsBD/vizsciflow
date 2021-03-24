@@ -42,7 +42,7 @@ class GraphModuleManager():
 
     @staticmethod
     def insert_modules(url):
-        return ModuleItem.insert_modules(Config.MODULE_DIR)
+        return ModuleItem.insert_modules(url)
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):
@@ -108,7 +108,8 @@ class ModuleManager():
         else:
             self.persistance = GraphModuleManager()
         
-        # self.persistance.insert_modules(Config.MODULE_DIR)
+    def insert_modules(self):
+        return self.persistance.insert_modules(Config.MODULE_DIR)
 
     def get_module_by_name_package_for_user_access(self, user_id, name, package = None):
         return self.persistance.get_module_by_name_package_for_user_access(user_id, name, package)

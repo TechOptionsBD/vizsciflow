@@ -34,7 +34,6 @@ from app.main.views import load_data_sources_biowl
 from app.main.jobsview import run_biowl, get_user_status, get_task_status, get_functions, save_and_run_workflow
 from flask_cors import cross_origin
 
-from app.managers.datamgr import datamanager
 from app.managers.usermgr import usermanager
 from app.managers.workflowmgr import workflowmanager
 
@@ -217,12 +216,26 @@ def deploy():
 
 @manager.command
 def deploydb():
+    from app.managers.modulemgr import modulemanager
+    from app.managers.datamgr import datamanager
+    from app.managers.usermgr import usermanager
+    from app.managers.usermgr import usermanager
+    from app.managers.sessionmgr import SessionManager
+
+    # clear the database
+    SessionManager.clear_graphdb()
+
     # create user roles
     datamanager.insert_datasources()
 
     # create user roles
     usermanager.insert_roles()
 
+    # insert modules
+    modulemanager.insert_modules()
+
+    # insert test user
+    usermanager.create_user(email="testuser@usask.ca", username="testuser", password="aaa")
 
 if __name__ == '__main__':
 ##    written by: Moksedul Islam 

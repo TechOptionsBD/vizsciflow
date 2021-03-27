@@ -4,6 +4,7 @@ from config import Config
 from sqlalchemy import and_, or_
 from ..common import AccessType
 from ..graphutil import WorkflowItem
+from .usermgr import usermanager
 
 class GraphWorkflowManager():
     @staticmethod
@@ -114,12 +115,5 @@ class WorkflowManager():
             workflow_list.extend(WorkflowManager.get_workflow_details(workflows, props))
         
         return json.dumps(workflow_list)
-    
-    # #    def create_workflow(self, **kwargs):
-    # def create_workflow(self, user_id, name, desc, script, access, users, temp, derived = 0):
-    #     if script and name:
-    #         users = users.split(";") if users else []
-    #         return workflowmanager.create(user_id=user_id, name=name, desc=desc if desc else '', script=script, access=2 if not access else int(access), users = users, temp = temp, derived = derived)
-
-
+        
 workflowmanager = WorkflowManager()

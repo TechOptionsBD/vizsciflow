@@ -1,3 +1,4 @@
+import json
 import uuid
 import hashlib
 from datetime import datetime
@@ -169,8 +170,21 @@ class GraphUser():
     
     @staticmethod
     def get_other_users_with_entities(id, *args):
-        return User.query.filter(id != User.id).with_entities(*args)
+        id_list = [i for i, value in enumerate(args) if value.lower() == 'id']
+        args = [i for j, i in enumerate(args) if j not in id_list]
 
+        properties = ["u.{0}".format(arg) for arg in args]
+        for id in id_list:
+            properties.insert(id, "ID(u)")
+        properties = ",".join(properties)
+                    
+        returns = properties if properties else "u"
+        users = UserItem.run("MATCH (u:UserItem) WHERE ID(u) <> {0} RETURN {1}".format(id, returns))
+        rows = []
+        for node in iter(users):
+            row = [r[1] for r in node.items()]
+            rows.append(row)
+        return rows
         
 class DBUser():
     registry = {'user': User, 'role': Role, 'follow': Follow, 'post': Post, 'comment': Comment}
@@ -209,7 +223,11 @@ class DBUser():
     
     @staticmethod
     def get_other_users_with_entities(id, *args):
-        return User.query.filter(id != User.id).with_entities(*args)
+        import json
+        from app.models import AlchemyEncoder
+        result = User.query.filter(id != User.id).with_entities(*args)
+        return json.dumps([r for r in result], cls=AlchemyEncoder)
+
 
     @staticmethod
     def get_role(id):

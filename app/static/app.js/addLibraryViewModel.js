@@ -152,8 +152,9 @@ function AddLibraryViewModel(userName) {
         self.selectedSharingUsers([]); 
         ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 1 }).done(function (data) {
             
-            JSON.parse(data).forEach(element => {
-                self.userList.push({id: element[0], name:  element[1]});
+            data = Array.isArray(data) ? data : JSON.parse(data);
+            data.forEach(element => {
+                self.userList.push({id: parseInt(element[0]), name:  element[1]});
             });
 
             self.initiateMultiselectUser()

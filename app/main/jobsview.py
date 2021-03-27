@@ -19,7 +19,7 @@ import regex
 regex.DEFAULT_VERSION = regex.VERSION1
 
 from . import main
-from .views import Samples, AlchemyEncoder
+from .views import Samples
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
@@ -291,8 +291,7 @@ def delete_service(service_id):
 
 def get_users():
     result = usermanager.get_other_users_with_entities(current_user.id, "id", "username")
-    j = json.dumps([r for r in result], cls=AlchemyEncoder)
-    return jsonify(j)
+    return jsonify(result)
 
 def add_demo_service():
     demoservice = {'script':'', 'mapper': ''}

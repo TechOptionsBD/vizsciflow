@@ -169,6 +169,10 @@ class NodeItem(Model):
             if  label in registry:
                 yield registry[label].wrap(graphnode)
 
+    @staticmethod
+    def run(cypher, **parameters):
+        return graph().run(cypher, parameters)
+
 class DataSourceItem(NodeItem):
     name = Property("name")
     type = Property("type")
@@ -320,10 +324,11 @@ class UserItem(NodeItem, UserMixin):
     oid = Property("oid")
     
     runs = RelatedTo("RunnableItem", "USERRUN")
-    workflows = RelatedTo("WorkflowItem", "USERWORKFLOW")
+    workflows = RelatedTo("WorkflowItem", "OWNERWORKFLOW")
     datasets = RelatedTo("ValueItem", "USERACCESS")
     modules = RelatedTo("ModuleItem", "USERMODULE")
     roles = RelatedFrom("RoleItem", "ROLEUSER")
+    workflowaccesses = RelatedTo("WorkflowItem", "WORKFLOWACCESS")
 
     def __init__(self, **kwargs):
         self.email = kwargs.pop('email', None)
@@ -651,7 +656,8 @@ class WorkflowItem(NodeItem):
     temp = Property("temp", False)
     derived = Property("derived", 0)
     
-    user = RelatedFrom("UserItem", "WORKFLOW")
+    owners = RelatedFrom("UserItem", "OWNERWORKFLOW")
+    users = RelatedFrom("UserItem", "WORKFLOWACCESS")
     runs = RelatedTo("RunnableItem", "WORKFLOWRUN")
     symbols = RelatedTo("ValueItem", "SYMBOL")
     modules = RelatedTo("ModuleInvocationItem", "MODULEINVOCATION")
@@ -698,8 +704,23 @@ class WorkflowItem(NodeItem):
 
     @staticmethod
     def Create(**kwargs):
+        owner_id = kwargs.pop('user_id', None)
+        users =  kwargs.pop('users', None)
         workflow = WorkflowItem(**kwargs)
         graph().push(workflow)
+
+        if owner_id is not None:
+            owner = UserItem.get(id=owner_id)
+            workflow.owners.add(owner)
+            owner.workflows.add(workflow)
+            graph().push(owner)
+        if users:
+            users = users.split(",")
+            for username in users:
+                user = UserItem.get(username=username)
+                workflow.users.add(user)
+                user.workflowaccesses.add(workflow)
+                graph().push(user)
         return workflow
             
     @property
@@ -717,7 +738,7 @@ class WorkflowItem(NodeItem):
         params = [param.json() for param in self.params]
         return {
             'id': self.id,
-            'user': '',#self.user.username,
+            'user': list(self.owners)[0].username if self.owners else '',#self.user.username,
             'name': self.name,
             'desc': self.desc,
             'script': self.script,
@@ -726,7 +747,10 @@ class WorkflowItem(NodeItem):
 
     @staticmethod
     def get_workflows_as_list(access, user_id, *args):
-        return WorkflowItem.match(graph())
+        user = UserItem.get(id=user_id)
+        workflows = [ownedwf for ownedwf in user.workflows]
+        workflows.extend([accesswf for accesswf in user.workflowaccesses])
+        return workflows
     
     @staticmethod
     def get(**kwargs):

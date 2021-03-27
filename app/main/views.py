@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import io
+import logging
 import os
 import sys
 from os import path
@@ -883,6 +884,7 @@ def samples():
         access = int(request.args.get('access')) if request.args.get('access') else 0
         return workflowmanager.get_workflows_as_list(access, current_user)
     except Exception as e :
+        logging.error(str(e))
         return make_response(jsonify(err=str(e)), 500)
 
 @main.route('/webhook', methods=['GET', 'POST'])

@@ -1,3 +1,4 @@
+from app.common import AccessRights
 import json
 from config import Config
 from ..models import Service, ServiceAccess
@@ -16,12 +17,16 @@ class GraphModuleManager():
         return ModuleItem.get(**kwargs)
     
     @staticmethod
+    def add(user_id, value, access, users):
+        return ModuleItem.add(user_id, value, access, users)
+
+    @staticmethod
     def get_modules_by_name_package(name, package):
         return ModuleItem.get(name=name, package=package)
 
     @staticmethod
     def get_all_by_user_access(user_id, access):
-        ms = ModuleItem.get(public=False)
+        ms = ModuleItem.get(public=True)
         modules = [m.json() for m in ms]
         u = UserItem.get(id=user_id)
         for m in u.modules:
@@ -37,8 +42,8 @@ class GraphModuleManager():
         return GraphModuleManager.get(name=name, package=package).first()
     
     @staticmethod
-    def add_user_access(user_id, access):
-        return ModuleItem.add_user_access(user_id, access)
+    def add_user_access(id, users):
+        return ModuleItem.add_user_access(id, users, AccessRights.Write)
 
     @staticmethod
     def insert_modules(url):
@@ -52,6 +57,10 @@ class DBModuleManager():
     @staticmethod
     def get(**kwargs):
         pass
+
+    @staticmethod
+    def add(user_id, value, access, users):
+        return Service.add(user_id, value, access, users)
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):
@@ -76,10 +85,6 @@ class DBModuleManager():
     @staticmethod
     def get_all_by_user_access(user_id, access):
         return Service.get_by_user(user_id, access)
-
-    @staticmethod
-    def add_user_access(access, users, **kwargs):
-        return Service.add(access, users, **kwargs)
 
     @staticmethod
     def get_modules(**kwargs):
@@ -132,9 +137,6 @@ class ModuleManager():
     
     def get_all_by_user_access(self, user_id, access = 2):
         return self.persistance.get_all_by_user_access(user_id, access)
-
-    def add_user_access(self, access, users, **kwargs):
-        return self.persistance.add_user_access(access, users, **kwargs)
     
     def get_module(self, **kwargs):
         return self.get_modules(**kwargs).first()
@@ -149,10 +151,14 @@ class ModuleManager():
 
     def add_user_access(self, service_id, sharing_with):
         self.persistance.add_user_access(service_id, sharing_with)
+
     def check_access(self, service_id):
         self.persistance.check_access(service_id)
     
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
+
+    def add(self, user_id, value, access, users):
+        return self.persistance.add(user_id, value, access, users)
 
 modulemanager = ModuleManager()

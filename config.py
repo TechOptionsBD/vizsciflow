@@ -41,6 +41,8 @@ class Config:
     GRAPHDB = 'bolt://localhost:7687'
     GRAPHDB_USER = 'neo4j'
     GRAPHDB_PASSWORD = 'sr-hadoop'
+    GRAPHDB_DASTABASE = ''#'vizsciflow'
+    GRAPHDB_VERSION = ''
     DATA_MODE = 1 # 0 = DB, 1 = Graph, 2 = Elastic Search, 3 = Mock
 
     @staticmethod

@@ -774,23 +774,23 @@ class Service(db.Model):
     tasks = db.relationship('Task', cascade="all,delete-orphan", backref='service', lazy='dynamic')
 
     @staticmethod
-    def add(access, users, **kwargs):
+    def add(user_id, value, access, users):
         try:
-            service = Service(**kwargs)
+            service = Service()
+            service.user_id = user_id
+            service.value = value
             service.active = True
             service.public = True if access == AccessType.PUBLIC else False
 
-            if users != False:
-                user = list(users[1:-1].split(",")) 
                         
-            if (access == AccessType.SHARED and user):
-                for user_id in user:
+            if (access == AccessType.SHARED and users):
+                for user_id in users:
 #                 for usr in user:
 #                     print(usr)
 #                     user_id, rights = usr.split(":")
-                    user = User.query.filter(User.id == user_id).first()
-                    if user:
-                        service.accesses.append(ServiceAccess(user_id = user.id, rights = 0x01))
+                    matchuser = User.query.filter(User.id == user_id).first()
+                    if matchuser:
+                        service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
                         
             db.session.add(service)
             db.session.commit()

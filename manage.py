@@ -41,6 +41,13 @@ api = Api(app)
 api.decorators=[cors.crossdomain(origin='*')]
 auth = HTTPBasicAuth()
 
+@app.teardown_appcontext
+def close_db(error):
+    from flask import g
+    from config import Config
+    if Config.DATA_MODE == 2 and hasattr(g, 'graph'):
+        g.graph.close()
+
 @app.after_request
 def after_request(response):
 #    response.headers.add('Access-Control-Allow-Origin', '*')
@@ -236,6 +243,7 @@ def deploydb():
 
     # insert test user
     usermanager.create_user(email="testuser@usask.ca", username="testuser", password="aaa")
+    usermanager.create_user(email="mainulhossain@gmail.com", username="mainulhossain", password="aaa")
 
 if __name__ == '__main__':
 ##    written by: Moksedul Islam 

@@ -269,7 +269,7 @@ def share_service(share_service):
                 else:
                     sharing_with.remove(int(user))
         modulemanager.update_access(service_id, access) 
-        if sharing_with != []: 
+        if sharing_with: 
             modulemanager.add_user_access(service_id, sharing_with)
             return json.dumps({'return':'shared'})
         else:
@@ -457,14 +457,14 @@ def functions():
     #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
                     if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
                         access = 0
-                        sharedusers = False 
+                        sharedusers = ''
                     else:
                         if request.form.get('sharedusers'):
                             sharedusers = request.form.get('sharedusers')
                             access = 1
                         else:
                             access = 2
-                            sharedusers = False              
+                            sharedusers = ''
                     with open(base, 'r') as json_data:
                         data = json.load(json_data)
                         libraries = data["functions"] if "functions" in data else [data]
@@ -505,6 +505,8 @@ def functions():
                             if org:
                                 f['org'] = org
                             #func = json.dumps(f, indent=4)
+                            if sharedusers:
+                                sharedusers = ast.literal_eval(sharedusers)
                             modulemanager.add(user_id = current_user.id, value = f, access=access, users=sharedusers)
     #                 os.remove(base)
     #                 with open(base, 'w') as f:

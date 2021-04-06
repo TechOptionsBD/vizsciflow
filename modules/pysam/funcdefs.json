@@ -10,6 +10,7 @@
          "internal":"run_sam_to_bam",
          "desc": "Converts SAM data format to BAM binary data format.",
          "href": "services.html#pysam-samtobam",
+			"public": true,
          "returns": [
             {
               "name": "data",

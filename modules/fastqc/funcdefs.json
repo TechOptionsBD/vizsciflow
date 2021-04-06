@@ -10,6 +10,7 @@
 			"runmode": "local",
 			"desc": "Measure the quality of a fastq file using fastqc tool.",
 			"href": "services.html#fastqc-CheckQuality",
+			"public": true,
 			"returns": [
 				{
 					"name": "html",

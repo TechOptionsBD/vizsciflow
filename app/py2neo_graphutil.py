@@ -1071,11 +1071,16 @@ class RunnableItem(NodeItem): #number1
     def invoke_module(self, name, package):
         if not name:
             raise ValueError("No function name for module")
-        module = ModuleItem(name=name, package=package)
-        graph().push(module)
+        args = {'name': name}
+        if package:
+            args['package'] = package
+        module = ModuleItem.get(**args).first()
+        if not module:
+            raise ValueError("No module {0} found.".format(name))
 
         item = ModuleInvocationItem(module=module)
         graph().push(item)
+
         item.runs.add(self)
         self.modules.add(item)
 

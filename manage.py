@@ -228,22 +228,56 @@ def deploydb():
     from app.managers.usermgr import usermanager
     from app.managers.usermgr import usermanager
     from app.managers.sessionmgr import SessionManager
+    from config import Config
+    import logging
+    logging.basicConfig(level = logging.INFO)
 
     # clear the database
+    logging.info("Clearing the graph database...")
     SessionManager.clear_graphdb()
 
     # create user roles
+    logging.info("Inserting data sources...")
     datamanager.insert_datasources()
 
     # create user roles
+    logging.info("Inserting roles...")
     usermanager.insert_roles()
 
     # insert modules
-    modulemanager.insert_modules()
+    logging.info("Inserting modules from directory: {0} ...".format(Config.MODULE_DIR))
+    modules = modulemanager.insert_modules(Config.MODULE_DIR)
+    logging.info("{0} module(s) added:".format(len(modules)))
+    for module in modules:
+        logging.info(module.package + "." + module.name)
 
     # insert test user
+    logging.info("Creating users:...")
     usermanager.create_user(email="testuser@usask.ca", username="testuser", password="aaa")
+    logging.info("testuser")
     usermanager.create_user(email="mainulhossain@gmail.com", username="mainulhossain", password="aaa")
+    logging.info("mainulhossain")
+
+@manager.command
+def insertmodules(folder):
+    from app.managers.modulemgr import modulemanager
+    import logging
+    
+    logging.basicConfig(level = logging.INFO)
+    logging.info("Inserting modules from directory: {0} ...".format(folder))
+    if not os.path.exists(folder):
+        logging.error("Directory {0} doesn't exist".format(folder))
+        raise ValueError("Directory {0} doesn't exist".format(folder))
+    
+    if not os.path.isdir(folder):
+        logging.error("{0} is not a directory".format(folder))
+        raise ValueError("{0} is not a directory".format(folder))
+
+    modules = modulemanager.insert_modules(folder)
+    logging.info("{0} module(s) added:".format(len(modules)))
+    for module in modules:
+        logging.info(module.package + "." + module.name)
+
 
 if __name__ == '__main__':
 ##    written by: Moksedul Islam 

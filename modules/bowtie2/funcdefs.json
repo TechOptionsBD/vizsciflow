@@ -14,8 +14,13 @@
                    "type": "file|folder"
                }
             ],
-           "example":"data = bowtie2.Align(ref, data, data2='') #if data2 is empty single read; otherwise pair-read",
-			"params": [
+           "example":"data = bowtie2.Align(ref, data, data2='') #if data2 is empty then single read; otherwise pair-read",
+		   "params": [
+                {
+					"name": "ref",
+					"type": "file",
+					"desc": "The reference genome."
+				},
 				{
 					"name": "data",
 					"type": "file|folder",

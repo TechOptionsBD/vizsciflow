@@ -44,7 +44,7 @@ class Config:
     GRAPHDB_PASSWORD = 'sr-hadoop'
     GRAPHDB_DASTABASE = ''#'vizsciflow'
     GRAPHDB_VERSION = ''
-    DATA_MODE = 1 # 0 = DB, 1 = Graph, 2 = Elastic Search, 3 = Mock
+    DATA_MODE = 0 # 0 = DB, 1 = Graph, 2 = Elastic Search, 3 = Mock
 
     @staticmethod
     def init_app(app):
@@ -67,6 +67,7 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
+    DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 
@@ -133,5 +134,5 @@ config = {
     'heroku': HerokuConfig,
     'unix': UnixConfig,
 
-    'default': DevelopmentConfig
+    'default': ProductionConfig
 }

@@ -27,12 +27,12 @@ login_manager.login_view = 'auth.login'
 
 def create_app(config_name):
     app = Flask(__name__)
-    app.debug = True
     
     CORS(app)
     app.config['CORS_HEADERS'] = 'Content-Type'
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
     app.config.from_object(config[config_name])
+    app.debug = app.config['DEBUG']
     config[config_name].init_app(app)
 
     bootstrap.init_app(app)

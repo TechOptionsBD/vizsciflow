@@ -442,6 +442,11 @@ class UserItem(NodeItem, UserMixin):
         self.oid = int(node.get('oid', 0))
         return super(UserItem, self).load(node)
 
+
+    @staticmethod
+    def first(**kwargs):
+        return NodeItem.get_first_with_and(UserItem, **kwargs)
+
     @staticmethod
     def get(**kwargs):
         return NodeItem.get_first_with_and(UserItem, **kwargs)

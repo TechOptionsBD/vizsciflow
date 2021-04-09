@@ -94,7 +94,7 @@ def sync_task_status_with_db_for_user(user_id):
 
 def generate_graph_from_workflow(workflow_id):
 
-    workflow = workflowmanager.get(id = workflow_id)
+    workflow = workflowmanager.first(id = workflow_id)
     return generate_graph(workflow.id, workflow.name, workflow.script)
 
 def generate_graph(workflow_id, name, script):

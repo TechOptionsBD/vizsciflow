@@ -3,8 +3,7 @@
        {
            "org": "Python",
            "package": "Python",
-           "level": "0",
-           "group": "System",
+           "group": "system",
            "name":"print",
            "internal":"print",
            "desc": "Prints one or more things.",
@@ -14,19 +13,28 @@
                "type":"any"
             }            
             ],
-            "returns": "string[]",
+            "returns": [
+               {
+                 "name": "data",
+                 "type": "string[]"
+               }
+            ],
             "example": "print(data)"
        },
        {
            "org": "Python",
            "package": "Python",
            "module": "os",
-           "level": "1",
-           "group": "System",
+           "group": "system",
            "name":"len",
            "internal":"len",
            "desc": "Gets length of a list or string.",
-           "returns": "int",
+           "returns": [
+              {
+                 "name": "data",
+                 "type": "int"
+              }
+            ],
            "example": "len(data)",
            "params":[  
             {  
@@ -38,11 +46,15 @@
        {
            "org": "Python",
            "package": "Python",
-           "level": "1",
-           "group": "System",
+           "group": "system",
            "name":"range",
            "internal":"range",
-           "returns": "int[]",
+           "returns": [
+            {
+               "name": "data",
+               "type": "int[]"
+            }
+           ],
            "desc": "Generates a range of numbers.",
            "params":[  
             {  
@@ -58,9 +70,8 @@
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "1",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"Read",
            "internal":"read",
            "desc": "Reads a file as bytes.",
@@ -70,14 +81,18 @@
                "type":"file"
             }            
             ],           
-           "returns": "byte[]",
-           "example": "Read(data)"
+            "returns": [
+               {
+                  "name": "data",
+                  "type": "byte[]"
+               }
+            ],
+           "example": "data = Read(data)"
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "1",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"Write",
            "internal":"write",
            "desc": "Writes text data to a file.",
@@ -95,9 +110,8 @@
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "1",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"GetFiles",
            "internal":"get_files",
            "desc": "Gets the names of files in a directory.",
@@ -107,14 +121,18 @@
                "type":"folder"
             }            
             ],           
-           "returns": "file[]",
-           "example": "GetFiles(data)"
+            "returns": [
+               {
+                  "name": "data",
+                  "type": "file[]"
+               }
+             ],
+           "example": "files = GetFiles(data)"
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "1",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"GetFolders",
            "internal":"get_folders",
            "desc": "Gets the names of folders in a directory.",
@@ -124,14 +142,18 @@
                "type":"folder"
             }            
             ],           
-           "returns": "folder[]",
-           "example": "GetFolders(data)"
+           "returns": [
+            {
+               "name": "data",
+               "type": "folder[]"
+            }
+            ],
+           "example": "folders = GetFolders(data)"
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "1",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"Remove",
            "internal":"remove",
            "desc": "Removes a file or directory.",
@@ -145,9 +167,8 @@
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "1",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"CreateFolder",
            "internal":"makedirs",
            "desc": "Creates a directory.",
@@ -156,14 +177,19 @@
                "name":"data",
                "type":"folder"
             }            
-            ],           
-           "example": "CreateFolder(data)"
+            ],
+            "returns": [
+               {
+                  "name": "data",
+                  "type": "folder"
+               }
+            ],    
+           "example": "folder = CreateFolder(data)"
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "0",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"isfile",
            "internal":"isfile",
            "desc": "Returns true if a specified path is a file; false if it's a directory.",
@@ -172,30 +198,40 @@
                "name":"data",
                "type":"file|folder"
             }            
-            ],           
+            ],
+            "returns": [
+               {
+                  "name": "data",
+                  "type": "bool"
+               }
+            ],
            "example": "isfile(data)"
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "0",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"basename",
            "internal":"basename",
            "desc": "Truncates the path and returns only the filename.",
            "params":[  
             {  
                "name":"data",
-               "type":"file"
+               "type":"file|folder"
             }            
-            ],           
-           "example": "basename(data)"
+            ],
+            "returns": [
+               {
+                  "name": "data",
+                  "type": "string"
+               }
+            ],
+           "example": "data = basename(data)"
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "0",
-           "group": "System",
+           "package": "io",
+           "group": "system",
            "name":"dirname",
            "internal":"dirname",
            "desc": "Truncates the file name and returns only the directory name.",
@@ -209,8 +245,7 @@
        },
        {
            "org": "SRLAB",
-           "package": "I/O",
-           "level": "0",
+           "package": "io",
            "group": "Convert",
            "name":"GetDataType",
            "internal":"getdatatype",
@@ -218,10 +253,16 @@
            "params":[  
             {  
                "name":"data",
-               "type":"string"
+               "type":"file|folder"
             }            
-            ],           
-           "example": "GetDataType(data)"
+            ],
+            "returns": [
+               {
+                  "name": "data",
+                  "type": "string"
+               }
+            ],
+           "example": "datatype = GetDataType(data)"
        }
 	]
 }

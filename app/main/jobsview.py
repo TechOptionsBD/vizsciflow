@@ -40,16 +40,15 @@ basedir = os.path.dirname(os.path.abspath(__file__))
 
 def update_workflow(user_id, workflow_id, script):
     if workflow_id:
-        workflow = workflowmanager.get(id=workflow_id)
+        workflow = workflowmanager.first(id=workflow_id)
         writeaccess = workflow.temp
         
         if not writeaccess:
             if workflow.public:
                 writeaccess = user_id == workflow.user_id
                 if not writeaccess:
-                    permissions = workflow.user.role.permissions
-                    if permissions & Permission.ADMINISTER or permissions & Permission.MODERATE_WORKFLOWS:
-                        writeaccess = True
+                    permissions = workflow.user.role.permissions if workflow.user and workflow.user.role else Permission.NOTSET
+                    writeaccess = permissions & Permission.ADMINISTER or permissions & Permission.MODERATE_WORKFLOWS
             if not writeaccess:
                 accesses = workflow.accesses#.query.filter(user_id = WorkflowAccess.user_id)
                 for access in accesses:
@@ -66,7 +65,7 @@ def update_workflow(user_id, workflow_id, script):
     
 def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
     from ..jobs import run_script
-    workflow = workflowmanager.get(id=workflow_id)
+    workflow = workflowmanager.first(id=workflow_id)
     runnable = runnablemanager.create_runnable(current_user, workflow, script if script else workflow.script, provenance, args)
             
     if immediate:
@@ -374,7 +373,7 @@ def functions():
                 try:
                     workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
                     if request.form.get('script'):
-                        workflow = update_workflow(current_user.id, workflowId, request.form.get('script'));
+                        workflow = update_workflow(current_user.id, workflowId, request.form.get('script'))
                         return jsonify(workflowId = workflow.id)
                     # Here we must have a valid workflow id
                     if not workflowId:

@@ -390,13 +390,17 @@ class UserItem(NodeItem, UserMixin):
         return True
 
     @staticmethod
+    def first(**kwargs):
+        return UserItem.get(**kwargs).first()
+
+    @staticmethod
     def get(**kwargs):
-        return NodeItem.get_with_and(UserItem, **kwargs).first()
+        return NodeItem.get_with_and(UserItem, **kwargs)
 
     @staticmethod
     def load(user_id):
         if user_id:
-            return UserItem.get(id=user_id)
+            return UserItem.first(id=user_id)
         else: # this will be very resource-intensive. never call it.
             return list(UserItem.match(graph()).limit(sys.maxsize))
 
@@ -511,7 +515,7 @@ class ModuleItem(NodeItem):
         graph().push(module)
 
     def add_owner(self, user_id, access):
-        user = UserItem.get(id=user_id)
+        user = UserItem.first(id=user_id)
         user.modules.add(self)
         graph().push(user)
 
@@ -526,7 +530,7 @@ class ModuleItem(NodeItem):
         graph().push(module)
 
         if owner_id is not None:
-            owner = UserItem.get(id=owner_id)
+            owner = UserItem.first(id=owner_id)
             module.owners.add(owner)
             owner.modules.add(module)
             graph().push(owner)
@@ -535,7 +539,7 @@ class ModuleItem(NodeItem):
             if owner_id in users:
                 users.remove(owner_id)
             for user_id in users:
-                user = UserItem.get(id=user_id)
+                user = UserItem.first(id=user_id)
                 if user:
                     module.users.add(user)
                     user.moduleaccesses.add(module)
@@ -566,6 +570,7 @@ class ModuleItem(NodeItem):
 
     @staticmethod
     def insert_modules(url):
+        admin = UserItem.first(username = "admin")
         funcs = ModuleItem.load_funcs_recursive(url)
         funclist = []
         for f in funcs.values():
@@ -573,8 +578,12 @@ class ModuleItem(NodeItem):
 
         modules = []
         for f in funclist:
-            #module = ModuleItem(org=f["org"], name=f["name"], package=f["package"], internal=f["internal"], module=f["module"], example=f["example"], desc=f["desc"], group=f["group"], href=f["href"])
-            module = ModuleItem(**f)
+            user_id = f.pop("user_id", None)
+            if not user_id and admin:
+                user_id = admin.id
+
+            f["public"] = True
+            module = ModuleItem.add(user_id, f, None, None)
             for p in f["params"]:
                 dp = DataPropertyItem(**p)
                 graph().push(dp)
@@ -702,7 +711,7 @@ class WorkflowItem(NodeItem):
     derived = Property("derived", 0)
     
     owners = RelatedFrom("UserItem", "OWNERWORKFLOW")
-    #users = RelatedFrom("UserItem", "WORKFLOWACCESS")
+    useraccesses = RelatedFrom("UserItem", "WORKFLOWACCESS")
     runs = RelatedTo("RunnableItem", "WORKFLOWRUN")
     symbols = RelatedTo("ValueItem", "SYMBOL")
     modules = RelatedTo("ModuleInvocationItem", "MODULEINVOCATION")
@@ -755,15 +764,15 @@ class WorkflowItem(NodeItem):
         graph().push(workflow)
 
         if owner_id is not None:
-            owner = UserItem.get(id=owner_id)
+            owner = UserItem.first(id=owner_id)
             workflow.owners.add(owner)
             owner.workflows.add(workflow)
             graph().push(owner)
         if users:
             users = users.split(",")
             for username in users:
-                user = UserItem.get(username=username)
-                workflow.users.add(user)
+                user = UserItem.first(username=username)
+                workflow.useraccesses.add(user)
                 user.workflowaccesses.add(workflow)
                 graph().push(user)
         return workflow
@@ -774,17 +783,17 @@ class WorkflowItem(NodeItem):
     
     @property
     def user_id(self):
-        return list(self.owners)[0].id
+        return list(self.owners)[0].id if len(self.owners) > 0 else None
 
 
     @property
     def user(self):
-        return list(self.owners)[0]
+        return list(self.owners)[0] if len(self.owners) > 0 else None
 
     @property
     def accesses(self):
         rights = []
-        for user in list.users:
+        for user in self.useraccesses:
             v = {'user_id': id, 'rights': AccessRights.Write}
             rights.append(namedtuple("WorkflowAccess", v.keys())(*v.values()))
 
@@ -793,7 +802,7 @@ class WorkflowItem(NodeItem):
     def to_json_info(self):
         return {
             'id': self.id,
-            #'user': self.user.username,
+            'user': self.user.username if self.user else "",
             'name': self.name
         }
 
@@ -810,14 +819,68 @@ class WorkflowItem(NodeItem):
 
     @staticmethod
     def get_workflows_as_list(access, user_id, *args):
-        user = UserItem.get(id=user_id)
+        user = UserItem.first(id=user_id)
         workflows = [ownedwf for ownedwf in user.workflows]
         workflows.extend([accesswf for accesswf in user.workflowaccesses])
+
+        public_workflows = WorkflowItem.get(public=True)
+        unique_workflows = []
+        for pwf in public_workflows:
+            if not any(pwf.id == wf.id for wf in workflows):
+                unique_workflows.append(pwf)
+
+        workflows.extend(unique_workflows)
         return workflows
     
     @staticmethod
+    def first(**kwargs):
+        return WorkflowItem.get(**kwargs).first()
+
+    @staticmethod
     def get(**kwargs):
-        return NodeItem.get_with_and(WorkflowItem, **kwargs).first()
+        return NodeItem.get_with_and(WorkflowItem, **kwargs)
+
+
+    @staticmethod
+    def insert_workflows(path):
+        admin = UserItem.first(username='admin')
+        samples = WorkflowItem.load_samples_recursive(path)
+        for sample in samples:
+            if not "script" in sample:
+                logging.error("No script found in workflow {0}".format(sample["name"]))
+
+            if isinstance(sample["script"], list):
+                sample["script"] = "\n".join(sample["script"])
+            if admin and "user_id" not in sample:
+                sample["user_id"] = admin.id
+
+        return [WorkflowItem.Create(**s) for s in samples]
+    
+    @staticmethod
+    def load_samples_recursive(library_def_file):
+
+        if os.path.isfile(library_def_file):
+            try:
+                return WorkflowItem.load_samples(library_def_file)
+            except:
+                return []
+        
+        all_samples = []
+        for f in os.listdir(library_def_file):
+            all_samples.extend(WorkflowItem.load_samples_recursive(os.path.join(library_def_file, f)))
+        return all_samples
+       
+    @staticmethod
+    def load_samples(sample_def_file):
+        samples = []
+        if os.path.isfile(sample_def_file) and sample_def_file.endswith(".json"):
+            with open(sample_def_file, 'r') as json_data:
+                ds = json.load(json_data)
+                if ds.get("workflows"):
+                    samples.extend(ds["workflows"])
+                else:
+                    samples.append(ds)
+        return samples
 
 class DataItem(NodeItem):
     name = Property("name", "")
@@ -881,7 +944,7 @@ class ValueItem(DataItem):
                     graph().push(a)
                 return self
             
-        user = UserItem.get(id=user_id)
+        user = UserItem.first(id=user_id)
         user.datasets.add(self, rights=rights)
         graph().push(user)
         return self

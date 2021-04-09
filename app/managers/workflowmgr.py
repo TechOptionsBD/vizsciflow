@@ -7,6 +7,11 @@ from ..graphutil import WorkflowItem
 from .usermgr import usermanager
 
 class GraphWorkflowManager():
+
+    @staticmethod
+    def first(**kwargs):
+        return WorkflowItem.first(**kwargs)
+
     @staticmethod
     def get(**kwargs):
         return WorkflowItem.get(**kwargs)
@@ -21,12 +26,20 @@ class GraphWorkflowManager():
 
     @staticmethod
     def get_or_404(id):
-        return WorkflowItem.get(id=id)
+        return WorkflowItem.first(id=id)
+
+    @staticmethod
+    def insert_workflows(path):
+        return WorkflowItem.insert_workflows(path)
 
 class DBWorkflowManager():
     @staticmethod
-    def get(**kwargs):
+    def first(**kwargs):
         return Workflow.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+        return Workflow.query.filter_by(**kwargs)
     
     @staticmethod
     def get_or_404(id):
@@ -60,6 +73,9 @@ class WorkflowManager():
     def create(self, **kwargs):
         return self.persistance.create(**kwargs)
 
+    def first(self, **kwargs):
+        return self.persistance.first(**kwargs)
+    
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
     
@@ -115,5 +131,9 @@ class WorkflowManager():
             workflow_list.extend(WorkflowManager.get_workflow_details(workflows, props))
         
         return json.dumps(workflow_list)
+    
+    def insert_workflows(self, path):
+        return self.persistance.insert_workflows(path)
+
         
 workflowmanager = WorkflowManager()

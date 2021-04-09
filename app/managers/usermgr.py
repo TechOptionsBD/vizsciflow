@@ -134,6 +134,10 @@ class GraphUser():
         return UserItem.Create(**kwargs)
 
     @staticmethod
+    def first(**kwargs):
+         return UserItem.first(**kwargs)
+
+    @staticmethod
     def get(**kwargs):
          return UserItem.get(**kwargs)
        
@@ -214,6 +218,10 @@ class DBUser():
         return Role.insert_roles()
     
     @staticmethod
+    def first(**kwargs):
+         return User.query.filter_by(**kwargs).first()
+
+    @staticmethod
     def get(**kwargs):
          return User.query.filter_by(**kwargs).first()
         
@@ -248,6 +256,9 @@ class UserManager():
         else:
             self.persistance = GraphUser()
     
+    def first(self, **kwargs):
+        return self.persistance.first(**kwargs)
+
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
         
@@ -258,10 +269,10 @@ class UserManager():
         return self.persistance.create_user(**kwargs)
 
     def get_by_email(self, email):
-        return self.persistance.get(email=email)
+        return self.first(email=email)
     
     def get_by_username(self, username):
-        return self.persistance.get(username=username)
+        return self.first(username=username)
     
     def verify_auth_token(self, email):
         return self.persistance.verify_auth_token(email)

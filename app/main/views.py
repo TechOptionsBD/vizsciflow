@@ -814,11 +814,11 @@ def workflow_compare(workflow1, workflow2):
         graph2 = generate_graph_from_workflow(workflow2)
         view = {"graph": [graph1, graph2] }
         
-        workflow = workflowmanager.get(id=workflow1)
+        workflow = workflowmanager.first(id=workflow1)
         wf_script1 = workflow.script
         node1 = runnablemanager.create_runnable(current_user.id, workflow1, wf_script1, provenance=True, args=None)
         
-        workflow = workflowmanager.get(id=workflow2)
+        workflow = workflowmanager.first(id=workflow2)
         wf_script2 = workflow.script
         node2 = runnablemanager.create_runnable(current_user.id, workflow2, wf_script2, provenance=True, args=None)
         view['compare'] = [View.compare(Run(runItem = node1), Run(runItem = node2))]

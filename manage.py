@@ -123,7 +123,7 @@ def get_workflows():
         props = request.args.get('props')
         props = props.split(",")
         if request.args.get('info'):
-            workflow = workflowmanager.get(id = request.args.get('info'))
+            workflow = workflowmanager.first(id = request.args.get('info'))
             workflow_list = (workflowmanager.get_a_workflow_details(workflow, props))
             return json.dumps(workflow_list)
         else:
@@ -228,6 +228,7 @@ def deploydb():
     from app.managers.usermgr import usermanager
     from app.managers.usermgr import usermanager
     from app.managers.sessionmgr import SessionManager
+    from app.managers.workflowmgr import workflowmanager
     from config import Config
     import logging
     logging.basicConfig(level = logging.INFO)
@@ -244,6 +245,15 @@ def deploydb():
     logging.info("Inserting roles...")
     usermanager.insert_roles()
 
+    # insert test user
+    logging.info("Creating users:...")
+    usermanager.create_user(email="testuser@usask.ca", username="testuser", password="aaa")
+    logging.info("testuser")
+    # usermanager.create_user(email="mainulhossain@gmail.com", username="mainulhossain", password="aaa")
+    # logging.info("mainulhossain")
+    usermanager.create_user(email="admin@gmail.com", username="admin", password="Admin_1")
+    logging.info("admin")
+    
     # insert modules
     logging.info("Inserting modules from directory: {0} ...".format(Config.MODULE_DIR))
     modules = modulemanager.insert_modules(Config.MODULE_DIR)
@@ -251,33 +261,44 @@ def deploydb():
     for module in modules:
         logging.info(module.package + "." + module.name)
 
-    # insert test user
-    logging.info("Creating users:...")
-    usermanager.create_user(email="testuser@usask.ca", username="testuser", password="aaa")
-    logging.info("testuser")
-    usermanager.create_user(email="mainulhossain@gmail.com", username="mainulhossain", password="aaa")
-    logging.info("mainulhossain")
+    # insert modules
+    logging.info("Inserting workflows from directory: {0} ...".format(Config.WORKFLOW_DIR))
+    workflows = workflowmanager.insert_workflows(Config.WORKFLOW_DIR)
+    logging.info("{0} workflows(s) added:".format(len(workflows)))
+    for workflow in workflows:
+        logging.info(workflow.name)
 
 @manager.command
-def insertmodules(folder):
+def insertmodules(path):
     from app.managers.modulemgr import modulemanager
     import logging
     
     logging.basicConfig(level = logging.INFO)
-    logging.info("Inserting modules from directory: {0} ...".format(folder))
-    if not os.path.exists(folder):
-        logging.error("Directory {0} doesn't exist".format(folder))
-        raise ValueError("Directory {0} doesn't exist".format(folder))
+    logging.info("Inserting modules from directory: {0} ...".format(path))
+    if not os.path.exists(path):
+        logging.error("Path {0} doesn't exist".format(path))
+        raise ValueError("Path {0} doesn't exist".format(path))
     
-    if not os.path.isdir(folder):
-        logging.error("{0} is not a directory".format(folder))
-        raise ValueError("{0} is not a directory".format(folder))
-
-    modules = modulemanager.insert_modules(folder)
+    modules = modulemanager.insert_modules(path)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         logging.info(module.package + "." + module.name)
 
+@manager.command
+def insertworkflows(path):
+    from app.managers.workflowmgr import workflowmanager
+    import logging
+    
+    logging.basicConfig(level = logging.INFO)
+    logging.info("Inserting workflows from directory: {0} ...".format(path))
+    if not os.path.exists(path):
+        logging.error("Path {0} doesn't exist".format(path))
+        raise ValueError("Directory {0} doesn't exist".format(path))
+    
+    workflows = workflowmanager.insert_workflows(path)
+    logging.info("{0} workflows(s) added:".format(len(workflows)))
+    for workflow in workflows:
+        logging.info(workflow.name)
 
 if __name__ == '__main__':
 ##    written by: Moksedul Islam 

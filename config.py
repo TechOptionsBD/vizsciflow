@@ -19,6 +19,7 @@ class Config:
     PROVENANCE_DIR = os.path.join(basedir, 'app/biowl/dsl/plugins')
     HTML_DIR = os.path.join(basedir, 'app/templates/plugins')
     MODULE_DIR = os.path.join(basedir, 'modules')
+    WORKFLOW_DIR = os.path.join(basedir, 'samples')
     #MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587

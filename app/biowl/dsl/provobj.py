@@ -297,7 +297,7 @@ class Run(object):
             if id:
                 return Run(runItem = runnablemanager.get_runnable(id = int(id)))
             if workflow_id:
-                workflow = workflowmanager.get(id = workflow_id)
+                workflow = workflowmanager.first(id = workflow_id)
                 return [Run(runItem = run) for run in workflow.runs]
         except Exception as e:
             raise ValueError("Runnable cann't be retrieved. Error: ", str(e))
@@ -396,13 +396,13 @@ class Run(object):
 
 class Workflow(object):
     def __init__(self, id = None, workflowItem = None):
-        self._node = workflowmanager.get(id = id) if id else workflowItem
+        self._node = workflowmanager.first(id = id) if id else workflowItem
     
     @staticmethod
     def Create(id = None, name = None):
         workflow = None
         if id:
-            workflow = workflowmanager.get(id = int(id) if id else None)
+            workflow = workflowmanager.first(id = int(id) if id else None)
             if workflow:
                 return workflow
         
@@ -414,12 +414,12 @@ class Workflow(object):
     
     @staticmethod
     def get(id = None):
-        workflowItems = workflowmanager.get(id = int(id) if id else None)
+        workflowItems = workflowmanager.first(id = int(id) if id else None)
         if workflowItems:
             return [Workflow(workflowItem = workflow) for workflow in workflowItems] if isinstance(workflowItems, list) else Workflow(workflowItem = workflowItems)
         else:
             from .vizsciflowgraphgen import GraphGenerator
-            workflowItems = workflowmanager.get(id=id) if id else workflowmanager.get()
+            workflowItems = workflowmanager.first(id=id) if id else workflowmanager.get()
             if not workflowItems:
                 raise ValueError("Workflow with id {0} doesn't exist.", id)
             return [Workflow(workflowItem = GraphGenerator.generate_workflow_graph(workflow.id, workflow.name, workflow.script)) for workflow in workflowItems] if isinstance(workflowItems, list) else Workflow(workflowItem = GraphGenerator.generate_workflow_graph(workflowItems.id, workflowItems.name, workflowItems.script))

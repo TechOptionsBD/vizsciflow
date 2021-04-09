@@ -28,7 +28,7 @@ class GraphModuleManager():
     def get_all_by_user_access(user_id, access):
         ms = ModuleItem.get(public=True)
         modules = [m.json() for m in ms]
-        u = UserItem.get(id=user_id)
+        u = UserItem.first(id=user_id)
         for m in u.modules:
             modules.append(m.json())
         return modules
@@ -113,8 +113,8 @@ class ModuleManager():
         else:
             self.persistance = GraphModuleManager()
         
-    def insert_modules(self, folder):
-        return self.persistance.insert_modules(folder)
+    def insert_modules(self, path):
+        return self.persistance.insert_modules(path)
 
     def get_module_by_name_package_for_user_access(self, user_id, name, package = None):
         return self.persistance.get_module_by_name_package_for_user_access(user_id, name, package)

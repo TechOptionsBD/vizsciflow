@@ -1,3 +1,4 @@
 couchdb
 py2neo
 psutil
+elasticsearch

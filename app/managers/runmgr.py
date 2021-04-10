@@ -116,6 +116,10 @@ class DBModuleManager():
         from ..models import Workflow
         return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.created_on.desc())
     
+    @staticmethod
+    def runnables_of_user(user_id):
+        return ElasticRunnable.load_for_users(user_id)
+
 class RunnableManager:
     def __init__(self):
         if Config.DATA_MODE == 0:
@@ -126,6 +130,7 @@ class RunnableManager:
             self.manager = ModuleManagerMock()
             
         self.dbmanager = DBModuleManager() if Config.DATA_MODE != 0 else self.manager # we need this line as long as we have pre-provenance data in the rdbms
+#        self.elasticManager = ElasticModuleManager() if Config.ELASTIC else None #It's may not the convinent way, kindly review
 
     def add_module(self, workflow_id, package, function_name):
         return self.manager.add_module(workflow_id, package, function_name)

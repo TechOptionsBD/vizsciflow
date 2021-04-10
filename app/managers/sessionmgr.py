@@ -38,15 +38,3 @@ class SessionManager():
             return py2neo_graph_session()
         elif Config.DATA_MODE == 2:
             return neo4j_graph_session()
-    
-    @staticmethod
-    def close_graphdb():
-        from flask import g
-        if 'graph' not in g:
-            g.graph.close()
-
-    @staticmethod
-    def clear_graphdb():
-        if Config.DATA_MODE == 1:
-            graph = SessionManager.session()
-            graph.run("MATCH (n) DETACH DELETE n")

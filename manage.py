@@ -43,10 +43,8 @@ auth = HTTPBasicAuth()
 
 @app.teardown_appcontext
 def close_db(error):
-    from flask import g
-    from config import Config
-    if Config.DATA_MODE == 2 and hasattr(g, 'graph'):
-        g.graph.close()
+    from app.managers.dbmgr import dbmanager
+    dbmanager.close()
 
 @app.after_request
 def after_request(response):
@@ -197,7 +195,6 @@ def test(coverage=False):
         print('HTML version: file://%s/index.html' % covdir)
         COV.erase()
 
-
 @manager.command
 def profile(length=25, profile_dir=None):
     """Start the application under the code profiler."""
@@ -229,13 +226,15 @@ def deploydb():
     from app.managers.usermgr import usermanager
     from app.managers.sessionmgr import SessionManager
     from app.managers.workflowmgr import workflowmanager
+    from app.managers.dbmgr import dbmanager
+
     from config import Config
     import logging
     logging.basicConfig(level = logging.INFO)
 
     # clear the database
     logging.info("Clearing the graph database...")
-    SessionManager.clear_graphdb()
+    dbmanager.clear()
 
     # create user roles
     logging.info("Inserting data sources...")

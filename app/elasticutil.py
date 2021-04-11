@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 from config import Config
 from flask import g
@@ -95,143 +96,130 @@ class ElasticManager():
         if run_items:
             return run_items[0]['_source']
 
-# class ElasticNode():
-#     id = None
-#     created_on = datetime.utcnow()
-#     modified_on = datetime.utcnow()
-#     properties = {}
+class ElasticNode():
+    id = None
+    created_on = datetime.utcnow()
+    modified_on = datetime.utcnow()
+    properties = {}
     
-#     def __init__(self, **kwargs):
-#         self.created_on = kwargs.pop('created_on', datetime.utcnow())
-#         self.modified_on = kwargs.pop('modified_on', datetime.utcnow())
+    def __init__(self, **kwargs):
+        self.created_on = kwargs.pop('created_on', datetime.utcnow())
+        self.modified_on = kwargs.pop('modified_on', datetime.utcnow())
         
-#         # other properties
-#         for k, v in kwargs.items():
-#             self.properties[k] = v
+        # other properties
+        for k, v in kwargs.items():
+            self.properties[k] = v
                     
-#     @staticmethod
-#     def get_with_and(cls_, **kwargs):
-#         # return items with id directly
-#         id = kwargs.pop('id', None)
-#         if id:
-#             return cls_.match(graph(), int(id))
-#         #query with other attributes
-#         query = ""
-#         for k in kwargs:
-#             if query:
-#                 query += " AND"
-#             if isinstance(kwargs[k], str):
-#                 query += " _.{0}='{1}'".format(k, kwargs[k])
-#             else:
-#                 query += " _.{0}={1}".format(k, kwargs[k])
+    @staticmethod
+    def get_with_and(cls_, **kwargs):
+        # return items with id directly
+        id = kwargs.pop('id', None)
+        if id:
+            return cls_.match(graph(), int(id))
+        #query with other attributes
+        query = ""
+        for k in kwargs:
+            if query:
+                query += " AND"
+            if isinstance(kwargs[k], str):
+                query += " _.{0}='{1}'".format(k, kwargs[k])
+            else:
+                query += " _.{0}={1}".format(k, kwargs[k])
 
-#         return cls_.match(graph()).where(query) if query else cls_.match(graph())
+        return ElasticManager.get(query)
     
-#     @staticmethod
-#     def get_with_or(cls_, **kwargs):
-#         # return items with id directly
-#         id = kwargs.pop('id', None)
-#         #query with other attributes
-#         query = ""
-#         for k in kwargs:
-#             if query:
-#                 query += " OR"
-#             if isinstance(kwargs[k], str):
-#                 query += " _.{0}='{1}'".format(k, kwargs[k])
-#             else:
-#                 query += " _.{0}={1}".format(k, kwargs[k])
+    @staticmethod
+    def get_with_or(cls_, **kwargs):
+        # return items with id directly
+        id = kwargs.pop('id', None)
+        #query with other attributes
+        query = ""
+        for k in kwargs:
+            if query:
+                query += " OR"
+            if isinstance(kwargs[k], str):
+                query += " _.{0}='{1}'".format(k, kwargs[k])
+            else:
+                query += " _.{0}={1}".format(k, kwargs[k])
 
-#         if id:
-#             if query:
-#                 query += " OR "
-#             query += "ID(id)={0}".format(id)
-#         return cls_.match(graph()).where(query) if query else cls_.match(graph())
+        if id:
+            if query:
+                query += " OR "
+            query += "ID(id)={0}".format(id)
+        return ElasticManager.get(query)
 
-#     @staticmethod
-#     def OrderBy(self, items, key):
-#         pass
+
+    @staticmethod
+    def push(node):
+        return ElasticManager.push(node)
+
+    @staticmethod
+    def pull(node):
+        return ElasticManager.pull(node)
     
-#     @staticmethod
-#     def push(node):
-#         graph().push(node)
-    
-#     def json(self):
+    def json(self):
         
-#         j = {
-#             'id': self.id,
-#             'created_on': str(self.created_on),
-#             'modified_on': str(self.modified_on),
-#         }
-#         for k, v in self.properties.item():
-#             j.update({k: v})
-#         return j
+        j = {
+            'id': self.id,
+            'created_on': str(self.created_on),
+            'modified_on': str(self.modified_on),
+        }
+        for k, v in self.properties.item():
+            j.update({k: v})
+        return j
 
-# class ElasticDataSource(ElasticNode):
-#     name = None
-#     type = None
-#     url = None
-#     root = None
-#     public = True
-#     prefix = None
-#     active = True
-#     temp = False
+class ElasticDataSource(ElasticNode):
+    name = None
+    type = None
+    url = None
+    root = None
+    public = True
+    prefix = None
+    active = True
+    temp = False
 
-#     #user name and password if authentication is needed for the data source (e.g. hdfs, ftp)
-#     user = None
-#     password = None
+    #user name and password if authentication is needed for the data source (e.g. hdfs, ftp)
+    user = None
+    password = None
     
-#     def __init__(self, **kwargs):
-#         self.name = kwargs.pop('name', None)
-#         self.type = kwargs.pop('type', None)
-#         self.url = kwargs.pop('url', None)
-#         self.public = kwargs.pop('public', True)
-#         self.user = kwargs.pop('user', None)
-#         self.password = kwargs.pop('password', None)
-#         self.prefix = kwargs.pop('prefix', None)
-#         self.active = kwargs.pop('active', True)
-#         self.temp = kwargs.pop('temp', False)
+    def __init__(self, **kwargs):
+        self.name = kwargs.pop('name', None)
+        self.type = kwargs.pop('type', None)
+        self.url = kwargs.pop('url', None)
+        self.public = kwargs.pop('public', True)
+        self.user = kwargs.pop('user', None)
+        self.password = kwargs.pop('password', None)
+        self.prefix = kwargs.pop('prefix', None)
+        self.active = kwargs.pop('active', True)
+        self.temp = kwargs.pop('temp', False)
 
-#         super(ElasticDataSource, self).__init__(**kwargs)
+        super(ElasticDataSource, self).__init__(**kwargs)
 
-#     @staticmethod
-#     def insert_datasources():
-#         try:
-#             datasrc = ElasticDataSource(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
-#             graph().push(datasrc)
-#             basedir = os.path.dirname(os.path.abspath(__file__))
-#             storagedir = os.path.abspath(os.path.join(basedir, '../storage'))
-#             datasrc = ElasticDataSource(name='LocalFS', type='posix', url=storagedir, root='/', public='/public')
-#             graph().push(datasrc)
-#             datasrc = ElasticDataSource(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
-#             graph().push(datasrc)
-#             datasrc = ElasticDataSource(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
-#             graph().push(datasrc)
-#         except Exception as e:
-#             logging.error("Error creating data sources: " + str(e))
-#             raise
+    @staticmethod
+    def insert_datasources():
+        try:
+            datasrc = ElasticDataSource(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
+            Elasticsearch.push(datasrc)
+            basedir = os.path.dirname(os.path.abspath(__file__))
+            storagedir = os.path.abspath(os.path.join(basedir, '../storage'))
+            datasrc = ElasticDataSource(name='LocalFS', type='posix', url=storagedir, root='/', public='/public')
+            Elasticsearch.push(datasrc)
 
-#     def __repr__(self):
-#         return '<DataSourceItem %r>' % self.name
+            datasrc = ElasticDataSource(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
+            Elasticsearch.push(datasrc)
+            
+            datasrc = ElasticDataSource(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
+            Elasticsearch.push(datasrc)
+        except Exception as e:
+            logging.error("Error creating data sources: " + str(e))
+            raise
 
-#     @staticmethod
-#     def get(**kwargs):
-#         return NodeItem.get_with_and(DataSourceItem, **kwargs)
-    
-#     @staticmethod
-#     def has_access_rights(user_id, path, checkRights):
-#         defaultRights = AccessRights.NotSet
-        
-#         if path == os.sep:
-#             defaultRights = AccessRights.Read # we are giving read access to our root folder to all logged in user
+    def __repr__(self):
+        return '<ElasticDataSource %r>' % self.name
 
-#         prefixedDataSources = DataSourceItem.match(graph()).where("_.prefix='{0}' OR _.url = '{1}'".format(path, path))
-#         if list(prefixedDataSources):
-#             defaultRights = AccessRights.Read
-
-#         #cypher = "MATCH(u:UserItem)-[:USERACCESS]->(v:ValueItem) WHERE ID(u)={0} AND v.value= RETURN v"
-
-#         return True
-
+    @staticmethod
+    def get(**kwargs):
+        return ElasticNode.get_with_and(ElasticDataSource, **kwargs)
 
 # class RoleItem(NodeItem):
 #     name = Property("name")

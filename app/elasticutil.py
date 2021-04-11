@@ -95,6 +95,14 @@ class ElasticManager():
 
         if run_items:
             return run_items[0]['_source']
+    
+    @staticmethod
+    def push(json):
+        pass
+    
+    @staticmethod
+    def pull(json):
+        pass
 
 class ElasticNode():
     id = None

@@ -71,27 +71,18 @@ def stop_script(task_id):
     celery.control.revoke(task_id, terminate=True)
 
 def sync_task_status_with_db(runnable):
-    e_runnable = None
     if runnable.celery_id and not runnable.completed:
         celeryTask = run_script.AsyncResult(runnable.celery_id)
         runnable.set_status(celeryTask.state, False)
         
-        if Config.ELASTIC:
-            e_runnable = runnablemanager.get_runnable(runnable.id)
         if celeryTask.state != 'PENDING':
-            err = ""
-            out = ""
             if celeryTask.state != 'FAILURE' and celeryTask.state != 'REVOKED':
-                err = "\n".join(celeryTask.info.get('err'))
-                out = "\n".join(celeryTask.info.get('out'))
+                runnable.out = "\n".join(celeryTask.info.get('out'))
+                runnable.err = "\n".join(celeryTask.info.get('err'))
                 runnable.duration = int(celeryTask.info.get('duration'))
             else:
-                err = str(celeryTask.info)
-            runnablemanager.end_run(runnable, error=err, out=out)
-        else:
-            runnable.update()
-            if e_runnable:
-                e_runnable.update()
+                runnable.err = str(celeryTask.info)
+        runnable.update()
 
     return runnable.status
     

@@ -13,9 +13,9 @@ class DBManager():
         elif current_app.config["DATA_MODE"] == 3:
             self.persistance = ElasticManager()
     def clear(self):
-        self.persistance.clear();
+        self.persistance.clear()
     def close(self):
-        self.persistance.close();
+        self.persistance.close()
 
 
 dbmanager = DBManager()

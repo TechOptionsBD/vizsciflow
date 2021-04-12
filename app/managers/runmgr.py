@@ -126,7 +126,6 @@ class RunnableManager:
             self.manager = ModuleManagerMock()
             
         self.dbmanager = DBModuleManager() if Config.DATA_MODE != 0 else self.manager # we need this line as long as we have pre-provenance data in the rdbms
-#        self.elasticManager = ElasticModuleManager() if Config.ELASTIC else None #It's may not the convinent way, kindly review
 
     def add_module(self, workflow_id, package, function_name):
         return self.manager.add_module(workflow_id, package, function_name)

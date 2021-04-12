@@ -2,14 +2,7 @@ from flask import current_app
 from ..graphutil import GraphManager
 from .sessionmgr import SessionManager
 from ..elasticutil import ElasticManager
-
-class RelationalManager():
-    @staticmethod
-    def clear():
-        pass
-    @staticmethod
-    def close():
-        pass
+from ..models import RelationalManager
 
 class DBManager():
     def __init__(self):

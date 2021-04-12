@@ -116,10 +116,6 @@ class DBModuleManager():
         from ..models import Workflow
         return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.created_on.desc())
     
-    @staticmethod
-    def runnables_of_user(user_id):
-        return ElasticRunnable.load_for_users(user_id)
-
 class RunnableManager:
     def __init__(self):
         if Config.DATA_MODE == 0:

@@ -258,7 +258,8 @@ def deploydb():
     modules = modulemanager.insert_modules(Config.MODULE_DIR)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
-        logging.info(module.package + "." + module.name)
+        package = module.package if module.package else "" # package name is optional
+        logging.info(package + "." + module.name)
 
     # insert modules
     logging.info("Inserting workflows from directory: {0} ...".format(Config.WORKFLOW_DIR))

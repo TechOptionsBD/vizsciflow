@@ -63,6 +63,10 @@ class DBWorkflowManager():
         if access == 2 or access == 3:
             return Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == user_id)).filter(or_(*terms))
 
+    @staticmethod
+    def insert_workflows(path):
+        return Workflow.insert_workflows(path)
+
 class WorkflowManager():
     def __init__(self):
         if Config.DATA_MODE == 0:

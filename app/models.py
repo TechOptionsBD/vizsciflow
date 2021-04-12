@@ -30,6 +30,8 @@ from . import db
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
 from .common import Permission, AccessRights, AccessType, Status, LogType
+from .objectmodel import ObjectModel
+
 from collections import namedtuple
 
 import git
@@ -69,6 +71,22 @@ class AlchemyEncoder(json.JSONEncoder):
     
         return json.JSONEncoder.default(self, obj)
 
+class RelationalManager():
+    @staticmethod
+    def clear():
+        try:
+            Role.query.delete()
+            User.query.delete()
+            Workflow.query.delete()
+
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
+        
+    @staticmethod
+    def close():
+        pass
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
@@ -563,13 +581,25 @@ class Workflow(db.Model):
             raise
     
     @staticmethod
-    def create(access, users, **kwargs):
+    def insert_workflows(path):
+        admin = User.query.filter(User.username=='admin').first()
+        samples = ObjectModel.load_samples_recursive(path)
+        for sample in samples:
+            if isinstance(sample["script"], list):
+                sample["script"] = "\n".join(sample["script"])
+            if admin and "user_id" not in sample:
+                sample["user_id"] = admin.id
+
+        return [Workflow.create(**s) for s in samples]
+
+    @staticmethod
+    def create(**kwargs):
         try:
+            access = int(kwargs.pop('access', 0))
+            users = kwargs.pop('users', None)
             wf = Workflow(**kwargs)
             #name, desc, script, access, users, temp=False, derived = 0, args = None
-            access = int(kwargs['access']) if 'access' in kwargs else 0
-            wf.public = True if access == 0 else False
-            users = int(kwargs['users']) if 'users' in kwargs else None
+            wf.public = (access == 0)
             if users:
                 users = list(users.split(","))
             if (access == AccessType.SHARED and users):
@@ -776,6 +806,31 @@ class Service(db.Model):
     tasks = db.relationship('Task', cascade="all,delete-orphan", backref='service', lazy='dynamic')
 
     @staticmethod
+    def insert_modules(url):
+        try:
+            admin = User.query.filter(User.username == "admin").first()
+            funclist = ObjectModel.load_funcs_recursive_flat(url)
+
+            modules = []
+            for f in funclist:
+                user_id = f.pop("user_id", None)
+                if not user_id and admin:
+                    user_id = admin.id
+
+                # params = f.pop('params', None)
+                module = Service.add(user_id, f, AccessType.PUBLIC, None)
+                modules.append(module)
+                # if params:
+                #     for param in params:
+                #         module.params.add(Param(value = param)
+                
+            db.session.commit()
+            return modules
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    @staticmethod
     def add(user_id, value, access, users):
         try:
             service = Service()
@@ -783,7 +838,6 @@ class Service(db.Model):
             service.value = value
             service.active = True
             service.public = True if access == AccessType.PUBLIC else False
-
                         
             if (access == AccessType.SHARED and users):
                 for user_id in users:
@@ -826,7 +880,8 @@ class Service(db.Model):
     def to_json_info(self):
         json_post = {
             'id': self.id,
-            'user': self.user.username,
+            'user': self.user.username if self.user else "",
+            'package': self.value["package"] if "package" in self.value else "",
             'name': self.value["name"],
             'desc': self.value["desc"]
         }
@@ -923,7 +978,15 @@ class Service(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
-        
+
+    @property
+    def package(self):
+        return self.value["package"]
+    
+    @property
+    def name(self):
+        return self.value["name"]
+
 class ServiceAccess(db.Model):
     __tablename__ = 'serviceaccesses'
     id = db.Column(db.Integer, primary_key=True)

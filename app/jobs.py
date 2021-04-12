@@ -49,7 +49,7 @@ def run_script(self, runnable_id, args):
             prog = parser.parse(runnable.script)
             machine.run(prog)
                             
-        runnableManager.set_status(runnable, Status.SUCCESS, False)
+        runnable.set_status(Status.SUCCESS, False)
     except (ParseException, Exception) as e:
         logging.error(str(e))
         machine.context.err.append(str(e))
@@ -74,10 +74,10 @@ def sync_task_status_with_db(runnable):
     e_runnable = None
     if runnable.celery_id and not runnable.completed:
         celeryTask = run_script.AsyncResult(runnable.celery_id)
-        runnableManager.set_status(runnable, celeryTask.state, False)
+        runnable.set_status(celeryTask.state, False)
         
         if Config.ELASTIC:
-            e_runnable = runnableManager.get_runnable(runnable.id)
+            e_runnable = runnablemanager.get_runnable(runnable.id)
         if celeryTask.state != 'PENDING':
             err = ""
             out = ""
@@ -87,7 +87,7 @@ def sync_task_status_with_db(runnable):
                 runnable.duration = int(celeryTask.info.get('duration'))
             else:
                 err = str(celeryTask.info)
-            runnableManager.end_run(runnable, error=err, out=out)
+            runnablemanager.end_run(runnable, error=err, out=out)
         else:
             runnable.update()
             if e_runnable:

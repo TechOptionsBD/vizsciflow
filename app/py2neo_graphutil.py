@@ -17,6 +17,7 @@ import neotime
 from .common import Status, LogType, AccessRights, Permission
 from dsl.fileop import FolderItem
 from dsl.datatype import DataType
+from .objectmodel import ObjectModel
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, request, url_for
@@ -202,16 +203,13 @@ class DataSourceItem(NodeItem):
     @staticmethod
     def insert_datasources():
         try:
-            datasrc = DataSourceItem(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
-            graph().push(datasrc)
-            basedir = os.path.dirname(os.path.abspath(__file__))
-            storagedir = os.path.abspath(os.path.join(basedir, '../storage'))
-            datasrc = DataSourceItem(name='LocalFS', type='posix', url=storagedir, root='/', public='/public')
-            graph().push(datasrc)
-            datasrc = DataSourceItem(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
-            graph().push(datasrc)
-            datasrc = DataSourceItem(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
-            graph().push(datasrc)
+            datasources = ObjectModel.get_datasources()
+            datasourceitems = []
+            for datasrc in datasources:
+                datasourceitem = DataSourceItem(**datasrc)
+                graph().push(datasourceitem)
+                datasourceitems.append(datasourceitem)
+            return datasourceitems
         except Exception as e:
             logging.error("Error creating data sources: " + str(e))
             raise
@@ -571,10 +569,7 @@ class ModuleItem(NodeItem):
     @staticmethod
     def insert_modules(url):
         admin = UserItem.first(username = "admin")
-        funcs = ModuleItem.load_funcs_recursive(url)
-        funclist = []
-        for f in funcs.values():
-            funclist.extend(f)
+        funclist = ObjectModel.load_funcs_recursive_flat(url)
 
         modules = []
         for f in funclist:
@@ -599,89 +594,6 @@ class ModuleItem(NodeItem):
             
         return modules
 
-    
-    @staticmethod
-    def load_funcs_recursive(library_def_file):
-        if os.path.isfile(library_def_file):
-            return ModuleItem.load_funcs(library_def_file)
-        
-        all_funcs = {}
-        for f in os.listdir(library_def_file):
-            funcs = ModuleItem.load_funcs_recursive(os.path.join(library_def_file, f))
-            for k,v in funcs.items():
-                if k in all_funcs:
-                    all_funcs[k].extend(v)
-                else:
-                    all_funcs[k] = v if isinstance(v, list) else [v]
-        return all_funcs
-       
-    @staticmethod
-    def load_funcs(library_def_file):
-        funcs = {}
-        try:
-            if not os.path.isfile(library_def_file) or not library_def_file.endswith(".json"):
-                return funcs
-            
-            with open(library_def_file, 'r') as json_data:
-                d = json.load(json_data)
-                libraries = d["functions"]
-                libraries = sorted(libraries, key = lambda k : k['package'].lower())
-                for f in libraries:
-                    org = f["org"] if f.get("org") else ""
-                    name = f["name"] if f.get("name") else f["internal"]
-                    internal = f["internal"] if f.get("internal") else f["name"]
-                    module = f["module"] if f.get("module") else None
-                    package = f["package"] if f.get("package") else ""
-                    example = f["example"] if f.get("example") else ""
-                    desc = f["desc"] if f.get("desc") else ""
-                    #runmode = f["runmode"] if f.get("runmode") else ""
-                    #level = int(f["level"]) if f.get("level") else 0
-                    group = f["group"] if f.get("group") else ""
-                    href = f["href"] if f.get("href") else ""
-                    public = bool(f["public"]) if f.get("public") else True
-
-                    params = []
-                    if f.get("params"):
-                        for p in f["params"]:
-                            pname = p["name"] if p.get("name") else ""
-                            pvalue = p["value"] if p.get("value") else ""
-                            ptype = p["type"] if p.get("type") else ""
-                            pdesc = p["desc"] if p.get("desc") else ""
-                            params.append({"name": pname, "value": pvalue, "desc": pdesc, "type": ptype})
-                            
-                    returns = []
-                    if f.get("returns"):
-                        rs = f["returns"]
-                        if not isinstance(rs, list):
-                            rs = [rs]
-
-                        for p in rs:
-                            pname = p["name"] if p.get("name") else ""
-                            ptype = p["type"] if p.get("type") else ""
-                            pdesc = p["desc"] if p.get("desc") else ""
-                            returns.append({"name": pname, "desc": pdesc, "type": ptype})
-
-                    func = {
-                        "org": org,
-                        "name": name, 
-                        "internal": internal,
-                        "package":package, 
-                        "module": module,
-                        "params": params, 
-                        "example": example,
-                        "desc": desc,
-                        #"runmode": runmode,
-                        #"level": level, 
-                        "group": group,
-                        "returns": returns,
-                        "public": public
-                        }
-                    if name.lower() in funcs:
-                        funcs[name.lower()].extend([func])
-                    else:
-                        funcs[name.lower()] = [func]
-        finally:
-            return funcs
     
     def func_to_internal_name(self, funcname):
         for f in self.funcs:
@@ -840,47 +752,17 @@ class WorkflowItem(NodeItem):
     def get(**kwargs):
         return NodeItem.get_with_and(WorkflowItem, **kwargs)
 
-
     @staticmethod
     def insert_workflows(path):
         admin = UserItem.first(username='admin')
-        samples = WorkflowItem.load_samples_recursive(path)
+        samples = ObjectModel.load_samples_recursive(path)
         for sample in samples:
-            if not "script" in sample:
-                logging.error("No script found in workflow {0}".format(sample["name"]))
-
             if isinstance(sample["script"], list):
                 sample["script"] = "\n".join(sample["script"])
             if admin and "user_id" not in sample:
                 sample["user_id"] = admin.id
 
         return [WorkflowItem.Create(**s) for s in samples]
-    
-    @staticmethod
-    def load_samples_recursive(library_def_file):
-
-        if os.path.isfile(library_def_file):
-            try:
-                return WorkflowItem.load_samples(library_def_file)
-            except:
-                return []
-        
-        all_samples = []
-        for f in os.listdir(library_def_file):
-            all_samples.extend(WorkflowItem.load_samples_recursive(os.path.join(library_def_file, f)))
-        return all_samples
-       
-    @staticmethod
-    def load_samples(sample_def_file):
-        samples = []
-        if os.path.isfile(sample_def_file) and sample_def_file.endswith(".json"):
-            with open(sample_def_file, 'r') as json_data:
-                ds = json.load(json_data)
-                if ds.get("workflows"):
-                    samples.extend(ds["workflows"])
-                else:
-                    samples.append(ds)
-        return samples
 
 class DataItem(NodeItem):
     name = Property("name", "")

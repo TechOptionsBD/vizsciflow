@@ -106,6 +106,10 @@ class DBModuleManager():
     def check_access(serviced_id):
         return ServiceAccess.check(serviced_id)
 
+    @staticmethod
+    def insert_modules(url):
+        return Service.insert_modules(url)
+
 class ModuleManager():
     def __init__(self):
         if Config.DATA_MODE == 0:

@@ -625,8 +625,7 @@ class WorkflowItem(NodeItem):
     owners = RelatedFrom("UserItem", "OWNERWORKFLOW")
     useraccesses = RelatedFrom("UserItem", "WORKFLOWACCESS")
     runs = RelatedTo("RunnableItem", "WORKFLOWRUN")
-    symbols = RelatedTo("ValueItem", "SYMBOL")
-    modules = RelatedTo("ModuleInvocationItem", "MODULEINVOCATION")
+    modules = RelatedTo("ModuleItem", "WORKFLOWMODULE")
     params = RelatedTo("DataPropertyItem", "PARAM", "id(b)")
     
     def __init__(self, **kwargs):
@@ -1148,7 +1147,8 @@ class RunnableItem(NodeItem): #number1
         }
         
 class ModuleInvocationItem(NodeItem):
-    runs = RelatedFrom(RunnableItem, "RUN2INVOC")
+    runs = RelatedFrom(RunnableItem, "MODULEINVOCATION")
+    
     inputs = RelatedFrom(ValueItem, "INPUT")
     outputs = RelatedTo(ValueItem, "OUTPUT")
     logs = RelatedTo("TaskLogItem", "INVOCLOG", "id(b)")

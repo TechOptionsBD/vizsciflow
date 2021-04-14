@@ -2465,8 +2465,11 @@
 				exmplReturns().forEach(function (retrn){
 					exmpl += retrn.value + ','
 				});
-				exmpl = exmpl.substring(0, exmpl.length - 1);
-				exmpl += " = " + content.package + '.' + content.name + '(';
+				if(exmplReturns().length > 0){
+					exmpl = exmpl.substring(0, exmpl.length - 1);
+					exmpl += " = "
+				}
+				exmpl += content.package + '.' + content.name + '(';
 				// exmplParams().forEach(function (param){
 				// 	if(param.id == "param "+ ++paramNo+" outdir"){
 				// 		exmpl = exmpl.substring(0, exmpl.length - 1);
@@ -2488,7 +2491,7 @@
 				var pos = editor.selection.getCursor();             
 				editor.session.insert(pos, exmpl + "\r\n");
 				editor.focus();
-             }
+            }
          });
 	};
 
@@ -2530,10 +2533,19 @@
 
 						if(Array.isArray(content.params)){
 							content.params.forEach(function (param){
-								exmplParams().push({
-									id: 'param ' + ++paramNo,
-									value: param.name
-								});
+								if (param.default !== undefined) {
+									exmplParams().push({
+										id: 'param ' + ++paramNo,
+										value: param.name,
+										default: param.default
+									});
+								}
+								else{
+									exmplParams().push({
+										id: 'param ' + ++paramNo,
+										value: param.name
+									});
+								}
 								// if(param.name == "outdir"){
 								// 	exmplParams().push({
 								// 	id: 'param '+ ++paramNo +' outdir',
@@ -2543,10 +2555,19 @@
 							});
 						}
 						else{
-							exmplParams().push({
-								id: 'param ' + ++paramNo,
-								value: content.params
-							});
+							if (param.default !== undefined) {
+								exmplParams().push({
+									id: 'param ' + ++paramNo,
+									value: content.params,
+									default: content.default
+								});
+							}
+							else{
+								exmplParams().push({
+									id: 'param ' + ++paramNo,
+									value: content.params
+								});
+							}
 						}
 					}
              	}

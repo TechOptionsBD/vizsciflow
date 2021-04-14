@@ -332,6 +332,10 @@ $(document).ready(function () {
         toggleProvView(e.currentTarget.value);
     });
     
+    $('#add').on('hidden.bs.modal', function (){
+        $('#userSelection').val([]).multiselect('refresh')
+    })
+
     // $("#btnfilterClose").click(function () {  
     //     $("#btnfilterToggle").trigger('click');
     // });

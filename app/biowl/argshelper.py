@@ -25,7 +25,7 @@ def get_input_from_args(paramindex, keyname, *args, **kwargs):
     
     return paramindex, barcode
 
-def get_optiona_input_from_args(paramindex, keyname, *args, **kwargs):
+def get_optional_input_from_args(paramindex, keyname, *args, **kwargs):
     
     barcode = ''
     if keyname in kwargs.keys():
@@ -39,7 +39,7 @@ def get_optiona_input_from_args(paramindex, keyname, *args, **kwargs):
 
 def get_optional_posix_data_args(paramindex, keyname, context, *args, **kwargs):
     
-    paramindex, data = get_optiona_input_from_args(paramindex, keyname, *args, **kwargs)
+    paramindex, data = get_optional_input_from_args(paramindex, keyname, *args, **kwargs)
     if not data:
         return paramindex, data, None
     

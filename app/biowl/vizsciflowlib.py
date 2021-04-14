@@ -120,19 +120,21 @@ class Library(LibraryBase):
                         provcls = Data(*arguments, **kwargs)
                     #provcls = getattr(".dsl.provobj", registry[function])
                     #return provcls(*arguments, **kwargs)
-                    return provcls 
-                func = modulemanager.get_module_by_name_package(function, package)
-
-                module_obj = load_module(func.module)
-                function = getattr(module_obj, func.internal)
+                    return provcls
                 
-                storeArguments = list(arguments)
-                for _, v in kwargs.items():
-                    storeArguments.append(v)
+                func = modulemanager.get_module_by_name_package(function, package)
+                if not func.module:
+                    Library.StoreArguments(context, task, func, arguments, **kwargs)
+                    if function.lower() == "extract":
+                        result = Library.Extract(func, context, *args, **kwargs)
+                else:
+                    module_obj = load_module(func.module)
+                    function = getattr(module_obj, func.internal)
                     
-                datamanager.StoreArgumentes(context.user_id, task, list(func.params) if func.params else [], storeArguments)
-                result = function(context, *arguments, **kwargs)
-                result = Library.add_meta_data(list(func.returns) if iterable(func.returns) else [func.returns], result, task)
+                    Library.StoreArguments(context, task, func, arguments, **kwargs)
+                    
+                    result = function(context, *arguments, **kwargs)
+                    result = Library.add_meta_data(list(func.returns) if iterable(func.returns) else [func.returns], result, task)
                 
                 task.succeeded()
                 
@@ -143,14 +145,69 @@ class Library(LibraryBase):
                     if iterable(func.returns) and len(list(func.returns)) > 1:
                         return result if isinstance(result, tuple) else (result,)
                     else:
-                        return result[0]
+                        return result
                     
                 return result if len(result) > 1 else result[0]
         except Exception as e:
             if task:
                 task.failed(str(e))
             raise
-        
+
+    @staticmethod
+    def StoreArguments(context, task, func, arguments, **kwargs):
+        storeArguments = list(arguments)
+        for _, v in kwargs.items():
+            storeArguments.append(v)
+            
+        datamanager.StoreArgumentes(context.user_id, task, list(func.params) if func.params else [], storeArguments)
+
+    @staticmethod
+    def Extract(func, context, *args, **kwargs):
+        import os
+        import uuid
+        from os import path
+        from app.biowl.argshelper import get_optional_input_from_args, get_posix_data_args
+
+        paramindex, data, fs = get_posix_data_args(0, 'data', context, *args, **kwargs)
+        paramindex, lines = get_optional_input_from_args(paramindex, 'lines', *args, **kwargs)
+        paramindex, start = get_optional_input_from_args(paramindex, 'start', *args, **kwargs)
+
+        # default values, get from func.params  TODO
+        lines = int(lines) if lines else 10
+        start = int(start) if start else 0
+
+        outpath = path.join(path.dirname(path.dirname(path.dirname(__file__))), 'storage/output', str(context.task_id))
+        if not os.path.exists(outpath):
+            os.makedirs(outpath)
+
+        outpath = path.join(outpath, str(uuid.uuid4()))
+        with open(data, 'rt') as srcfile:
+            if lines < 0:
+                start = lines
+                while next(srcfile, -1) == -1:
+                    start += 1
+                lines = abs(lines)
+                if start < 0:
+                    lines += start
+                    start = 0
+                    
+            srcfile.seek(0)
+            for _ in range(start):
+                next(srcfile)
+            with open(outpath, 'w') as outfile:
+                for _ in range(start, lines):
+                    value= next(srcfile, -1)
+                    if value == -1:
+                        break
+                    outfile.write(value)
+                      
+
+        stripped_html_path = fs.strip_root(outpath)
+        if not fs.exists(outpath):
+            raise ValueError("Extract could not generate the file " + stripped_html_path)
+
+        return FolderItem(outpath)
+
     @staticmethod
     def GetDataAndTypeFromFunc(returns, result = None):
         if not result:

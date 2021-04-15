@@ -891,8 +891,11 @@ function TasksViewModel() {
         retrns.forEach(function (retrn){
             exmpl += retrn.value + ','
         });
-        exmpl = exmpl.substring(0, exmpl.length - 1);
-        exmpl += " = " + item.package() + '.' + item.name() + '(';
+        if(retrns.length > 0){
+            exmpl = exmpl.substring(0, exmpl.length - 1);
+            exmpl += " = " 
+        }
+        exmpl += item.package() + '.' + item.name() + '(';
         params.forEach(function (param){
             exmpl += param.value + ','
         });
@@ -1025,20 +1028,23 @@ function TasksViewModel() {
                                 tooltip = "<div class=\'expandedtask\'> <p>Name: " + content.name + (content.package && content.package.length ? "<br>Package: " + content.package : "") + "<br>Access: " + content.access + "</p>"
                                 if (content.package && content.name && content.params && content.returns) {
                                     exmplDOM = '', retrnNo = 0, paramNo = 0;
-                                    
+
                                     if(Array.isArray(content.returns)){
                                         content.returns.forEach(function (retrn){
                                             retrnNo++;
                                             exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retrn.name + "\'> , ";                                            
                                         });
+                                        if(content.returns.length > 0){
+                                            exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
+                                            exmplDOM += " = "
+                                        }
                                     }
                                     else{
                                         retrnNo++;
 										var retname = content.returns.constructor == Object ? content.returns.name : content.returns;
                                         exmplDOM += "<input onkeyup = \"editParam(this);\" onkeydown = \"return editBoxSize(this);\" class = 'form-control inputBox' type=\'text\' id=\'return " + retrnNo + "\' name=\"Return\" value=\'" + retname + "\'> , ";
                                     }
-                                    exmplDOM = exmplDOM.substring(0, exmplDOM.length - 2);
-                                    exmplDOM += " = " + content.package + '.' + content.name + '( ';
+                                    exmplDOM += content.package + '.' + content.name + '( ';
 
                                     if(Array.isArray(content.params)){
                                         content.params.forEach(function (param){

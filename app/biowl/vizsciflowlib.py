@@ -43,8 +43,7 @@ class Library(LibraryBase):
     def is_module(name, package = None):
         return not package and name.lower() == "addmodule"
     
-    @staticmethod
-    def check_function(name, package = None):
+    def check_function(self, name, package = None):
         if not package:
             namelower = name.lower()
             if namelower == "addmodule" or namelower=="user" or namelower=="workflow" or namelower=="run" or namelower=="module" or namelower=="data":
@@ -76,8 +75,7 @@ class Library(LibraryBase):
         
         return result
     
-    @staticmethod
-    def call_func(context, package, function, args):
+    def call_func(self, context, package, function, args):
         '''
         Call a function from a module.
         :param context: The context for output and error

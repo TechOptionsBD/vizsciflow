@@ -1,14 +1,17 @@
 import os
 import sys
+import json
 import logging
 
 from config import Config
 from flask import g
+from flask import current_app
 
 import psutil
 from datetime import datetime
 
 from .models import Status, Workflow, LogType, AccessRights, DataType, User
+from werkzeug.security import generate_password_hash, check_password_hash
 from dsl.fileop import FolderItem
 
 from elasticsearch import Elasticsearch
@@ -28,8 +31,8 @@ class ElasticManager():
             try:
                 if "." not in _index: # avoid deleting indexes like `.kibana`
                     # if _index == 'datasets':# delete index as needed
+                    # es.delete_by_query(index=_index, body={"query": {"match_all": {}}})
                     es.indices.delete(index=_index)
-                    print ("Successfully deleted:", _index)
             except Exception as error:
                 print ('indices.delete error:', error, 'for index:', _index)
 
@@ -37,6 +40,13 @@ class ElasticManager():
     # def create_user_index():
     #     index = 'users'
     #     es.indices.create(index)
+
+    @staticmethod
+    def add_to_es_index_without_id(index, model):
+        payload = {}
+        for field in model.__search__:
+            payload[field] = getattr(model, field)
+        doc = es.index(index=index, body=payload)
     
     @staticmethod
     def update_doc(index, runnable):
@@ -97,8 +107,24 @@ class ElasticManager():
             return run_items[0]['_source']
     
     @staticmethod
-    def push(json):
-        pass
+    def push(cls_):
+        payload = {}
+        _id = 0
+        index = ""
+        for field in cls_.__search__:
+            if field == 'level':
+                index = getattr(cls_, field)
+                print(index)
+            else:
+                payload[field] = getattr(cls_, field)
+        try:
+            result = es.count(index = index)
+            _id = int(result['count']) + 1
+        except:
+            _id = 1
+        payload['id'] = _id
+
+        doc = es.index(index=index, id = _id, body=payload, refresh= True)
     
     @staticmethod
     def pull(json):
@@ -121,20 +147,26 @@ class ElasticNode():
     @staticmethod
     def get_with_and(cls_, **kwargs):
         # return items with id directly
+        index = cls_.level if cls_.level else kwargs['level']
+        search = None
         id = kwargs.pop('id', None)
         if id:
-            return cls_.match(graph(), int(id))
-        #query with other attributes
-        query = ""
-        for k in kwargs:
-            if query:
-                query += " AND"
-            if isinstance(kwargs[k], str):
-                query += " _.{0}='{1}'".format(k, kwargs[k])
-            else:
-                query += " _.{0}={1}".format(k, kwargs[k])
+            search = es.search(index = index, body = {'query': {'match': {'id': id}}})
+        if search == None or search['hits']['hits'] == []:
+            query_list = []
+            for k in kwargs: 
+                if isinstance(kwargs[k], str):
+                    if k != 'level':
+                        query_list.append({'match' : {str(k):kwargs[k]}})
+                else:
+                    if k != 'level':
+                        query_list.append({'match' : {str(k):kwargs[k]}})
 
-        return ElasticManager.get(query)
+            search = es.search(index = index, body = {"query": {"bool": {"should": query_list}}})
+
+        items = [cls_.load(hit['_source']) for hit in search['hits']['hits']]#int(hit['_id']) 
+        
+        return items
     
     @staticmethod
     def get_with_or(cls_, **kwargs):
@@ -177,6 +209,8 @@ class ElasticNode():
         return j
 
 class ElasticDataSource(ElasticNode):
+    __search__= ['level', 'name', 'type', 'url', 'root', 'public', 'prefix', 'active', 'temp', 'user', 'password']
+    level = None
     name = None
     type = None
     url = None
@@ -191,6 +225,7 @@ class ElasticDataSource(ElasticNode):
     password = None
     
     def __init__(self, **kwargs):
+        self.level = kwargs.pop('level', None)
         self.name = kwargs.pop('name', None)
         self.type = kwargs.pop('type', None)
         self.url = kwargs.pop('url', None)
@@ -206,18 +241,24 @@ class ElasticDataSource(ElasticNode):
     @staticmethod
     def insert_datasources():
         try:
-            datasrc = ElasticDataSource(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
-            Elasticsearch.push(datasrc)
+            datasrc = ElasticDataSource(level = 'datasources', name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
+            ElasticNode.push(datasrc)
+            # Elasticsearch.push(datasrc)
+
             basedir = os.path.dirname(os.path.abspath(__file__))
             storagedir = os.path.abspath(os.path.join(basedir, '../storage'))
-            datasrc = ElasticDataSource(name='LocalFS', type='posix', url=storagedir, root='/', public='/public')
-            Elasticsearch.push(datasrc)
+            datasrc = ElasticDataSource(level = 'datasources', name='LocalFS', type='posix', url=storagedir, root='/', public='/public')
+            ElasticNode.push(datasrc)
+            # Elasticsearch.push(datasrc)
 
-            datasrc = ElasticDataSource(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
-            Elasticsearch.push(datasrc)
-            
-            datasrc = ElasticDataSource(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
-            Elasticsearch.push(datasrc)
+            datasrc = ElasticDataSource(level = 'datasources', name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
+            ElasticNode.push(datasrc)
+            # Elasticsearch.push(datasrc)
+
+            datasrc = ElasticDataSource(level = 'datasources', name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
+            ElasticNode.push(datasrc)
+            # Elasticsearch.push(datasrc)
+
         except Exception as e:
             logging.error("Error creating data sources: " + str(e))
             raise
@@ -229,211 +270,227 @@ class ElasticDataSource(ElasticNode):
     def get(**kwargs):
         return ElasticNode.get_with_and(ElasticDataSource, **kwargs)
 
-# class RoleItem(NodeItem):
-#     name = Property("name")
-#     default = Property("default", False)
-#     permissions = Property("permissions")
+class ElasticRoleItem(ElasticNode):
+    __search__= ['level', 'name', 'default', 'permissions']
+    level = None
+    name = None
+    default = None
+    permissions = None
 
-#     users = RelatedTo("UserItem", "ROLEUSER")
+    # users = RelatedTo("ElasticUserItem", "ROLEUSER")
 
-#     def __init__(self, **kwargs):
-#         self.name = kwargs.pop('name', None)
-#         self.default = kwargs.pop('default', False)
-#         self.permissions = kwargs.pop('permissions', 0x00)
-#         super(RoleItem, self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        self.level = kwargs.pop('level', None)
+        self.name = kwargs.pop('name', None)
+        self.default = kwargs.pop('default', False)
+        self.permissions = kwargs.pop('permissions', 0x00)
+        super(ElasticRoleItem, self).__init__(**kwargs)
 
-#     @staticmethod
-#     def get(**kwargs):
-#         return NodeItem.get_with_and(RoleItem, **kwargs)
+    @staticmethod
+    def get(**kwargs):
+        return ElasticNode.get_with_and(ElasticRoleItem, **kwargs)
 
-#     @staticmethod
-#     def insert_roles():
-#         roles = {
-#             'User': (Permission.FOLLOW |
-#                      Permission.COMMENT |
-#                      Permission.WRITE_ARTICLES |
-#                      Permission.WRITE_WORKFLOWS, True),
-#             'Moderator': (Permission.FOLLOW |
-#                           Permission.COMMENT |
-#                           Permission.WRITE_ARTICLES |
-#                           Permission.WRITE_WORKFLOWS |
-#                           Permission.MODERATE_COMMENTS |
-#                           Permission.MODERATE_WORKFLOWS, False),
-#             'Administrator': (0xff, False)
-#         }
-#         try:
-#             for r in roles:
-#                 role = RoleItem.get(name=r).first()
-#                 if role is None:
-#                     role = RoleItem(name=r)
-#                 role.permissions = roles[r][0]
-#                 role.default = roles[r][1]
-#                 graph().push(role)            
-#         except:
-#             logging.error("Error creating default roles")
-#             raise
+    @staticmethod
+    def insert_roles():
+        roles = {
+            'User': (Permission.FOLLOW |
+                     Permission.COMMENT |
+                     Permission.WRITE_ARTICLES |
+                     Permission.WRITE_WORKFLOWS, True),
+            'Moderator': (Permission.FOLLOW |
+                          Permission.COMMENT |
+                          Permission.WRITE_ARTICLES |
+                          Permission.WRITE_WORKFLOWS |
+                          Permission.MODERATE_COMMENTS |
+                          Permission.MODERATE_WORKFLOWS, False),
+            'Administrator': (0xff, False)
+        }
+        try:
+            for r in roles:
+                role = None
+                if es.indices.exists(index='roles'):
+                    role = ElasticRoleItem.get(name=r)
+                if role is None or role == []:
+                    role = ElasticRoleItem(level = 'roles', name=r, permissions= roles[r][0], default = roles[r][1])
+                ElasticNode.push(role)         
+        except:
+            logging.error("Error creating default roles")
+            raise
 
-#     def __repr__(self):
-#         return '<Role %r>' % self.name
+    def __repr__(self):
+        return '<Role %r>' % self.name
 
-# class UserItem(NodeItem, UserMixin):    
-#     email = Property("email")
-#     username = Property("username")    
-#     password_hash = Property("password_hash")
-#     confirmed = Property("confirmed", True)
-#     name = Property("name")
-#     location = Property("location")
-#     about_me = Property("about_me")
-#     member_since = Property("member_since")
-#     last_seen = Property("last_seen")
-#     avatar_hash = Property("avatar_hash")
-#     oid = Property("oid")
+class ElasticUserItem(ElasticNode): 
+    __search__= ['level', 'email', 'username', 'password_hash', 'confirmed', 'name', 'location', 'about_me', 'member_since', 
+                'last_seen', 'avatar_hash', 'oid', 'role_id']   
+    level = None
+    email = None
+    username = None
+    password_hash = None
+    confirmed = None
+    name = None
+    location = None
+    about_me = None
+    member_since = None
+    last_seen = None
+    avatar_hash = None
+    oid = None
+    role_id = None
     
-#     runs = RelatedTo("RunnableItem", "USERRUN")
-#     workflows = RelatedTo("WorkflowItem", "OWNERWORKFLOW")
-#     datasets = RelatedTo("ValueItem", "USERACCESS")
-#     modules = RelatedTo("ModuleItem", "USERMODULE")
-#     roles = RelatedFrom("RoleItem", "ROLEUSER")
-#     moduleaccesses = RelatedTo("ModuleItem", "MODULEACCESS")
-#     workflowaccesses = RelatedTo("WorkflowItem", "WORKFLOWACCESS")
+    # runs = RelatedTo("RunnableItem", "USERRUN")
+    # workflows = RelatedTo("WorkflowItem", "OWNERWORKFLOW")
+    # datasets = RelatedTo("ValueItem", "USERACCESS")
+    # modules = RelatedTo("ModuleItem", "USERMODULE")
+    # roles = RelatedFrom("ElasticRoleItem", "ROLEUSER")
+    # moduleaccesses = RelatedTo("ModuleItem", "MODULEACCESS")
+    # workflowaccesses = RelatedTo("WorkflowItem", "WORKFLOWACCESS")
 
-#     def __init__(self, **kwargs):
-#         self.email = kwargs.pop('email', None)
-#         self.username = kwargs.pop('username', None)
-#         self.confirmed = kwargs.pop('confirmed', True)
-#         self.location = kwargs.pop('location', None)
-#         self.about_me = kwargs.pop('about_me', None)
-#         self.member_since = kwargs.pop('member_since', neotime.DateTime.utc_now())
-#         self.last_seen = kwargs.pop('last_seen', neotime.DateTime.utc_now())
-#         self.avatar_hash = kwargs.pop('avatar_hash', None)
-#         self.oid = kwargs.pop('oid', 0)
+    def __init__(self, **kwargs):
+        self.level = kwargs.pop('level', None)
+        self.email = kwargs.pop('email', None)
+        self.username = kwargs.pop('username', None)
+        self.confirmed = kwargs.pop('confirmed', True)
+        self.location = kwargs.pop('location', None)
+        self.about_me = kwargs.pop('about_me', None)
+        self.member_since = kwargs.pop('member_since', datetime.now())
+        self.last_seen = kwargs.pop('last_seen', datetime.now())
+        self.avatar_hash = kwargs.pop('avatar_hash', None)
+        self.oid = kwargs.pop('oid', 0)
+        self.role_id = kwargs.pop('role_id', None)
 
-#         self.password_hash = kwargs.pop('password_hash', None)
-#         if not self.password_hash:
-#             self.password = kwargs.pop('password', None)
+        self.password_hash = kwargs.pop('password_hash', None)
+        if not self.password_hash:
+            self.password = kwargs.pop('password', None)
 
-#         if self.email is not None and self.avatar_hash is None:
-#             self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        # if self.email is not None and self.avatar_hash is None:
+        #     self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
-#         super(UserItem, self).__init__(**kwargs)
+        super(ElasticUserItem, self).__init__(**kwargs)
 
-#     def gravatar(self, size=100, default='identicon', rating='g'):
-#         if request.is_secure:
-#             url = 'https://secure.gravatar.com/avatar'
-#         else:
-#             url = 'http://www.gravatar.com/avatar'
+
+    def gravatar(self, size=100, default='identicon', rating='g'):
+        if request.is_secure:
+            url = 'https://secure.gravatar.com/avatar'
+        else:
+            url = 'http://www.gravatar.com/avatar'
         
-#         hash = None
-#         if self.email:
-#             hash = self.avatar_hash or hashlib.md5(
-#                 self.email.encode('utf-8')).hexdigest()
+        hash = None
+        if self.email:
+            hash = self.avatar_hash or hashlib.md5(
+                self.email.encode('utf-8')).hexdigest()
 
-#         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
-#             url=url, hash=hash, size=size, default=default, rating=rating)
+        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
+            url=url, hash=hash, size=size, default=default, rating=rating)
 
-#     @property
-#     def role(self):
-#         return list(self.roles)[0]
+    @property
+    def role(self):
+        return list(self.roles)[0]
 
-#     @property
-#     def password(self):
-#         raise AttributeError('password is not a readable attribute')
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
 
-#     @password.setter
-#     def password(self, password):
-#         self.password_hash = generate_password_hash(password) if password else None
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password) if password else None
 
-#     def verify_password(self, password):
-#         return check_password_hash(self.password_hash, password)
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
-#     def verify_and_update_password(self, oldpassword, password):
-#         if not check_password_hash(self.password_hash, oldpassword):
-#             return False
-#         self.password = password
-#         graph.push(self)
-#         return True
+    def verify_and_update_password(self, oldpassword, password):
+        if not check_password_hash(self.password_hash, oldpassword):
+            return False
+        self.password = password
+        graph.push(self)
+        return True
 
-#     @staticmethod
-#     def first(**kwargs):
-#         return UserItem.get(**kwargs).first()
+    @staticmethod
+    def first(**kwargs):
+        return ElasticUserItem.get(**kwargs)[0]
 
-#     @staticmethod
-#     def get(**kwargs):
-#         return NodeItem.get_with_and(UserItem, **kwargs)
+        # list_item = list(item[0].values())
+        # args = list_item[0]
+        # test = DictToObj(**args)
+        # return test#bunchify(list_item[0])
 
-#     @staticmethod
-#     def load(user_id):
-#         if user_id:
-#             return UserItem.first(id=user_id)
-#         else: # this will be very resource-intensive. never call it.
-#             return list(UserItem.match(graph()).limit(sys.maxsize))
+    @staticmethod
+    def get(**kwargs):
+        return ElasticNode.get_with_and(ElasticUserItem, **kwargs)
 
-#     # @staticmethod
-#     # def Create(user_id):
-#     #     user = UserItem(User.query.get(user_id).username)
-#     #     user.user_id = user_id
-#     #     return user
+    @staticmethod
+    def load(es_item):
+
+        return ElasticUserItem(**es_item)
+
+    # @staticmethod
+    # def Create(user_id):
+    #     user = UserItem(User.query.get(user_id).username)
+    #     user.user_id = user_id
+    #     return user
     
-#     @staticmethod
-#     def Create(**kwargs):
-#         user = UserItem(**kwargs)
-        
-#         graph().push(user)
-        
-#         role = None
-#         if user.email == current_app.config['PHENOPROC_ADMIN']:
-#             role = RoleItem.get(permissions=0xff).first()
-#             role.users.add(user)
-#         if role is None:
-#             role = RoleItem.get(default=True).first()
-#             role.users.add(user)
-#         if role:
-#             user.roles.add(role)
+    @staticmethod
+    def Create(**kwargs):
+        user = ElasticUserItem(**kwargs)
+        user.level = 'users'
+        role = None
+        if user.email == current_app.config['PHENOPROC_ADMIN']:
+            role = ElasticRoleItem.get(permissions=0xff)
+            # list_role = list(role[0].keys())
+            # user.role_id = list_role[0]
+            ElasticNode.push(user)
+        elif role is None:
+            role = ElasticRoleItem.get(default=True)
+            # list_role = list(role[0].keys())
+            # user.role_id = list_role[0]
+            ElasticNode.push(user)
+
+        elif role:
+            # list_role = list(role[0].keys())
+            # user.role_id = list_role[0]
+            ElasticNode.push(user)
             
-#         if user.email is not None and user.avatar_hash is None:
-#             user.avatar_hash = hashlib.md5(user.email.encode('utf-8')).hexdigest()
+        # if user.email is not None and user.avatar_hash is None:
+        #     user.avatar_hash = hashlib.md5(user.email.encode('utf-8')).hexdigest()
 
-#         graph().push(role)
-        
-#         return user
+        return user
             
-#     @property
-#     def Runs(self):
-#         return list(self.runs)
+    @property
+    def Runs(self):
+        return list(self.runs)
     
-#     @property
-#     def Workflows(self):
-#         return list(self.workflows)
+    @property
+    def Workflows(self):
+        return list(self.workflows)
     
-#     def ping(self):
-#         self.last_seen = neotime.DateTime.utc_now()
-#         graph().push(self)
+    def ping(self):
+        self.last_seen = neotime.DateTime.utc_now()
+        graph().push(self)
     
-#     def can(self, permissions):
-#         return self.role is not None and \
-#             self.role.permissions is not None and \
-#             (self.role.permissions & permissions) == permissions
+    def can(self, permissions):
+        return self.role is not None and \
+            self.role.permissions is not None and \
+            (self.role.permissions & permissions) == permissions
 
-#     def is_administrator(self):
-#         return self.can(Permission.ADMINISTER)
+    def is_administrator(self):
+        return self.can(Permission.ADMINISTER)
     
-#     def add_module(self, module_id, access):
-#         module = ModuleItem.get(id=module_id).first()
-#         self.modules.add(module)
+    def add_module(self, module_id, access):
+        module = ModuleItem.get(id=module_id).first()
+        self.modules.add(module)
     
-#     def add_modules_access(self, function, package, access):
-#         modules = ModuleItem.get(name=function, package=package)
-#         for module in modules:
-#             self.modules.add(module)
+    def add_modules_access(self, function, package, access):
+        modules = ModuleItem.get(name=function, package=package)
+        for module in modules:
+            self.modules.add(module)
 
-#     @staticmethod
-#     def get_other_users_with_entities(id, *args):
-#         argstr = ",.".join(args)
-#         users = graph().run("MATCH(u:UserItem) WHERE ID(u)!={0} RETURN u{.{1}}".format(id, argstr))
-#         nodes = []
-#         for node in iter(users):
-#             #yield node['n']
-#             nodes.append(node['n'])
+    @staticmethod
+    def get_other_users_with_entities(id, *args):
+        argstr = ",.".join(args)
+        users = graph().run("MATCH(u:UserItem) WHERE ID(u)!={0} RETURN u{.{1}}".format(id, argstr))
+        nodes = []
+        for node in iter(users):
+            #yield node['n']
+            nodes.append(node['n'])
 
 
 
@@ -450,7 +507,7 @@ class ElasticDataSource(ElasticNode):
 #     _provenance = False
 #     _error = ""
 #     # _modules = RelatedTo("ElasticModule", "MODULE", "id(b)")
-#     # users = RelatedFrom(UserItem, "USERRUN")
+#     # users = RelatedFrom(ElasticUserItem, "USERRUN")
 #     # workflows = RelatedFrom(WorkflowItem, "WORKFLOWRUN")
     
 #     # cpu_init = Property("cpu_init", psutil.cpu_percent())
@@ -543,7 +600,7 @@ class ElasticDataSource(ElasticNode):
     
 # #     @staticmethod
 # #     def load_for_users(user_id):
-# #         user = UserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
+# #         user = ElasticUserItem.match(graph()).where("_.user_id = {0}".format(user_id)).first()
 # #         if not user:
 # #             return []
 # #         return [r for r in user.runs if not r.provenance]
@@ -749,3 +806,39 @@ class ElasticDataSource(ElasticNode):
 #          #   'data': data
 #         }
 
+class Permission:
+    NOTSET = 0x00
+    FOLLOW = 0x01
+    COMMENT = 0x02
+    WRITE_ARTICLES = 0x04
+    WRITE_WORKFLOWS = 0x08
+    MODERATE_COMMENTS = 0x10
+    MODERATE_WORKFLOWS = 0x20
+    ADMINISTER = 0x80
+
+
+# {
+#   "mappings":{
+#     "person":{
+#       "name":{
+#         "type":"string"
+#       }
+#     }
+#   }
+# }
+# While your children have their own mapping outside the parent, with a special `_parent` property set:
+
+# {
+#   "homes":{
+#     "_parent":{
+#       "type" : "person"
+#     },
+#     "state" : {
+#       "type" : "string"
+#     }
+#   }
+# }
+
+class DictToObj:
+    def __init__(**entries):
+        self.__dict__.update(entries)

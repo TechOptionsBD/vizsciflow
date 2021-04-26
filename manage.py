@@ -236,11 +236,11 @@ def deploydb():
     logging.info("Clearing the graph database...")
     dbmanager.clear()
 
-    # create user roles
+    #create datasources
     logging.info("Inserting data sources...")
     datamanager.insert_datasources()
 
-    # create user roles
+    #create user roles
     logging.info("Inserting roles...")
     usermanager.insert_roles()
 
@@ -253,20 +253,20 @@ def deploydb():
     usermanager.create_user(email="admin@gmail.com", username="admin", password="Admin_1")
     logging.info("admin")
     
-    # insert modules
-    logging.info("Inserting modules from directory: {0} ...".format(Config.MODULE_DIR))
-    modules = modulemanager.insert_modules(Config.MODULE_DIR)
-    logging.info("{0} module(s) added:".format(len(modules)))
-    for module in modules:
-        package = module.package if module.package else "" # package name is optional
-        logging.info(package + "." + module.name)
+    # # insert modules
+    # logging.info("Inserting modules from directory: {0} ...".format(Config.MODULE_DIR))
+    # modules = modulemanager.insert_modules(Config.MODULE_DIR)
+    # logging.info("{0} module(s) added:".format(len(modules)))
+    # for module in modules:
+    #     package = module.package if module.package else "" # package name is optional
+    #     logging.info(package + "." + module.name)
 
-    # insert modules
-    logging.info("Inserting workflows from directory: {0} ...".format(Config.WORKFLOW_DIR))
-    workflows = workflowmanager.insert_workflows(Config.WORKFLOW_DIR)
-    logging.info("{0} workflows(s) added:".format(len(workflows)))
-    for workflow in workflows:
-        logging.info(workflow.name)
+    # # insert workflows
+    # logging.info("Inserting workflows from directory: {0} ...".format(Config.WORKFLOW_DIR))
+    # workflows = workflowmanager.insert_workflows(Config.WORKFLOW_DIR)
+    # logging.info("{0} workflows(s) added:".format(len(workflows)))
+    # for workflow in workflows:
+    #     logging.info(workflow.name)
 
 @manager.command
 def insertmodules(path):

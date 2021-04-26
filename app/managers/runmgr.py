@@ -6,47 +6,47 @@ from ..mocks.runmocks import ModuleManagerMock
 from .workflowmgr import workflowmanager
 
 class GraphModuleManager():
-#     @staticmethod
-#     def Create(workflow_id, script, args):
-#         return Runnable.create(workflow_id, script, args)
-#     
-#     @staticmethod
-#     def Save(dataitem):
-#         return graphgen.graph.run(
-#             statement="CREATE (x) SET x = {dict_param}",
-#             parameters={'dict_param': dataitem})
-#         
-#         matcher = NodeMatcher(graphgen.graph)
-#         return matcher.get(dataitem['id'])
-#     
-#     @staticmethod
-#     def SavePermission(user, rights, dataitem):
-#         dataitem["user"] = str(user)
-#         dataitem["rights"] = str(rights)
-#         
-#         return GraphPersistance.Save(dataitem)       
-#   
-#     @staticmethod
-#     def SaveMetadata(data, metadata):
-#         
-#         metadatanode = GraphPersistance.Save(metadata)
-#         return Relationship(data, "METADATA", metadatanode)
+    # @staticmethod
+    # def Create(workflow_id, script, args):
+    #     return Runnable.create(workflow_id, script, args)
+    
+    # @staticmethod
+    # def Save(dataitem):
+    #     return graphgen.graph.run(
+    #         statement="CREATE (x) SET x = {dict_param}",
+    #         parameters={'dict_param': dataitem})
+        
+    #     matcher = NodeMatcher(graphgen.graph)
+    #     return matcher.get(dataitem['id'])
+    
+    # @staticmethod
+    # def SavePermission(user, rights, dataitem):
+    #     dataitem["user"] = str(user)
+    #     dataitem["rights"] = str(rights)
+        
+    #     return GraphPersistance.Save(dataitem)       
+  
+    # @staticmethod
+    # def SaveMetadata(data, metadata):
+        
+    #     metadatanode = GraphPersistance.Save(metadata)
+    #     return Relationship(data, "METADATA", metadatanode)
     
     @staticmethod
     def create_runnable(user, workflow, script, provenance, args):
         return RunnableItem.create(user, workflow, script, provenance, args)
     
-#     @staticmethod
-#     def update_runnable(properties):
-#         try:
-#             runnable = RunnableItem(properties['workflow_id'], properties['script'], properties['args'])
-#             workflow = properties['workflow_id']
-#             result = runnable.update_json(properties)            
-#             print(result)
-#             run = graphgen.graph.run("MATCH (x) WHERE x.workflow_id = {dict_param} SET x = {dict_param2}",{'dict_param': workflow, 'dict_param2': result}).data()
-#             return run
-#         except Exception as e:
-#             return e
+    # @staticmethod
+    # def update_runnable(properties):
+    #     try:
+    #         runnable = RunnableItem(properties['workflow_id'], properties['script'], properties['args'])
+    #         workflow = properties['workflow_id']
+    #         result = runnable.update_json(properties)            
+    #         print(result)
+    #         run = graphgen.graph.run("MATCH (x) WHERE x.workflow_id = {dict_param} SET x = {dict_param2}",{'dict_param': workflow, 'dict_param2': result}).data()
+    #         return run
+    #     except Exception as e:
+    #         return e
     
     @staticmethod
     def add_module(workflow_id, package, function):
@@ -59,18 +59,18 @@ class GraphModuleManager():
         return runnableItem.invoke_module(function_name, package)
     
     
-#    @staticmethod
-#     def create_workflow(user_id, name, desc, script, access, users, temp, derived = 0):
-#         workflow = WorkflowItem(name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
-#         workflow = graphgen.graph.run(
-#             statement="CREATE (x) SET x = {dict_param}",
-#             parameters={'dict_param': workflow.json()})
-#         
-#         matcher = NodeMatcher(graphgen.graph)
-#         user = matcher.match(id=user_id).first()
-#         Relationship(user, "WORKFLOW", workflow)
-#         
-#         return workflow
+    # @staticmethod
+    # def create_workflow(user_id, name, desc, script, access, users, temp, derived = 0):
+    #     workflow = WorkflowItem(name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
+    #     workflow = graphgen.graph.run(
+    #         statement="CREATE (x) SET x = {dict_param}",
+    #         parameters={'dict_param': workflow.json()})
+        
+    #     matcher = NodeMatcher(graphgen.graph)
+    #     user = matcher.match(id=user_id).first()
+    #     Relationship(user, "WORKFLOW", workflow)
+        
+    #     return workflow
     
     @staticmethod
     def get_runnables(**kwargs):
@@ -82,20 +82,20 @@ class GraphModuleManager():
 
 class DBModuleManager():
     
-#     @staticmethod
-#     def Save(dataitem):
-#         return Data.add(dataitem.json())
-#     
-#     @staticmethod
-#     def SavePermission(user, rights, dataitem):
-#         data = DBPersistance.Save(dataitem)
-#         return DataAllocation.add(user, data.id, rights)
-#     
-#     @staticmethod
-#     def SaveMetadata(data, user, rights, json):
-#         metadata = Data.add(json)
-#         DataAllocation.add(user, metadata.id, rights)
-#         return Property.add(data.id, metadata.id)
+    # @staticmethod
+    # def Save(dataitem):
+    #     return Data.add(dataitem.json())
+    
+    # @staticmethod
+    # def SavePermission(user, rights, dataitem):
+    #     data = DBPersistance.Save(dataitem)
+    #     return DataAllocation.add(user, data.id, rights)
+    
+    # @staticmethod
+    # def SaveMetadata(data, user, rights, json):
+    #     metadata = Data.add(json)
+    #     DataAllocation.add(user, metadata.id, rights)
+    #     return Property.add(data.id, metadata.id)
        
     @staticmethod
     def create_runnable(user, workflow, script, provenance, args):

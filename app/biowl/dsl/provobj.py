@@ -2,7 +2,7 @@ import os
 import itertools
 import operator
 
-from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem, NodeItem
+#from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem, NodeItem
 from app.util import Utility
 from dsl.datatype import DataType
 from .pluginmgr import plugincollection

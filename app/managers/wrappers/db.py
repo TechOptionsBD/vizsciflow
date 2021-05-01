@@ -1,0 +1,237 @@
+from app.objectmodel.models.rdb import *
+from app.objectmodel.common import dict2obj
+
+class UserManager():
+    @staticmethod
+    def verify_auth_token(token):
+        return User.verify_auth_token(token)
+        
+    @staticmethod
+    def verify_password(user, password):
+        return user.verify_password(password)
+    
+    @staticmethod
+    def ping(self, user):
+        user.ping()
+    
+    @staticmethod
+    def add(email, username, password, confirmed):
+        return User.add(email, username, password, confirmed)
+    
+    @staticmethod
+    def add_self_follows(self):
+        return User.add_self_follows()
+
+    @staticmethod
+    def insert_roles():
+        return Role.insert_roles()
+    
+    @staticmethod
+    def first(**kwargs):
+         return User.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+         return User.query.filter_by(**kwargs).first()
+        
+    @staticmethod
+    def get_or_404(id):
+        return User.get_or_404(id)
+    
+    @staticmethod
+    def get_other_users_with_entities(id, *args):
+        import json
+        result = User.query.filter(id != User.id).with_entities(*args)
+        return json.dumps([r for r in result], cls=AlchemyEncoder)
+
+    @staticmethod
+    def get_role(id):
+        return Role.query.get(id)
+
+    @staticmethod
+    def create_user(**kwargs):
+        return User(**kwargs)
+
+class DataManager():
+    @staticmethod
+    def check_access_rights(user_id, path, checkRights):
+        DataSourceAllocation.check_access_rights(user_id, path, checkRights)
+    
+    @staticmethod
+    def get_access_rights(user_id, path):
+        DataSourceAllocation.get_access_rights(user_id, path)
+    
+    @staticmethod
+    def has_access_rights(user_id, path, checkRights):
+        return DataSourceAllocation.has_access_rights(user_id, path, checkRights)
+
+    @staticmethod
+    def load(user_id, recursive):
+        datasets = DataAllocation.query.filter_by(user_id = user_id)
+        data_dict = {}
+        for dataset in datasets:
+            pass
+        
+        return data_dict
+    
+    @staticmethod
+    def add_task_data(dataAndType, task):
+        result = ()        
+        for d in dataAndType:
+            task.add_output(d[0], str(d[1]))                        
+            result += (d[1],)
+        return result
+    
+    @staticmethod
+    def is_data_item(value):
+        return isinstance(value, Data)
+    
+    @staticmethod
+    def add(user_id, datasource_id, url, rights):
+        return DataSourceAllocation.add(user_id, datasource_id, url, rights)
+
+    @staticmethod
+    def get_allocation(datasource_id, **kwargs):
+        return DataSourceAllocation.query.filter(datasource_id, **kwargs).first()
+    
+    @staticmethod
+    def get_datasources(**kwargs):
+        return DataSource.query.filter_by(**kwargs)
+
+    @staticmethod
+    def get_allocation_by_url(ds_id, url):
+        return DataSourceAllocation.query.filter(and_(DataSourceAllocation.datasource_id == ds_id, DataSourceAllocation.url == url)).first()
+
+    @staticmethod
+    def insert_datasources():
+        return DataSource.insert_datasources()
+
+class ModuleManager():
+    @staticmethod
+    def get(**kwargs):
+        pass
+
+    @staticmethod
+    def add(user_id, value, access, users):
+        return Service.add(user_id, value, access, users)
+
+    @staticmethod
+    def get_module_by_name_package_for_user_access(user_id, name, package):
+        return Service.get_module_by_name_package_for_user_access(user_id, name, package)
+
+    @staticmethod
+    def get_module_by_name_package(name, package):
+        return dict2obj(Service.get_first_service_by_name_package(name, package).value)
+        
+    @staticmethod
+    def get_modules_by_name_package(name, package):
+        return Service.get_service_by_name_package(name, package)
+
+    @staticmethod
+    def update_access(service_id, access):
+        return Service.update_access(service_id, access)
+
+    @staticmethod
+    def remove(user_id, module_id):
+        return Service.remove(user_id, module_id)
+
+    @staticmethod
+    def get_all_by_user_access(user_id, access):
+        return Service.get_by_user(user_id, access)
+
+    @staticmethod
+    def get_modules(**kwargs):
+        return Service.query.filter_by(**kwargs)
+
+    @staticmethod
+    def get_access(self, **kwargs):
+        return ServiceAccess.get(**kwargs)
+
+    @staticmethod
+    def remove_user_access(service_id, user):
+        ServiceAccess.remove_user(service_id, user)
+
+    @staticmethod
+    def add_user_access(service_id, sharing_with):
+        ServiceAccess.add(service_id, sharing_with)
+    
+    @staticmethod
+    def check_access(serviced_id):
+        return ServiceAccess.check(serviced_id)
+
+    @staticmethod
+    def insert_modules(url):
+        return Service.insert_modules(url)
+
+class WorkflowManager():
+    @staticmethod
+    def first(**kwargs):
+        return Workflow.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+        return Workflow.query.filter_by(**kwargs)
+    
+    @staticmethod
+    def get_or_404(id):
+        return Workflow.query.get(id)
+
+    @staticmethod
+    def create(**kwargs):
+        return Workflow.create(**kwargs)
+
+    @staticmethod
+    def remove(user_id, workflow_id):
+        Workflow.remove(user_id, workflow_id)
+
+    @staticmethod
+    def get_workflows_as_list(access, user_id, *args):
+        terms = ["tag='{0}'".format(v) for v in args]
+        if access == 0 or access == 3:
+            return Workflow.query.filter(Workflow.public == True).filter(or_(*terms))
+        if access == 1 or access == 3:
+            return Workflow.query.filter(Workflow.public != True).filter(Workflow.accesses.any(and_(WorkflowAccess.user_id == user_id, Workflow.user_id != user_id))).filter(or_(*terms)) # TODO: Do we need or_ operator here? 
+        if access == 2 or access == 3:
+            return Workflow.query.filter(and_(Workflow.public != True, Workflow.user_id == user_id)).filter(or_(*terms))
+
+    @staticmethod
+    def insert_workflows(path):
+        return Workflow.insert_workflows(path)
+
+
+class RunnableManager():
+    
+    @staticmethod
+    def create_runnable(user, workflow, script, provenance, args):
+        return Runnable.create(user.id, workflow.id, script, args)
+    
+    @staticmethod
+    def get_runnables(**kwargs):
+        return Runnable.query.filter_by(**kwargs)
+    
+    @staticmethod
+    def invoke_module(runnable_id, function_name, package):
+        service = Service.get_first_service_by_name_package(function_name, package)
+        if service:
+            return Task.create_task(runnable_id, service.id)
+    
+    @staticmethod
+    def runnables_of_user(user_id):
+        return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.created_on.desc())
+
+class Manager():
+    @staticmethod
+    def clear():
+        try:
+            Role.query.delete()
+            User.query.delete()
+            Workflow.query.delete()
+
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
+        
+    @staticmethod
+    def close():
+        pass

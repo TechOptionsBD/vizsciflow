@@ -12,9 +12,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login.mixins import UserMixin
 
 from dsl.datatype import DataType
-from .objectmodel import ObjectModel
-from .common import Status, LogType, AccessRights, Permission, bytes_in_gb, VizSciFlowList, convert_to_safe_json, all_obj_fields
-from .managers.sessionmgr import SessionManager
+from ..loader import Loader
+from ..common import Status, LogType, AccessRights, Permission, bytes_in_gb, VizSciFlowList, convert_to_safe_json, all_obj_fields
+from app.managers.sessionmgr import SessionManager
 
 from elasticsearch.exceptions import NotFoundError
 
@@ -23,23 +23,6 @@ def convert_to_datetime(value):
     return value if isinstance(value, datetime) else arrow.get(value).naive
 
 class ElasticManager():
-    
-    @staticmethod
-    def close():
-        pass
-
-    @staticmethod
-    def clear():
-        final_indices = SessionManager.session().indices.get_alias().keys()
-        
-        for _index in final_indices:
-            try:
-                if "." not in _index: # avoid deleting indexes like `.kibana`
-                    # if _index == 'datasets':# delete index as needed
-                    # SessionManager.session().delete_by_query(index=_index, body={"query": {"match_all": {}}})
-                    SessionManager.session().indices.delete(index=_index)
-            except Exception as error:
-                print ('indices.delete error:', error, 'for index:', _index)
     
     @staticmethod
     def update(obj):
@@ -609,7 +592,7 @@ class ElasticModule(ElasticNode):
     @staticmethod
     def insert_modules(url):
         admin = ElasticUser.first(username = "admin")
-        funclist = ObjectModel.load_funcs_recursive_flat(url)
+        funclist = Loader.load_funcs_recursive_flat(url)
 
         modules = []
         for f in funclist:
@@ -846,7 +829,7 @@ class ElasticWorkflow(ElasticNode):
     @staticmethod
     def insert_workflows(path):
         admin = ElasticUser.first(username='admin')
-        samples = ObjectModel.load_samples_recursive(path)
+        samples = Loader.load_samples_recursive(path)
         for sample in samples:
             if isinstance(sample["script"], list):
                 sample["script"] = "\n".join(sample["script"])

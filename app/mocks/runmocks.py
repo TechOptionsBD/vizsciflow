@@ -1,5 +1,4 @@
 from flask import g
-import uuid
 from app.models import Status
 
 from ..models import Workflow

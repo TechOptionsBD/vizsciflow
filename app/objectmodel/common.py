@@ -1,8 +1,12 @@
 import inspect
-from flask_login import AnonymousUserMixin
+import json
 
-from . import login_manager
+class obj(object):
+    def __init__(self, dict_):
+        self.__dict__.update(dict_)
 
+def dict2obj(d):
+    return json.loads(json.dumps(d), object_hook=obj)
 def bytes_in_gb():
     return 1024 * 1024
 
@@ -104,19 +108,3 @@ class VizSciFlowList(UserList):
         return self[0] if len(self) > 0 else None
     def count(self):
         return len(self)
-
-class AnonymousUser(AnonymousUserMixin):
-    def can(self, permissions):
-        return False
-
-    def is_administrator(self):
-        return False
-
-login_manager.anonymous_user = AnonymousUser
-
-@login_manager.user_loader
-def load_user(user_id):
-    from .managers.usermgr import usermanager
-    if user_id and user_id.isdecimal() and user_id.isascii():
-        user = usermanager.first(id = int(user_id))
-        return user

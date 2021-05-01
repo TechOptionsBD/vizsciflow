@@ -26,7 +26,7 @@ from flask_migrate import Migrate
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-from app.common import Permission, convert_to_safe_json
+from app.objectmodel.common import Permission, convert_to_safe_json
 from flask_script import Shell
 from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user

@@ -11,7 +11,7 @@ from datetime import datetime
 
 import neotime
 
-from .common import Status, LogType, AccessRights, Permission
+from app.objectmodel.common import Status, LogType, AccessRights, Permission
 from dsl.fileop import FolderItem
 from dsl.datatype import DataType
 
@@ -19,7 +19,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, request, url_for
 import hashlib
 
-from .managers.sessionmgr import SessionManager
+from app.managers.sessionmgr import SessionManager
 
 bytes_in_gb = 1024 * 1024
 def neotime_duration_to_ms(duration):

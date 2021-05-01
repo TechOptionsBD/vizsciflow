@@ -23,14 +23,14 @@ from .views import Samples
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
-from ..biowl.dsl.provobj import View, Run
+#from ..biowl.dsl.provobj import View, Run
 
 from ..biowl.dsl.pluginmgr import plugincollection
 from config import Config
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.runmgr import runnablemanager
-from ..common import AccessType, Permission, AccessRights, convert_to_safe_json
+from app.objectmodel.common import AccessType, Permission, AccessRights, convert_to_safe_json
 from ..managers.modulemgr import modulemanager
 
 prov_base = Config.PROVENANCE_DIR

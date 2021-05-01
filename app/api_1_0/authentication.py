@@ -2,7 +2,7 @@ from flask import g, jsonify
 from flask_httpauth import HTTPBasicAuth
 from . import api
 from .errors import unauthorized, forbidden
-from ..common import AnonymousUser
+from ..userloader import AnonymousUser
 from ..managers.usermgr import usermanager
 
 auth = HTTPBasicAuth()

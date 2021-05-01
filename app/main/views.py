@@ -21,16 +21,17 @@ from . import main
 from .. import db
 from ..decorators import admin_required, permission_required
 
-from ..models import AlchemyEncoder, Post, Comment, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
+#from ..models import AlchemyEncoder, Post, Comment, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
 from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from ..biowl.exechelper import func_exec_stdout
-from ..biowl.dsl.provobj import View, Run
+#from ..biowl.dsl.provobj import View, Run
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.datamgr import datamanager
-from ..common import Permission, AccessRights, convert_to_safe_json
+from app.objectmodel.common import Permission, AccessRights, convert_to_safe_json
+from app.userloader import *
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.abspath(__file__))

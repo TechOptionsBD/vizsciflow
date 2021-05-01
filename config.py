@@ -44,12 +44,11 @@ class Config:
     GRAPHDB_PASSWORD = 'sr-hadoop'
     GRAPHDB_DASTABASE = ''#'vizsciflow'
     GRAPHDB_VERSION = ''
-    DATA_MODE = 1 # 0 = DB, 1 = Graph, 2 = Elastic Search, 3 = Mock
+    DATA_MODE = 0 # 0 = DB, 1 = Graph (py2neo), 2 = Graph (neo4j-driver) 3 = Elastic Search
 
     @staticmethod
     def init_app(app):
         pass
-
 
 class DevelopmentConfig(Config):
     DEBUG = True

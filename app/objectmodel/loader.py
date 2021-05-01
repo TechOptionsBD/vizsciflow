@@ -1,8 +1,7 @@
 import os
 import json
-import logging
 
-class ObjectModel:
+class Loader:
     
     @staticmethod
     def get_datasources():
@@ -22,7 +21,7 @@ class ObjectModel:
 
     @staticmethod
     def load_funcs_recursive_flat(library_def_file):
-        funcs = ObjectModel.load_funcs_recursive(library_def_file)
+        funcs = Loader.load_funcs_recursive(library_def_file)
         funclist = []
         for f in funcs.values():
             funclist.extend(f)
@@ -31,11 +30,11 @@ class ObjectModel:
     @staticmethod
     def load_funcs_recursive(library_def_file):
         if os.path.isfile(library_def_file):
-            return ObjectModel.load_funcs(library_def_file)
+            return Loader.load_funcs(library_def_file)
         
         all_funcs = {}
         for f in os.listdir(library_def_file):
-            funcs = ObjectModel.load_funcs_recursive(os.path.join(library_def_file, f))
+            funcs = Loader.load_funcs_recursive(os.path.join(library_def_file, f))
             for k,v in funcs.items():
                 if k in all_funcs:
                     all_funcs[k].extend(v)
@@ -116,14 +115,14 @@ class ObjectModel:
 
         if os.path.isfile(library_def_file):
             try:
-                samples = ObjectModel.load_samples(library_def_file)
+                samples = Loader.load_samples(library_def_file)
                 return [sample for sample in samples if "script" in sample]
             except:
                 return []
         
         all_samples = []
         for f in os.listdir(library_def_file):
-            all_samples.extend(ObjectModel.load_samples_recursive(os.path.join(library_def_file, f)))
+            all_samples.extend(Loader.load_samples_recursive(os.path.join(library_def_file, f)))
         return all_samples
        
     @staticmethod

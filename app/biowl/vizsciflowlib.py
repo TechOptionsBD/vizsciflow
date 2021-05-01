@@ -7,9 +7,9 @@ from app.managers.runmgr import runnablemanager
 from app.managers.datamgr import datamanager
 from app.managers.modulemgr import modulemanager
 
-from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plugin, Stat, Monitor
+# from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plugin, Stat, Monitor
 
-registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
+# registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
 
 def iterable(obj):
     try:
@@ -104,21 +104,21 @@ class Library(LibraryBase):
                 task.succeeded()
             else:
                 arguments, kwargs = LibraryBase.split_args(args)
-                if not package and function in registry:
-                    provcls = None
-                    if function.lower() == "run":
-                        provcls = Run(*arguments, **kwargs)
-                    elif function.lower() == "user":
-                        provcls = User(*arguments, **kwargs)
-                    elif function.lower() == "workflow":
-                        provcls = Workflow(*arguments, **kwargs)
-                    elif function.lower() == "module":
-                        provcls = Module(*arguments, **kwargs)
-                    elif function.lower() == "data":
-                        provcls = Data(*arguments, **kwargs)
-                    #provcls = getattr(".dsl.provobj", registry[function])
-                    #return provcls(*arguments, **kwargs)
-                    return provcls
+                # if not package and function in registry:
+                #     provcls = None
+                #     if function.lower() == "run":
+                #         provcls = Run(*arguments, **kwargs)
+                #     elif function.lower() == "user":
+                #         provcls = User(*arguments, **kwargs)
+                #     elif function.lower() == "workflow":
+                #         provcls = Workflow(*arguments, **kwargs)
+                #     elif function.lower() == "module":
+                #         provcls = Module(*arguments, **kwargs)
+                #     elif function.lower() == "data":
+                #         provcls = Data(*arguments, **kwargs)
+                #     #provcls = getattr(".dsl.provobj", registry[function])
+                #     #return provcls(*arguments, **kwargs)
+                #     return provcls
                 
                 func = modulemanager.get_module_by_name_package(function, package)
                 if not func.module:

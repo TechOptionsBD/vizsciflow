@@ -9,20 +9,20 @@ from flask_login.mixins import UserMixin
 import psutil
 from datetime import datetime
 
-from .ogmex import Model, Property, RelatedTo, RelatedFrom
+from app.ogmex import Model, Property, RelatedTo, RelatedFrom
 from py2neo import NodeMatcher
 import neotime
 
-from .common import Status, LogType, AccessRights, Permission, bytes_in_gb, to_primitive
+from app.objectmodel.common import Status, LogType, AccessRights, Permission, bytes_in_gb, to_primitive
 from dsl.fileop import FolderItem
 from dsl.datatype import DataType
-from .objectmodel import ObjectModel
+from app.objectmodel.loader import Loader
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import current_app, request, url_for
+from flask import current_app, request
 import hashlib
 
-from .managers.sessionmgr import SessionManager
+from app.managers.sessionmgr import SessionManager
 
 def neotime_duration_to_ms(duration):
     return duration[0] * 2629800000 + duration[1] * 86400000 + duration[2] * 1000 + duration[3]/1000000
@@ -201,7 +201,7 @@ class DataSourceItem(NodeItem):
     @staticmethod
     def insert_datasources():
         try:
-            datasources = ObjectModel.get_datasources()
+            datasources = Loader.get_datasources()
             datasourceitems = []
             for datasrc in datasources:
                 datasourceitem = DataSourceItem(**datasrc)
@@ -568,7 +568,7 @@ class ModuleItem(NodeItem):
     @staticmethod
     def insert_modules(url):
         admin = UserItem.first(username = "admin")
-        funclist = ObjectModel.load_funcs_recursive_flat(url)
+        funclist = Loader.load_funcs_recursive_flat(url)
 
         modules = []
         for f in funclist:
@@ -753,7 +753,7 @@ class WorkflowItem(NodeItem):
     @staticmethod
     def insert_workflows(path):
         admin = UserItem.first(username='admin')
-        samples = ObjectModel.load_samples_recursive(path)
+        samples = Loader.load_samples_recursive(path)
         for sample in samples:
             if isinstance(sample["script"], list):
                 sample["script"] = "\n".join(sample["script"])

@@ -4,9 +4,7 @@ from pathlib import Path
 
 from app.biowl.exechelper import func_exec_run
 from app.biowl.argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args, get_posix_output_folder_args, get_temp_dir
-from app.common import AccessRights
 from dsl.fileop import FolderItem
-from app.managers.datamgr import datamanager
 
 bwa = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'bwa'))
 

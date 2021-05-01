@@ -8,7 +8,7 @@ from werkzeug.urls import url_parse
 from . import auth, cas
 from .. import db
 from ..email import send_email
-from ..common import AccessRights
+from app.objectmodel.common import AccessRights
 from ..util import Utility
 from .forms import LoginForm, RegistrationForm, ChangePasswordForm, \
     PasswordResetRequestForm, PasswordResetForm, ChangeEmailForm

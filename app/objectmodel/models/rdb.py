@@ -8,12 +8,9 @@ import logging
 from flask import current_app, request, url_for
 from flask_login import UserMixin
 
-#from flask_login import current_user
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from markdown import markdown
-#from sqlalchemy.engine import default
 from sqlalchemy.orm import backref
-#from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql import exists
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
@@ -25,12 +22,11 @@ from sqlalchemy import func
 
 from app.exceptions import ValidationError
 
-from . import db
-#from sqlalchemy.sql.expression import desc
+from app import db
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
-from .common import Permission, AccessRights, AccessType, Status, LogType
-from .objectmodel import ObjectModel
+from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType
+from app.objectmodel.loader import Loader
 
 from collections import namedtuple
 
@@ -71,22 +67,6 @@ class AlchemyEncoder(json.JSONEncoder):
     
         return json.JSONEncoder.default(self, obj)
 
-class RelationalManager():
-    @staticmethod
-    def clear():
-        try:
-            Role.query.delete()
-            User.query.delete()
-            Workflow.query.delete()
-
-            db.session.commit()
-        except:
-            db.session.rollback()
-            raise
-        
-    @staticmethod
-    def close():
-        pass
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
@@ -583,7 +563,7 @@ class Workflow(db.Model):
     @staticmethod
     def insert_workflows(path):
         admin = User.query.filter(User.username=='admin').first()
-        samples = ObjectModel.load_samples_recursive(path)
+        samples = Loader.load_samples_recursive(path)
         for sample in samples:
             if isinstance(sample["script"], list):
                 sample["script"] = "\n".join(sample["script"])
@@ -809,7 +789,7 @@ class Service(db.Model):
     def insert_modules(url):
         try:
             admin = User.query.filter(User.username == "admin").first()
-            funclist = ObjectModel.load_funcs_recursive_flat(url)
+            funclist = Loader.load_funcs_recursive_flat(url)
 
             modules = []
             for f in funclist:

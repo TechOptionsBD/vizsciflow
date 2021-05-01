@@ -16,7 +16,7 @@ from dsl.parser import WorkflowParser
 from app.biowl.dsl.vizsciflowgraphgen import GraphGenerator
 from dsl.wftimer import Timer
 
-from .common import Status
+from app.objectmodel.common import Status
 from .managers.runmgr import runnablemanager
 from .managers.workflowmgr import workflowmanager
 from .biowl.dsl.vizsciflowinterpreter import VizSciFlowInterpreter

@@ -88,7 +88,7 @@ def logout():
 
 
 def allocate_storage(user):
-    datasources = datamanager.get_datasources(active = True)
+    datasources = datamanager.get(active = True)
     for ds in datasources:
         try:
             fs = Utility.create_fs(ds)

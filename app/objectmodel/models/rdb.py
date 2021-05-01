@@ -1981,19 +1981,10 @@ class TaskData(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
-    
-    @property
-    def type(self):
-        return self.data.value["type"]
-
     @property
     def value(self):
-        return self.data.value["value"]
-
-    # @property
-    # def value(self):
-    #     v = Data.query.get(self.data_id).value
-    #     return namedtuple("value", v.keys())(*v.values())
+        v = Data.query.get(self.data_id).value
+        return namedtuple("value", v.keys())(*v.values())
 
 class InData(db.Model):
     __tablename__ = 'indata'
@@ -2001,8 +1992,6 @@ class InData(db.Model):
     task_id = db.Column(db.Integer, ForeignKey('tasks.id'))
     data_id = db.Column(db.Integer, ForeignKey('data.id'))
     
-    data = db.relationship("Data", foreign_keys=[data_id])
-
     @staticmethod
     def add(task_id, data_id):
         try:
@@ -2013,16 +2002,7 @@ class InData(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
-
-    @property
-    def type(self):
-        return self.data.value["type"]
-
     @property
     def value(self):
-        return self.data.value["value"]
-
-    # @property
-    # def value(self):
-    #     v = Data.query.get(self.data_id).value
-    #     return namedtuple("value", v.keys())(*v.values())
+        v = Data.query.get(self.data_id).value
+        return namedtuple("value", v.keys())(*v.values())

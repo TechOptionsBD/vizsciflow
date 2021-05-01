@@ -1,6 +1,5 @@
 from flask import current_app
 from ..graphutil import GraphManager
-from .sessionmgr import SessionManager
 from ..elasticutil import ElasticManager
 from ..models import RelationalManager
 

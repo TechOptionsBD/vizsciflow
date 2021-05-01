@@ -1,10 +1,36 @@
 import json
-from ..models import Workflow, WorkflowAccess, Service
+from ..models import Workflow, WorkflowAccess
 from config import Config
 from sqlalchemy import and_, or_
 from ..common import AccessType
 from ..graphutil import WorkflowItem
-from .usermgr import usermanager
+from ..elasticutil import ElasticWorkflow
+
+class ElasticWorkflowManager():
+
+    @staticmethod
+    def first(**kwargs):
+        return ElasticWorkflow.first(**kwargs)
+
+    @staticmethod
+    def get(**kwargs):
+        return ElasticWorkflow.get(**kwargs)
+
+    @staticmethod
+    def get_workflows_as_list(access, user_id, *args):
+        return ElasticWorkflow.get_workflows_as_list(access, user_id, *args)
+    
+    @staticmethod
+    def create(**kwargs):
+        return ElasticWorkflow.Create(**kwargs)
+
+    @staticmethod
+    def get_or_404(id):
+        return ElasticWorkflow.first(id=id)
+
+    @staticmethod
+    def insert_workflows(path):
+        return ElasticWorkflow.insert_workflows(path)
 
 class GraphWorkflowManager():
 
@@ -71,8 +97,10 @@ class WorkflowManager():
     def __init__(self):
         if Config.DATA_MODE == 0:
             self.persistance = DBWorkflowManager()
-        else:
+        elif Config.DATA_MODE == 1:
             self.persistance = GraphWorkflowManager()
+        elif Config.DATA_MODE == 3:
+            self.persistance = ElasticWorkflowManager()
     
     def create(self, **kwargs):
         return self.persistance.create(**kwargs)
@@ -109,7 +137,7 @@ class WorkflowManager():
         if access == 2 or access == 3:
             samples.extend(WorkflowManager.get_workflows_info(workflows, AccessType.PRIVATE, user.username))
         
-        return json.dumps({'samples': samples})    
+        return samples
 
     @staticmethod
     def get_a_workflow_details(workflow, props):

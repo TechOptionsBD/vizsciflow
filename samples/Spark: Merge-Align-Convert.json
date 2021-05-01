@@ -1,7 +1,6 @@
 {
     "name":"Spark: Merge-Align-Convert",
     "desc":"Alignment and merge operation done in apache Beam and Spark",
-    "access":0,
     "script":[
         "data1 = 'hdfs://hadoop-master:54310/user/hadoop/biowl/beam/MiSeq_SOP/F3D7_S195_L001_R1_001.fastq'",
         "data2 = 'hdfs://hadoop-master:54310/user/hadoop/biowl/beam/MiSeq_SOP/F3D7_S195_L001_R2_001.fastq'",

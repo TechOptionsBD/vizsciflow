@@ -30,7 +30,7 @@ from config import Config
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.runmgr import runnablemanager
-from ..common import AccessType, Permission, AccessRights
+from ..common import AccessType, Permission, AccessRights, convert_to_safe_json
 from ..managers.modulemgr import modulemanager
 
 prov_base = Config.PROVENANCE_DIR
@@ -642,4 +642,4 @@ def runnables():
         return make_response(jsonify(err=str(e)), 500)
 
 def get_functions(access):
-    return json.dumps({'functions':  modulemanager.get_all_by_user_access(current_user.id, access)})
+    return json.dumps({'functions':  convert_to_safe_json(modulemanager.get_all_by_user_access(current_user.id, access))})

@@ -8,46 +8,26 @@ from ..models import DataSourceAllocation, DataSource, Data, DataAllocation
 from ..common import AccessRights
 from sqlalchemy import and_, or_
 from .runmgr import runnablemanager
-from ..elasticutil import ElasticDataSource
+from ..elasticutil import ElasticDataSource, ElasticValue
 
 class ElasticPersistance():
     @staticmethod
     def insert_datasources():
         return ElasticDataSource.insert_datasources()
 
+    @staticmethod
+    def get_datasources(**kwargs):
+        return ElasticDataSource.get(**kwargs)
 
+    @staticmethod
+    def is_data_item(value):
+        return isinstance(value, ElasticValue)
+
+    @staticmethod
+    def add_task_data(dataAndType, task):
+        return task.add_outputs(dataAndType)
+        
 class GraphPersistance():
-    # @staticmethod
-    # def Save(dataitem):
-    #     return graphgen.graph.run(
-    #         statement="CREATE (x) SET x = {dict_param}",
-    #         parameters={'dict_param': dataitem})
-        
-    #     matcher = NodeMatcher(graphgen.graph)
-    #     return matcher.match(id=dataitem['id']).first()
-    
-    # @staticmethod
-    # def SavePermission(user, rights, dataitem):
-    #     matcher = NodeMatcher(graphgen.graph)
-    #     node = matcher.match(id=dataitem['id']).first()
-        
-    #     if not node:
-    #         node = GraphPersistance.Save(dataitem)
-    
-    #     usernode = matcher.match(id=user).first()
-    #     if not usernode:
-    #         raise ValueError("User doesn't exist")
-        
-    #     rel = Relationship(usernode, "ACCESS", node)
-    #     rel.properties["rights"] = str(rights)
-        
-    #     return rel
-  
-    # @staticmethod
-    # def SaveMetadata(data, metadata):
-        
-    #     metadatanode = GraphPersistance.Save(metadata)
-    #     return Relationship(data, "METADATA", metadatanode)
     
     @staticmethod
     def is_data_item(value):
@@ -60,21 +40,6 @@ class GraphPersistance():
     @staticmethod
     def get_access_rights(user_id, path):
         return ValueItem.get_access_rights(user_id, path)
-        
-        #fileitems = matcher.match("FileItem", value=path)
-
-        # prefixedDataSources = DataSource.query.filter(or_(DataSource.prefix == path, DataSource.url == path))
-        # if prefixedDataSources:
-        #     defaultRights = AccessRights.Read
-        
-        # matcher = NodeMatcher(graphgen.graph)
-        # return matcher.match(id=user_id)
-    
-        # allocations = DataSourceAllocation.query.join(DataPermission, DataPermission.data_id == DataSourceAllocation.id).filter(DataPermission.user_id == user_id)
-        # for allocation in allocations:
-        #     if path.startswith(allocation.url):
-        #         for permission in allocation.permissions:
-        #             return permission.rights 
         
     @staticmethod
     def add_task_data(dataAndType, task):
@@ -97,20 +62,6 @@ class GraphPersistance():
         return DataSourceItem.has_access_rights(user_id, path, checkRights)
 
 class DBPersistance():
-    # @staticmethod
-    # def Save(dataitem):
-    #     return Data.add(dataitem.json())
-    
-    # @staticmethod
-    # def SavePermission(user, rights, dataitem):
-    #     data = DBPersistance.Save(dataitem)
-    #     return DataAllocation.add(user, data.id, rights)
-    
-    # @staticmethod
-    # def SaveMetadata(data, user, rights, json):
-    #     metadata = Data.add(json)
-    #     DataAllocation.add(user, metadata.id, rights)
-    #     return Property.add(data.id, metadata.id)
         
     @staticmethod
     def check_access_rights(user_id, path, checkRights):

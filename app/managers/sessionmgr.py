@@ -29,6 +29,17 @@ def neo4j_graph_session():
     except:
         return get_neo4j_session(driver)
 
+def elasticsearch_session():
+    from elasticsearch import Elasticsearch
+    from flask import g
+    
+    try:
+        if hasattr(g, 'es'):
+            g.es = Elasticsearch()
+        return g.es
+    except:
+        return Elasticsearch()
+
 class SessionManager():
     @staticmethod
     def session():
@@ -38,3 +49,5 @@ class SessionManager():
             return py2neo_graph_session()
         elif Config.DATA_MODE == 2:
             return neo4j_graph_session()
+        elif Config.DATA_MODE == 3:
+            return elasticsearch_session()

@@ -3,6 +3,7 @@ import json
 from config import Config
 from ..models import Service, ServiceAccess
 from ..graphutil import ModuleItem, UserItem
+from ..elasticutil import ElasticModule, ElasticUser
 
 class obj(object):
     def __init__(self, dict_):
@@ -10,6 +11,48 @@ class obj(object):
 
 def dict2obj(d):
     return json.loads(json.dumps(d), object_hook=obj)
+
+class ElasticModuleManager():
+    @staticmethod
+    def get(**kwargs):
+        return ElasticModule.get(**kwargs)
+    
+    @staticmethod
+    def add(user_id, value, access, users):
+        return ElasticModule.add(user_id, value, access, users)
+
+    @staticmethod
+    def get_modules_by_name_package(name, package):
+        return ElasticModule.get(name=name, package=package)
+
+    @staticmethod
+    def get_all_by_user_access(user_id, access):
+        ms = ElasticModule.get(public=True)
+        modules = [m.json() for m in ms]
+        u = ElasticUser.first(id=user_id)
+        for m in u.modules:
+            modules.append(m.json())
+        return modules
+    
+    @staticmethod
+    def get(**kwargs):
+        return ElasticModule.get(**kwargs)
+    
+    @staticmethod
+    def get_module_by_name_package(name, package):
+        return ElasticModuleManager.get(name=name, package=package).first()
+    
+    @staticmethod
+    def add_user_access(id, users):
+        return ElasticModule.add_user_access(id, users, AccessRights.Write)
+
+    @staticmethod
+    def insert_modules(url):
+        return ElasticModule.insert_modules(url)
+
+    @staticmethod
+    def get_module_by_name_package_for_user_access(user_id, name, package):
+        return ElasticModule.get_module_by_name_package_for_user_access(user_id, name, package)
 
 class GraphModuleManager():
     @staticmethod
@@ -32,10 +75,6 @@ class GraphModuleManager():
         for m in u.modules:
             modules.append(m.json())
         return modules
-    
-    @staticmethod
-    def get(**kwargs):
-        return ModuleItem.get(**kwargs)
     
     @staticmethod
     def get_module_by_name_package(name, package):
@@ -110,12 +149,15 @@ class DBModuleManager():
     def insert_modules(url):
         return Service.insert_modules(url)
 
+
 class ModuleManager():
     def __init__(self):
         if Config.DATA_MODE == 0:
             self.persistance = DBModuleManager()
-        else:
+        elif Config.DATA_MODE == 1:
             self.persistance = GraphModuleManager()
+        elif Config.DATA_MODE == 3:
+            self.persistance = ElasticModuleManager()
         
     def insert_modules(self, path):
         return self.persistance.insert_modules(path)

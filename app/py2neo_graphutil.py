@@ -11,10 +11,9 @@ from datetime import datetime
 
 from .ogmex import Model, Property, RelatedTo, RelatedFrom
 from py2neo import NodeMatcher
-from py2neo import Graph
 import neotime
 
-from .common import Status, LogType, AccessRights, Permission
+from .common import Status, LogType, AccessRights, Permission, bytes_in_gb, to_primitive
 from dsl.fileop import FolderItem
 from dsl.datatype import DataType
 from .objectmodel import ObjectModel
@@ -25,7 +24,6 @@ import hashlib
 
 from .managers.sessionmgr import SessionManager
 
-bytes_in_gb = 1024 * 1024
 def neotime_duration_to_ms(duration):
     return duration[0] * 2629800000 + duration[1] * 86400000 + duration[2] * 1000 + duration[3]/1000000
 
@@ -341,6 +339,7 @@ class UserItem(NodeItem, UserMixin):
         self.last_seen = kwargs.pop('last_seen', neotime.DateTime.utc_now())
         self.avatar_hash = kwargs.pop('avatar_hash', None)
         self.oid = kwargs.pop('oid', 0)
+        self.name = kwargs.pop('name', None)
 
         self.password_hash = kwargs.pop('password_hash', None)
         if not self.password_hash:
@@ -769,7 +768,7 @@ class DataItem(NodeItem):
 
     def __init__(self, **kwargs):
         self.name = kwargs.pop('name', "")
-        self.value = DataItem.to_primitive(kwargs.pop('value', ""))
+        self.value = to_primitive(kwargs.pop('value', ""))
 
         super(DataItem, self).__init__(**kwargs)   
    
@@ -783,10 +782,6 @@ class DataItem(NodeItem):
         j = NodeItem.json(self)
         j['value'] = self.value
         return j
-
-    @staticmethod
-    def to_primitive(value):
-        return value if isinstance(value, (int, float, bool, str)) else str(value)
 
 class ValueItem(DataItem):
     datatype = Property("datatype")
@@ -864,7 +859,7 @@ class ValueItem(DataItem):
             'event': 'VAL-SAVE',
             'datatype': str(self.datatype),
             'type': self.type,
-            'memory': (psutil.virtual_memory()[2])/bytes_in_gb,
+            'memory': (psutil.virtual_memory()[2])/bytes_in_gb(),
             'cpu': (psutil.cpu_percent()),
             'name': self.name
         })
@@ -945,7 +940,7 @@ class RunnableItem(NodeItem): #number1
     workflows = RelatedFrom(WorkflowItem, "WORKFLOWRUN")
     
     cpu_init = Property("cpu_init", psutil.cpu_percent())
-    memory_init = Property("memory_init", (psutil.virtual_memory()[2])/bytes_in_gb)
+    memory_init = Property("memory_init", (psutil.virtual_memory()[2])/bytes_in_gb())
     cpu_run = Property("cpu_run", 0.0)
     memory_run = Property("memory_run", 0.0)
     
@@ -1056,7 +1051,7 @@ class RunnableItem(NodeItem): #number1
     
     def update_cpu_memory(self):
         self.cpu_run = psutil.cpu_percent()
-        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb
+        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb()
         
     def set_status(self, value, update = True):
         self.status = value
@@ -1157,7 +1152,7 @@ class ModuleInvocationItem(NodeItem):
     status = Property("status", Status.RECEIVED)
     
     cpu_init = Property("cpu_init", psutil.cpu_percent())
-    memory_init = Property("memory_init", (psutil.virtual_memory()[2])/bytes_in_gb)
+    memory_init = Property("memory_init", (psutil.virtual_memory()[2])/bytes_in_gb())
     
     cpu_run = Property("cpu_run", 0)
     memory_run = Property("memory_run", 0)
@@ -1230,7 +1225,7 @@ class ModuleInvocationItem(NodeItem):
         self.started_on = neotime.DateTime.utc_now()
         
         self.duration = neotime.Duration()
-        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb
+        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb()
         self.cpu_run = psutil.cpu_percent()
                     
         self.add_log(Status.STARTED, LogType.INFO)

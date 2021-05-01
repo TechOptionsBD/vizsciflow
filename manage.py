@@ -26,7 +26,7 @@ from flask_migrate import Migrate
 manager = Manager(app)
 migrate = Migrate(app, db)
 
-from app.common import Permission
+from app.common import Permission, convert_to_safe_json
 from flask_script import Shell
 from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user
@@ -102,7 +102,7 @@ def get_workflows_api():
         tags = request.args.get('tags') if request.args.get('tags') else ''
         tags = tags.split(',') if tags else []
         access = request.args.get('access') if request.args.get('access') else ''
-        return workflowmanager.get_workflows_as_list(int(access), *tags)
+        return json.dumps({'samples': convert_to_safe_json(workflowmanager.get_workflows_as_list(int(access), *tags))})
     finally:
         logout_user()       
          
@@ -253,20 +253,20 @@ def deploydb():
     usermanager.create_user(email="admin@gmail.com", username="admin", password="Admin_1")
     logging.info("admin")
     
-    # # insert modules
-    # logging.info("Inserting modules from directory: {0} ...".format(Config.MODULE_DIR))
-    # modules = modulemanager.insert_modules(Config.MODULE_DIR)
-    # logging.info("{0} module(s) added:".format(len(modules)))
-    # for module in modules:
-    #     package = module.package if module.package else "" # package name is optional
-    #     logging.info(package + "." + module.name)
+    # insert modules
+    logging.info("Inserting modules from directory: {0} ...".format(Config.MODULE_DIR))
+    modules = modulemanager.insert_modules(Config.MODULE_DIR)
+    logging.info("{0} module(s) added:".format(len(modules)))
+    for module in modules:
+        package = module.package if module.package else "" # package name is optional
+        logging.info(package + "." + module.name)
 
-    # # insert workflows
-    # logging.info("Inserting workflows from directory: {0} ...".format(Config.WORKFLOW_DIR))
-    # workflows = workflowmanager.insert_workflows(Config.WORKFLOW_DIR)
-    # logging.info("{0} workflows(s) added:".format(len(workflows)))
-    # for workflow in workflows:
-    #     logging.info(workflow.name)
+    # insert workflows
+    logging.info("Inserting workflows from directory: {0} ...".format(Config.WORKFLOW_DIR))
+    workflows = workflowmanager.insert_workflows(Config.WORKFLOW_DIR)
+    logging.info("{0} workflows(s) added:".format(len(workflows)))
+    for workflow in workflows:
+        logging.info(workflow.name)
 
 @manager.command
 def insertmodules(path):

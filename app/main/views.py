@@ -30,7 +30,7 @@ from ..biowl.dsl.provobj import View, Run
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.datamgr import datamanager
-from ..common import Permission, AccessRights, AccessType
+from ..common import Permission, AccessRights, convert_to_safe_json
 
 app = Flask(__name__)
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -882,7 +882,7 @@ def samples():
             return json.dumps({'return':'error'})
         
         access = int(request.args.get('access')) if request.args.get('access') else 0
-        return workflowmanager.get_workflows_as_list(access, current_user)
+        return json.dumps({'samples': convert_to_safe_json(workflowmanager.get_workflows_as_list(access, current_user))})
     except Exception as e :
         logging.error(str(e))
         return make_response(jsonify(err=str(e)), 500)

@@ -1,7 +1,6 @@
 {
     "name":"Local Server: Merge-Align-Convert",
     "desc":"None",
-    "access":0,
     "script":[
         "# check two fastq files for quality",
         "fq_html = fastqc.CheckQuality('/public/MiSeq_SOP/F3D7_S195_L001_R1_001.fastq')",

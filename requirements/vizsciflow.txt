@@ -10,3 +10,4 @@ scp
 regex
 psycopg2-binary
 flask-cors
+arrow

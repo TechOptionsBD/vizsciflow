@@ -72,10 +72,10 @@ class ObjectModel:
                     if f.get("params"):
                         for p in f["params"]:
                             pname = p["name"] if p.get("name") else ""
-                            pvalue = p["value"] if p.get("value") else ""
+                            pvalue = p["default"] if p.get("default") else ""
                             ptype = p["type"] if p.get("type") else ""
                             pdesc = p["desc"] if p.get("desc") else ""
-                            params.append({"name": pname, "value": pvalue, "desc": pdesc, "type": ptype})
+                            params.append({"name": pname, "default": pvalue, "desc": pdesc, "type": ptype})
                             
                     returns = []
                     if f.get("returns"):

@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: manage.py",
+            "type": "python",
+            "request": "launch",
+            "program": "manage.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceRoot}/.venv",
+            "args": ["deploydb"]
+        },
+        {
             "name": "Python: Flask",
             "type": "python",
             "request": "launch",

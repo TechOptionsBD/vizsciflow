@@ -22,7 +22,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, request
 import hashlib
 
-from app.managers.sessionmgr import SessionManager
+from config import Config
+
+def graph():
+    from py2neo import Graph
+    from flask import g
+
+    session = lambda : Graph(Config.GRAPHDB, username=Config.GRAPHDB_USER, password=Config.GRAPHDB_PASSWORD)    
+    try:
+        if not hasattr(g, 'graph'):
+            g.graph = session()
+    #        g.graph.schema.create_uniqueness_constraint('Workflow', 'workflow_id')
+        return g.graph
+    except:
+        return session()
 
 def neotime_duration_to_ms(duration):
     return duration[0] * 2629800000 + duration[1] * 86400000 + duration[2] * 1000 + duration[3]/1000000
@@ -37,9 +50,6 @@ def neotime2StrfTime(date):
                                  int(date.second * 1000000 % 1000000),
                                  tzinfo=date.tzinfo)
     return date.strftime("%d-%m-%Y %H:%M:%S")
-
-def graph():
-    return SessionManager.session()
 
 #inspect.getmembers(cls_, lambda a:not(inspect.isroutine(a)))
 class NodeItem(Model):

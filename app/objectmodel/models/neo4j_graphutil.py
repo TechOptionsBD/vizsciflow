@@ -5,13 +5,12 @@ import json
 
 from flask_login.mixins import UserMixin
 
-from config import Config
 import psutil
 from datetime import datetime
 
 import neotime
 
-from app.objectmodel.common import Status, LogType, AccessRights, Permission
+from app.objectmodel.common import Status, LogType, AccessRights, Permission, bytes_in_gb
 from dsl.fileop import FolderItem
 from dsl.datatype import DataType
 
@@ -19,9 +18,25 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, request, url_for
 import hashlib
 
-from app.managers.sessionmgr import SessionManager
+from config import Config
 
-bytes_in_gb = 1024 * 1024
+def graph():
+    from neo4j import GraphDatabase
+    from flask import g
+    
+    driver = GraphDatabase.driver(Config.GRAPHDB, auth=(Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD))
+    
+    session = lambda driver: driver.session(database=Config.GRAPHDB_DASTABASE) if Config.GRAPHDB_VERSION.startswith("4") else driver.session()
+
+    try:
+        if not hasattr(g, 'graph'):
+            g.graph = session(driver)
+    #        g.graph.schema.create_uniqueness_constraint('Workflow', 'workflow_id')
+        return g.graph
+    except:
+        return session(driver)
+
+bytes_in_gb() = 1024 * 1024
 def neotime_duration_to_ms(duration):
     return duration[0] * 2629800000 + duration[1] * 86400000 + duration[2] * 1000 + duration[3]/1000000
 
@@ -929,7 +944,7 @@ class ValueItem(DataItem):
             'event': 'VAL-SAVE',
             'datatype': str(self.datatype),
             'type': self.type,
-            'memory': (psutil.virtual_memory()[2])/bytes_in_gb,
+            'memory': (psutil.virtual_memory()[2])/bytes_in_gb(),
             'cpu': (psutil.cpu_percent()),
             'name': self.name
         })
@@ -1012,7 +1027,7 @@ class RunnableItem(NodeItem): #number1
     #workflows = RelatedFrom(WorkflowItem, "WORKFLOWRUN")
     
     cpu_init = psutil.cpu_percent()
-    memory_init = (psutil.virtual_memory()[2])/bytes_in_gb
+    memory_init = (psutil.virtual_memory()[2])/bytes_in_gb()
     cpu_run = 0.0
     memory_run = 0.0
     
@@ -1118,7 +1133,7 @@ class RunnableItem(NodeItem): #number1
     
     def update_cpu_memory(self):
         self.cpu_run = psutil.cpu_percent()
-        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb
+        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb()
         
     def set_status(self, value, update = True):
         self.status = value
@@ -1218,7 +1233,7 @@ class ModuleInvocationItem(NodeItem):
     
     status = Status.RECEIVED
     cpu_init = psutil.cpu_percent()
-    memory_init = (psutil.virtual_memory()[2])/bytes_in_gb
+    memory_init = (psutil.virtual_memory()[2])/bytes_in_gb()
     
     cpu_run = 0
     memory_run = 0
@@ -1291,7 +1306,7 @@ class ModuleInvocationItem(NodeItem):
         self.started_on = neotime.DateTime.utc_now()
         
         self.duration = neotime.Duration()
-        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb
+        self.memory_run = (psutil.virtual_memory()[2])/bytes_in_gb()
         self.cpu_run = psutil.cpu_percent()
                     
         self.add_log(Status.STARTED, LogType.INFO)

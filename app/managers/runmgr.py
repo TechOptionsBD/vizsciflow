@@ -3,8 +3,6 @@ from app.managers.mgrutil import ManagerUtility
 class RunnableManager:
     def __init__(self):
         self.persistance = ManagerUtility.Manage('runnable')
-            
-        #self.dbmanager = DBModuleManager() if Config.DATA_MODE != 0 else self.persistance # we need this line as long as we have pre-provenance data in the rdbms
 
     def add_module(self, workflow_id, package, function_name):
         return self.persistance.add_module(workflow_id, package, function_name)

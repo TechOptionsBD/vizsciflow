@@ -2,7 +2,6 @@ from flask import Blueprint
 
 main = Blueprint('main', __name__)
 
-from config import Config
 from . import views, errors, jobsview
 from app.objectmodel.common import Permission
 

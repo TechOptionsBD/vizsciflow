@@ -224,7 +224,6 @@ def deploydb():
     from app.managers.datamgr import datamanager
     from app.managers.usermgr import usermanager
     from app.managers.usermgr import usermanager
-    from app.managers.sessionmgr import SessionManager
     from app.managers.workflowmgr import workflowmanager
     from app.managers.dbmgr import dbmanager
 

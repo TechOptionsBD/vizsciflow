@@ -1,5 +1,4 @@
 from config import Config
-from app.managers.sessionmgr import SessionManager
 
 if Config.DATA_MODE == 1:
     from app.objectmodel.models.py2neo_graphutil import *
@@ -9,7 +8,7 @@ elif Config.DATA_MODE == 2:
 class Manager():
     @staticmethod
     def clear():
-        SessionManager.session().run("MATCH (n) DETACH DELETE n")
+        graph().run("MATCH (n) DETACH DELETE n")
 
     @staticmethod
     def close():

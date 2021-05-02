@@ -14,13 +14,23 @@ from flask_login.mixins import UserMixin
 from dsl.datatype import DataType
 from ..loader import Loader
 from ..common import Status, LogType, AccessRights, Permission, bytes_in_gb, VizSciFlowList, convert_to_safe_json, all_obj_fields
-from app.managers.sessionmgr import SessionManager
 
 from elasticsearch.exceptions import NotFoundError
 
 import arrow
 def convert_to_datetime(value):
     return value if isinstance(value, datetime) else arrow.get(value).naive
+
+def session():
+    from elasticsearch import Elasticsearch
+    from flask import g
+    
+    try:
+        if hasattr(g, 'es'):
+            g.es = Elasticsearch()
+        return g.es
+    except:
+        return Elasticsearch()
 
 class ElasticManager():
     
@@ -39,7 +49,7 @@ class ElasticManager():
         if id is None:
             raise ValueError("No document id specified for update.")
 
-        SessionManager.session().update(index=index, id=id, body = {"doc": kwargs})
+        session().update(index=index, id=id, body = {"doc": kwargs})
     
     @staticmethod
     def push(obj):
@@ -51,16 +61,16 @@ class ElasticManager():
             item = ElasticManager.and_query(obj.__class__, id=id)
             #check if item with id exist. If yes, update. Otherwise insert
             if item:
-                SessionManager.session().update(index=index, id=id, body = {"doc": payload})
+                session().update(index=index, id=id, body = {"doc": payload})
                 return obj
         try:
-            result = SessionManager.session().count(index = index)
+            result = session().count(index = index)
             id = int(result['count']) + 1
         except:
             id = 1
         
         payload['id'] = id
-        SessionManager.session().index(index=index, id = id, body=payload, refresh= True)
+        session().index(index=index, id = id, body=payload, refresh= True)
         obj.id = id
         return obj
 
@@ -70,7 +80,7 @@ class ElasticManager():
         if not index:
             raise ValueError("No index is specified for elastic search.")
 
-        if not SessionManager.session().indices.exists(index=index):
+        if not session().indices.exists(index=index):
             return VizSciFlowList([]) # if no index for this label created, return empty list
 
         fields = list(args) if args else ["*"] # no args given means all fields
@@ -78,11 +88,11 @@ class ElasticManager():
         id = kwargs.pop('id', None)
         
         if id: # return items with id directly
-            search = SessionManager.session().search(index = index, body = {'query': {'match': {'id': id}}, 'fields': fields})
+            search = session().search(index = index, body = {'query': {'match': {'id': id}}, 'fields': fields})
         if search is None or not search['hits']['hits']:
             try:
                 query_list = [{'match' : {str(k): v} } for k,v in convert_to_safe_json(kwargs).items()]
-                search = SessionManager.session().search(index = index, body = {'fields': fields, "sort" : [{ "id" : "asc" }], "query": {"bool": {"should": query_list}}})
+                search = session().search(index = index, body = {'fields': fields, "sort" : [{ "id" : "asc" }], "query": {"bool": {"should": query_list}}})
             except NotFoundError:
                 logging.error("Index {0} cannot be retrieved from elasticsearch.".format(index))
                 return VizSciFlowList([])
@@ -102,18 +112,18 @@ class ElasticManager():
         if not index:
             raise ValueError("No index is specified for elastic search.")
 
-        if not SessionManager.session().indices.exists(index=index):
+        if not session().indices.exists(index=index):
             return VizSciFlowList([]) # if no index for this label created, return empty list
 
         search = None
         id = kwargs.pop('id', None)
         # return items with id directly
         if id:
-            search = SessionManager.session().search(index = index, body = {'query': {'match': {'id': id}}})
+            search = session().search(index = index, body = {'query': {'match': {'id': id}}})
         if search is None or not search['hits']['hits']:
             try:
                 query_list = [{'match' : {str(k): v} } for k,v in convert_to_safe_json(kwargs).items()]
-                search = SessionManager.session().search(index = index, body = {"sort" : [{ "id" : "asc" }], "query": {"bool": {"should": query_list}}})
+                search = session().search(index = index, body = {"sort" : [{ "id" : "asc" }], "query": {"bool": {"should": query_list}}})
             except NotFoundError:
                 return VizSciFlowList([])
 
@@ -260,7 +270,7 @@ class ElasticRole(ElasticNode):
         try:
             for r in roles:
                 role = None
-                if SessionManager.session().indices.exists(index='roles'):
+                if session().indices.exists(index='roles'):
                     role = ElasticRole.get(name=r)
                 if role is None or role == []:
                     role = ElasticRole(name=r, permissions= roles[r][0], default = roles[r][1])

@@ -117,11 +117,11 @@ class ModuleManager():
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):
-        return Service.get_module_by_name_package_for_user_access(user_id, name, package)
+        return Service.get_module_by_name_package_for_user_access_json(user_id, name, package)
 
     @staticmethod
     def get_module_by_name_package(name, package):
-        return dict2obj(Service.get_first_service_by_name_package(name, package).value)
+        return dict2obj(Service.get_first_service_by_name_package_json(name, package))
         
     @staticmethod
     def get_modules_by_name_package(name, package):
@@ -137,7 +137,7 @@ class ModuleManager():
 
     @staticmethod
     def get_all_by_user_access(user_id, access):
-        return Service.get_by_user(user_id, access)
+        return Service.get_full_by_user_json(user_id, access)
 
     @staticmethod
     def get_modules(**kwargs):
@@ -223,6 +223,7 @@ class Manager():
     @staticmethod
     def clear():
         try:
+            Service.query.delete()
             Role.query.delete()
             User.query.delete()
             Workflow.query.delete()

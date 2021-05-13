@@ -13,7 +13,6 @@ from config import Config
 from . import celery
 from dsl.grammar import PythonGrammar
 from dsl.parser import WorkflowParser
-from app.biowl.dsl.vizsciflowgraphgen import GraphGenerator
 from dsl.wftimer import Timer
 
 from app.objectmodel.common import Status
@@ -98,4 +97,5 @@ def generate_graph_from_workflow(workflow_id):
     return generate_graph(workflow.id, workflow.name, workflow.script)
 
 def generate_graph(workflow_id, name, script):
+    from app.biowl.dsl.vizsciflowgraphgen import GraphGenerator
     return GraphGenerator.generate_workflow_graph_json(workflow_id, name, script)

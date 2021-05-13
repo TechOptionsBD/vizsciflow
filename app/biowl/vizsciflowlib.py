@@ -6,18 +6,11 @@ from dsl.fileop import FolderItem
 from app.managers.runmgr import runnablemanager
 from app.managers.datamgr import datamanager
 from app.managers.modulemgr import modulemanager
+from app.objectmodel.common import isiterable
 
 # from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plugin, Stat, Monitor
 
 # registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
-
-def iterable(obj):
-    try:
-        iter(obj)
-    except Exception:
-        return False
-    else:
-        return True
 
 class Library(LibraryBase):
     def __init__(self):
@@ -99,53 +92,53 @@ class Library(LibraryBase):
             context.task_id = task.id
             task.start()
 
-            if LibraryBase.check_function(function, package):
-                result = LibraryBase.call_func(context, package, function, args)
-                task.succeeded()
+            arguments, kwargs = LibraryBase.split_args(args)
+            # if not package and function in registry:
+            #     provcls = None
+            #     if function.lower() == "run":
+            #         provcls = Run(*arguments, **kwargs)
+            #     elif function.lower() == "user":
+            #         provcls = User(*arguments, **kwargs)
+            #     elif function.lower() == "workflow":
+            #         provcls = Workflow(*arguments, **kwargs)
+            #     elif function.lower() == "module":
+            #         provcls = Module(*arguments, **kwargs)
+            #     elif function.lower() == "data":
+            #         provcls = Data(*arguments, **kwargs)
+            #     #provcls = getattr(".dsl.provobj", registry[function])
+            #     #return provcls(*arguments, **kwargs)
+            #     return provcls
+            
+            func = modulemanager.get_module_by_name_package(function, package)
+            if not func.module:
+                Library.StoreArguments(context, task, func, arguments, **kwargs)
+                if function.lower() == "extract":
+                    result = Library.Extract(func, context, *args, **kwargs)
             else:
-                arguments, kwargs = LibraryBase.split_args(args)
-                # if not package and function in registry:
-                #     provcls = None
-                #     if function.lower() == "run":
-                #         provcls = Run(*arguments, **kwargs)
-                #     elif function.lower() == "user":
-                #         provcls = User(*arguments, **kwargs)
-                #     elif function.lower() == "workflow":
-                #         provcls = Workflow(*arguments, **kwargs)
-                #     elif function.lower() == "module":
-                #         provcls = Module(*arguments, **kwargs)
-                #     elif function.lower() == "data":
-                #         provcls = Data(*arguments, **kwargs)
-                #     #provcls = getattr(".dsl.provobj", registry[function])
-                #     #return provcls(*arguments, **kwargs)
-                #     return provcls
+                module_obj = load_module(func.module)
+                function = getattr(module_obj, func.internal)
                 
-                func = modulemanager.get_module_by_name_package(function, package)
-                if not func.module:
-                    Library.StoreArguments(context, task, func, arguments, **kwargs)
-                    if function.lower() == "extract":
-                        result = Library.Extract(func, context, *args, **kwargs)
+                Library.StoreArguments(context, task, func, arguments, **kwargs)
+                
+                result = function(context, *arguments, **kwargs)
+                if not hasattr(func, 'returns') or func.returns == None or func.returns == []:
+                    task.succeeded()
+                    return None
+
+                result = Library.add_meta_data(list(func.returns) if hasattr(func, 'returns') and isiterable(func.returns) else [func.returns], result, task)
+            
+            task.succeeded()
+            
+            if not result:
+                return result
+            
+            if func.returns:
+                if isiterable(func.returns) and len(list(func.returns)) > 1:
+                    return result if isinstance(result, tuple) else (result,)
                 else:
-                    module_obj = load_module(func.module)
-                    function = getattr(module_obj, func.internal)
-                    
-                    Library.StoreArguments(context, task, func, arguments, **kwargs)
-                    
-                    result = function(context, *arguments, **kwargs)
-                    result = Library.add_meta_data(list(func.returns) if iterable(func.returns) else [func.returns], result, task)
-                
-                task.succeeded()
-                
-                if not result:
                     return result
                 
-                if func.returns:
-                    if iterable(func.returns) and len(list(func.returns)) > 1:
-                        return result if isinstance(result, tuple) else (result,)
-                    else:
-                        return result
-                    
-                return result if len(result) > 1 else result[0]
+            return result if len(result) > 1 else result[0]
         except Exception as e:
             if task:
                 task.failed(str(e))
@@ -237,6 +230,7 @@ class Library(LibraryBase):
                 data = [f if isinstance(f, FolderItem) else FolderItem(f) for f in data]
             else:
                 datatype = DataType.Custom
+                data = resulttup[i]# if resulttup[i] else ""
             
             name = returnstup[i].name if returnstup[i].name else ""
             dataAndType.append((datatype, data, name))

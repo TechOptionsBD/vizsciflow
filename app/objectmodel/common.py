@@ -1,6 +1,13 @@
 import inspect
 import json
 
+def isiterable(p_object):
+    try:
+        iter(p_object)
+    except TypeError: 
+        return False
+    return True
+
 class obj(object):
     def __init__(self, dict_):
         self.__dict__.update(dict_)

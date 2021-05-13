@@ -16,7 +16,7 @@ import neotime
 from app.objectmodel.common import Status, LogType, AccessRights, Permission, bytes_in_gb, to_primitive
 from dsl.fileop import FolderItem
 from dsl.datatype import DataType
-from app.objectmodel.loader import Loader
+from .loader import Loader
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, request

@@ -3,9 +3,10 @@
        {
            "org": "Python",
            "package": "Python",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"print",
-           "internal":"print",
+           "internal":"raw_print",
            "desc": "Prints one or more things.",
            "params":[  
             {  
@@ -13,21 +14,15 @@
                "type":"any"
             }            
             ],
-            "returns": [
-               {
-                 "name": "data",
-                 "type": "string[]"
-               }
-            ],
             "example": "print(data)"
        },
        {
            "org": "Python",
            "package": "Python",
-           "module": "os",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"len",
-           "internal":"len",
+           "internal":"raw_len",
            "desc": "Gets length of a list or string.",
            "returns": [
               {
@@ -46,9 +41,10 @@
        {
            "org": "Python",
            "package": "Python",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"range",
-           "internal":"range",
+           "internal":"raw_range",
            "returns": [
             {
                "name": "data",
@@ -59,11 +55,13 @@
            "params":[  
             {  
                "name":"start",
-               "type":"int"
+               "type":"int",
+               "default": 1
             },
             {  
                "name":"end",
-               "type":"int"
+               "type":"int",
+               "default": 10
             }
             ],
            "example": "range(1, 10)"
@@ -71,9 +69,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"Read",
-           "internal":"read",
+           "internal":"raw_read",
            "desc": "Reads a file as bytes.",
            "params":[  
             {  
@@ -92,9 +91,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"Write",
-           "internal":"write",
+           "internal":"raw_write",
            "desc": "Writes text data to a file.",
            "params":[  
             {  
@@ -111,9 +111,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"GetFiles",
-           "internal":"get_files",
+           "internal":"raw_get_files",
            "desc": "Gets the names of files in a directory.",
            "params":[  
             {  
@@ -132,9 +133,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"GetFolders",
-           "internal":"get_folders",
+           "internal":"raw_get_folders",
            "desc": "Gets the names of folders in a directory.",
            "params":[  
             {  
@@ -153,9 +155,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"Remove",
-           "internal":"remove",
+           "internal":"raw_remove",
            "desc": "Removes a file or directory.",
            "params":[  
             {  
@@ -168,9 +171,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"CreateFolder",
-           "internal":"makedirs",
+           "internal":"raw_makedirs",
            "desc": "Creates a directory.",
            "params":[  
             {  
@@ -189,9 +193,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"isfile",
-           "internal":"isfile",
+           "internal":"raw_isfile",
            "desc": "Returns true if a specified path is a file; false if it's a directory.",
            "params":[  
             {  
@@ -210,9 +215,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"basename",
-           "internal":"basename",
+           "internal":"raw_basename",
            "desc": "Truncates the path and returns only the filename.",
            "params":[  
             {  
@@ -231,9 +237,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "system",
            "name":"dirname",
-           "internal":"dirname",
+           "internal":"raw_dirname",
            "desc": "Truncates the file name and returns only the directory name.",
            "params":[  
             {  
@@ -246,9 +253,10 @@
        {
            "org": "SRLAB",
            "package": "io",
+		     "module": "modules.common.adapter",
            "group": "Convert",
            "name":"GetDataType",
-           "internal":"getdatatype",
+           "internal":"raw_getdatatype",
            "desc": "Gets the datatype of a file",
            "params":[  
             {  

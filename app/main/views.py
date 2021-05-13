@@ -486,160 +486,161 @@ def load_metadata(path):
     
     return metadata
     
-def save_metadata(request):
-    path = request.form.get('save')
-    newname = request.form.get('filename')
+# def save_metadata(request):
+#     path = request.form.get('save')
+#     newname = request.form.get('filename')
     
-    ds = Utility.ds_by_prefix_or_default(path)
-    data = datamanager.get_allocation_by_url(ds.id, path)
+#     ds = Utility.ds_by_prefix_or_default(path)
+#     data = datamanager.get_allocation_by_url(ds.id, path)
     
-    fs = Utility.fs_by_prefix_or_guess(path)
-    if not fs:
-        raise ValueError("path not found")
-    newpath = fs.rename(path, newname)
-    if path != newpath:
-        data.update_url(newpath)
-        path = newpath    
+#     fs = Utility.fs_by_prefix_or_guess(path)
+#     if not fs:
+#         raise ValueError("path not found")
+#     newpath = fs.rename(path, newname)
+#     if path != newpath:
+#         data.update_url(newpath)
+#         path = newpath    
 
-    datamanager.check_access_rights(current_user.id, path, AccessRights.Read)
+#     datamanager.check_access_rights(current_user.id, path, AccessRights.Read)
     
-    if request.form.get('visualizers'):    
-        visualizers = json.loads(request.form.get('visualizers'))
-        for name, desc in visualizers.items():
-            visualizer = Visualizer.add(name, desc)
-            if visualizer:
-                DataVisualizer.add(data.id, visualizer.id)
+#     if request.form.get('visualizers'):    
+#         visualizers = json.loads(request.form.get('visualizers'))
+#         for name, desc in visualizers.items():
+#             visualizer = Visualizer.add(name, desc)
+#             if visualizer:
+#                 DataVisualizer.add(data.id, visualizer.id)
     
-    if request.form.get('annotations'):    
-        annotations = json.loads(request.form.get('annotations'))
-        for name, desc in annotations.items():
-            DataAnnotation.add(data.id, desc)
+#     if request.form.get('annotations'):    
+#         annotations = json.loads(request.form.get('annotations'))
+#         for name, desc in annotations.items():
+#             DataAnnotation.add(data.id, desc)
     
-    if request.form.get('mimetypes'):    
-        mimetypes = json.loads(request.form.get('mimetypes'))
-        for name, desc in mimetypes.items():
-            mimetype = MimeType.add(name, desc)
-            if mimetype:
-                DataMimeType.add(data.id, mimetype.id)
+#     if request.form.get('mimetypes'):    
+#         mimetypes = json.loads(request.form.get('mimetypes'))
+#         for name, desc in mimetypes.items():
+#             mimetype = MimeType.add(name, desc)
+#             if mimetype:
+#                 DataMimeType.add(data.id, mimetype.id)
                 
-    if request.form.get('properties'):    
-        properties = json.loads(request.form.get('properties'))
-        for name, desc in properties.items():
-            DataProperty.add(data.id, name, desc)
+#     if request.form.get('properties'):    
+#         properties = json.loads(request.form.get('properties'))
+#         for name, desc in properties.items():
+#             DataProperty.add(data.id, name, desc)
 
-def search_and_filter(path, filters):
-    filters = json.loads(filters)
-    filters = filters if not filters or type(filters) is list else [filters]
-    selected_filters = []
-    for f in filters:
-        if f["selected"]:
-            selected_filters.append(f)
+# def search_and_filter(path, filters):
+#     filters = json.loads(filters)
+#     filters = filters if not filters or type(filters) is list else [filters]
+#     selected_filters = []
+#     for f in filters:
+#         if f["selected"]:
+#             selected_filters.append(f)
     
-    FilterHistory.add(current_user.id, json.dumps(selected_filters))
+#     FilterHistory.add(current_user.id, json.dumps(selected_filters))
     
-    fs = Utility.fs_by_prefix_or_guess(path)
-    return FilterManager.listdirR(fs, path, filters);
+#     fs = Utility.fs_by_prefix_or_guess(path)
+#     return FilterManager.listdirR(fs, path, filters);
 
-def load_filter_history():
-    filters = FilterHistory.query.filter(FilterHistory.user_id == current_user.id)
-    histories = []
-    for f in filters:
-        histories.append(f.to_json_info())
+# def load_filter_history():
+#     filters = FilterHistory.query.filter(FilterHistory.user_id == current_user.id)
+#     histories = []
+#     for f in filters:
+#         histories.append(f.to_json_info())
         
-    return jsonify(histories = histories)
+#     return jsonify(histories = histories)
 
-def load_filters():
-    filters = Filter.query.filter(Filter.user_id == current_user.id)
-    histories = []
-    for f in filters:
-        histories.append(f.to_json_info())
+# def load_filters():
+#     filters = Filter.query.filter(Filter.user_id == current_user.id)
+#     histories = []
+#     for f in filters:
+#         histories.append(f.to_json_info())
         
-    return jsonify(histories = histories)
+#     return jsonify(histories = histories)
 
-def load_filter_tip(filter_id):
-    return Filter.query.get(filter_id).to_json_tooltip()
+# def load_filter_tip(filter_id):
+#     return Filter.query.get(filter_id).to_json_tooltip()
 
-def load_script_from_filter(path, filter_id):
-    filterjson = Filter.query.get(filter_id).value
-    filterjson = [f for f in filterjson if f["selected"] ]
-    script = "data = GetFiles('{0}', {1})".format(path, filterjson)
-    return script
+# def load_script_from_filter(path, filter_id):
+#     filterjson = Filter.query.get(filter_id).value
+#     filterjson = [f for f in filterjson if f["selected"] ]
+#     script = "data = GetFiles('{0}', {1})".format(path, filterjson)
+#     return script
 
-def save_filters(name, filters):
-    filters = json.loads(filters)
-    Filter.add(current_user.id, name, filters)
-    return ""
+# def save_filters(name, filters):
+#     filters = json.loads(filters)
+#     Filter.add(current_user.id, name, filters)
+#     return ""
 
-def delete_filter(filter_id):
-    Filter.remove(filter_id)
-    return ""
+# def delete_filter(filter_id):
+#     Filter.remove(filter_id)
+#     return ""
 
-def load_datasets():
-    datasets = Dataset.query.all()
-    jsondatasets = []
-    for d in datasets:
-        jsondatasets.append(d.to_json())
+# def load_datasets():
+#     datasets = Dataset.query.all()
+#     jsondatasets = []
+#     for d in datasets:
+#         jsondatasets.append(d.to_json())
         
-    return jsonify(datasets = jsondatasets)
+#     return jsonify(datasets = jsondatasets)
 
-def save_datasets(schema):
-    schema = json.loads(schema)
-    #schemadic = {}
-    #for s in schema:
-     #   schemadic.update({s['name']: s['value']})
+# def save_datasets(schema):
+#     schema = json.loads(schema)
+#     #schemadic = {}
+#     #for s in schema:
+#      #   schemadic.update({s['name']: s['value']})
             
-    dataset = Dataset.add(schema)
-    return jsonify(dataset = dataset.to_json())
+#     dataset = Dataset.add(schema)
+#     return jsonify(dataset = dataset.to_json())
 
-def delete_datasets(dataset_id):
-    Dataset.remove(dataset_id)
-    return json.dumps({})
+# def delete_datasets(dataset_id):
+#     Dataset.remove(dataset_id)
+#     return json.dumps({})
 
-def update_datasets(dataset_id, schema):
-    schema = json.loads(schema)
-    Dataset.update(dataset_id, schema)
-    return json.dumps({})
+# def update_datasets(dataset_id, schema):
+#     schema = json.loads(schema)
+#     Dataset.update(dataset_id, schema)
+#     return json.dumps({})
 
 @main.route('/filters', methods=['GET', 'POST'])
 @login_required
 def filters():
-    if request.args.get('filterhistory'):
-        return load_filter_history()
-    elif request.args.get('filters'):
-        return load_filters()
-    elif request.args.get("savefilters"):
-        return json.dumps(save_filters(request.args.get("name"), request.args.get("savefilters")))
-    elif request.args.get('filtertip'):
-        return json.dumps(load_filter_tip(request.args.get('filtertip')))
-    elif request.args.get('filterforscript'):
-        return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filterforscript')))
-    elif request.args.get('applyfilters'):
-        return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('applyfilters')) })
-    elif request.args.get('delete'):
-        return json.dumps(delete_filter(request.args.get('delete')))
+    return json.dumps('')
+#     if request.args.get('filterhistory'):
+#         return load_filter_history()
+#     elif request.args.get('filters'):
+#         return load_filters()
+#     elif request.args.get("savefilters"):
+#         return json.dumps(save_filters(request.args.get("name"), request.args.get("savefilters")))
+#     elif request.args.get('filtertip'):
+#         return json.dumps(load_filter_tip(request.args.get('filtertip')))
+#     elif request.args.get('filterforscript'):
+#         return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filterforscript')))
+#     elif request.args.get('applyfilters'):
+#         return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('applyfilters')) })
+#     elif request.args.get('delete'):
+#         return json.dumps(delete_filter(request.args.get('delete')))
 
-@main.route('/datasets', methods=['GET', 'POST'])
-@login_required
-def datasets():
-    if request.args.get("save"):
-        return save_datasets(request.args.get("save"))
-    elif request.args.get("delete"):
-        return delete_datasets(request.args.get("delete"))
-    elif request.args.get("update"):
-        return update_datasets(request.args.get("update_id"), request.args.get("update"))
+# @main.route('/datasets', methods=['GET', 'POST'])
+# @login_required
+# def datasets():
+#     if request.args.get("save"):
+#         return save_datasets(request.args.get("save"))
+#     elif request.args.get("delete"):
+#         return delete_datasets(request.args.get("delete"))
+#     elif request.args.get("update"):
+#         return update_datasets(request.args.get("update_id"), request.args.get("update"))
     
-    return load_datasets()
+#     return load_datasets()
 
 @main.route('/metadata', methods=['GET', 'POST'])
 @login_required
 def metadata():
     return json.dumps({})
-    if request.args.get('load'):
-        return json.dumps(load_metadata(request.args.get('load')))
-    elif request.args.get('properties'):
-        return json.dumps(load_metadataproperties())
-    elif request.form.get('save'):
-        return json.dumps(save_metadata(request))
+#     if request.args.get('load'):
+#         return json.dumps(load_metadata(request.args.get('load')))
+#     elif request.args.get('properties'):
+#         return json.dumps(load_metadataproperties())
+#     elif request.form.get('save'):
+#         return json.dumps(save_metadata(request))
        
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required

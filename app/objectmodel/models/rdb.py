@@ -26,7 +26,7 @@ from app import db
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
 from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType
-from app.objectmodel.loader import Loader
+from .loader import Loader
 
 from collections import namedtuple
 
@@ -772,7 +772,13 @@ class Param(db.Model):
     value = db.Column(JSON, nullable = False)
     
     #service = db.relationship("Service", foreign_keys=service_id)
-    
+
+class Return(db.Model):
+    __tablename__ = 'returns'
+    id = db.Column(db.Integer, primary_key=True)
+    service_id = db.Column(db.Integer, ForeignKey('services.id'))
+    value = db.Column(JSON, nullable = False)
+
 class Service(db.Model):
     __tablename__ = 'services'
     id = db.Column(db.Integer, primary_key=True)
@@ -783,6 +789,7 @@ class Service(db.Model):
     #accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
     accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
+    returns = db.relationship('Return', backref='service', lazy='dynamic', cascade="all,delete-orphan")
     tasks = db.relationship('Task', cascade="all,delete-orphan", backref='service', lazy='dynamic')
 
     @staticmethod
@@ -797,13 +804,9 @@ class Service(db.Model):
                 if not user_id and admin:
                     user_id = admin.id
 
-                # params = f.pop('params', None)
-                module = Service.add(user_id, f, AccessType.PUBLIC, None)
-                modules.append(module)
-                # if params:
-                #     for param in params:
-                #         module.params.add(Param(value = param)
+                modules.append(Service.add(user_id, f, AccessType.PUBLIC, None))
                 
+            db.session.add_all(modules)
             db.session.commit()
             return modules
         except SQLAlchemyError:
@@ -815,10 +818,17 @@ class Service(db.Model):
         try:
             service = Service()
             service.user_id = user_id
-            service.value = value
             service.active = True
             service.public = True if access == AccessType.PUBLIC else False
-                        
+
+            params = value.pop('params', [])
+            for p in params:
+                service.params.append(Param(value = p))
+            
+            returns = value.pop('returns', [])
+            for p in returns:
+                service.returns.append(Return(value = p))
+
             if (access == AccessType.SHARED and users):
                 for user_id in users:
 #                 for usr in user:
@@ -828,6 +838,8 @@ class Service(db.Model):
                     if matchuser:
                         service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
                         
+            service.value = value
+
             db.session.add(service)
             db.session.commit()
             return service
@@ -869,10 +881,16 @@ class Service(db.Model):
    
     @staticmethod
     def get_first_service_by_name_package(name, package = None):
-        services = Service.get_service_by_name_package(name, package)
-        if services and services.first():
-            return services.first()
-        
+        return Service.get_service_by_name_package(name, package).first()
+    
+    @staticmethod
+    def get_first_service_by_name_package_json(name, package = None):
+        service = Service.get_first_service_by_name_package(name, package)
+        if service and service.value:
+            value = service.value
+            value.update(Service.get_params_returns_json(service))
+            return value
+
     @staticmethod
     def get_service_by_name_package(name, package = None):
 #         if package:
@@ -882,42 +900,74 @@ class Service(db.Model):
         
         return Service.query.filter(and_(func.lower(Service.value["name"].astext).cast(Unicode) == name.lower(), not package or func.lower(Service.value["package"].astext).cast(Unicode) == package.lower()))
     
-    @staticmethod
-    def add_access_to_json(id, services, access, is_owner, accesses):
-        i=0
-        for s in services:
-            s['access'] = access
-            s['service_id'] =  id[i]
-            s['is_owner'] = is_owner[i]
-            if accesses[i] != []:
-                sharedWith = ServiceAccess.get_by_service_id(id[i])
-                #ServiceAccess.query.filter(ServiceAccess.service_id == id[i]).with_entities(ServiceAccess.id, ServiceAccess.user_id)
-                s['sharedWith'] = sharedWith
+    # @staticmethod
+    # def add_access_to_json(id, services, access, is_owner, accesses):
+    #     i=0
+    #     for s in services:
+    #         s['access'] = access
+    #         s['service_id'] =  id[i]
+    #         s['is_owner'] = is_owner[i]
+    #         if accesses[i] != []:
+    #             sharedWith = ServiceAccess.get_by_service_id(id[i])
+    #             #ServiceAccess.query.filter(ServiceAccess.service_id == id[i]).with_entities(ServiceAccess.id, ServiceAccess.user_id)
+    #             s['sharedWith'] = sharedWith
             
-            i+=1
+    #         i+=1
             
-        return services
-        
+    #     return services
+
     @staticmethod
-    def get_by_user(user_id, access):
+    def get_access_json(id, access, is_owner):
+        return {
+            'access': access,
+            'service_id':  id,
+            'owner_id': is_owner,
+            'shared_with':  ServiceAccess.get_by_service_id(id)
+        }
+
+    @staticmethod
+    def get_params_returns_json(service):
+        result = {}
+        if service:
+            if service.params:
+                params = [param.value for param in service.params]
+                if params:
+                    result['params'] = params
+            
+            if service.returns:
+                returns = [param.value for param in service.returns]
+                if returns:
+                    result['returns'] = returns
+        return result
+
+    @staticmethod
+    def get_full_user_json(service, user_id, access):
+        json = service.value
+        json.update(Service.get_params_returns_json(service))
+        json.update(Service.get_access_json(service.id, access, service.user_id == user_id))
+        return json
+
+    @staticmethod
+    def get_full_by_user_json(user_id, access):
         samples = []
         if access == 0 or access == 3:
             services = Service.query.filter(and_(Service.public == True, Service.active == True))
-            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 0, [True if s.user_id == user_id else False for s in services], [s.accesses for s in services]))
+            samples = [Service.get_full_user_json(s, user_id, 0) for s in services]
         if access == 1 or access == 3:
             services = Service.query.filter(and_(Service.public != True, Service.active == True)).filter(Service.accesses.any(and_(ServiceAccess.user_id == user_id, Service.user_id != user_id)))
-            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 1, [True if s.user_id == user_id else False for s in services], [s.accesses for s in services]))
+            samples.extend([Service.get_full_user_json(s, user_id, 1) for s in services])
         if access == 2 or access == 3:
             services = Service.query.filter(and_(Service.public != True, Service.active == True, Service.user_id == user_id))
-            samples.extend(Service.add_access_to_json([s.id for s in services], [s.value for s in services], 2, [True if s.user_id == user_id else False for s in services], [s.accesses for s in services]))#[ x if x%2 else x*100 for x in range(1, 10) ]
+            samples.extend([Service.get_full_user_json(s, user_id, 2) for s in services])
+
         return samples
         
     @staticmethod
-    def get_module_by_name_package_for_user_access(user_id, name, package = None):
-        services = Service.get_service_by_name_package(name, package)
-        if services:
-            service = services.first()
+    def get_module_by_name_package_for_user_access_json(user_id, name, package = None):
+        service = Service.get_service_by_name_package(name, package).first()
+        if service:
             value = service.value
+            value.update(Service.get_params_returns_json(service))
             if service.public:
                 value["access"] = "public"
             else:
@@ -926,7 +976,8 @@ class Service(db.Model):
                         value["access"] = "shared" if service.user_id != user_id else "private"
                         break
             return value
-        
+
+
     @staticmethod
     def check_function(name, package = None):
         services = Service.get_service_by_name_package(name, package)

@@ -895,7 +895,9 @@ function TasksViewModel() {
             exmpl = exmpl.substring(0, exmpl.length - 1);
             exmpl += " = " 
         }
-        exmpl += item.package() + '.' + item.name() + '(';
+        if (item.package())
+            exmpl += item.package() + '.'
+        exmpl += item.name() + '(';
         params.forEach(function (param){
             exmpl += param.value + ','
         });

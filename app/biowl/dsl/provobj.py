@@ -3,14 +3,14 @@ import itertools
 import operator
 
 #from ...graphutil import RunnableItem, ModuleItem, ValueItem, WorkflowItem, UserItem, NodeItem
-from app.util import Utility
 from dsl.datatype import DataType
 from .pluginmgr import plugincollection
-from ...managers.usermgr import usermanager
-from ...managers.workflowmgr import workflowmanager
-from ...managers.runmgr import runnablemanager
-from ...managers.modulemgr import modulemanager
-from ...managers.datamgr import datamanager
+from app.managers.usermgr import usermanager
+from app.managers.workflowmgr import workflowmanager
+from app.managers.runmgr import runnablemanager
+from app.managers.modulemgr import modulemanager
+from app.managers.datamgr import datamanager
+from app.util import Utility
 
 def EmptyIfNull(value):
     return value if value else ""
@@ -527,14 +527,7 @@ class Plugin():
     
     def apply(self, *args, **kwargs):
         return self._plugin.perform_operation(*args, **kwargs)
-
-def isiterable(p_object):
-    try:
-        iter(p_object)
-    except TypeError: 
-        return False
-    return True
-        
+       
 class View(object):
     def __init__(self):
         pass

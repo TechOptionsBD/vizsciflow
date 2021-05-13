@@ -70,11 +70,16 @@ class Loader:
                     params = []
                     if f.get("params"):
                         for p in f["params"]:
-                            pname = p["name"] if p.get("name") else ""
-                            pvalue = p["default"] if p.get("default") else ""
-                            ptype = p["type"] if p.get("type") else ""
-                            pdesc = p["desc"] if p.get("desc") else ""
-                            params.append({"name": pname, "default": pvalue, "desc": pdesc, "type": ptype})
+                            param = {}
+                            if p.get("name"):
+                                param["name"] = p["name"]
+                            if p.get("default"):
+                                param["default"] = p["default"]
+                            if p.get("type"):
+                                param["type"] = p["type"]
+                            if p.get("desc"):
+                                param["desc"] = p["desc"]
+                            params.append(param)
                             
                     returns = []
                     if f.get("returns"):
@@ -83,10 +88,14 @@ class Loader:
                             rs = [rs]
 
                         for p in rs:
-                            pname = p["name"] if p.get("name") else ""
-                            ptype = p["type"] if p.get("type") else ""
-                            pdesc = p["desc"] if p.get("desc") else ""
-                            returns.append({"name": pname, "desc": pdesc, "type": ptype})
+                            param = {}
+                            if p.get("name"):
+                                param["name"] = p["name"]
+                            if p.get("type"):
+                                param["type"] = p["type"]
+                            if p.get("desc"):
+                                param["desc"] = p["desc"]
+                            returns.append(param)
 
                     func = {
                         "org": org,

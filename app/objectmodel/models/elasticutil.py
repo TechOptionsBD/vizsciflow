@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login.mixins import UserMixin
 
 from dsl.datatype import DataType
-from ..loader import Loader
+from .loader import Loader
 from ..common import Status, LogType, AccessRights, Permission, bytes_in_gb, VizSciFlowList, convert_to_safe_json, all_obj_fields
 
 from elasticsearch.exceptions import NotFoundError

@@ -1,7 +1,17 @@
 from dsl.datatype import DataType
 from app.managers.mgrutil import ManagerUtility
 from app.objectmodel.common import AccessRights
-    
+
+known_types = {
+    'int': int,
+    'float': float,
+    'str': str,
+    'bool': bool,
+    'any': str,
+    'string': str
+    # etc
+}
+
 class DataManager():
     def __init__(self):
         self.persistance = ManagerUtility.Manage('data')
@@ -65,6 +75,10 @@ class DataManager():
                         paramType = DataType.File
                     elif 'folder' in paramType:
                         paramType = DataType.Folder
+                    elif any(item in known_types.keys() for item in paramType):
+                        paramType = DataType.Value
+                    else:
+                        raise ValueError("Store Arguments: param type {0} doesn't exist.".format(paramType))
                 
                 task.add_input(user_id, paramType, str(args[i]), AccessRights.Read, name = params[i].name if i < len(params) and params[i].name else "")
                            

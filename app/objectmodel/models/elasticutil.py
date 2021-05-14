@@ -211,19 +211,13 @@ class ElasticDataSource(ElasticNode):
     @staticmethod
     def insert_datasources():
         try:
-            datasrc = ElasticDataSource(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
-            ElasticManager.push(datasrc)
-
-            basedir = os.path.dirname(os.path.abspath(__file__))
-            storagedir = os.path.abspath(os.path.join(basedir, '../storage'))
-            datasrc = ElasticDataSource(name='LocalFS', type='posix', url=storagedir, root='/', public='/public')
-            ElasticManager.push(datasrc)
-
-            datasrc = ElasticDataSource(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
-            ElasticManager.push(datasrc)
-
-            datasrc = ElasticDataSource(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
-            ElasticManager.push(datasrc)
+            datasources = Loader.get_datasources()
+            datasourceitems = []
+            for datasrc in datasources:
+                datasourceitem = ElasticDataSource(**datasrc)
+                ElasticManager.push(datasrc)
+                datasourceitems.append(datasourceitem)
+            return datasourceitems
 
         except Exception as e:
             logging.error("Error creating data sources: " + str(e))

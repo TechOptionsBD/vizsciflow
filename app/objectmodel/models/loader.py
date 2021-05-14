@@ -6,7 +6,7 @@ class Loader:
     @staticmethod
     def get_datasources():
         basedir = os.path.dirname(os.path.abspath(__file__))
-        storagedir = os.path.abspath(os.path.join(basedir, '../storage'))
+        storagedir = os.path.abspath(os.path.join(basedir, '../../../storage'))
 
         return [{
             'name':'HDFS', 'type':'hdfs', 'url':'hdfs://206.12.102.75:54310/', 'root':'/user', 'user':'hadoop', 'password':'spark#2018', 'public':'/public', 'prefix':'HDFS'

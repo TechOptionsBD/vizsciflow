@@ -463,17 +463,15 @@ class DataSource(db.Model):
     @staticmethod
     def insert_datasources():
         try:
-            datasrc = DataSource(name='HDFS', type='hdfs', url='hdfs://206.12.102.75:54310/', root='/user', user='hadoop', password='spark#2018', public='/public', prefix='HDFS')
-            db.session.add(datasrc)
-            basedir = os.path.dirname(os.path.abspath(__file__))
-            storagedir = os.path.abspath(os.path.join(basedir, '../storage'))
-            datasrc = DataSource(name='LocalFS', type='posix', url=storagedir, root='/', public='/public')
-            db.session.add(datasrc)
-            datasrc = DataSource(name='GalaxyFS', type='gfs', url='http://sr-p2irc-big8.usask.ca:8080', root='/', password='7483fa940d53add053903042c39f853a', prefix='GalaxyFS')
-            db.session.add(datasrc)
-            datasrc = DataSource(name='HDFS-BIG', type='hdfs', url='http://sr-p2irc-big1.usask.ca:50070', root='/user', user='hdfs', public='/public', prefix='HDFS-BIG')
-            db.session.add(datasrc)
+            datasources = Loader.get_datasources()
+            datasourceitems = []
+            for datasrc in datasources:
+                datasourceitem = DataSource(**datasrc)
+                datasourceitems.append(datasourceitem)
+            
+            db.session.add_all(datasourceitems)
             db.session.commit()
+            return datasourceitems
         except:
             db.session.rollbakc()
             raise

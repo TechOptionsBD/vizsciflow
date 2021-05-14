@@ -227,6 +227,7 @@ class Manager():
             Role.query.delete()
             User.query.delete()
             Workflow.query.delete()
+            DataSource.query.delete()
 
             db.session.commit()
         except:

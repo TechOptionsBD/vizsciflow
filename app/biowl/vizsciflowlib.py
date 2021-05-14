@@ -41,8 +41,6 @@ class Library(LibraryBase):
             namelower = name.lower()
             if namelower == "addmodule" or namelower=="user" or namelower=="workflow" or namelower=="run" or namelower=="module" or namelower=="data":
                 return True
-        if LibraryBase.check_function(name, package):
-            return True
         return modulemanager.check_function(name, package)
         
     @staticmethod
@@ -241,6 +239,8 @@ class Library(LibraryBase):
 
     @staticmethod
     def add_meta_data(returns, data, task):
+        if data is None:
+            return None
         dataAndType = Library.GetDataAndTypeFromFunc(returns, data)
         return datamanager.add_task_data(dataAndType, task)
 

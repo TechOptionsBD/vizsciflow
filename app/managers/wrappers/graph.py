@@ -87,7 +87,10 @@ class ModuleManager():
 
     @staticmethod
     def get_modules_by_name_package(name, package):
-        return ModuleItem.get(name=name, package=package)
+        params = {'name': name}
+        if package:
+            params['package'] = package
+        return ModuleItem.get(**params)
 
     @staticmethod
     def get_all_by_user_access(user_id, access):
@@ -100,7 +103,7 @@ class ModuleManager():
     
     @staticmethod
     def get_module_by_name_package(name, package):
-        return ModuleManager.get(name=name, package=package).first()
+        return ModuleManager.get_modules_by_name_package(name, package).first()
     
     @staticmethod
     def add_user_access(id, users):

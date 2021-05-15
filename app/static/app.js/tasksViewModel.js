@@ -842,9 +842,9 @@ function TasksViewModel() {
 		paramarg = param.name
 		if (param.default !== undefined) {
 			var paramvalue = param.default;
-			if (paramvalue.constructor == String) {
-				paramvalue = "'" + paramvalue + "'";
-			}
+            if (paramvalue == null) {
+                paramvalue = "None"; 
+            }
 			paramarg = paramarg + "=" + paramvalue;
 		}
 		return paramarg;

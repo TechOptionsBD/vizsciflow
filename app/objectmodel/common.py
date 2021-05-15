@@ -69,7 +69,7 @@ def all_obj_fields(obj):
         if member in properties or (member.startswith('__') and member.endswith('__')):
             continue
         value = getattr(obj, member)
-        if not callable(value):
+        if value is not None and not callable(value):
             attributes.update({member: getattr(obj, member)})
     return attributes
 

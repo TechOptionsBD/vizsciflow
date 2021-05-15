@@ -360,7 +360,7 @@ def functions():
                 return add_demo_service()
             elif 'tooltip' in request.args:
                 func = modulemanager.get_module_by_name_package_for_user_access(current_user.id, request.args.get('name'), request.args.get('package'))
-                return json.dumps(func) if func else json.dumps("")
+                return json.dumps(convert_to_safe_json(func) if func else "")
             elif 'users' in request.args:
                 return get_users()
             elif 'reload' in request.args:

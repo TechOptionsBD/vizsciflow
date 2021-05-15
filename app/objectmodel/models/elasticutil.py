@@ -123,7 +123,7 @@ class ElasticManager():
         if search is None or not search['hits']['hits']:
             try:
                 query_list = [{'match' : {str(k): v} } for k,v in convert_to_safe_json(kwargs).items()]
-                search = session().search(index = index, body = {"sort" : [{ "id" : "asc" }], "query": {"bool": {"should": query_list}}})
+                search = session().search(index = index, body = {"sort" : [{ "id" : "asc" }], "query": {"bool": {"must": query_list}}})
             except NotFoundError:
                 return VizSciFlowList([])
 
@@ -215,7 +215,7 @@ class ElasticDataSource(ElasticNode):
             datasourceitems = []
             for datasrc in datasources:
                 datasourceitem = ElasticDataSource(**datasrc)
-                ElasticManager.push(datasrc)
+                ElasticManager.push(datasourceitem)
                 datasourceitems.append(datasourceitem)
             return datasourceitems
 
@@ -478,18 +478,30 @@ class ElasticModuleReturn(ElasticModuleParam):
 
     def __init__(self, **kwargs):
         super(ElasticModuleReturn, self).__init__(**kwargs)
+    
+    @staticmethod
+    def get(**kwargs):
+        return ElasticManager.and_query(ElasticModuleReturn, **kwargs)
 
 class ElasticWorkflowReturn(ElasticModuleParam):
     label = 'workflowreturns'
 
     def __init__(self, **kwargs):
         super(ElasticWorkflowReturn, self).__init__(**kwargs)
+    
+    @staticmethod
+    def get(**kwargs):
+        return ElasticManager.and_query(ElasticWorkflowReturn, **kwargs)
 
 class ElasticWorkflowParam(ElasticModuleParam):
     label = 'workflowparams'
 
     def __init__(self, **kwargs):
         super(ElasticWorkflowParam, self).__init__(**kwargs)
+    
+    @staticmethod
+    def get(**kwargs):
+        return ElasticManager.and_query(ElasticWorkflowParam, **kwargs)
 
 class ElasticModule(ElasticNode):
     label = 'modules'
@@ -792,6 +804,7 @@ class ElasticWorkflow(ElasticNode):
 
     def to_json(self):
         params = [param.json() for param in self.params]
+        returns = [param.json() for param in self.returns]
         user = self.user
         return {
             'id': self.id,
@@ -799,7 +812,8 @@ class ElasticWorkflow(ElasticNode):
             'name': self.name,
             'desc': self.desc,
             'script': self.script,
-            'args': params
+            'args': params,
+            'returns': returns
         }
 
     @staticmethod
@@ -1058,7 +1072,11 @@ class ElasticRunnable(ElasticNode): #number1
 
     @property
     def modules(self):
-        return ElasticModuleInvocation.get(runnable_id = self.id)
+        invokeRunnables = ElasticInvokeRunnable.get(runnable_id = self.id)
+        modules = []
+        for invoke in invokeRunnables:
+            modules.extend(invoke.module())
+        return modules
 
     @staticmethod
     def load(run_id = None, workflow_id = None):
@@ -1195,6 +1213,9 @@ class ElasticInvokeInput(ElasticNode):
         self.data_id = kwargs.pop('data_id', None)
         super(ElasticInvokeInput, self).__init__(**kwargs)
     
+    def data(self):
+        return ElasticValue.get(id = self.data_id).first()
+
     @staticmethod
     def add(invoke_id, data_id):
         access = ElasticInvokeInput(workflow_id = invoke_id, data_id = data_id)
@@ -1231,7 +1252,12 @@ class ElasticInvokeRunnable(ElasticNode):
     @staticmethod
     def get(**kwargs):
         return ElasticManager.and_query(ElasticInvokeRunnable, **kwargs)
-
+    
+    def module(self):
+        return ElasticModuleInvocation.get(id = self.invoke_id)
+    
+    def runnable(self):
+        return ElasticRunnable.get(id = self.runnable_id)
 
 class ElasticModuleInvocation(ElasticNode):   
     label = 'moduleinvocations'
@@ -1277,7 +1303,7 @@ class ElasticModuleInvocation(ElasticNode):
 
     @property
     def name(self):
-        return ElasticModule.first(id = self.module_id).first()
+        return ElasticModule.first(id = self.module_id).name
         
     @property
     def run_id(self):
@@ -1367,11 +1393,11 @@ class ElasticModuleInvocation(ElasticNode):
     
     @property
     def inputs(self):
-        return ElasticInvokeInput.get(invoke_id = self.id)
+        return [i.data() for i in ElasticInvokeInput.get(invoke_id = self.id)]
 
     @property
     def outputs(self):
-        return ElasticInvokeOutput.get(invoke_id = self.id)
+        return [o.data() for o in ElasticInvokeOutput.get(invoke_id = self.id)]
     
     @property
     def runs(self):
@@ -1407,7 +1433,12 @@ class ElasticModuleInvocation(ElasticNode):
                     data.allocate_for_user(runitem.user_id, AccessRights.Owner)                    
                 else:
                     data.allocate_for_user(runitem.user_id, AccessRights.Write)
+            else:
+                data = d[1]
+                data.allocate_for_user(runitem.user_id, AccessRights.Write)
                 
+            ElasticManager.push(ElasticInvokeOutput(invoke_id = self.id, data_id = data.id))
+
             result += (d[1],)
                
         return result

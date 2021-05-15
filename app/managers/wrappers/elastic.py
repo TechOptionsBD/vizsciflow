@@ -131,13 +131,13 @@ class Manager():
 
     @staticmethod
     def clear():
-        final_indices = SessionManager.session().indices.get_alias().keys()
+        final_indices = session().indices.get_alias().keys()
         
         for _index in final_indices:
             try:
                 if "." not in _index: # avoid deleting indexes like `.kibana`
                     # if _index == 'datasets':# delete index as needed
                     # SessionManager.session().delete_by_query(index=_index, body={"query": {"match_all": {}}})
-                    SessionManager.session().indices.delete(index=_index)
+                    session().indices.delete(index=_index)
             except Exception as error:
                 print ('indices.delete error:', error, 'for index:', _index)

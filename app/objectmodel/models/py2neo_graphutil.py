@@ -1317,6 +1317,9 @@ class ModuleInvocationItem(NodeItem):
                     graph().push(data)
                 else:
                     data.allocate_for_user(runitem.user_id, AccessRights.Write)
+            else:
+                data = d[1]
+                data.allocate_for_user(runitem.user_id, AccessRights.Write)
                 
             self.outputs.add(data)
             result += (d[1],)

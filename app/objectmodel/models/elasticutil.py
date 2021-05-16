@@ -75,6 +75,36 @@ class ElasticManager():
         return obj
 
     @staticmethod
+    def and_not_query_with_entities(*args, **kwargs):
+        index = kwargs.pop('label', None)
+        if not index:
+            raise ValueError("No index is specified for elastic search.")
+
+        if not session().indices.exists(index=index):
+            return VizSciFlowList([]) # if no index for this label created, return empty list
+
+        fields = list(args) if args else ["*"] # no args given means all fields
+        search = None
+        try:
+            query_list = [{'match' : {str(k): v} } for k,v in convert_to_safe_json(kwargs).items()]
+            search = session().search(index = index, body = {'fields': fields, "sort" : [{ "id" : "asc" }], "query": {"bool": {"must_not": query_list}}})
+        except NotFoundError:
+            logging.error("Index {0} cannot be retrieved from elasticsearch.".format(index))
+            return VizSciFlowList([])
+
+        if not search['hits']['hits']:
+            return VizSciFlowList([])
+
+        result = search['hits']['hits'][0]['fields']
+        if args:
+            keys = list(result.keys())  # copy the keys because we will be modifying the dictionary in a loop
+            for k in keys:
+                if k not in args:
+                    result.pop(k)
+
+        return VizSciFlowList([dict(zip(result,t)) for t in zip(*result.values())])
+
+    @staticmethod
     def and_query_with_entities(*args, **kwargs):
         index = kwargs.pop('label', None)
         if not index:
@@ -419,7 +449,7 @@ class ElasticUser(ElasticNode, UserMixin):
 
     @staticmethod
     def get_other_users_with_entities(id, *args):
-        return ElasticManager.and_query_with_entities(id = id, label = ElasticUser.label, *args)
+        return ElasticManager.and_not_query_with_entities(id = id, label = ElasticUser.label, *args)
 
 class ElasticModuleAccess(ElasticNode):
     user_id = None

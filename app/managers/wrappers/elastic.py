@@ -12,6 +12,10 @@ class UserManager():
     @staticmethod
     def insert_roles():
         return ElasticRole.insert_roles()
+    
+    @staticmethod
+    def get_other_users_with_entities(id, *args):
+        return ElasticUser.get_other_users_with_entities(id, *args)
 
 class ModuleManager():
     @staticmethod

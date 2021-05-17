@@ -405,11 +405,9 @@ def functions():
                     file = request.files['library'] if len(request.files) > 0 else None
                     # Check if the file is one of the allowed types/extensions
                     package = request.form.get('package')
-                    this_path = os.path.dirname(os.path.abspath(__file__))
+                    librariesdir = os.path.normpath(os.path.join(os.path.abspath(__file__), '../../../modules'))
                     #os.chdir(this_path) #set dir of this file to current directory
-                    app_path = os.path.dirname(this_path)
-                    librariesdir = os.path.normpath(os.path.join(app_path, 'biowl/modules'))
-                    user_package_dir = os.path.normpath(os.path.join(librariesdir, 'users', current_user.username))
+                    user_package_dir = os.path.join(librariesdir, 'users', current_user.username)
                     if not os.path.isdir(user_package_dir):
                         os.makedirs(user_package_dir)
                     
@@ -424,6 +422,7 @@ def functions():
                         filename = secure_filename(file.filename)
                         temppath = os.path.join(tempfile.gettempdir(), filename)
                         if os.path.exists(temppath):
+                            #create a unique temppath if it already exists
                             import uuid
                             temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
                             os.makedirs(temppath)
@@ -438,14 +437,14 @@ def functions():
                         else:
                             shutil.move(temppath, path)
                     if request.form.get('script'):
-                        scriptname = unique_filename(path, pkg_or_default, 'py')
-                        with open(scriptname, 'a+') as script:
+                        filename = unique_filename(path, pkg_or_default, 'py')
+                        with open(filename, 'a+') as script:
                             script.write(request.form.get('script'))
                     base = unique_filename(path, pkg_or_default, 'json')
                     with open(base, 'w') as mapper:
                         mapper.write(request.form.get('mapper'))
                     org = request.form.get('org')
-                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app_path)))
+                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(librariesdir)))
                     pkgpath = os.path.join(pkgpath, os.path.basename(filename))
                     pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
                     # create an empty __init__.py to make the directory a module                
@@ -507,6 +506,7 @@ def functions():
                             if sharedusers:
                                 sharedusers = ast.literal_eval(sharedusers)
                             modulemanager.add(user_id = current_user.id, value = f, access=access, users=sharedusers)
+    ## save code to a file
     #                 os.remove(base)
     #                 with open(base, 'w') as f:
     #                     f.write(json.dumps(data, indent=4))

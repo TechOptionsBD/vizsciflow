@@ -34,9 +34,30 @@ function AddLibraryViewModel(userName) {
             group: '',
             desc: '',
             href: '',
-            example: 'data = MyService(data)'
+            // example: 'data = MyService(data)'
         }
     );
+
+    self.editService = (refData) => {
+        refData.internal && self.service.set('internal',refData.internal)
+        refData.name && self.service.set('name',refData.name)
+        refData.package && self.service.set('package',refData.package)
+        refData.org && self.service.set('org',refData.org)
+        refData.group && self.service.set('group',refData.group)
+
+        refData.params.map(param => {
+            self.addParam()
+        })
+
+        if(Array.isArray(refData.returns)){
+            refData.returns.map(item => {
+                self.addServiceReturns()
+            })
+        }
+        else if(refData.returns.constructor == Object){
+            self.addServiceReturns()
+        }
+    }
 
     self.serviceParams = ko.observableArray();
 

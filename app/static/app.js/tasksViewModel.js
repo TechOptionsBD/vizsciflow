@@ -116,7 +116,7 @@ function TasksViewModel() {
         $("#add-library-info").text("");
         $.getJSON('/functions?demoserviceadd', function (demoservice) {
             addLibraryViewModel.getCodeEditor().setValue(demoservice.demoservice.script, 1);
-            addLibraryViewModel.getMapperEditor().setValue(demoservice.demoservice.mapper, 1);
+            addLibraryViewModel.editService(demoservice.demoservice.mapper)
             addLibraryViewModel.getUsers();
             centerDialog($('#add'));
             $('#add').modal('show');

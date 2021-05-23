@@ -597,7 +597,7 @@ class Workflow(db.Model):
                         repo.git.add(wf.scriptpath)
                         repo.git.commit('-m', 'create workflow ' + str(wf.id))
                 except Exception as e:
-                    logging.error("Git error: " + e.message)
+                    logging.error("Git error: " + e)
             
             return wf
         except SQLAlchemyError:

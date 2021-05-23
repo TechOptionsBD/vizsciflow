@@ -16,10 +16,14 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     #for provenance
-    PROVENANCE_DIR = os.path.join(basedir, 'app/biowl/dsl/plugins')
-    HTML_DIR = os.path.join(basedir, 'app/templates/plugins')
-    MODULE_DIR = os.path.join(basedir, 'modules')
-    WORKFLOW_DIR = os.path.join(basedir, 'samples')
+    ROOT_DIR = basedir
+    PLUGIN_DIR = os.path.join(ROOT_DIR, 'plugins')
+    MODULE_DIR = os.path.join(PLUGIN_DIR, 'modules')
+    PROVENANCE_DIR = os.path.join(PLUGIN_DIR, 'provs')
+    PROVENANCE_PACKAGE = 'plugins.provs'
+    MODULE_PACKAGE = 'plugins.modules'
+    HTML_DIR = os.path.join(ROOT_DIR, 'app/templates/plugins')
+    WORKFLOW_DIR = os.path.join(ROOT_DIR, 'samples')
     #MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587

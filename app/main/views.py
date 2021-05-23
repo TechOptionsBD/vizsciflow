@@ -26,7 +26,6 @@ from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from ..biowl.exechelper import func_exec_stdout
-#from ..biowl.dsl.provobj import View, Run
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.datamgr import datamanager

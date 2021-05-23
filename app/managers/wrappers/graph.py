@@ -58,7 +58,7 @@ class DataManager():
         
     @staticmethod
     def add_task_data(dataAndType, task):
-        return task.add_outputs(dataAndType)
+        return task.add_output(dataAndType)
 
     @staticmethod
     def insert_datasources():
@@ -110,8 +110,8 @@ class ModuleManager():
         return ModuleItem.add_user_access(id, users, AccessRights.Write)
 
     @staticmethod
-    def insert_modules(url):
-        return ModuleItem.insert_modules(url)
+    def insert_modules(funclist):
+        return ModuleItem.insert_modules(funclist)
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):

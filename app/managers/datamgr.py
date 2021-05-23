@@ -1,20 +1,16 @@
 from dsl.datatype import DataType
 from app.managers.mgrutil import ManagerUtility
-from app.objectmodel.common import AccessRights
-
-known_types = {
-    'int': int,
-    'float': float,
-    'str': str,
-    'bool': bool,
-    'any': str,
-    'string': str
-    # etc
-}
+from app.objectmodel.common import AccessRights, known_types
 
 class DataManager():
     def __init__(self):
         self.persistance = ManagerUtility.Manage('data')
+
+    def get_by_id(self, id):
+        return self.persistance.first(id = id)
+
+    def get_by_value(self, value):
+        return self.persistance.get(value = value)
 
     def Save(self, dataitem):
         return self.persistance.Save(dataitem)

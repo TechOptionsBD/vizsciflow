@@ -1,0 +1,33 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "vsearch",
+           "group": "Search",
+           "name":"Vsearch",
+           "internal":"run_usearch",
+           "runmode": "local",
+           "desc": "Open source implementation of USEARCH, an ultra-fast bioinformatics search.",
+           "returns":
+            {  
+               "name":"data",
+               "type":"file"
+            },
+           "example":"Vsearch(command, input, out_opt)",
+           "params":[  
+            {  
+               "name":"command",
+               "type":"string"
+            },
+            {  
+               "name":"input",
+               "type":"file"
+            },
+            {  
+               "name":"out-opt",
+               "type":"string"
+            }            
+            ]
+       }
+   ]
+}

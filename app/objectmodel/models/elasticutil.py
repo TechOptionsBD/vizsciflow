@@ -636,9 +636,8 @@ class ElasticModule(ElasticNode):
         return ElasticManager.push(ElasticModuleReturn(module_id = self.id, **p))
 
     @staticmethod
-    def insert_modules(url):
+    def insert_modules(funclist):
         admin = ElasticUser.first(username = "admin")
-        funclist = Loader.load_funcs_recursive_flat(url)
 
         modules = []
         for f in funclist:
@@ -1449,29 +1448,25 @@ class ElasticModuleInvocation(ElasticNode):
 
         return data
 
-    def add_outputs(self, dataAndType):
+    def add_output(self, d):
         runitem = self.runs[0]
         
-        result = ()        
-        for d in dataAndType:
-            data = None
-            if not isinstance(d[1], ElasticValue):
-                data = ElasticValue.get_by_type_value(d[0], d[1])
-                if not data:
-                    data = ElasticValue(name=d[2] if len(d) > 2 else '', value=str(d[1]), type=d[0], task_id = self.id, job_id = runitem.id, workflow_id = runitem.workflow_id)
-                    data = ElasticManager.push(data)
-                    data.allocate_for_user(runitem.user_id, AccessRights.Owner)                    
-                else:
-                    data.allocate_for_user(runitem.user_id, AccessRights.Write)
+        data = None
+        if not isinstance(d[1], ElasticValue):
+            data = ElasticValue.get_by_type_value(d[0], d[1])
+            if not data:
+                data = ElasticValue(name=d[2] if len(d) > 2 else '', value=str(d[1]), type=d[0], task_id = self.id, job_id = runitem.id, workflow_id = runitem.workflow_id)
+                data = ElasticManager.push(data)
+                data.allocate_for_user(runitem.user_id, AccessRights.Owner)                    
             else:
-                data = d[1]
                 data.allocate_for_user(runitem.user_id, AccessRights.Write)
-                
-            ElasticManager.push(ElasticInvokeOutput(invoke_id = self.id, data_id = data.id))
+        else:
+            data = d[1]
+            data.allocate_for_user(runitem.user_id, AccessRights.Write)
+            
+        ElasticManager.push(ElasticInvokeOutput(invoke_id = self.id, data_id = data.id))
 
-            result += (d[1],)
-               
-        return result
+        return d[1]
     
     def to_json_log(self):
         

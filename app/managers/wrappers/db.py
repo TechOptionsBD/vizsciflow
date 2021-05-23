@@ -3,6 +3,14 @@ from app.objectmodel.common import dict2obj
 
 class UserManager():
     @staticmethod
+    def first(**kwargs):
+         return User.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+         return User.query.filter_by(**kwargs)
+
+    @staticmethod
     def verify_auth_token(token):
         return User.verify_auth_token(token)
         
@@ -25,14 +33,6 @@ class UserManager():
     @staticmethod
     def insert_roles():
         return Role.insert_roles()
-    
-    @staticmethod
-    def first(**kwargs):
-         return User.query.filter_by(**kwargs).first()
-
-    @staticmethod
-    def get(**kwargs):
-         return User.query.filter_by(**kwargs).first()
         
     @staticmethod
     def get_or_404(id):
@@ -53,6 +53,15 @@ class UserManager():
         return User(**kwargs)
 
 class DataManager():
+
+    @staticmethod
+    def first(**kwargs):
+         return DataSourceAllocation.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+         return DataSourceAllocation.query.filter_by(**kwargs)
+        
     @staticmethod
     def check_access_rights(user_id, path, checkRights):
         DataSourceAllocation.check_access_rights(user_id, path, checkRights)
@@ -75,12 +84,8 @@ class DataManager():
         return data_dict
     
     @staticmethod
-    def add_task_data(dataAndType, task):
-        result = ()        
-        for d in dataAndType:
-            task.add_output(d[0], str(d[1]))                        
-            result += (d[1],)
-        return result
+    def add_task_data(triplet, task):
+        task.add_output(triplet[0], str(triplet[1]))
     
     @staticmethod
     def is_data_item(value):
@@ -108,8 +113,12 @@ class DataManager():
 
 class ModuleManager():
     @staticmethod
+    def first(**kwargs):
+         return Service.query.filter_by(**kwargs).first()
+
+    @staticmethod
     def get(**kwargs):
-        pass
+         return Service.query.filter_by(**kwargs)
 
     @staticmethod
     def add(user_id, value, access, users):
@@ -160,8 +169,8 @@ class ModuleManager():
         return ServiceAccess.check(serviced_id)
 
     @staticmethod
-    def insert_modules(url):
-        return Service.insert_modules(url)
+    def insert_modules(funclist):
+        return Service.insert_modules(funclist)
 
 class WorkflowManager():
     @staticmethod
@@ -200,14 +209,17 @@ class WorkflowManager():
 
 
 class RunnableManager():
-    
+    @staticmethod
+    def first(**kwargs):
+         return Runnable.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+         return Runnable.query.filter_by(**kwargs)
+
     @staticmethod
     def create_runnable(user, workflow, script, provenance, args):
         return Runnable.create(user.id, workflow.id, script, args)
-    
-    @staticmethod
-    def get_runnables(**kwargs):
-        return Runnable.query.filter_by(**kwargs)
     
     @staticmethod
     def invoke_module(runnable_id, function_name, package):

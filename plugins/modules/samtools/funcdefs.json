@@ -1,0 +1,30 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "samtools",
+           "group": "Analysis",
+           "level": "0",
+           "name":"MergeBam",
+           "internal":"run_samtools_merge",
+           "runmode": "local",
+           "desc": ".bam file merger.",
+           "href": "services.html#samtools-merge",
+           "returns": {
+              "type": "file",
+              "name": "data"
+           },
+           "example":"data = samtools.MergeBam(data, data2) # add more .bam files if needed",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"file"
+            },
+            {  
+               "name":"data2",
+               "type":"file"
+            }
+            ]
+       }
+   ]
+}

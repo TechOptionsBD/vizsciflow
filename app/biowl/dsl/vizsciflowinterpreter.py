@@ -3,7 +3,9 @@ from dsl.context import Context
 from ..vizsciflowlib import Library
 from ..vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
-from .provobj import *
+from app.objectmodel.provmod.provobj import View, Stat, Monitor, Run, Module, Workflow
+
+registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
 
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):
@@ -34,12 +36,13 @@ class VizSciFlowInterpreter(Interpreter):
                 args, kwargs = Library.split_args(v)
                 return getattr(obj, function.lower())(*args, **kwargs)
             
-            # if package in registry:
-            #     args, kwargs = Library.split_args(v)
-            #     result = getattr(registry[package], function.lower())(*args, **kwargs)
-            #     if package == "View" or package == "Stat"  or package == "Monitor":
-            #         self.prepare_view(function.lower(), result)
-            #     return result
+            if self.context.provenance:
+                if package in registry:
+                    args, kwargs = Library.split_args(v)
+                    result = getattr(registry[package], function.lower())(*args, **kwargs)
+                    if package == "View" or package == "Stat"  or package == "Monitor":
+                        self.prepare_view(function.lower(), result)
+                    return result
            
         # call task if exists
         if package is None and function in self.context.library.tasks:

@@ -1,3 +1,4 @@
+from app.main.jobsview import provenance
 import sys
 sys.path.insert(0, '../..') #modules are 2 layers above this location
 
@@ -21,19 +22,22 @@ from .managers.workflowmgr import workflowmanager
 from .biowl.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
             
 @celery.task(bind=True, base = AbortableTask)
-def run_script(self, runnable_id, args):
+def run_script(self, runnable_id, args, provenance):
     
-    runnable = runnablemanager.get_runnable(id=runnable_id)
+    runnable = runnablemanager.first(id=runnable_id)
 
     machine = VizSciFlowInterpreter()
-    
+    context = machine.context
+
     parserdir = Config.BIOWL
     curdir = os.getcwd()
     os.chdir(parserdir) #set dir of this file to current directory
 
     try:
-        machine.context.runnable = runnable.id
-        machine.context.user_id = runnable.user_id
+
+        context.runnable = runnable.id
+        context.user_id = runnable.user_id
+        context.provenance = provenance
         
         if self and self.request:
             runnable.celery_id = self.request.id
@@ -51,13 +55,13 @@ def run_script(self, runnable_id, args):
         runnable.set_status(Status.SUCCESS, False)
     except (ParseException, Exception) as e:
         logging.error(str(e))
-        machine.context.err.append(str(e))
+        context.err.append(str(e))
         runnable.set_status(Status.FAILURE, False)
     finally:
         os.chdir(curdir)
-        runnable.error = "\n".join(machine.context.err)
-        runnable.out = "\n".join(machine.context.out)
-        runnable.view = json.dumps(machine.context.view if hasattr(machine.context, 'view') else '')
+        runnable.error = "\n".join(context.err)
+        runnable.out = "\n".join(context.out)
+        runnable.view = json.dumps(context.view if hasattr(context, 'view') else '')
         runnable.update()
         
     return runnable.to_json_log()

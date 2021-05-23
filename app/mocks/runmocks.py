@@ -200,26 +200,13 @@ class ModuleManagerMock():
     def get_workflow(workflow_id):
         return Workflow.query.get(workflow_id)    
     
-#    @staticmethod
-#     def create_workflow(user_id, name, desc, script, access, users, temp, derived = 0):
-#         workflow = WorkflowItem(name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
-#         workflow = graphgen.graph.run(
-#             statement="CREATE (x) SET x = {dict_param}",
-#             parameters={'dict_param': workflow.json()})
-#         
-#         matcher = NodeMatcher(graphgen.graph)
-#         user = matcher.match(id=user_id).first()
-#         Relationship(user, "WORKFLOW", workflow)
-#         
-#         return workflow
-    
     @staticmethod
     def create_workflow(user_id, name, desc, script, access, users, temp, derived = 0):
         return Workflow.create(user_id, name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
 
     @staticmethod
-    def get_runnable(runnable_id):
-        return RunnableMock.load(runnable_id)
+    def get(**kwargs):
+        return RunnableMock.load(**kwargs)
     
     @staticmethod
     def runnables_of_user(user_id):

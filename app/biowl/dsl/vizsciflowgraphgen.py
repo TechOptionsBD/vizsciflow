@@ -14,7 +14,7 @@ from dsl.library import Pair
 from .vizsciflowsymgraph import VizSciFlowSymbolGraph
 from ..vizsciflowcomposelib import LibraryComposition
 from .wfdsl import Workflow, Module, Data, IfModule, BinModule, AssignModule, CondModule, UnaryModule
-from .provobj import View
+from app.objectmodel.provmod.provobj import View
 
 
 logging.basicConfig(level=logging.DEBUG)

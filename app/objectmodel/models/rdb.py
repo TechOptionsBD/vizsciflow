@@ -791,10 +791,9 @@ class Service(db.Model):
     tasks = db.relationship('Task', cascade="all,delete-orphan", backref='service', lazy='dynamic')
 
     @staticmethod
-    def insert_modules(url):
+    def insert_modules(funclist):
         try:
             admin = User.query.filter(User.username == "admin").first()
-            funclist = Loader.load_funcs_recursive_flat(url)
 
             modules = []
             for f in funclist:
@@ -2055,3 +2054,7 @@ class InData(db.Model):
     def value(self):
         v = Data.query.get(self.data_id).value
         return namedtuple("value", v.keys())(*v.values())
+    
+    @property
+    def type(self):
+       return self.value.type 

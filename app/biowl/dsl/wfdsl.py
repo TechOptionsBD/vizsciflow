@@ -1,9 +1,9 @@
 from py2neo.data import Node, PropertyDict
 from py2neo.matching import NodeMatch, NodeMatcher
 from dsl.datatype import DataType
-from .provobj import merge_json
 from app.util import Utility
 from dsl.symtab import SymbolTable
+from app.objectmodel.provmod.provobj import merge_json
 
 def merge_json_seq(json, other_json, relation, opposite_link = False):
     

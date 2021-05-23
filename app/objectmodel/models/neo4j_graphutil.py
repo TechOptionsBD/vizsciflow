@@ -607,12 +607,7 @@ class ModuleItem(NodeItem):
         }
 
     @staticmethod
-    def insert_modules(url):
-        funcs = ModuleItem.load_funcs_recursive(url)
-        funclist = []
-        for f in funcs.values():
-            funclist.extend(f)
-
+    def insert_modules(funclist):
         modules = []
         for f in funclist:
             #module = ModuleItem(org=f["org"], name=f["name"], package=f["package"], internal=f["internal"], module=f["module"], example=f["example"], desc=f["desc"], group=f["group"], href=f["href"])

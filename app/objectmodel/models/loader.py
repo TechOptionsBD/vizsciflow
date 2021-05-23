@@ -1,5 +1,7 @@
 import os
 import json
+import pathlib
+from config import Config
 
 class Loader:
     
@@ -53,11 +55,14 @@ class Loader:
                 d = json.load(json_data)
                 libraries = d["functions"]
                 libraries = sorted(libraries, key = lambda k : k['package'].lower())
+
+                module = str(pathlib.Path(os.path.dirname(library_def_file)).relative_to(Config.ROOT_DIR))
+                module = module.replace('/', '.') + '.adapter'
+
                 for f in libraries:
                     org = f["org"] if f.get("org") else ""
                     name = f["name"] if f.get("name") else f["internal"]
                     internal = f["internal"] if f.get("internal") else f["name"]
-                    module = f["module"] if f.get("module") else None
                     package = f["package"] if f.get("package") else ""
                     example = f["example"] if f.get("example") else ""
                     desc = f["desc"] if f.get("desc") else ""
@@ -106,8 +111,6 @@ class Loader:
                         "params": params, 
                         "example": example,
                         "desc": desc,
-                        #"runmode": runmode,
-                        #"level": level, 
                         "group": group,
                         "returns": returns,
                         "public": public

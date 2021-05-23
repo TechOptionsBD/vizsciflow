@@ -8,6 +8,16 @@ def isiterable(p_object):
         return False
     return True
 
+known_types = {
+    'int': int,
+    'float': float,
+    'str': str,
+    'bool': bool,
+    'any': str,
+    'string': str
+    # etc
+}
+
 class obj(object):
     def __init__(self, dict_):
         self.__dict__.update(dict_)

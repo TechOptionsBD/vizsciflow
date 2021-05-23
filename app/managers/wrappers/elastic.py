@@ -52,8 +52,8 @@ class ModuleManager():
         return ElasticModule.add_user_access(id, users, AccessRights.Write)
 
     @staticmethod
-    def insert_modules(url):
-        return ElasticModule.insert_modules(url)
+    def insert_modules(funclist):
+        return ElasticModule.insert_modules(funclist)
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):
@@ -106,6 +106,14 @@ class WorkflowManager():
 class RunnableManager():
     
     @staticmethod
+    def get(**kwargs):
+        return ElasticRunnable.get(**kwargs)
+    
+    @staticmethod
+    def first(**kwargs):
+        return ElasticRunnable.get(**kwargs).first()
+
+    @staticmethod
     def create_runnable(user, workflow, script, provenance, args):
         return ElasticRunnable.create(user, workflow, script, provenance, args)
        
@@ -118,10 +126,6 @@ class RunnableManager():
     def invoke_module(runnable_id, function_name, package):
         runnableItem = ElasticRunnable.get(id=runnable_id).first()
         return runnableItem.invoke_module(function_name, package)
-    
-    @staticmethod
-    def get_runnables(**kwargs):
-        return ElasticRunnable.get(**kwargs)
     
     @staticmethod
     def runnables_of_user(user_id):

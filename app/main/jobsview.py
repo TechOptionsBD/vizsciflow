@@ -23,18 +23,14 @@ from .views import Samples
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
-#from ..biowl.dsl.provobj import View, Run
 
-from ..biowl.dsl.pluginmgr import plugincollection
 from config import Config
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.runmgr import runnablemanager
 from app.objectmodel.common import AccessType, Permission, AccessRights, convert_to_safe_json
 from ..managers.modulemgr import modulemanager
-
-prov_base = Config.PROVENANCE_DIR
-html_base = Config.HTML_DIR
+from app.objectmodel.provmod.pluginmgr import pluginmanager
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -67,11 +63,8 @@ def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
     from ..jobs import run_script
     workflow = workflowmanager.first(id=workflow_id)
     runnable = runnablemanager.create_runnable(current_user, workflow, script if script else workflow.script, provenance, args)
-            
-    if immediate:
-        run_script(runnable.id, args)
-    else:
-        run_script.delay(runnable.id, args)
+           
+    run_script(runnable.id, args, provenance) if immediate else run_script.delay(runnable.id, args, provenance)
         
     return runnable
 
@@ -111,39 +104,15 @@ def install(package):
 #Previous function did not work for pip version greater then 10
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-    
-def get_provenance_plugins():
-    
-    plugins = []
-    for _,v in plugincollection.plugins.items():
-        plugins.append(v.info())
-    
-    return json.dumps({'provplugins':  plugins}) 
 
-def demo_provenance_add():
-    demoprovenance = {'script':'', 'html': ''}
-    with open(os.path.join(prov_base, 'DemoProvenance', 'DemoProvenance.py'), 'r') as f:
-        demoprovenance['script'] = f.read()
-    with open(os.path.join(html_base, 'DemoProvenance', 'DemoProvenance.html'), 'r') as f:
-        demoprovenance['html'] = f.read()
-    return jsonify(demoprovenance= demoprovenance)
-
-def delete_plugin():
-    pluginid = request.args.get("delete")
-    if 'confirm' in request.args and request.args.get("confirm") == "true":
-        if pluginid in plugincollection.plugins:
-            plugincollection.plugins.pop(pluginid)
-            return json.dumps({"success": "Plugin {0} successfully deleted.".format(pluginid)})
-        else:
-            return json.dumps({"error": "Plugin {0} doesn't exist.".format(pluginid)})
-    else:
-#         shared_service_check = ServiceAccess.check(service_id) 
-#         if shared_service_check:  
-#             return json.dumps({'return':'shared'})
-#         else:
-#             return json.dumps({'return':'not_shared'})
-        return json.dumps({'notshared':'notshared'})
-    return json.dumps({'error':'Unknown error'})
+def create_pkg_dir(user_package_dir, create_init = True):
+    if not os.path.isdir(user_package_dir):
+        os.makedirs(user_package_dir)
+    initpath = os.path.join(user_package_dir, '__init__.py')
+    if not os.path.isfile(initpath):
+        with open(initpath, 'a'):
+            pass
+    return user_package_dir
 
 @main.route('/provenance', methods=['GET', 'POST'])
 @login_required
@@ -152,9 +121,9 @@ def provenance():
         if 'users' in request.args:
             return get_users()        
         elif 'delete' in request.args:
-            return delete_plugin()
+            return pluginmanager.delete(request.args.get("delete"), 'confirm' in request.args and request.args.get("confirm").lower() == "true")
         elif 'demoprovenanceadd' in request.args:
-            return demo_provenance_add()
+            return pluginmanager.load_demo()
         elif request.method == "POST" and request.form.get('html'):
             result = {"out": [], "err": []}
             try:
@@ -169,48 +138,25 @@ def provenance():
                 # Get the name of the uploaded file
                 file = request.files['library'] if len(request.files) > 0 else None
                 #user_package_dir = os.path.normpath(os.path.join(pluginsdir, 'users', current_user.username))
-                import importlib.util
-                import uuid
-                import inspect
-                from ..biowl.dsl.pluginmgr import PluginItem
-                from ..biowl.dsl.pluginmgr import plugincollection
-                
-                spec = importlib.util.spec_from_loader(str(uuid.uuid4()), loader=None)
-                helper = importlib.util.module_from_spec(spec)
-                exec(request.form.get('script'), helper.__dict__)
-                
-                scriptname = None
-                for name,obj in inspect.getmembers(helper):
-                    if inspect.isclass(obj) and issubclass(obj, PluginItem) and (obj is not PluginItem):
-                        if plugincollection.exists(name):
-                            raise ValueError("Plugin {0} already exists.".format(name))
-                        scriptname = name
-                        break
-    
+
+                scriptname = pluginmanager.get_script_name(request.form.get('script'))
                 if not scriptname:
                     raise ValueError("No plugin is defined in the script.")
                 
-                user_package_dir = os.path.join(Config.PROVENANCE_DIR, scriptname)
-                
-                if not os.path.isdir(user_package_dir):
-                    os.makedirs(user_package_dir)
-                    
-                if request.form.get('script'):
-                    with open(os.path.join(user_package_dir,  scriptname + ".py"), 'w') as script:
-                        script.write(request.form.get('script'))
+                user_package_dir = create_pkg_dir(os.path.join(Config.PROVENANCE_DIR, 'users'))
+                user_package_dir = create_pkg_dir(os.path.join(user_package_dir, current_user.username))
+                user_package_dir = create_pkg_dir(os.path.join(user_package_dir, scriptname))
+
+                # save provenance plugin coming as python script    
+                with open(os.path.join(user_package_dir,  scriptname + ".py"), 'w') as script:
+                    script.write(request.form.get('script'))
                         
-                    # create an empty __init__.py to make the directory a module                
-                    initpath = os.path.join(user_package_dir, "__init__.py")
-                    if not os.path.exists(initpath):
-                        with open(initpath, 'a'):
-                            pass
-                        
-                    plugincollection.walk_package('app.biowl.dsl.plugins.' + scriptname)
-                                    
+                pluginmanager.walk_package("{0}.users.{1}.{2}.{3}".format(Config.PROVENANCE_PACKAGE, current_user.username, scriptname, scriptname))
+
+                # save view plugin coming as html                    
                 if request.form.get('html'):
-                    if not os.path.isdir(os.path.join(Config.HTML_DIR, scriptname)):
-                        os.makedirs(os.path.join(Config.HTML_DIR, scriptname))
-                    with open(os.path.join(Config.HTML_DIR, scriptname, scriptname + ".html"), 'w') as html:
+                    user_template_dir = create_pkg_dir(os.path.join(Config.HTML_DIR, 'users', current_user.username, scriptname), False)
+                    with open(os.path.join(user_template_dir, scriptname + ".html"), 'w') as html:
                         html.write(request.form.get('html'))
                 
                 if file:
@@ -223,31 +169,18 @@ def provenance():
                             zip_ref.extractall(filepath)
                     elif tarfile.is_tarfile(filepath):
                         with tarfile.open(filepath,"r") as tar_ref:
-                            tar_ref.extractall(filepath)
-                
-    
-    # #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
-    #             if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
-    #                 access = 0
-    #                 sharedusers = False 
-    #             else:
-    #                 if request.form.get('sharedusers'):
-    #                     sharedusers = request.form.get('sharedusers')
-    #                     access = 1
-    #                 else:
-    #                     access = 2
-    #                     sharedusers = False              
+                            tar_ref.extractall(filepath)             
                 result['out'].append("Provenance plugin {0} successfully added.".format(scriptname))
             except Exception as e:
+                logging.error(str(e))
                 result['err'].append(str(e))
             return json.dumps(result)            
         else:
-            return get_provenance_plugins()
+            return pluginmanager.get_json_info()
     
     except Exception as e:
+        current_app.logger.error(str(e))
         return make_response(jsonify(err=str(e)), 500)
-    
-    
     
 def share_service(share_service):
     service_id, access = share_service["serviceID"], share_service["access"]
@@ -294,10 +227,10 @@ def get_users():
 
 def add_demo_service():
     demoservice = {'script':'', 'mapper': ''}
-    base = os.path.join(os.path.dirname(basedir), 'biowl')
-    with open(os.path.join(base, 'demoservice.py'), 'r') as f:
+    base = os.path.join(Config.MODULE_DIR, 'demo')
+    with open(os.path.join(base, 'service.py'), 'r') as f:
         demoservice['script'] = f.read()
-    with open(os.path.join(base, 'demoservice.json'), 'r') as f:
+    with open(os.path.join(base, 'service.json'), 'r') as f:
         demoservice['mapper'] = f.read()
     return jsonify(demoservice= demoservice)
 
@@ -388,7 +321,7 @@ def functions():
                     return jsonify(runnableId = runnable.id)
                 
                 except Exception as e:
-                    logging.error(str(e))
+                    current_app.logger.error(str(e))
                     return make_response(jsonify(err=str(e)), 500)
             elif request.form.get('mapper'):
                 result = {"out": [], "err": []}
@@ -405,9 +338,8 @@ def functions():
                     file = request.files['library'] if len(request.files) > 0 else None
                     # Check if the file is one of the allowed types/extensions
                     package = request.form.get('package')
-                    librariesdir = os.path.normpath(os.path.join(os.path.abspath(__file__), '../../../modules'))
                     #os.chdir(this_path) #set dir of this file to current directory
-                    user_package_dir = os.path.join(librariesdir, 'users', current_user.username)
+                    user_package_dir = os.path.join(Config.MODULE_DIR, 'users', current_user.username)
                     if not os.path.isdir(user_package_dir):
                         os.makedirs(user_package_dir)
                     
@@ -437,14 +369,15 @@ def functions():
                         else:
                             shutil.move(temppath, path)
                     if request.form.get('script'):
-                        filename = unique_filename(path, pkg_or_default, 'py')
+                        filename = os.path.join(path, 'adapter.py')
                         with open(filename, 'a+') as script:
                             script.write(request.form.get('script'))
-                    base = unique_filename(path, pkg_or_default, 'json')
+                    base = os.path.join(path, 'funcdefs.json')
                     with open(base, 'w') as mapper:
                         mapper.write(request.form.get('mapper'))
                     org = request.form.get('org')
-                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(librariesdir)))
+                    # create '.' based module path
+                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(Config.PLUGIN_DIR)))
                     pkgpath = os.path.join(pkgpath, os.path.basename(filename))
                     pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
                     # create an empty __init__.py to make the directory a module                
@@ -520,7 +453,7 @@ def functions():
                 return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
 
     except Exception as e:
-        logging.error(str(e))
+        current_app.logger.error(str(e))
         return make_response(jsonify(err=str(e)), 500)
 
 
@@ -536,7 +469,7 @@ def graphs():
                 else:
                     return build_graph(workflowId)               
             elif request.form.get('monitor'):
-                from ..biowl.dsl.provobj import Monitor
+                from app.objectmodel.provmod.provobj import Monitor, Run, View
                 
                 if request.form.get('duration'):
                     return jsonify(duration=Monitor.time(request.form.get('duration')))
@@ -551,11 +484,12 @@ def graphs():
                 wf = Workflow.get(id = wfid)
                 return json.dumps(View.graph(wf))
             elif request.form.get('nodeinfo'):
-                from ..graphutil import NodeItem
-                node = NodeItem.load(request.form.get('nodeinfo'))
+                # from ..graphutil import NodeItem
+                # node = NodeItem.load(request.form.get('nodeinfo'))
                 return json.dumps(node.json())
         return json.dumps({})
     except Exception as e:
+        logging.error(str(e))
         return make_response(jsonify(err=str(e)), 500)
 
 def get_user_status(user_id):
@@ -570,15 +504,15 @@ def get_user_status(user_id):
     return jsonify(runnables = logs)
 
 def get_run(runnable_id):
-    runnable = runnablemanager.get_runnable(id=runnable_id)
+    runnable = runnablemanager.first(id=runnable_id)
     return json.dumps(runnable.json())
 
 def get_task_status(runnable_id):
-    runnable = runnablemanager.get_runnable(id=runnable_id)
+    runnable = runnablemanager.first(id=runnable_id)
     return json.dumps(runnable.to_json_log())
 
 def get_task_full_status(runnable_id):
-    runnable = runnablemanager.get_runnable(id=runnable_id)
+    runnable = runnablemanager.first(id=runnable_id)
     return json.dumps(runnable.to_json_tooltip())
 # def get_task_output(path):
 #      remotepath = os.path.join('/home/mishuk/biowl/storage/', path)
@@ -605,7 +539,7 @@ def runnables():
             ids = ids.split(",")
             new_status = []
             for runnable_id in ids:
-                runnable = runnablemanager.get_runnable(id=int(runnable_id))
+                runnable = runnablemanager.first(id=int(runnable_id))
                 if runnable:
                     stop_script(runnable.celery_id)
                     new_status.append(runnable)
@@ -622,7 +556,7 @@ def runnables():
             ids = ids.split(",")
             new_status = []
             for runnable_id in ids:
-                runnable = runnablemanager.get_runnable(id=int(runnable_id))
+                runnable = runnablemanager.get(id=int(runnable_id))
                 if runnable:
                     if not runnable.completed:
                         stop_script(runnable.celery_id)

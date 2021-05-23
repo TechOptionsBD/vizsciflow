@@ -6,11 +6,10 @@ from dsl.fileop import FolderItem
 from app.managers.runmgr import runnablemanager
 from app.managers.datamgr import datamanager
 from app.managers.modulemgr import modulemanager
-from app.objectmodel.common import isiterable
+from app.objectmodel.common import isiterable, known_types
 
-# from .dsl.provobj import User, Workflow, Module, Data, Property, Run, View, Plugin, Stat, Monitor
-
-# registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
+from app.objectmodel.provmod.provobj import *
+registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
 
 class Library(LibraryBase):
     def __init__(self):
@@ -62,9 +61,7 @@ class Library(LibraryBase):
         module = runnablemanager.add_module(workflow_id, package, function)
         datamanager.StoreModuleArgs(module, func["params"] if func["params"] else [], storeArguments)
                 
-        result = Library.add_meta_data(func["returns"] if "returns" in func else "")
-        
-        return result
+        return Library.add_meta_data(func["returns"] if "returns" in func else "")
     
     def call_func(self, context, package, function, args):
         '''
@@ -91,21 +88,22 @@ class Library(LibraryBase):
             task.start()
 
             arguments, kwargs = LibraryBase.split_args(args)
-            # if not package and function in registry:
-            #     provcls = None
-            #     if function.lower() == "run":
-            #         provcls = Run(*arguments, **kwargs)
-            #     elif function.lower() == "user":
-            #         provcls = User(*arguments, **kwargs)
-            #     elif function.lower() == "workflow":
-            #         provcls = Workflow(*arguments, **kwargs)
-            #     elif function.lower() == "module":
-            #         provcls = Module(*arguments, **kwargs)
-            #     elif function.lower() == "data":
-            #         provcls = Data(*arguments, **kwargs)
-            #     #provcls = getattr(".dsl.provobj", registry[function])
-            #     #return provcls(*arguments, **kwargs)
-            #     return provcls
+            if context.provenance:
+                if not package and function in registry:
+                    provcls = None
+                    if function.lower() == "run":
+                        provcls = Run(*arguments, **kwargs)
+                    elif function.lower() == "user":
+                        provcls = User(*arguments, **kwargs)
+                    elif function.lower() == "workflow":
+                        provcls = Workflow(*arguments, **kwargs)
+                    elif function.lower() == "module":
+                        provcls = Module(*arguments, **kwargs)
+                    elif function.lower() == "data":
+                        provcls = Data(*arguments, **kwargs)
+                    #provcls = getattr(".dsl.provobj", registry[function])
+                    #return provcls(*arguments, **kwargs)
+                    return provcls
             
             func = modulemanager.get_module_by_name_package(function, package)
             if not func.module:
@@ -119,28 +117,16 @@ class Library(LibraryBase):
                 Library.StoreArguments(context, task, func, arguments, **kwargs)
                 
                 result = function(context, *arguments, **kwargs)
-                if not hasattr(func, 'returns') or func.returns == None or func.returns == []:
-                    task.succeeded()
-                    return None
-
-                result = Library.add_meta_data(list(func.returns) if hasattr(func, 'returns') and isiterable(func.returns) else [func.returns], result, task)
-            
-            task.succeeded()
-            
-            if not result:
-                return result
-            
-            if func.returns:
-                if isiterable(func.returns) and len(list(func.returns)) > 1:
-                    return result if isinstance(result, tuple) else (result,)
-                else:
-                    return result
-                
-            return result if len(result) > 1 else result[0]
+                result = Library.add_meta_data(result, func.returns if hasattr(func, 'returns') else None, task)
+                task.succeeded()
+            return result
         except Exception as e:
             if task:
                 task.failed(str(e))
             raise
+        else:
+            if task:
+                task.succeeded()
 
     @staticmethod
     def StoreArguments(context, task, func, arguments, **kwargs):
@@ -148,101 +134,47 @@ class Library(LibraryBase):
         for _, v in kwargs.items():
             storeArguments.append(v)
             
-        datamanager.StoreArgumentes(context.user_id, task, list(func.params) if func.params else [], storeArguments)
+        datamanager.StoreArgumentes(context.user_id, task, list(func.params) if hasattr(func, 'params') else [], storeArguments)
 
     @staticmethod
-    def Extract(func, context, *args, **kwargs):
-        import os
-        import uuid
-        from os import path
-        from app.biowl.argshelper import get_optional_input_from_args, get_posix_data_args
-
-        paramindex, data, fs = get_posix_data_args(0, 'data', context, *args, **kwargs)
-        paramindex, lines = get_optional_input_from_args(paramindex, 'lines', *args, **kwargs)
-        paramindex, start = get_optional_input_from_args(paramindex, 'start', *args, **kwargs)
-
-        # default values, get from func.params  TODO
-        lines = int(lines) if lines else 10
-        start = int(start) if start else 0
-
-        outpath = path.join(path.dirname(path.dirname(path.dirname(__file__))), 'storage/output', str(context.task_id))
-        if not os.path.exists(outpath):
-            os.makedirs(outpath)
-
-        outpath = path.join(outpath, str(uuid.uuid4()))
-        with open(data, 'rt') as srcfile:
-            if lines < 0:
-                start = lines
-                while next(srcfile, -1) == -1:
-                    start += 1
-                lines = abs(lines)
-                if start < 0:
-                    lines += start
-                    start = 0
-                    
-            srcfile.seek(0)
-            for _ in range(start):
-                next(srcfile)
-            with open(outpath, 'w') as outfile:
-                for _ in range(start, lines):
-                    value= next(srcfile, -1)
-                    if value == -1:
-                        break
-                    outfile.write(value)
-                      
-
-        stripped_html_path = fs.strip_root(outpath)
-        if not fs.exists(outpath):
-            raise ValueError("Extract could not generate the file " + stripped_html_path)
-
-        return FolderItem(outpath)
+    def get_data_and_type_from_result(result, ret):
+        name = ret.name if hasattr(ret, 'name') else ''
+        datatype = ret.type.lower().split('|')[0] if hasattr(ret, 'type') else ''
+        if 'file' in datatype or 'folder' in datatype:
+            return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name
+        # elif 'file[]' in returnsLower or 'folder[]' in returnsLower:
+        #     return DataType.FileList if 'file[]' in returnsLower else DataType.FolderList
+        #     data = resulttup[i] if isinstance(resulttup[i], list) else [resulttup[i]]
+        #     data = [f if isinstance(f, FolderItem) else FolderItem(f) for f in data]
+        elif datatype in known_types.keys():
+            return DataType.Value, result, name
+        else:
+            return DataType.Unknown, result, name
 
     @staticmethod
-    def GetDataAndTypeFromFunc(returns, result = None):
+    def add_meta_data(result, returns, task):
         if not result:
-            return DataType.Unknown, '', ''
-        
-        returnstup = returns
-        if not isinstance(returnstup, list):
-            returnstup = (returnstup,)
-            
-        resulttup = result
-        if not isinstance(resulttup, tuple):
-            resulttup = (resulttup,)
-        
-        dataAndType = []
-        mincount = min(len(resulttup), len(returnstup) if returnstup else 0)
-        for i in range(0, mincount):
-            datatype = DataType.Unknown
-            data = ''
-            returnsLower = returnstup[i].type.lower().split('|')
-            if 'file' in returnsLower :
-                datatype = datatype | DataType.File
-                data = resulttup[i] if isinstance(resulttup[i], FolderItem) else FolderItem(resulttup[i])
-            elif 'folder' in returnsLower:
-                datatype = datatype | DataType.Folder
-                data = resulttup[i] if isinstance(resulttup[i], FolderItem) else FolderItem(resulttup[i])
-            elif 'file[]' in returnsLower or 'folder[]' in returnsLower:
-                datatype = datatype | DataType.FileList if 'file[]' in returnsLower else datatype | DataType.FolderList
-                data = resulttup[i] if isinstance(resulttup[i], list) else [resulttup[i]]
-                data = [f if isinstance(f, FolderItem) else FolderItem(f) for f in data]
-            else:
-                datatype = DataType.Custom
-                data = resulttup[i]# if resulttup[i] else ""
-            
-            name = returnstup[i].name if returnstup[i].name else ""
-            dataAndType.append((datatype, data, name))
-        
-        for i in range(mincount, len(resulttup)):
-            dataAndType.append((DataType.Unknown, resulttup[i]))
-        return dataAndType
-
-    @staticmethod
-    def add_meta_data(returns, data, task):
-        if data is None:
             return None
-        dataAndType = Library.GetDataAndTypeFromFunc(returns, data)
-        return datamanager.add_task_data(dataAndType, task)
+
+        if not returns:
+            return result
+        
+        if not isiterable(returns) and isinstance(result, tuple):
+            output = Library.get_data_and_type_from_result(result[0], returns)
+            return output[1]
+
+        if isiterable(returns) and not isinstance(result, tuple):
+            output = Library.get_data_and_type_from_result(result, returns[0])
+            return output[1]
+
+        output = []
+        mincount = min(len(result), len(returns))
+        for i in range(0, mincount):
+            dataAndType = Library.get_data_and_type_from_result(result[i], returns[i])
+            datamanager.add_task_data(dataAndType, task)
+            output.append(dataAndType[1])
+        
+        return tuple(output)
 
     def code_func(self, context, package, function, arguments):
         '''

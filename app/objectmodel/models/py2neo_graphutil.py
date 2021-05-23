@@ -576,9 +576,8 @@ class ModuleItem(NodeItem):
         }
 
     @staticmethod
-    def insert_modules(url):
+    def insert_modules(funclist):
         admin = UserItem.first(username = "admin")
-        funclist = Loader.load_funcs_recursive_flat(url)
 
         modules = []
         for f in funclist:
@@ -1303,30 +1302,27 @@ class ModuleInvocationItem(NodeItem):
         
         return data
     
-    def add_outputs(self, dataAndType):
+    def add_output(self, d):
         runitem = list(self.runs)[0]
         
-        result = ()        
-        for d in dataAndType:
-            data = None
-            if not isinstance(d[1], ValueItem):
-                data = ValueItem.get_by_type_value(d[0], d[1])
-                if not data:
-                    data = ValueItem(name=d[2] if len(d) > 2 else '', value=str(d[1]), type=d[0], task_id = self.id, job_id = runitem.id, workflow_id = runitem.workflow_id)
-                    data.allocate_for_user(runitem.user_id, AccessRights.Owner)                    
-                    graph().push(data)
-                else:
-                    data.allocate_for_user(runitem.user_id, AccessRights.Write)
+        data = None
+        if not isinstance(d[1], ValueItem):
+            data = ValueItem.get_by_type_value(d[0], d[1])
+            if not data:
+                data = ValueItem(name=d[2] if len(d) > 2 else '', value=str(d[1]), type=d[0], task_id = self.id, job_id = runitem.id, workflow_id = runitem.workflow_id)
+                data.allocate_for_user(runitem.user_id, AccessRights.Owner)                    
+                graph().push(data)
             else:
-                data = d[1]
                 data.allocate_for_user(runitem.user_id, AccessRights.Write)
-                
-            self.outputs.add(data)
-            result += (d[1],)
-        
+        else:
+            data = d[1]
+            data.allocate_for_user(runitem.user_id, AccessRights.Write)
+            
+        self.outputs.add(data)
+    
         graph().push(self)
         
-        return result
+        return d[1]
     
     def to_json_log(self):
         

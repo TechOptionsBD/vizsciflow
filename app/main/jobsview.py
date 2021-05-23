@@ -77,6 +77,7 @@ def build_graph(workflow_id):
         from ..jobs import generate_graph_from_workflow
         return json.dumps(generate_graph_from_workflow(workflow_id))
     except Exception as e:
+        current_app.logger.error(str(e))
         return make_response(jsonify(err=str(e)), 500)
 
 def make_fn(path, prefix, ext, suffix):
@@ -231,7 +232,7 @@ def add_demo_service():
     with open(os.path.join(base, 'service.py'), 'r') as f:
         demoservice['script'] = f.read()
     with open(os.path.join(base, 'service.json'), 'r') as f:
-        demoservice['mapper'] = f.read()
+        demoservice['mapper'] = json.load(f)
     return jsonify(demoservice= demoservice)
 
 def code_completion(codecompletion):

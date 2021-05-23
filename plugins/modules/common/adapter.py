@@ -51,7 +51,7 @@ def raw_extract(context, *args, **kwargs):
     import os
     import uuid
     from os import path
-    from app.biowl.argshelper import get_optional_input_from_args, get_posix_data_args
+    from app.dsl.argshelper import get_optional_input_from_args, get_posix_data_args
 
     paramindex, data, fs = get_posix_data_args(0, 'data', context, *args, **kwargs)
     paramindex, lines = get_optional_input_from_args(paramindex, 'lines', *args, **kwargs)

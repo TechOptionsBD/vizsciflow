@@ -1,9 +1,9 @@
 import os
 from os import path
 
-from ...exechelper import func_exec_run
-from ...fileop import PosixFileSystem
-from ....util import Utility
+from app.system.exechelper import func_exec_run
+from dsl.fileop import PosixFileSystem
+from app.util import Utility
 
 vsearch = 'vsearch' # vsearch must be in the path
 

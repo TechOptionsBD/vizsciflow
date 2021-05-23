@@ -2,9 +2,9 @@ import os
 from os import path
 from flask import g
 
-from app.biowl.fileop import HadoopFileSystem, GalaxyFileSystem, HttpFileSystem
+from app.io.fileop import HadoopFileSystem, GalaxyFileSystem, HttpFileSystem
 from dsl.fileop import PosixFileSystem
-from .managers.datamgr import datamanager
+from app.managers.datamgr import datamanager
 
 class Utility:
     @staticmethod

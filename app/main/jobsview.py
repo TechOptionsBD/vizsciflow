@@ -479,7 +479,7 @@ def graphs():
                     run = Run.get(id = runid)
                     return json.dumps(View.graph(run))
             elif request.form.get('workflow'):
-                from ..biowl.dsl.wfdsl import Workflow
+                from app.dsl.wfdsl import Workflow
                 
                 wfid = request.form.get('workflow')
                 wf = Workflow.get(id = wfid)

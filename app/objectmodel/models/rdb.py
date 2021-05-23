@@ -27,21 +27,21 @@ from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
 from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType
 from .loader import Loader
+from config import Config
 
 from collections import namedtuple
 
 import git
 import pathlib
-workflowdir = os.path.join(pathlib.Path(__file__).parent.absolute(), 'workflows')
 
 def git_access():
     try:
-        return git.Repo(workflowdir)
+        return git.Repo(Config.WORKFLOW_VERSIONS_DIR)
     except git.exc.NoSuchPathError:
-        os.mkdir(workflowdir)
+        os.mkdir(Config.WORKFLOW_VERSIONS_DIR)
         return git_access()
     except git.exc.InvalidGitRepositoryError:
-        git.Repo.init(workflowdir)
+        git.Repo.init(Config.WORKFLOW_VERSIONS_DIR)
         return git_access()
 
 repo = None
@@ -632,7 +632,7 @@ class Workflow(db.Model):
             with open(self.scriptpath, 'w') as f:
                 f.write(script)
             return Workflow.commit_changes()
-            #g = git.cmd.Git(workflowdir)
+            #g = git.cmd.Git(Config.WORKFLOW_VERSIONS_DIR)
             #if not g.ls_files(str(self.id)):
             
 #             repo.git.add(str(self.id))
@@ -656,14 +656,14 @@ class Workflow(db.Model):
     
     @property
     def scriptpath(self):
-        return os.path.join(workflowdir, str(self.id))
+        return os.path.join(Config.WORKFLOW_VERSIONS_DIR, str(self.id))
     
     @property                        
     def revisions(self):
         revisions = []
         if not repo:
             return revisions
-        commits = list(repo.iter_commits(paths=workflowdir))
+        commits = list(repo.iter_commits(paths=Config.WORKFLOW_VERSIONS_DIR))
         for c in commits:
             try:
                 f = c.tree / str(self.id)
@@ -685,7 +685,7 @@ class Workflow(db.Model):
     def revision_by_commit(self, hexsha):
         if not repo:
             return self.script
-        commits = list(repo.iter_commits(paths=workflowdir))
+        commits = list(repo.iter_commits(paths=Config.WORKFLOW_VERSIONS_DIR))
         for c in commits:
             try:
                 f = c.tree / str(self.id)

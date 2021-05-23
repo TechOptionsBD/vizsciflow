@@ -3,8 +3,8 @@ from os import path
 import uuid
 
 from dsl.fileop import FolderItem
-from app.biowl.exechelper import func_exec_run
-from app.biowl.argshelper import get_posix_data_args, get_input_from_args
+from app.system.exechelper import func_exec_run
+from app.dsl.argshelper import get_posix_data_args, get_input_from_args
 from pathlib import Path
 blastn = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'blastn'))
             

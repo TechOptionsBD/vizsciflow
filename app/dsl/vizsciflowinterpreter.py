@@ -1,7 +1,7 @@
 from dsl.interpreter import Interpreter
 from dsl.context import Context
-from ..vizsciflowlib import Library
-from ..vizsciflowsymtab import VizSciFlowSymbolTable
+from app.dsl.vizsciflowlib import Library
+from app.dsl.vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
 from app.objectmodel.provmod.provobj import View, Stat, Monitor, Run, Module, Workflow
 

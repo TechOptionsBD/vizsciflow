@@ -12,7 +12,7 @@ from dsl.datatype import DataType
 from dsl.library import Pair
 
 from .vizsciflowsymgraph import VizSciFlowSymbolGraph
-from ..vizsciflowcomposelib import LibraryComposition
+from app.dsl.vizsciflowcomposelib import LibraryComposition
 from .wfdsl import Workflow, Module, Data, IfModule, BinModule, AssignModule, CondModule, UnaryModule
 from app.objectmodel.provmod.provobj import View
 
@@ -412,12 +412,7 @@ class GraphGenerator(object):
             if local_symtab.get_var('server') is not None:
                 self.context.append_dci(local_symtab.get_var('server'), local_symtab.get_var('user'), local_symtab.get_var('password'))
                 dci_added = True
-                
-#             if local_symtab.var_exists('provenance') and local_symtab.get_var('provenance'):
-#                 prov = BioProv(lambda: self.eval(expr[1]))
-#                 result = prov.run()
-#                 return result[0].ref if result else None
-#             else:
+
             return self.eval(expr[1], parentNode)
             
         finally:

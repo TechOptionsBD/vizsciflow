@@ -1,8 +1,7 @@
 from dsl.library import Pair
 from dsl.datatype import DataType
-from .vizsciflowlib import Library
-#from .dsl.wfdsl import Data, Module
-from ..managers.modulemgr import modulemanager
+from app.dsl.vizsciflowlib import Library
+from app.managers.modulemgr import modulemanager
 
 class LibraryComposition(Library):
     def __init__(self):

@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from app.util import Utility
-from app.biowl.exechelper import func_exec_bash_stdout
+from app.system.exechelper import func_exec_bash_stdout
 
 
 activate = 'source /home/phenodoop/miniconda3/bin/activate /home/phenodoop/miniconda3/envs/qiime2-2018.11;'

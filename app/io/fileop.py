@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 from os.path import join
 import pathlib
@@ -10,7 +8,6 @@ from urllib.parse import urlparse, urlunparse, urlsplit, urljoin
 import uuid
 import urllib
 import re
-from datetime import datetime
 from dsl.fileop import PosixFileSystem
 import requests
 

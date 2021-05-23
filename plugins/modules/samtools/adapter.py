@@ -2,8 +2,8 @@ import os
 from os import path
 
 from dsl.fileop import FolderItem
-from app.biowl.exechelper import func_exec_run
-from app.biowl.argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args
+from app.system.exechelper import func_exec_run
+from app.dsl.argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args
 
 pear = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'samtools'))
 

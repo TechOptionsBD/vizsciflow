@@ -15,8 +15,8 @@ import os
 import time
 
 from app.util import Utility
-from app.biowl.ssh import ssh_command
-from app.biowl.fileop import GalaxyFileSystem
+from app.system.ssh import ssh_command
+from app.io.fileop import GalaxyFileSystem
 
 #gi = GalaxyInstance(url='http://sr-p2irc-big8.usask.ca:8080', key='7483fa940d53add053903042c39f853a')
 #  r = toolClient.run_tool('a799d38679e985db', 'toolshed.g2.bx.psu.edu/repos/devteam/fastq_groomer/fastq_groomer/1.0.4', params)

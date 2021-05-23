@@ -2,7 +2,8 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    DATA_DIR = os.path.join(basedir, 'storage')
+    ROOT_DIR = basedir
+    DATA_DIR = os.path.join(ROOT_DIR, 'storage')
     PUBLIC_DIR = 'public'
     CURRENT_USER = 'public'
     WEBHDFS_ADDR = 'http://sr-p2irc-big1.usask.ca:50070'
@@ -16,14 +17,14 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     #for provenance
-    ROOT_DIR = basedir
     PLUGIN_DIR = os.path.join(ROOT_DIR, 'plugins')
     MODULE_DIR = os.path.join(PLUGIN_DIR, 'modules')
     PROVENANCE_DIR = os.path.join(PLUGIN_DIR, 'provs')
     PROVENANCE_PACKAGE = 'plugins.provs'
     MODULE_PACKAGE = 'plugins.modules'
     HTML_DIR = os.path.join(ROOT_DIR, 'app/templates/plugins')
-    WORKFLOW_DIR = os.path.join(ROOT_DIR, 'samples')
+    WORKFLOW_DIR = os.path.join(ROOT_DIR, 'workflows/samples')
+    WORKFLOW_VERSIONS_DIR = os.path.join(ROOT_DIR, 'workflows/versions')
     #MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
@@ -34,7 +35,7 @@ class Config:
     broker_url = 'redis://localhost:6379/0'
     result_backend = 'redis://localhost:6379/0'
     imports = ['app.jobs']
-    BIOWL = os.path.join(basedir, 'app/biowl/')
+    BIOWL = os.path.join(ROOT_DIR, 'app/dsl/')
     PHENOPROC_MAIL_SUBJECT_PREFIX = '[Phenoproc]'
     PHENOPROC_MAIL_SENDER = 'Phenoproc Admin <phenoproc@gmail.com>'
     PHENOPROC_ADMIN = os.environ.get('PHENOPROC_ADMIN')         

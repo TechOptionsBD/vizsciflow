@@ -1,6 +1,6 @@
 import os
 from os import path
-from app.biowl.exechelper import func_exec_run
+from app.system.exechelper import func_exec_run
 from app.util import Utility
 
 flash = path.join(path.dirname(path.abspath(__file__)), path.join('bin', 'flash'))

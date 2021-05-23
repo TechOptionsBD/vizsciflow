@@ -17,9 +17,9 @@ from dsl.parser import WorkflowParser
 from dsl.wftimer import Timer
 
 from app.objectmodel.common import Status
-from .managers.runmgr import runnablemanager
-from .managers.workflowmgr import workflowmanager
-from .biowl.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
+from app.managers.runmgr import runnablemanager
+from app.managers.workflowmgr import workflowmanager
+from app.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
             
 @celery.task(bind=True, base = AbortableTask)
 def run_script(self, runnable_id, args, provenance):
@@ -43,14 +43,13 @@ def run_script(self, runnable_id, args, provenance):
             runnable.celery_id = self.request.id
         runnable.set_status(Status.STARTED, True)
 
-        with Timer() as t:
-            parser = WorkflowParser(PythonGrammar())   
-            if args:
-                args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
-                if args_tokens:
-                    machine.args_to_symtab(args_tokens) 
-            prog = parser.parse(runnable.script)
-            machine.run(prog)
+        parser = WorkflowParser(PythonGrammar())   
+        if args:
+            args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
+            if args_tokens:
+                machine.args_to_symtab(args_tokens) 
+        prog = parser.parse(runnable.script)
+        machine.run(prog)
                             
         runnable.set_status(Status.SUCCESS, False)
     except (ParseException, Exception) as e:
@@ -101,5 +100,5 @@ def generate_graph_from_workflow(workflow_id):
     return generate_graph(workflow.id, workflow.name, workflow.script)
 
 def generate_graph(workflow_id, name, script):
-    from app.biowl.dsl.vizsciflowgraphgen import GraphGenerator
+    from app.dsl.vizsciflowgraphgen import GraphGenerator
     return GraphGenerator.generate_workflow_graph_json(workflow_id, name, script)

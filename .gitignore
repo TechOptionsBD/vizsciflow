@@ -94,3 +94,5 @@ ENV/
 /storage/
 /Pipfile
 /Pipfile.lock
+plugins/provs/users/*
+plugins/modules/users/*

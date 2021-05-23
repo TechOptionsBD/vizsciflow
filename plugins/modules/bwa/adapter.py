@@ -2,8 +2,8 @@ import os
 from os import path
 from pathlib import Path
 
-from app.biowl.exechelper import func_exec_run
-from app.biowl.argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args, get_posix_output_folder_args, get_temp_dir
+from app.system.exechelper import func_exec_run
+from app.dsl.argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args, get_posix_output_folder_args, get_temp_dir
 from dsl.fileop import FolderItem
 from app.managers.datamgr import datamanager
 

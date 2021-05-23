@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from fileop import IOHelper
+from app.io.fileop import IOHelper
 
 def reduce_noise(srcfile, dstfile):
     img = cv2.imread(IOHelper.normaize_path(srcfile))

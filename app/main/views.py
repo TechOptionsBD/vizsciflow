@@ -25,10 +25,10 @@ from ..decorators import admin_required, permission_required
 from ..util import Utility
 from dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
-from ..biowl.exechelper import func_exec_stdout
-from ..managers.usermgr import usermanager
-from ..managers.workflowmgr import workflowmanager
-from ..managers.datamgr import datamanager
+from app.system.exechelper import func_exec_stdout
+from app.managers.usermgr import usermanager
+from app.managers.workflowmgr import workflowmanager
+from app.managers.datamgr import datamanager
 from app.objectmodel.common import Permission, AccessRights, convert_to_safe_json
 from app.userloader import *
 

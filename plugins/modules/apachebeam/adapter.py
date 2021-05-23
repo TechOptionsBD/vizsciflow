@@ -4,9 +4,9 @@ from pathlib import Path
 import uuid
 
 from app.util import Utility
-from app.models import Runnable, User, Workflow
-from app.biowl.ssh import ssh_hadoop_command, scp_put
-from app.biowl.argshelper import get_input_from_args_optional
+from app.objectmodel.models import Runnable, User, Workflow
+from app.system.ssh import ssh_hadoop_command, scp_put
+from app.dsl.argshelper import get_input_from_args_optional
 
 # cluster = '206.12.102.75'
 # user = 'hadoop'

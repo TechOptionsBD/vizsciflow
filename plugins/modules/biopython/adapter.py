@@ -4,7 +4,7 @@ from Bio import Cluster
 import time
 
 from app.util import Utility
-from app.biowl.fileop import IOHelper
+from app.io.fileop import IOHelper
 
 Entrez.email = "phenoproc@gmail.com"
 

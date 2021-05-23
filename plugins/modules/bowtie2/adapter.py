@@ -2,7 +2,7 @@ import os
 from os import path
 from pathlib import Path
 
-from app.biowl.exechelper import func_exec_run
+from app.system.exechelper import func_exec_run
 from app.util import Utility
 
 bowtie2 = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'bowtie2'))

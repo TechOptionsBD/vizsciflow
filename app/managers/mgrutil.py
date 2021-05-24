@@ -10,5 +10,5 @@ elif Config.DATA_MODE == 3:
 class ManagerUtility():
     @staticmethod
     def Manage(name):
-        registry = {'workflow': WorkflowManager, 'manager': Manager, 'user': UserManager, 'module': ModuleManager, 'runnable': RunnableManager, 'data': DataManager}
+        registry = {'workflow': WorkflowManager, 'manager': Manager, 'user': UserManager, 'module': ModuleManager, 'runnable': RunnableManager, 'data': DataManager, 'filter': FilterManager}
         return registry[name]()

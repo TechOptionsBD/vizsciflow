@@ -1509,13 +1509,11 @@ class Filter(db.Model):
     created_on = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     
     @staticmethod
-    def add(user_id, name, value):
+    def add(**kwargs):
         try:
-            filterobj = Filter()
-            filterobj.user_id = user_id
-            filterobj.name = name
-            filterobj.value = value
-            filterobj.created_on = datetime.utcnow()
+            if not kwargs['created_on']:
+                kwargs['created_on'] = datetime.utcnow()
+            filterobj = Filter(**kwargs)
             db.session.add(filterobj)
             db.session.commit()
             return filterobj
@@ -1564,14 +1562,13 @@ class FilterHistory(db.Model):
     created_on = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     
     @staticmethod
-    def add(user_id, value):
+    def add(**kwargs):
         try:
-            filterobj = FilterHistory()
-            filterobj.user_id = user_id
-            filterobj.value = value
-            filterobj.created_on = datetime.utcnow()
-            
-            db.session.add(filterobj)
+            if 'created_on' not in kwargs:
+                kwargs['created_on'] = datetime.utcnow()
+
+            filterobj = FilterHistory(kwargs)
+            db.session.add(FilterHistory(kwargs))
             db.session.commit()
             return filterobj
         except SQLAlchemyError:

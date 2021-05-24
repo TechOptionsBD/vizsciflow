@@ -231,6 +231,30 @@ class RunnableManager():
     def runnables_of_user(user_id):
         return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.created_on.desc())
 
+class FilterManager():
+    @staticmethod
+    def first(**kwargs):
+         return Filter.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+         return Filter.query.filter_by(**kwargs)
+       
+    @staticmethod
+    def remove(id):
+        Filter.remove(id)
+
+    @staticmethod
+    def add(**kwargs):
+        return Filter.add(**kwargs)
+    
+    @staticmethod
+    def add_history(**kwargs):
+        return FilterHistory.add(**kwargs)
+    
+    def get_history(self, **kwargs):
+        return FilterHistory.get(**kwargs)
+
 class Manager():
     @staticmethod
     def clear():

@@ -29,6 +29,7 @@ from app.system.exechelper import func_exec_stdout
 from app.managers.usermgr import usermanager
 from app.managers.workflowmgr import workflowmanager
 from app.managers.datamgr import datamanager
+from app.managers.filtermgr import filtermanager
 from app.objectmodel.common import Permission, AccessRights, convert_to_safe_json
 from app.userloader import *
 
@@ -526,52 +527,34 @@ def load_metadata(path):
 #         for name, desc in properties.items():
 #             DataProperty.add(data.id, name, desc)
 
-# def search_and_filter(path, filters):
-#     filters = json.loads(filters)
-#     filters = filters if not filters or type(filters) is list else [filters]
-#     selected_filters = []
-#     for f in filters:
-#         if f["selected"]:
-#             selected_filters.append(f)
+def search_and_filter(filters, path):
+    filters = json.loads(filters)
+    filters = filters if not filters or type(filters) is list else [filters]
+    selected_filters = [f for f in filters if f["selected"]]
+    filtermanager.add_history(current_user.id, json.dumps(selected_filters))
     
-#     FilterHistory.add(current_user.id, json.dumps(selected_filters))
-    
-#     fs = Utility.fs_by_prefix_or_guess(path)
-#     return FilterManager.listdirR(fs, path, filters);
+    fs = Utility.fs_by_prefix_or_guess(path)
+    return FilterManager.listdirR(fs, path, filters)
 
-# def load_filter_history():
-#     filters = FilterHistory.query.filter(FilterHistory.user_id == current_user.id)
-#     histories = []
-#     for f in filters:
-#         histories.append(f.to_json_info())
-        
-#     return jsonify(histories = histories)
+def load_filter_history():
+    filters = filtermanager.get_history(user_id = current_user.id)
+    return jsonify(histories = [f.to_json_info() for f in filters])
 
-# def load_filters():
-#     filters = Filter.query.filter(Filter.user_id == current_user.id)
-#     histories = []
-#     for f in filters:
-#         histories.append(f.to_json_info())
-        
-#     return jsonify(histories = histories)
+def load_filters():
+    filters = filtermanager.get(user_id = current_user.id)
+    return jsonify(histories = [f.to_json_info() for f in filters])
 
-# def load_filter_tip(filter_id):
-#     return Filter.query.get(filter_id).to_json_tooltip()
+def load_filter_tip(filter_id):
+    return filtermanager.get(id = filter_id).to_json_tooltip()
 
-# def load_script_from_filter(path, filter_id):
-#     filterjson = Filter.query.get(filter_id).value
-#     filterjson = [f for f in filterjson if f["selected"] ]
-#     script = "data = GetFiles('{0}', {1})".format(path, filterjson)
-#     return script
+def load_script_from_filter(filter_id, path):
+    return filtermanager.make_script(filter_id, path)
 
-# def save_filters(name, filters):
-#     filters = json.loads(filters)
-#     Filter.add(current_user.id, name, filters)
-#     return ""
+def save_filters(name, filters):
+    return filtermanager.add(user_id = current_user.id, name = name, value = json.loads(filters))
 
-# def delete_filter(filter_id):
-#     Filter.remove(filter_id)
-#     return ""
+def delete_filter(filter_id):
+    filtermanager.remove(filter_id)
 
 # def load_datasets():
 #     datasets = Dataset.query.all()
@@ -603,20 +586,20 @@ def load_metadata(path):
 @login_required
 def filters():
     return json.dumps('')
-#     if request.args.get('filterhistory'):
-#         return load_filter_history()
-#     elif request.args.get('filters'):
-#         return load_filters()
-#     elif request.args.get("savefilters"):
-#         return json.dumps(save_filters(request.args.get("name"), request.args.get("savefilters")))
-#     elif request.args.get('filtertip'):
-#         return json.dumps(load_filter_tip(request.args.get('filtertip')))
-#     elif request.args.get('filterforscript'):
-#         return jsonify(script = load_script_from_filter(request.args.get('path'), request.args.get('filterforscript')))
-#     elif request.args.get('applyfilters'):
-#         return json.dumps({'datasources': search_and_filter(request.args.get('root'), request.args.get('applyfilters')) })
-#     elif request.args.get('delete'):
-#         return json.dumps(delete_filter(request.args.get('delete')))
+    if request.args.get('filterhistory'):
+        return load_filter_history()
+    elif request.args.get('filters'):
+        return load_filters()
+    elif request.args.get("savefilters"):
+        return json.dumps(save_filters(request.args.get("name"), request.args.get("savefilters")))
+    elif request.args.get('filtertip'):
+        return json.dumps(load_filter_tip(request.args.get('filtertip')))
+    elif request.args.get('filterforscript'):
+        return jsonify(script = load_script_from_filter(request.args.get('filterforscript'), request.args.get('path')))
+    elif request.args.get('applyfilters'):
+        return json.dumps({'datasources': search_and_filter(request.args.get('applyfilters'), request.args.get('root')) })
+    elif request.args.get('delete'):
+        return json.dumps(delete_filter(request.args.get('delete')))
 
 # @main.route('/datasets', methods=['GET', 'POST'])
 # @login_required

@@ -46,16 +46,16 @@ function AddLibraryViewModel(userName) {
         refData.group && self.service.set('group',refData.group)
 
         refData.params.map(param => {
-            self.addParam()
+            self.addParam(param)
         })
 
         if(Array.isArray(refData.returns)){
             refData.returns.map(item => {
-                self.addServiceReturns()
+                self.addServiceReturns(item)
             })
         }
         else if(refData.returns.constructor == Object){
-            self.addServiceReturns()
+            self.addServiceReturns(refData.returns)
         }
     }
 
@@ -63,25 +63,25 @@ function AddLibraryViewModel(userName) {
 
     self.serviceReturns = ko.observableArray();
 
-    self.addParam = function () {  
+    self.addParam = function (param = null) { 
         self.serviceParams.push(
             ko.observableDictionary(
                 {
-                    name: '',
-                    type: '',
-                    desc: ''
+                    name: param.name && typeof(param.name) !== 'function' ? param.name : '',
+                    type: param.type ?? '',
+                    desc: param.desc ?? ''
                 }
             )
         );
         self.liveJsonView();
     };
 
-    self.addServiceReturns = function () {
+    self.addServiceReturns = function (returns = null) {
         self.serviceReturns.push(
             ko.observableDictionary(
                 {
-                    name: '',
-                    type: ''
+                    name: returns.name && typeof(returns.name) !== 'function' ? returns.name : '',
+                    type: returns.type !== undefined ? returns.type : ''
                 }
             )
         );

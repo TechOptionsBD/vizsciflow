@@ -334,6 +334,8 @@ $(document).ready(function () {
     
     $('#add').on('hidden.bs.modal', function (){
         $('#userSelection').val([]).multiselect('refresh')
+        addLibraryViewModel.serviceParams([])
+        addLibraryViewModel.serviceReturns([])
     })
 
     // $("#btnfilterClose").click(function () {  

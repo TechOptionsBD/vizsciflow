@@ -66,14 +66,11 @@ def usask_login(args):
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
-    isValid, username, atrributes = cas.validate('https://vizsciflow.usask.ca/auth/login', args.get('ticket'))
-    print("isValid: "+isValid)
-    print("username: "+username)
-    print("atrributes: "+atrributes)
+    _, username, _ = cas.validate('https://vizsciflow.usask.ca/auth/login', args.get('ticket'))
     if not username:
         flash('Invalid username or password')
         return redirect(url_for('auth.login'))
-    user = usermanager.get_by_username(username).first()
+    user = usermanager.get_by_username(username)
     if not user:
         user = usermanager.create_user(username=username, oid=1)
     login_user(user, remember=False)

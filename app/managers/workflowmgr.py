@@ -53,7 +53,7 @@ class WorkflowManager():
         
     @staticmethod
     def get_workflow_details(workflows, props):
-        return [WorkflowManager.get_a_workflow_details(w) for w in workflows]
+        return [WorkflowManager.get_a_workflow_details(w, props) for w in workflows]
 
     #written_by: Moksedul Islam
     def get_workflow_list(self, user_id, props, access):

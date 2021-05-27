@@ -96,3 +96,9 @@ ENV/
 /Pipfile.lock
 plugins/provs/users/*
 plugins/modules/users/*
+plugins/modules/pear/pear-src-0.9.11/compile
+plugins/modules/pear/pear-src-0.9.11/config.status
+plugins/modules/pear/pear-src-0.9.11/configure
+plugins/modules/pear/pear-src-0.9.11/depcomp
+plugins/modules/pear/pear-src-0.9.11/install-sh
+plugins/modules/pear/pear-src-0.9.11/missing

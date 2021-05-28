@@ -161,10 +161,12 @@ class Library(LibraryBase):
         
         if not isiterable(returns) and isinstance(result, tuple):
             output = Library.get_data_and_type_from_result(result[0], returns)
+            datamanager.add_task_data(output, task)
             return output[1]
 
         if isiterable(returns) and not isinstance(result, tuple):
             output = Library.get_data_and_type_from_result(result, returns[0])
+            datamanager.add_task_data(output, task)
             return output[1]
 
         output = []

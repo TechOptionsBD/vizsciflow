@@ -124,9 +124,6 @@ class Library(LibraryBase):
             if task:
                 task.failed(str(e))
             raise
-        else:
-            if task:
-                task.succeeded()
 
     @staticmethod
     def StoreArguments(context, task, func, arguments, **kwargs):

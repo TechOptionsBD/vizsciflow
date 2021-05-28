@@ -29,20 +29,14 @@ class VizSciFlowInterpreter(Interpreter):
         
         params = expr[1] if len(expr) < 3 else expr[2]
         v = self.get_args(params)
-        
-        if package:
-            if self.context.var_exists(package):
-                obj = self.context.get_var(package)
+                    
+        if self.context.provenance:
+            if package in registry:
                 args, kwargs = Library.split_args(v)
-                return getattr(obj, function.lower())(*args, **kwargs)
-            
-            if self.context.provenance:
-                if package in registry:
-                    args, kwargs = Library.split_args(v)
-                    result = getattr(registry[package], function.lower())(*args, **kwargs)
-                    if package == "View" or package == "Stat"  or package == "Monitor":
-                        self.prepare_view(function.lower(), result)
-                    return result
+                result = getattr(registry[package], function.lower())(*args, **kwargs)
+                if package == "View" or package == "Stat"  or package == "Monitor":
+                    self.prepare_view(function.lower(), result)
+                return result
            
         # call task if exists
         if package is None and function in self.context.library.tasks:

@@ -123,6 +123,9 @@ class NodeItem(Model):
     def id(self):
         return self.__primaryvalue__
     
+    def delete(self):
+        graph().delete()
+    
     @staticmethod
     def OrderBy(self, items, key):
         pass
@@ -1363,3 +1366,90 @@ class TaskLogItem(NodeItem):
     def updateTime(self):
         self.modified_on = datetime.utcnow()
         graph().push(self)
+
+class Filter(NodeItem):
+    name = Property("name")
+    value = Property("value")
+    users = RelatedFrom("UserItem", "USERFILTER")
+
+    def __init__(self, **kwargs):
+        self.type = kwargs.pop("name", "")
+        self.value = kwargs.pop("value", "")
+
+        super(Filter, self).__init__(**kwargs)
+
+    @staticmethod
+    def add(**kwargs):
+        filter = Filter(**kwargs)
+        graph().push(filter)
+        return filter
+    
+    @staticmethod
+    def get(**kwargs):
+        return NodeItem.get_with_and(Filter, **kwargs)
+
+    def name_from_value(self):
+        name = ""
+        for v in json.loads(self.value):
+            name += v["name"] + "-"
+        if name:
+            name = name[:-1]
+        return name
+    
+    def to_json_info(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'value': self.value,
+            'created_on': str(self.created_on)
+        }
+        
+    def to_json_tooltip(self):
+        return {
+            'id': self.id,
+            'name': self.name_from_value(),
+            'value': self.value,
+            'created_on': str(self.created_on)
+        }
+        
+class FilterHistory(NodeItem):
+    value = Property('value')
+    
+    def __init__(self, **kwargs):
+        self.value = kwargs.pop("value", "")
+
+        super(FilterHistory, self).__init__(**kwargs)
+
+    @staticmethod
+    def add(**kwargs):
+        filter = FilterHistory(**kwargs)
+        graph().push(filter)
+        return filter
+
+    @staticmethod
+    def get(**kwargs):
+        return NodeItem.get_with_and(FilterHistory, **kwargs)
+
+    def name_from_value(self):
+        name = ""
+        for v in json.loads(self.value):
+            name += v["name"] + "-"
+        if name:
+            name = name[:-1]
+        return name
+    
+    def to_json_info(self):
+        return {
+            'id': self.id,
+            'name': self.name_from_value(),
+            'value': self.value,
+            'created_on': str(self.created_on)
+        }
+        
+    def to_json_tooltip(self):
+        return {
+            'id': self.id,
+            'name': self.name_from_value(),
+            'value': self.value,
+            'created_on': str(self.created_on)
+        }

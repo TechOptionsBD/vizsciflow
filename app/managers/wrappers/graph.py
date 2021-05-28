@@ -145,6 +145,14 @@ class WorkflowManager():
 
 class RunnableManager():
     @staticmethod
+    def get(**kwargs):
+        return RunnableItem.get(**kwargs)
+    
+    @staticmethod
+    def first(**kwargs):
+        return RunnableItem.get(**kwargs).first()
+
+    @staticmethod
     def create_runnable(user, workflow, script, provenance, args):
         return RunnableItem.create(user, workflow, script, provenance, args)
     
@@ -165,3 +173,27 @@ class RunnableManager():
     @staticmethod
     def runnables_of_user(user_id):
         return RunnableItem.load_for_users(user_id)
+
+class FilterManager():
+    @staticmethod
+    def first(**kwargs):
+         return Filter.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+         return Filter.query.filter_by(**kwargs)
+       
+    @staticmethod
+    def remove(id):
+        Filter.remove(id)
+
+    @staticmethod
+    def add(**kwargs):
+        return Filter.add(**kwargs)
+    
+    @staticmethod
+    def add_history(**kwargs):
+        return FilterHistory.add(**kwargs)
+    
+    def get_history(self, **kwargs):
+        return FilterHistory.get(**kwargs)

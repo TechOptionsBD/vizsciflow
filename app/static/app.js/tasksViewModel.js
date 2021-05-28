@@ -854,47 +854,47 @@ function TasksViewModel() {
         exmpl = '';
         retrns=[],params=[];
 
-        if (item.package() && item.name() && item.params() && item.returns()) {
             retrnNo = 0, paramNo = 0;
 
-            if(Array.isArray(item.returns())){
-                item.returns().forEach(function (retrn){
-                    retrns.push({
-                        id: 'return ' + ++retrnNo,
-                        value: retrn.name
-                    });
-                });
-            }
-            else{
+        if(Array.isArray(item.returns())){
+            item.returns().forEach(function (retrn){
                 retrns.push({
                     id: 'return ' + ++retrnNo,
-                    value: item.returns().constructor == Object ? item.returns().name : item.returns()
+                    value: retrn.name
                 });
-            }
+            });
+        }
+        else{
+            retrns.push({
+                id: 'return ' + ++retrnNo,
+                value: item.returns().constructor == Object ? item.returns().name : item.returns()
+            });
+        }
 
-            if(Array.isArray(item.params())){
-                item.params().forEach(function (param){
-                    params.push({
-                        id: 'param ' + ++paramNo,
-                        value: self.paramToArg(param)
-                    });
-                });
-            }
-            else{
+        if(Array.isArray(item.params())){
+            item.params().forEach(function (param){
                 params.push({
                     id: 'param ' + ++paramNo,
-                    value: self.paramToArg(item.params())
+                    value: self.paramToArg(param)
                 });
-            }
+            });
+        }
+        else{
+            params.push({
+                id: 'param ' + ++paramNo,
+                value: self.paramToArg(item.params())
+            });
         }
         
         retrns.forEach(function (retrn){
             exmpl += retrn.value + ','
         });
+
         if(retrns.length > 0){
             exmpl = exmpl.substring(0, exmpl.length - 1);
             exmpl += " = " 
         }
+        
         if (item.package())
             exmpl += item.package() + '.'
         exmpl += item.name() + '(';

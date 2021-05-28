@@ -111,9 +111,11 @@ class Data():
        
     def json(self):
         value = self._node.value
-        if int(self._node.type) == DataType.File or int(self._node.type) == DataType.Folder:
-            fs = Utility.fs_by_prefix_or_guess(value)
-            value = fs.basename(value)
+        if int(value.type) == DataType.File or int(value.type) == DataType.Folder:
+            fs = Utility.fs_by_prefix_or_guess(value.value)
+            value = fs.basename(value.value)
+        else:
+            value = value.value
         this_node = {"key": self._node.id, "type": "Data", "name": value}
         json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
 #         for output in self.Metadata():

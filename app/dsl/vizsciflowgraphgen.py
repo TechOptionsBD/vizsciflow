@@ -13,7 +13,7 @@ from dsl.library import Pair
 
 from .vizsciflowsymgraph import VizSciFlowSymbolGraph
 from app.dsl.vizsciflowcomposelib import LibraryComposition
-from .wfdsl import Workflow, Module, Data, IfModule, BinModule, AssignModule, CondModule, UnaryModule
+from .wfdsl import ForModule, Workflow, Module, Data, IfModule, BinModule, AssignModule, CondModule, UnaryModule
 from app.objectmodel.provmod.provobj import View
 
 
@@ -283,10 +283,18 @@ class GraphGenerator(object):
         Execute a for expression.
         :param expr:
         '''
-        parentNode.add_var(expr[0], None)
-        for var in self.eval(expr[1], parentNode):
-            parentNode.update_var(expr[0], var)
-            self.eval(expr[2], parentNode)
+        condmodule = CondModule(parentNode)
+        self.eval(expr[0], condmodule)
+        formodule = ForModule(parentNode, condmodule)
+        
+        #true branch
+        forloop = Module(parentNode)
+        forloop.add_symtab()
+        self.eval(expr[1], forloop)
+        formodule.modules().append(forloop)
+
+        parentNode.modules().append(formodule)
+
     
     def eval_value_node(self, typename, value):
         data = Data()

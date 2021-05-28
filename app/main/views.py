@@ -601,9 +601,11 @@ def filters():
     elif request.args.get('delete'):
         return json.dumps(delete_filter(request.args.get('delete')))
 
-# @main.route('/datasets', methods=['GET', 'POST'])
-# @login_required
-# def datasets():
+@main.route('/datasets', methods=['GET', 'POST'])
+@login_required
+def datasets():
+    return json.dumps('')
+    
 #     if request.args.get("save"):
 #         return save_datasets(request.args.get("save"))
 #     elif request.args.get("delete"):

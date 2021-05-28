@@ -253,7 +253,7 @@ class FilterManager():
         return FilterHistory.add(**kwargs)
     
     def get_history(self, **kwargs):
-        return FilterHistory.get(**kwargs)
+        return FilterHistory.query.filter_by(**kwargs)
 
 class Manager():
     @staticmethod

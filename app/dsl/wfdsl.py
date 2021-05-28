@@ -403,8 +403,27 @@ class IfModule(Module):
             json = merge_json(json, self._modules[0].json(), 'Module')
 
                 
-        return json    
-                           
+        return json
+
+class ForModule(Module):
+    __primarylabel__ = "ForModule"
+    
+    def __init__(self, parent, cond):
+        super().__init__(parent, "For")
+        self.cond = cond
+    
+    def json(self):
+        this_node = {"key": self.id, "type": "For", "name": ""}
+        json = { "nodeDataArray" : [this_node], "linkDataArray":[]}
+
+        if self.cond:
+            json = merge_json(json, self.cond.json(), 'Condition', True)
+            
+        if len(self._modules) > 0:
+            json = merge_json(json, self._modules[0].json(), 'Module')
+                
+        return json
+
 class Workflow(Module):
     __workflow_id = None
     __primarylabel__ = "Workflow"

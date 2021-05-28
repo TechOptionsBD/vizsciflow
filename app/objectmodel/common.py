@@ -30,6 +30,13 @@ def bytes_in_gb():
 def to_primitive(value):
     return value if isinstance(value, (int, float, bool, str)) else str(value)
 
+def is_jsonable(x):
+    try:
+        json.dumps(x)
+        return True
+    except (TypeError, OverflowError):
+        return False
+        
 def safe_json(data): 
     if data is None: 
         return True 

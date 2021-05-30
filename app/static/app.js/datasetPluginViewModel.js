@@ -49,8 +49,8 @@ function DatasetPluginViewModel() {
     self.renderDataset()
   }
 
-  self.copyToEditor = function (item) {
-      exmpl = `data = \'${item.url}\'`
+  self.copyToEditor = function (url) {
+      exmpl = `data = \'${url}\'`
       var pos = editor.selection.getCursor();
       editor.session.insert(pos, exmpl + "\r\n");
       editor.focus();
@@ -65,7 +65,10 @@ function DatasetPluginViewModel() {
   }
     
   const onDataItemDoubleClick = function (e, data) {
-    self.copyToEditor(data)
+    self.copyToEditor(data.path[0])
+
+    const staticData = getStaticDataset();
+    datasetList.lazyLoadDatasetItems(data.dataset, staticData.child)
   }
 
   const onItemExpand = function (e, dataset) {
@@ -73,7 +76,8 @@ function DatasetPluginViewModel() {
       if (data === undefined)
         return;
       
-      datasetList.lazyLoadDatasetItems(dataset.id, data)
+      const staticData = getStaticDataset();
+      datasetList.lazyLoadDatasetItems(dataset, staticData.parent)
 
     }).fail(function(jqXHR) {
       showXHRText(jqXHR);

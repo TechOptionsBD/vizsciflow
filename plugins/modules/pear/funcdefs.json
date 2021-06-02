@@ -21,11 +21,10 @@
                "type":"file|folder",
                "desc":"forward fastq file"
             },
-            {  
+            {
                "name":"data2",
                "type":"file|folder",
-               "desc":"reverse fastq file",
-               "default":"''"
+               "desc":"reverse fastq file"
             }
             ]
        }

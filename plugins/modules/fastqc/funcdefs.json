@@ -20,7 +20,7 @@
 					"type": "file|folder"
 				}
 			],
-			"example": "fq_html = fastqc.CheckQuality(data)",
+			"example": "html, zip = fastqc.CheckQuality(data)",
 			"params": [
 				{
 					"name": "data",

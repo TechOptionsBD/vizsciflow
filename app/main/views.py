@@ -61,7 +61,7 @@ def server_shutdown():
 def user(username):
     user = usermanager.get_by_username(username)
     page = request.args.get('page', 1, type=int)
-    pagination = user.posts.order_by(Post.timestamp.desc()).paginate(
+    pagination = user.posts.paginate(
         page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
         error_out=False)
     posts = pagination.items
@@ -115,25 +115,26 @@ def edit_profile_admin(id):
 
 @main.route('/post/<int:id>', methods=['GET', 'POST'])
 def post(id):
-    post = Post.query.get_or_404(id)
-    form = CommentForm()
-    if form.validate_on_submit():
-        comment = Comment(body=form.body.data,
-                          post=post,
-                          author=current_user._get_current_object())
-        db.session.add(comment)
-        flash('Your comment has been published.')
-        return redirect(url_for('.post', id=post.id, page=-1))
-    page = request.args.get('page', 1, type=int)
-    if page == -1:
-        page = (post.comments.count() - 1) // \
-            current_app.config['PHENOPROC_COMMENTS_PER_PAGE'] + 1
-    pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(
-        page, per_page=current_app.config['PHENOPROC_COMMENTS_PER_PAGE'],
-        error_out=False)
-    comments = pagination.items
-    return render_template('post.html', posts=[post], form=form,
-                           comments=comments, pagination=pagination)
+    return json.dumps('')
+#     post = Post.query.get_or_404(id)
+#     form = CommentForm()
+#     if form.validate_on_submit():
+#         comment = Comment(body=form.body.data,
+#                           post=post,
+#                           author=current_user._get_current_object())
+#         db.session.add(comment)
+#         flash('Your comment has been published.')
+#         return redirect(url_for('.post', id=post.id, page=-1))
+#     page = request.args.get('page', 1, type=int)
+#     if page == -1:
+#         page = (post.comments.count() - 1) // \
+#             current_app.config['PHENOPROC_COMMENTS_PER_PAGE'] + 1
+#     pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(
+#         page, per_page=current_app.config['PHENOPROC_COMMENTS_PER_PAGE'],
+#         error_out=False)
+#     comments = pagination.items
+#     return render_template('post.html', posts=[post], form=form,
+#                            comments=comments, pagination=pagination)
 
 @main.route('/workflow/<int:id>', methods=['GET', 'POST'])
 def workflow(id):
@@ -143,18 +144,20 @@ def workflow(id):
 @main.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit(id):
-    post = Post.query.get_or_404(id)
-    if current_user != post.author and \
-            not current_user.can(Permission.ADMINISTER):
-        abort(403)
-    form = PostForm()
-    if form.validate_on_submit():
-        post.body = form.body.data
-        db.session.add(post)
-        flash('The post has been updated.')
-        return redirect(url_for('.post', id=post.id))
-    form.body.data = post.body
-    return render_template('edit_post.html', form=form)
+    return json.dumps('')
+
+#     post = Post.query.get_or_404(id)
+#     if current_user != post.author and \
+#             not current_user.can(Permission.ADMINISTER):
+#         abort(403)
+#     form = PostForm()
+#     if form.validate_on_submit():
+#         post.body = form.body.data
+#         db.session.add(post)
+#         flash('The post has been updated.')
+#         return redirect(url_for('.post', id=post.id))
+#     form.body.data = post.body
+#     return render_template('edit_post.html', form=form)
 
 
 @main.route('/follow/<username>')
@@ -243,35 +246,39 @@ def show_followed():
 @login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate():
-    page = request.args.get('page', 1, type=int)
-    pagination = Comment.query.order_by(Comment.timestamp.desc()).paginate(
-        page, per_page=current_app.config['PHENOPROC_COMMENTS_PER_PAGE'],
-        error_out=False)
-    comments = pagination.items
-    return render_template('moderate.html', comments=comments,
-                           pagination=pagination, page=page)
+    return json.dumps('')
+#     page = request.args.get('page', 1, type=int)
+#     pagination = Comment.query.order_by(Comment.timestamp.desc()).paginate(
+#         page, per_page=current_app.config['PHENOPROC_COMMENTS_PER_PAGE'],
+#         error_out=False)
+#     comments = pagination.items
+#     return render_template('moderate.html', comments=comments,
+#                            pagination=pagination, page=page)
 
 
 @main.route('/moderate/enable/<int:id>')
 @login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate_enable(id):
-    comment = Comment.query.get_or_404(id)
-    comment.disabled = False
-    db.session.add(comment)
-    return redirect(url_for('.moderate',
-                            page=request.args.get('page', 1, type=int)))
+    return json.dumps('')
+#     comment = Comment.query.get_or_404(id)
+#     comment.disabled = False
+#     db.session.add(comment)
+#     return redirect(url_for('.moderate',
+#                             page=request.args.get('page', 1, type=int)))
 
 
 @main.route('/moderate/disable/<int:id>')
 @login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate_disable(id):
-    comment = Comment.query.get_or_404(id)
-    comment.disabled = True
-    db.session.add(comment)
-    return redirect(url_for('.moderate',
-                            page=request.args.get('page', 1, type=int)))
+    return json.dumps('')
+    
+#     comment = Comment.query.get_or_404(id)
+#     comment.disabled = True
+#     db.session.add(comment)
+#     return redirect(url_for('.moderate',
+#                             page=request.args.get('page', 1, type=int)))
 
 @main.route('/about')
 def about():
@@ -363,29 +370,29 @@ def upload_biowl(file, request):
        
     data_alloc = datamanager.add_allocation(current_user.id, ds.id, saved_path, AccessRights.Owner)
         
-    if request.form.get('visualizer'):
-        dbvisualizer = None
-        if request.form.get('visualizer'):
-            visualizer = json.loads(request.form['visualizer'])
-            for k,v in visualizer.items():
-                dbvisualizer = Visualizer.add(k, v)
-                if dbvisualizer:
-                    DataVisualizer.add(data_alloc.id, dbvisualizer.id)
+    # if request.form.get('visualizer'):
+    #     dbvisualizer = None
+    #     if request.form.get('visualizer'):
+    #         visualizer = json.loads(request.form['visualizer'])
+    #         for k,v in visualizer.items():
+    #             dbvisualizer = Visualizer.add(k, v)
+    #             if dbvisualizer:
+    #                 DataVisualizer.add(data_alloc.id, dbvisualizer.id)
         
-    if request.form.get('annotations'):
-        annotations = request.form['annotations']
-        annotations = annotations.split(',')
-        for annotation in annotations:
-            DataAnnotation.add(data_alloc.id, annotation)
+    # if request.form.get('annotations'):
+    #     annotations = request.form['annotations']
+    #     annotations = annotations.split(',')
+    #     for annotation in annotations:
+    #         DataAnnotation.add(data_alloc.id, annotation)
             
-    if request.form.get('mimetype'):
-        dbmimetype = None
-        if request.form.get('mimetype'):
-            mimetype = json.loads(request.form['mimetype'])
-            for k,v in mimetype.items():
-                dbmimetype = MimeType.add(k, v)
-                if dbmimetype:
-                    DataMimeType.add(data_alloc.id, dbmimetype.id)
+    # if request.form.get('mimetype'):
+    #     dbmimetype = None
+    #     if request.form.get('mimetype'):
+    #         mimetype = json.loads(request.form['mimetype'])
+    #         for k,v in mimetype.items():
+    #             dbmimetype = MimeType.add(k, v)
+    #             if dbmimetype:
+    #                 DataMimeType.add(data_alloc.id, dbmimetype.id)
     
     return saved_path
     

@@ -26,7 +26,7 @@
         </div>
         <div class="navbar-collapse collapse navhref">
             <ul class="nav navbar-nav">
-                <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                <!-- <li><a href="{{ url_for('main.index') }}">Home</a></li> -->
                 {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('main.user', username=current_user.username) }}">Profile</a></li>
                 <!-- <li class="dropdown" id="layoutSelection">
@@ -70,9 +70,9 @@
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="{{ url_for('main.about') }}">About</a></li>
                 <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
-                {% if current_user.can(Permission.MODERATE_COMMENTS) %}
+                <!-- {% if current_user.can(Permission.MODERATE_COMMENTS) %}
                 <li><a href="{{ url_for('main.moderate') }}">Moderate Comments</a></li>
-                {% endif %}
+                {% endif %} -->
                 {% if current_user.is_authenticated %}
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">

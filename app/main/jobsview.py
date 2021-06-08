@@ -238,7 +238,7 @@ def add_demo_service():
 def code_completion(codecompletion):
         keywords = [{"package": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
         funcs = []
-        for func in modulemanager.get_by_user(current_user.username, 0):
+        for func in modulemanager.get_by_id(current_user.id):
             if int(func.value['access']) < 2 or (func['user'] and func['user'] == current_user.username):
                 if codecompletion:
                     if not regex.match(codecompletion, func['name'], regex.IGNORECASE):

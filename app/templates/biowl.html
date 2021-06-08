@@ -2968,7 +2968,13 @@ function typeInTextarea(el, newText) {
    
    ko.bindingHandlers.jstree = {
 	    buildTree: function (element, treeData) {
-	        $(element).jstree('destroy');
+			//$(element).jstree('destroy');
+			
+			// before destroy jstree check jstree already exists or not
+			if($(element).find("li").length > 0){
+               $(element).empty();
+			}
+
 	        $(element).jstree({
 	            'core': {
 	                'animation': 0,

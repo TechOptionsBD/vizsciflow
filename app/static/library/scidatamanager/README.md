@@ -20,6 +20,10 @@ const datasets = $('target-element').datasetlist({
 	onItemRightClick: callback handler, // callback for list item right mouse button click
 	onItemDrag: callback handler, // callback for list item drag event
 	onDataItemDoubleClick: callback handler // callback for dataset data item double click event. callback recievs (event, data) as parameter 
+	currentLoadedData: callback handler // callback for dataset lazy loaded data expand event. callback receives (datasetid, nodeid, loadedData) parameter
+	 apiUrl: null, // set backend api base url
+     secretKey: null, // set app secret key
+     userName: null // set app user
 });
 ```
 after init call **renderList()** method to render list on UI
@@ -69,16 +73,48 @@ Every items in the **data[]** array should provide this:
 		text: ''
 	}
 ```
+Every root node must provide this:
+
+```javascript
+{
+    id: ''  //unique
+    text: '',
+    children: [
+      {
+        id: '', //unique
+        text: "",
+        children: boolean,
+		type: '' // not required
+      },
+     
+    ],
+  },
+```
+Every child node must provide this:
+
+```javascript
+{
+	[
+      {
+        id: '', //unique
+        text: "",
+        children: boolean,
+		type: '' // not required
+      },
+     
+    ],
+  },
+```
+
 if dataset data properties are not provided in plugin initialization, can be added later 
 
-For root node
 ```javascript 
-    datasets.lazyLoadDatasetItems(dataset, dataItems{})
+    datasets.lazyLoadDatasetItems(dataset)
 ```
-For child node
-```javascript 
-	datasets.lazyLoadDatasetItems(dataset, dataItems[])
-```
+
+
+
+
 get any selected item data
 ```javascript
 	datasets.getSelectedDataItem()

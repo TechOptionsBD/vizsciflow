@@ -19,7 +19,11 @@
         onItemClosing: $.noop,
         onItemClosed: $.noop,
         onDataItemDoubleClick: $.noop,
+        currentLoadedData: $.noop,
         selectedDataItem: null,
+        apiUrl: null,
+        secretKey: null,
+        userName: null,
       },
       options
     );
@@ -84,10 +88,8 @@
 
     //callback binding for dataset item body dom events
     const bindItemBodyEvents = (ele) => {
-      // console.log("bindItembody", ele)
       // callback on dataset exapnding
       $(`#data-list-item-body-${ele.id}`).on("show.bs.collapse", function (e) {
-        // console.log("expand");
         setItemExpandIcon(ele.id);
         settings.onItemExpand.call(null, e, ele);
       });
@@ -126,9 +128,7 @@
     };
 
     const setItemExpandIcon = (event, data) => {
-      // console.log("setItemExpanIcon", itemId)
       const target = $(`#dataset-item-expand-${data.id}`).find("i");
-      //   console.log(target[0].classList[1], "xxxx");
       if (target && target[0] && target[0].classList) {
         if (target[0].classList[1] === "glyphicon-triangle-bottom") {
           target
@@ -141,7 +141,7 @@
             .removeClass("glyphicon-triangle-top")
             .addClass("glyphicon-triangle-bottom");
           $(`#card-body-${data.id}`).jstree("destroy");
-          localStorage.clear();
+          localStorage.removeItem(data.id);
           settings.onItemClosing.call(null, event, data);
         }
       } else {
@@ -150,7 +150,6 @@
     };
 
     const setItemCollapseIcon = (itemId) => {
-      // console.log("setItemCollapseIcon")
       const target = $(`#dataset-item-expand-${itemId}`).find("i");
       if (!target) {
         return;
@@ -199,9 +198,16 @@
                             </div>
                         </div>
                     </div>
-                    <div id="data-list-item-body-${data.id}" class="collapse ${settings.itemBodyClass}" aria-labelledby="headingTwo" data-parent="#accordion">
-                        <div id="card-body-${data.id}">
-                        </div>
+                    <div id="data-list-item-body-${data.id}" class="collapse ${settings.itemBodyClass}" aria-labelledby="headingTwo" data-parent="#accordion" style="max-height:30vh; overflow:scroll;">
+                    <div >
+                    <div style="display:flex">
+                   <!--- <input  style="display: inline"id="search-data-${data.id}; height: 45vh; overflow: scroll" type="text" class="mt-5 form-control" placeholder="search text" aria-describedby="dataset-list-search">
+                      <button id="search-btn-${data.id}" class="search-btn"> Search </button>
+                     </div>
+                     -->
+                   <div>
+                      <div id="card-body-${data.id}">
+                      </div>
                     </div>
                 </div>`
       );
@@ -209,115 +215,201 @@
       return datasetItem;
     };
 
-    const createDataItems = (dataItems) => {
-      const parent = $(`<ul class="list-group"></ul>`);
-      dataItems.forEach((item) => {
-        if (item.id != null) {
-          const itemDom = $(
-            `<li class="list-group-item ${settings.dataItemClass}" id="${item.id}"><i class="glyphicon glyphicon-file"></i>${item.name}</li>`
+    // const createDataItems = (dataItems) => {
+    //   const parent = $(`<ul class="list-group"></ul>`);
+    //   dataItems.forEach((item) => {
+    //     if (item.id != null) {
+    //       const itemDom = $(
+    //         `<li class="list-group-item ${settings.dataItemClass}" id="${item.id}"><i class="glyphicon glyphicon-file"></i>${item.name}</li>`
+    //       );
+
+    //       itemDom.click(function (event) {
+    //         event.stopPropagation();
+    //         $(document)
+    //           .find(".list-group-item")
+    //           .removeClass("list-group-item-clicked");
+    //         $(this).addClass("list-group-item-clicked");
+    //         setSelectedDataItem(item);
+    //       });
+
+    //       itemDom.dblclick(function (event) {
+    //         event.stopPropagation();
+    //         settings.onDataItemDoubleClick.call(null, event, item);
+    //       });
+
+    //       parent.append(itemDom);
+    //     }
+    //   });
+    //   return parent;
+    // };
+
+    self.lazyLoadDatasetItems = function (dataset) {
+      let selectedNode;
+      let currentNode;
+      const itemPerPage = 3;
+      $(`#card-body-${dataset.id}`)
+        .bind("dblclick.jstree", function (e) {
+          var instance = $.jstree.reference(this);
+          const path = instance.get_path(e.target);
+          settings.onDataItemDoubleClick(e, {
+            path,
+            dataset,
+            selectedNode,
+          });
+        })
+        .bind("move_node.jstree", function (e, data) {
+          console.log("Move Event");
+        })
+        .on("changed.jstree", function (e, data) {
+          console.log("changed");
+
+          e.preventDefault();
+          e.cancelBubble = true;
+          e.stopPropagation();
+
+          const parent = data.node.parent;
+          selectedNode = data.selected;
+          const selectedNodeLoadInfo = getSelctedNodesStatus(
+            dataset.id,
+            selectedNode[0]
           );
 
-          itemDom.click(function (event) {
-            event.stopPropagation();
-            $(document)
-              .find(".list-group-item")
-              .removeClass("list-group-item-clicked");
-            $(this).addClass("list-group-item-clicked");
-            setSelectedDataItem(item);
-          });
+          if (
+            selectedNode &&
+            selectedNode[0] &&
+            selectedNode[0].includes(">")
+          ) {
+            document.getElementById(
+              `${selectedNode[0]}_anchor`
+            ).childNodes[0].className = `fa fa-spinner fa-spin jstree-icon jstree-themeicon jstree-themeicon-custom`;
 
-          itemDom.dblclick(function (event) {
-            event.stopPropagation();
-            settings.onDataItemDoubleClick.call(null, event, item);
-          });
+            // document.getElementsById(
+            //   `${selectedNode[0]}_anchor`
+            // )[0].className = `fa fa-spinner fa-spin jstree-icon jstree-themeicon ${selectedNode[0]} jstree-themeicon-custom`;
 
-          parent.append(itemDom);
+            const nodeId = selectedNode[0].split(">")[0];
+            const datasetId = selectedNode[0].split(">")[1];
+
+            const loadedNodes = getLoadMoreNodes(
+              settings.apiUrl,
+              nodeId,
+              datasetId,
+              selectedNodeLoadInfo.pageNum,
+              settings,
+              (loadedNodes) => {
+                const { commonApiObj, loadedData } = loadedNodes;
+                appendLoadedChild(
+                  loadedData,
+                  commonApiObj.loadNodeId,
+                  datasetId
+                );
+                // setSelctedNodesStatus(datasetId, commonApiObj);
+                store.dispatch(
+                  setDatasetChildNodeStateAction(datasetId, commonApiObj)
+                );
+
+                document.getElementById(
+                  `${selectedNode[0]}_anchor`
+                ).childNodes[0].className = `jstree-icon jstree-themeicon jstree-themeicon-custom`;
+
+                if (!commonApiObj.hasMore) {
+                  deleteLoadeMoreNode(datasetId, commonApiObj.loadNodeId);
+                }
+              }
+            );
+          }
+        })
+        .jstree({
+          plugins: getJsTreePlugins(),
+          core: {
+            dblclick_toggle: false,
+            check_callback: true,
+            data: {
+              type: "GET",
+              async: true,
+              url: function () {
+                return settings.apiUrl;
+              },
+              dataFilter: function (data) {
+    debugger
+                const commonApiResObj = getCommonApiResObj(JSON.parse(data));
+                return getLoadMoreNodeWithRootResponse(
+                  dataset.id,
+                  commonApiResObj,
+                  JSON.parse(data)
+                );
+              },
+              data: function (node) {
+                currentNode = node.id === "#" ? -1 : node.id;
+                return getJsTreeApiRequestQueryString(
+                  node.id,
+                  dataset.id,
+                  settings
+                );
+              },
+              success: function (data) {
+                console.log("success");
+                settings.currentLoadedData(dataset.id, currentNode, data);
+              },
+              error: function(err){
+                  debugger
+              }
+            },
+          },
+          // search: {
+          //   show_only_matches: true,
+          //   ajax: function (str, callback) {
+          //     $.ajax({
+          //       url: settings.apiUrl,
+          //       dataType: "json",
+          //       contentType: "application/json;",
+          //       data: { str: str },
+          //     }).done(function (data) {
+          //       data = data;
+          //       callback(data);
+          //     });
+          //   },
+          // },
+
+          types: {
+            default: {
+              icon: "jstree-folder",
+            },
+            file: {
+              icon: "jstree-file",
+            },
+          },
+        });
+
+      $(document).on("dnd_start.vakata", function (e, data) {
+        if (data.data.jstree) {
+          console.log("User started dragging");
         }
       });
-      return parent;
-    };
 
-    self.lazyLoadDatasetItems = function (dataset, dataItems) {
-      let selectedNode;
-      if (dataItems.parent === "#") {
-        $(`#card-body-${dataset.id}`)
-          .bind("dblclick.jstree", function (e) {
-            const savedItem = localStorage.getItem(`${selectedNode}`);
-            if (savedItem === null) {
-              var instance = $.jstree.reference(this);
-              const path = instance.get_path(e.target);
-              localStorage.setItem(`${selectedNode}`, true);
-              settings.onDataItemDoubleClick(e, {
-                path,
-                dataset,
-                selectedNode,
-              });
-            }
-          })
-          .bind("move_node.jstree", function (e, data) {
-            console.log("Move Event");
-          })
-          .on("changed.jstree", function (e, data) {
-            selectedNode = data.selected;
-          })
-          .jstree({
-            plugins: ["dnd", "themes", "types"],
-            core: {
-              dblclick_toggle: false,
-              check_callback: true,
-              data: dataItems,
-            },
-            types: {
-              default: {
-                icon: "jstree-folder",
-              },
-              file: {
-                icon: "jstree-file",
-              },
-            },
-          })
-          .on("create_node.jstree", function (e, data) {
-            console.log("saved");
-          });
+      $(document).on("dnd_stop.vakata", function (e, eData) {
+        if (eData.data.jstree) {
+          const path = $(`#card-body-${dataset.id}`)
+            .jstree(true)
+            .get_path(eData.element, "/");
+          console.log("User stopped dragging");
 
-        $(document).on("dnd_start.vakata", function (e, data) {
-          if (data.data.jstree) {
-            // console.log(data.data.jstree);
-            console.log("User started dragging");
-          }
-        });
+          settings.onItemDrag.call(null, e, { path, dataset });
+        }
+      });
 
-        $(document).on("dnd_stop.vakata", function (e, eData) {
-          // console.log(eData.event.target);
-          if (eData.data.jstree) {
-            // console.log(data.id);
-            const path = $(`#card-body-${dataset.id}`)
-              .jstree(true)
-              .get_path(eData.element, "/");
-            console.log("User stopped dragging");
-            // console.log(dataset)
-            settings.onItemDrag.call(null, e, { path, dataset });
-          }
-        });
-      } else {
-        dataItems.forEach(dataItem =>{
-          $(`#card-body-${dataset.id}`)
-          .jstree()
-          .create_node(
-            dataItem.parent,
-            {
-              id: dataItem.id,
-              text: dataItem.text,
-            },
-            "last",
-            function () {
-              // alert("Parent created");
-            }
-          );
-          
-        })
-       
-      }
+      // var to = false;
+      // $(`#search-btn-${dataset.id}`).click(function () {
+      //   if (to) {
+      //     clearTimeout(to);
+      //   }
+      //   to = setTimeout(function () {
+      //     console.log(dataset.id);
+      //     let key = document.getElementById(`search-data-${dataset.id}`).value;
+      //     console.log(key);
+      //     $(`#card-body-${dataset.id}`).jstree(true).search(key);
+      //   }, 250);
+      // });
     };
 
     const searchDatasetList = (e) => {
@@ -367,4 +459,8 @@
 
     return this;
   };
+  // const render = () => {
+  //   console.log(store.getState(), "redux store");
+  // };
+  // render();
 })(jQuery);

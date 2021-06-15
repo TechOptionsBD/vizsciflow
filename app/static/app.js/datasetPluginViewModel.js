@@ -1,6 +1,6 @@
 function DatasetPluginViewModel() {
   var self = this;
-  self.scidatamgrURI = 'https://p2irc-data-dev.usask.ca'
+  self.scidatamgrURI = 'https://p2irc-data-dev.usask.ca' //'http://localhost:8000' 
   self.datasetList = ko.observableArray();
   let datasetList;
 
@@ -20,7 +20,11 @@ function DatasetPluginViewModel() {
       headerClass: 'custom-dataset-header',
       itemHeaderClass: 'custom-dataset-item-header',
       itemBodyClass: 'custom-dataset-item-body',
-      dataItemClass: 'custom-data-item'
+      dataItemClass: 'custom-data-item',
+      
+      apiUrl: `${self.scidatamgrURI}/api/plugin/dataset/data?`, // set backend api for dataset data retrive
+      secretKey: "6D59713374367639", //app secret key
+      userName: username //current user
     });
     
     // render list on UI
@@ -72,17 +76,7 @@ function DatasetPluginViewModel() {
   }
 
   const onItemExpand = function (e, dataset) {
-    ajaxcalls.simple(self.scidatamgrURI + `/api/plugin/dataset/${dataset.id}/data`, 'GET', { secret_key: '6D59713374367639', username: username }).done(function(data) {    
-      if (data === undefined)
-        return;
-      
-      const staticData = getStaticDataset();
-      datasetList.lazyLoadDatasetItems(dataset, staticData.parent)
-
-    }).fail(function(jqXHR) {
-      showXHRText(jqXHR);
-      datasetList.lazyLoadDatasetItems(dataset.id, [])
-    });
+    datasetList.lazyLoadDatasetItems(dataset)
   }
 
   const onItemExpanded = function (e, data) {

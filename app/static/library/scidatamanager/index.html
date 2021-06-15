@@ -15,6 +15,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="./dist/themes/default/style.min.css" />
+    <!-- <script src="https://rawgit.com/alexandernst/jstree-actions/0.1.2/jstree-actions.js"></script> -->
     <link rel="stylesheet" href="styles/style.css" />
 
     <title>Dataset Plugin</title>
@@ -47,11 +48,14 @@
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.1.0/redux.min.js" integrity="sha512-F21iSaHGX/3NFz5SuwoH6pGhTPxtoJoWWULqQVPQPtLm7nbK5r8vRSSSYy3Aj+H39cVrVm4+3ikGoVD1AjE0sQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+   
     <script
       src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
       integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
       crossorigin="anonymous"
     ></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
       integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
@@ -66,6 +70,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="./dist/jstree.min.js"></script>
     <script src="./static-data.js"></script>
+    <script src="./utils.js"></script>
+    <script src="./store.js"></script> 
     <script src="./dataset-ui.js"></script>
     <script>
       $(document).ready(function () {});
@@ -85,9 +91,7 @@
         const id = Math.floor((Math.random() * 100) + 1);
 
         console.log("On item Expand")
-        datasetList.lazyLoadDatasetItems(data, 
-        { id: `json${id}`, parent: "#", text: `Simple root node ${id}` },
-      );
+        datasetList.lazyLoadDatasetItems(data);
       }
 
       const onItemClosing = function( e, data){
@@ -98,12 +102,6 @@
       const onDataItemDoubleClick = function (e, data) {
         const id = Math.floor((Math.random() * 100) + 1);
         console.log("Data item double clicked", data);
-        datasetList.lazyLoadDatasetItems(data.dataset,
-        [
-        { id: `json${id}`, parent: `${data.selectedNode[0]}`, text: `Child ${id}` }, 
-        { id: `json${id +1 }`, parent: `${data.selectedNode[0]}`, text: `Child ${id +1}` }]
-      );
-        // console.log(datasetList.getSelectedDataItem());
        
       };
 
@@ -119,6 +117,10 @@
 
       // }
 
+      const currentLoadedData = function(datasetId, nodeId, loadedData){
+        console.log("Current loaded data", datasetId, nodeId, loadedData)
+      }
+
       const data = getStaticDataset();
 
       const datasetList = $("#dataset").datasetlist({
@@ -127,12 +129,17 @@
         onItemExpand: onItemExpand,
         onItemClosing: onItemClosing,
         onDataItemDoubleClick: onDataItemDoubleClick,
+        currentLoadedData: currentLoadedData,
         itemHeaderClass: "itemheaderClass",
         itemClass: "itemClass",
         searchBar: true,
         searchBarClass: "searchBarClass",
         onItemDrag: onItemDrag,
         onItemRightClick: onItemRightClick,
+        // apiUrl: "http://localhost:3001?",
+        apiUrl: "https://p2irc-data-dev.usask.ca/api/plugin/dataset/data?",
+        secretKey: "6D59713374367639",
+        userName: "khaled"
       });
       datasetList.renderList();
       $("#data-list-item-body-0").on("shown.bs.collapse", function (e) {

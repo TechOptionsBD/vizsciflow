@@ -331,7 +331,6 @@
                 return settings.apiUrl;
               },
               dataFilter: function (data) {
-    debugger
                 const commonApiResObj = getCommonApiResObj(JSON.parse(data));
                 return getLoadMoreNodeWithRootResponse(
                   dataset.id,
@@ -352,7 +351,7 @@
                 settings.currentLoadedData(dataset.id, currentNode, data);
               },
               error: function(err){
-                  debugger
+                console.log(err);
               }
             },
           },

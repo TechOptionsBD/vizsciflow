@@ -21,7 +21,7 @@ function DatasetPluginViewModel() {
       itemHeaderClass: 'custom-dataset-item-header',
       itemBodyClass: 'custom-dataset-item-body',
       dataItemClass: 'custom-data-item',
-      
+
       apiUrl: `${self.scidatamgrURI}/api/plugin/dataset/data?`, // set backend api for dataset data retrive
       secretKey: "6D59713374367639", //app secret key
       userName: username //current user
@@ -68,11 +68,8 @@ function DatasetPluginViewModel() {
     console.log('getSelectedDataItem');
   }
     
-  const onDataItemDoubleClick = function (e, data) {
-    self.copyToEditor(data.path[0])
-
-    const staticData = getStaticDataset();
-    datasetList.lazyLoadDatasetItems(data.dataset, staticData.child)
+  const onDataItemDoubleClick = function (e, dataset) {
+    self.copyToEditor(dataset.path[1])
   }
 
   const onItemExpand = function (e, dataset) {

@@ -49,7 +49,7 @@
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.1.0/redux.min.js" integrity="sha512-F21iSaHGX/3NFz5SuwoH6pGhTPxtoJoWWULqQVPQPtLm7nbK5r8vRSSSYy3Aj+H39cVrVm4+3ikGoVD1AjE0sQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-   
+   <script src="./store.js"></script> 
     <script
       src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
       integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
@@ -71,7 +71,6 @@
     <script src="./dist/jstree.min.js"></script>
     <script src="./static-data.js"></script>
     <script src="./utils.js"></script>
-    <script src="./store.js"></script> 
     <script src="./dataset-ui.js"></script>
     <script>
       $(document).ready(function () {});
@@ -106,7 +105,7 @@
       };
 
       const onItemDrag = function (e, data) {
-        console.log(e, data);
+        console.log( data);
       };
 
       const onItemRightClick = function (e, data) {
@@ -137,7 +136,7 @@
         onItemDrag: onItemDrag,
         onItemRightClick: onItemRightClick,
         // apiUrl: "http://localhost:3001?",
-        apiUrl: "https://p2irc-data-dev.usask.ca/api/plugin/dataset/data?",
+        apiUrl: "http://localhost:5000/api/plugin/dataset/data?",
         secretKey: "6D59713374367639",
         userName: "khaled"
       });

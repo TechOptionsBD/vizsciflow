@@ -35,6 +35,9 @@ const getCommonApiResObj = (parsedData) => {
 const getLoadMoreNodeWithRootResponse = (datasetId, commonObj, parsedData) => {
   // console.log( datasetId, commonObj, parsedData, "filterApiResponse");
   const { nodeLength, hasMore, pageNum, loadNodeId } = commonObj;
+  if(parsedData && parsedData.nodes && parsedData.nodes.id === -1){
+    parsedData.nodes.id = datasetId
+  }
   
   if (parsedData && parsedData.nodes && hasMore && parsedData.nodes.children) {
     parsedData.nodes.children.push({

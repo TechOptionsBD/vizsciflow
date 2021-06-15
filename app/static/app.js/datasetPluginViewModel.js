@@ -1,6 +1,6 @@
 function DatasetPluginViewModel() {
   var self = this;
-  self.scidatamgrURI = 'https://p2irc-data-dev.usask.ca' //'http://localhost:8000' 
+  self.scidatamgrURI = 'https://p2irc-data-dev.usask.ca'
   self.datasetList = ko.observableArray();
   let datasetList;
 
@@ -15,6 +15,7 @@ function DatasetPluginViewModel() {
       selectedDataItem: getSelectedDataItem, 
       getSelectedDataItem: getSelectedDataItem,
       onDataItemDoubleClick: onDataItemDoubleClick,
+      onItemDrag: onDataItemDrag,
       onItemExpand: onItemExpand,
       onItemExpanded: onItemExpanded,
       headerClass: 'custom-dataset-header',
@@ -69,7 +70,11 @@ function DatasetPluginViewModel() {
   }
     
   const onDataItemDoubleClick = function (e, dataset) {
-    self.copyToEditor(dataset.path[1])
+    self.copyToEditor(dataset.path)
+  }
+
+  const onDataItemDrag = function (e, dataset) {
+    self.copyToEditor(dataset.path)
   }
 
   const onItemExpand = function (e, dataset) {

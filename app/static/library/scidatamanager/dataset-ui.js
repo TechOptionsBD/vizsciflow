@@ -137,11 +137,12 @@
 
           settings.onItemExpand.call(null, event, data);
         } else {
+          console.log("Cloasing");
           target
             .removeClass("glyphicon-triangle-top")
             .addClass("glyphicon-triangle-bottom");
           $(`#card-body-${data.id}`).jstree("destroy");
-          localStorage.removeItem(data.id);
+          // localStorage.removeItem(data.id);
           settings.onItemClosing.call(null, event, data);
         }
       } else {
@@ -250,7 +251,9 @@
       $(`#card-body-${dataset.id}`)
         .bind("dblclick.jstree", function (e) {
           var instance = $.jstree.reference(this);
-          const path = instance.get_path(e.target);
+          const pathArr = instance.get_path(e.target);
+          let path = "";
+          pathArr.forEach(p => path += `/${p}`);
           settings.onDataItemDoubleClick(e, {
             path,
             dataset,
@@ -261,14 +264,13 @@
           console.log("Move Event");
         })
         .on("changed.jstree", function (e, data) {
-          console.log("changed");
-
           e.preventDefault();
           e.cancelBubble = true;
           e.stopPropagation();
 
           const parent = data.node.parent;
           selectedNode = data.selected;
+          console.log("changed", selectedNode);
           const selectedNodeLoadInfo = getSelctedNodesStatus(
             dataset.id,
             selectedNode[0]
@@ -350,9 +352,6 @@
                 console.log("success");
                 settings.currentLoadedData(dataset.id, currentNode, data);
               },
-              error: function(err){
-                console.log(err);
-              }
             },
           },
           // search: {
@@ -388,12 +387,16 @@
 
       $(document).on("dnd_stop.vakata", function (e, eData) {
         if (eData.data.jstree) {
-          const path = $(`#card-body-${dataset.id}`)
-            .jstree(true)
-            .get_path(eData.element, "/");
-          console.log("User stopped dragging");
+          if ($(`#card-body-${dataset.id}`).jstree(true)) {
+            const path = $(`#card-body-${dataset.id}`)
+              .jstree(true)
+              .get_path(eData.element, "/");
+            console.log("User stopped dragging");
 
-          settings.onItemDrag.call(null, e, { path, dataset });
+            if (path && !path.includes("load more")) {
+              settings.onItemDrag.call(null, e, { path:`/${path}`, dataset });
+            }
+          }
         }
       });
 

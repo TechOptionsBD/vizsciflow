@@ -150,9 +150,14 @@ function TasksViewModel() {
 
         ajaxcalls.form(self.tasksURI, 'POST', formdata, false).done(function (data) {
             if (!$.isEmptyObject(data)) {
-                workflowId = parseInt(data['workflowId']);
-                $('#script-name').text(data['name']);
-                editor.session.getUndoManager().markClean();
+                if (data.err !== undefined) {
+                    throw Error(data.err);
+                }
+                else {
+                    workflowId = parseInt(data['workflowId']);
+                    $('#script-name').text(data['name']);
+                    editor.session.getUndoManager().markClean();
+                }
             }
         });
     }
@@ -195,22 +200,28 @@ function TasksViewModel() {
     self.runBioWL = function (task) {
         let currentMode = handleModeViewModel.getMode();
 
-        var updateDlg = self.updateWorkflow();
-        if (updateDlg) {
-            updateDlg.on('hidden.bs.modal', function () { 
+        try {
+            var updateDlg = self.updateWorkflow();
+            if (updateDlg) {
+                updateDlg.on('hidden.bs.modal', function () { 
+                    if(currentMode == 'wfMode')
+                        self.runBioWLInternal(task);
+                    
+                    else if(currentMode == 'provMode')
+                        self.runProvenanceInternal(task);
+                });
+            }
+            else{
                 if(currentMode == 'wfMode')
                     self.runBioWLInternal(task);
                 
                 else if(currentMode == 'provMode')
                     self.runProvenanceInternal(task);
-            });
+            }
         }
-        else{
-            if(currentMode == 'wfMode')
-                self.runBioWLInternal(task);
-            
-            else if(currentMode == 'provMode')
-                self.runProvenanceInternal(task);
+        catch(e) {
+            console.log(e);
+            $("#error").val(e);
         }
     }
 

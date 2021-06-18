@@ -304,26 +304,23 @@ def functions():
     
         if request.method == "POST":
             if request.form.get('workflowId'):
-                try:
-                    workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
-                    if request.form.get('script'):
-                        workflow = update_workflow(current_user.id, workflowId, request.form.get('script'))
-                        return jsonify(workflowId = workflow.id)
-                    # Here we must have a valid workflow id
-                    if not workflowId:
-                        err="Invalid workflow to run. Check if the workflow is already saved."
-                        logging.error(err)
-                        return make_response(jsonify(err=err), 500)
-                    
-                    args = request.form.get('args') if request.form.get('args') else ''
-                    immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
-                    provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
-                    runnable = run_biowl(int(workflowId), None, args, immediate, provenance)
-                    return jsonify(runnableId = runnable.id)
+                workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
+                if request.form.get('script'):
+                    workflow = update_workflow(current_user.id, workflowId, request.form.get('script'))
+                    return jsonify(workflowId = workflow.id)
+
+                # Here we must have a valid workflow id
+                if not workflowId:
+                    err="Invalid workflow to run. Check if the workflow is already saved."
+                    logging.error(err)
+                    return make_response(jsonify(err=err), 500)
                 
-                except Exception as e:
-                    current_app.logger.error(str(e))
-                    return make_response(jsonify(err=str(e)), 500)
+                args = request.form.get('args') if request.form.get('args') else ''
+                immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
+                provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
+                runnable = run_biowl(int(workflowId), None, args, immediate, provenance)
+                return jsonify(runnableId = runnable.id)
+
             elif request.form.get('mapper'):
                 result = {"out": [], "err": []}
                 try:
@@ -455,7 +452,7 @@ def functions():
 
     except Exception as e:
         current_app.logger.error(str(e))
-        return make_response(jsonify(err=str(e)), 500)
+        return jsonify(err=str(e))
 
 
 @main.route('/graphs', methods=['GET', 'POST'])

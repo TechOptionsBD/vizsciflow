@@ -1,5 +1,6 @@
 import inspect
 import json
+from config import Config
 
 def isiterable(p_object):
     try:
@@ -132,3 +133,25 @@ class VizSciFlowList(UserList):
         return self[0] if len(self) > 0 else None
     def count(self):
         return len(self)
+
+def git_access():
+    import git
+    import os
+    import logging
+    from flask import g
+
+    try:
+        if not Config.USE_GIT:
+            return None
+            
+        if not hasattr(g, 'git'):
+            g.git = git.Repo(Config.WORKFLOW_VERSIONS_DIR)
+        return g.git
+    except git.exc.NoSuchPathError:
+        os.mkdir(Config.WORKFLOW_VERSIONS_DIR)
+        return git_access()
+    except git.exc.InvalidGitRepositoryError:
+        git.Repo.init(Config.WORKFLOW_VERSIONS_DIR)
+        return git_access()
+    except:
+        logging.error("No local repository. Versioning of workflow will not work.")

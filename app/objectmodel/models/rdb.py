@@ -25,31 +25,12 @@ from app.exceptions import ValidationError
 from app import db
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
-from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType
+from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access
 from .loader import Loader
 from config import Config
 
 from collections import namedtuple
-
-import git
-import pathlib
-
-def git_access():
-    try:
-        return git.Repo(Config.WORKFLOW_VERSIONS_DIR)
-    except git.exc.NoSuchPathError:
-        os.mkdir(Config.WORKFLOW_VERSIONS_DIR)
-        return git_access()
-    except git.exc.InvalidGitRepositoryError:
-        git.Repo.init(Config.WORKFLOW_VERSIONS_DIR)
-        return git_access()
-
-repo = None
-try:
-    repo = git_access()
-except:
-    logging.error("No local repository. Versioning of workflow will not work.")
-        
+      
 class AlchemyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj.__class__, DeclarativeMeta):
@@ -589,13 +570,13 @@ class Workflow(db.Model):
             db.session.add(wf)
             db.session.commit()
             
-            if repo:
+            if git_access():
                 # save the script in workflows folder for git version
                 try:
                     with open(wf.scriptpath, "w+") as f:
                         f.write(kwargs['script'])
-                        repo.git.add(wf.scriptpath)
-                        repo.git.commit('-m', 'create workflow ' + str(wf.id))
+                        git_access().git.add(wf.scriptpath)
+                        git_access().git.commit('-m', 'create workflow ' + str(wf.id))
                 except Exception as e:
                     logging.error("Git error: " + e)
             
@@ -617,26 +598,26 @@ class Workflow(db.Model):
     @staticmethod
     def commit_changes(branch = 'master', message='update' ):
         has_changed = False
-        if repo.is_dirty():
-            for file in repo.git.diff(None, name_only=True).split('\n'):
-                repo.git.add(file)
+        if git_access().is_dirty():
+            for file in git_access().git.diff(None, name_only=True).split('\n'):
+                git_access().git.add(file)
                 if not has_changed:
                     has_changed = True
 
         if has_changed:
-            repo.git.commit('-m', message)
-            #repo.git.push('origin', branch) # if you have remote repository too
+            git_access().git.commit('-m', message)
+            #git_access().git.push('origin', branch) # if you have remote repository too
                 
     def git_write(self, script):
-        if repo:
+        if git_access():
             with open(self.scriptpath, 'w') as f:
                 f.write(script)
             return Workflow.commit_changes()
             #g = git.cmd.Git(Config.WORKFLOW_VERSIONS_DIR)
             #if not g.ls_files(str(self.id)):
             
-#             repo.git.add(str(self.id))
-#             return repo.git.commit('-m', 'update script')
+#             git_access().git.add(str(self.id))
+#             return git_access().git.commit('-m', 'update script')
                 
     def update_script(self, script):
         if self.script == script:
@@ -661,9 +642,9 @@ class Workflow(db.Model):
     @property                        
     def revisions(self):
         revisions = []
-        if not repo:
+        if not git_access():
             return revisions
-        commits = list(repo.iter_commits(paths=Config.WORKFLOW_VERSIONS_DIR))
+        commits = list(git_access().iter_commits(paths=Config.WORKFLOW_VERSIONS_DIR))
         for c in commits:
             try:
                 f = c.tree / str(self.id)
@@ -679,13 +660,14 @@ class Workflow(db.Model):
 
         if revisions:
             return revisions
-        self.git_write(self.script)
+        if Config.USE_GIT:
+            self.git_write(self.script)
         return self.revision()
     
     def revision_by_commit(self, hexsha):
-        if not repo:
+        if not git_access():
             return self.script
-        commits = list(repo.iter_commits(paths=Config.WORKFLOW_VERSIONS_DIR))
+        commits = list(git_access().iter_commits(paths=Config.WORKFLOW_VERSIONS_DIR))
         for c in commits:
             try:
                 f = c.tree / str(self.id)

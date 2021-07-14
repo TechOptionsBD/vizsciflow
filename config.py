@@ -49,6 +49,7 @@ class Config:
     GRAPHDB_PASSWORD = 'sr-hadoop'
     GRAPHDB_DASTABASE = ''#'vizsciflow'
     GRAPHDB_VERSION = ''
+    USE_GIT = False
     DATA_MODE = 0 # 0 = DB, 1 = Graph (py2neo), 2 = Graph (neo4j-driver) 3 = Elastic Search
 
     @staticmethod

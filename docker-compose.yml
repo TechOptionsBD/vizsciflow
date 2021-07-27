@@ -3,9 +3,7 @@ version: '3.8'
 services:
   web:
     build: .
-    command: gunicorn -b :5000 --access-logfile - --error-logfile - manage:app
-    volumes:
-            - .:.
+    command: venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app
     ports:
       - 8000:5000
     env_file:

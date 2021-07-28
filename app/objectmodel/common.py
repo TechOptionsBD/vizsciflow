@@ -135,7 +135,6 @@ class VizSciFlowList(UserList):
         return len(self)
 
 def git_access():
-    import git
     import os
     import logging
     from flask import g
@@ -144,6 +143,7 @@ def git_access():
         if not Config.USE_GIT:
             return None
             
+        import git
         if not hasattr(g, 'git'):
             g.git = git.Repo(Config.WORKFLOW_VERSIONS_DIR)
         return g.git

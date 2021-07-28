@@ -219,6 +219,12 @@ def deploy():
     usermanager.add_self_follows()
 
 @manager.command
+def createdb():
+    db.drop_all()
+    db.create_all()
+    db.session.commit()
+
+@manager.command
 def deploydb():
     from app.managers.modulemgr import modulemanager
     from app.managers.datamgr import datamanager

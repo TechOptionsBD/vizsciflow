@@ -13,10 +13,11 @@ services:
   db:
     image: postgres:13-alpine
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=phenodoop
       - POSTGRES_PASSWORD=sr-hadoop
       - POSTGRES_DB=biowl
 volumes:
   postgres_data:
+    

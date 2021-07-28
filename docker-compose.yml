@@ -79,4 +79,4 @@ networks:
 volumes:
   postgres_data:
   Neo4j:
-  elastic:
+  data01:

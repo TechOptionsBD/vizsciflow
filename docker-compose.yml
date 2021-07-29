@@ -71,6 +71,17 @@ services:
       ELASTICSEARCH_HOSTS: '["http://es01:9200"]'
     networks:
       - elastic
+  celery:
+    build: .
+    hostname: worker
+    entrypoint: celery
+    command: worker -A app.jobs --loglevel=info
+    volumes:
+      - ./api:.
+    links:
+      - redis
+    depends_on:
+      - redis
   redis:
     image: "redis:latest"
     ports:
@@ -84,3 +95,4 @@ volumes:
   postgres_data:
   Neo4j:
   data01:
+  celery:

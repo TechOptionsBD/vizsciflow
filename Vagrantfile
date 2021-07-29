@@ -67,45 +67,5 @@ Vagrant.configure("2") do |config|
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.
 #  config.vm.provision "file", source: "Dockerfile", destination: "Dockerfile"
-  config.vm.provision "shell", inline: <<-SHELL
-    apt-get update -y
-    apt-get upgrade -y
-
-    sudo apt-get install -y \
-      apt-transport-https \
-      ca-certificates \
-      curl \
-      gnupg \
-      lsb-release
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    echo \
-  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  sudo apt-get update -y
-  sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-  #docker-compose
-  sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  sudo chmod +x /usr/local/bin/docker-compose
-  sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-
-  # get vizsciflow
-  apt-get install -y github
-  cd /home/vagrant
-  git clone https://mainulhossain:!Lisfa_2005!@github.com/srlabUsask/vizsciflow.git
-  cd vizsciflow
-  #mkdir ../postgres_data/
-  #cp /vagrant_data/vizsciflow.sql ./postgres_data/
-
-  #docker build -t vizsciflow:latest .
-  #docker run --name vizsciflow -d -p 8000:5000 --rm vizsciflow:latest
-  /usr/local/bin/docker-compose build
-  /usr/local/bin/docker-compose up -d
-
-  docker-compose exec -T db psql -U phenodoop --dbname=biowl -f /var/lib/postgresql/data/vizsciflow.sql
-  docker-compose exec -T web venv/bin/python manage.py createdb
-  docker-compose exec -T web venv/bin/python manage.py deploydb
-  
-
-  SHELL
+  config.vm.provision "shell", path: "bootstrap.sh"    
 end

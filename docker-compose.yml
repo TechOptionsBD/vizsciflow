@@ -3,7 +3,10 @@ version: '3.8'
 services:
   web:
     build: .
-    command: venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app
+    command: >
+      sh -c "venv/bin/python manage.py createdb &&
+             venv/bin/python manage.py updatedb &&
+             venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
     depends_on:
       - db
     ports:

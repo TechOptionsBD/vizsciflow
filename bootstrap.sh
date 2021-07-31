@@ -32,6 +32,6 @@ cd vizsciflow
 /usr/local/bin/docker-compose build
 /usr/local/bin/docker-compose up -d
 
-docker-compose exec -T db psql -U phenodoop --dbname=biowl -f /var/lib/postgresql/data/vizsciflow.sql
+#docker-compose exec -T db psql -U phenodoop --dbname=biowl -f /var/lib/postgresql/data/vizsciflow.sql
 docker-compose exec -T web venv/bin/python manage.py createdb
 docker-compose exec -T web venv/bin/python manage.py deploydb

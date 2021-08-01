@@ -5,18 +5,20 @@ services:
     build: .
     command: >
       sh -c "venv/bin/python manage.py createdb &&
-             venv/bin/python manage.py updatedb &&
+             venv/bin/python manage.py deploydb &&
              venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
     depends_on:
       - db
+      - celery
+      - neo4j
     ports:
       - 8000:5000
     env_file:
-      - ./.env.dev
+      - ./.env
   db:
     image: postgres:13-alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - ~/.docker/postgres:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=phenodoop
       - POSTGRES_PASSWORD=sr-hadoop
@@ -25,9 +27,9 @@ services:
     container_name: Neo4j
     image: neo4j:latest
     volumes:
-      - ./data:/data
-      - ./plugins:/plugins
-      - ./import:/import
+      - ~/.docker/neo4j/data:/data
+      - ~/.docker/neo4j/plugins:/plugins
+      - ~/.docker/neo4j/import:/import
     ports:
       - "7474:7474"
       - "7687:7687"
@@ -59,7 +61,7 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - data01:/usr/share/elasticsearch/data
+      - ~/.docker/es/data01:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     networks:
@@ -77,14 +79,16 @@ services:
   celery:
     build: .
     hostname: worker
-    entrypoint: celery
-    command: worker -A app.jobs --loglevel=info
+    entrypoint: venv/bin/celery
+    command: -A app.jobs worker --loglevel=info
     volumes:
-      - ./api:.
+      - ~/.docker/celery:/api
     links:
       - redis
     depends_on:
       - redis
+    env_file:
+      - ./.env
   redis:
     image: "redis:latest"
     ports:
@@ -95,7 +99,7 @@ networks:
   elastic:
   
 volumes:
-  postgres_data:
-  Neo4j:
+  postgres:
+  neo4j:
   data01:
   celery:

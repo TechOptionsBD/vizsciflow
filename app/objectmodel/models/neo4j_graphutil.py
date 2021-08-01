@@ -24,7 +24,7 @@ def graph():
     from neo4j import GraphDatabase
     from flask import g
     
-    driver = GraphDatabase.driver(Config.GRAPHDB, auth=(Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD))
+    driver = GraphDatabase.driver(Cos.environ(NEO4J_BOLT_URL) or Config.GRAPHDB, auth=(Config.GRAPHDB_USER, Config.GRAPHDB_PASSWORD))
     
     session = lambda driver: driver.session(database=Config.GRAPHDB_DASTABASE) if Config.GRAPHDB_VERSION.startswith("4") else driver.session()
 

@@ -44,6 +44,7 @@ class Config:
     PHENOPROC_COMMENTS_PER_PAGE = 30
     PHENOPROC_SLOW_DB_QUERY_TIME=0.5
     WORKFLOW_MODE_EDIT = False
+    DB_URL = "postgresql+psycopg2://phenodoop:sr-hadoop@localhost:5432/biowl"
     GRAPHDB = 'bolt://localhost:7687'
     GRAPHDB_USER = 'neo4j'
     GRAPHDB_PASSWORD = 'sr-hadoop'
@@ -58,23 +59,19 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-#     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-#         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-        "postgresql://phenodoop:sr-hadoop@db:5432/biowl"
+    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or Config.DB_URL
 
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
+    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
     WTF_CSRF_ENABLED = False
 
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-        "postgresql+psycopg2:///biowl"
+    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or Config.DB_URL
 
     @classmethod
     def init_app(cls, app):

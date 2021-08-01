@@ -19,7 +19,7 @@ mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
 pagedown = PageDown()
-celery = Celery(__name__, broker=Config.broker_url, backend=Config.result_backend)
+celery = Celery(__name__, broker=os.getenv('CELERY_BROKER_URL') or Config.broker_url, backend=os.getenv('CELERY_RESULT_BACKEND') or Config.result_backend)
 
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'

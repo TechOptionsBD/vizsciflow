@@ -28,7 +28,7 @@ def graph():
     from py2neo import Graph
     from flask import g
 
-    session = lambda : Graph(Config.GRAPHDB, username=Config.GRAPHDB_USER, password=Config.GRAPHDB_PASSWORD)    
+    session = lambda : Graph(os.environ(NEO4J_BOLT_URL) or Config.GRAPHDB, username=Config.GRAPHDB_USER, password=Config.GRAPHDB_PASSWORD)    
     try:
         if not hasattr(g, 'graph'):
             g.graph = session()

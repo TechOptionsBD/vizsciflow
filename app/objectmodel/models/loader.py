@@ -89,8 +89,6 @@ class Loader:
                     returns = []
                     if f.get("returns"):
                         rs = f["returns"]
-                        if not isinstance(rs, list):
-                            rs = [rs]
 
                         for p in rs:
                             param = {}

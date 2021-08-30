@@ -2,7 +2,6 @@ import os
 from os import path
 import uuid
 
-from dsl.fileop import FolderItem
 from app.system.exechelper import func_exec_run
 from app.dsl.argshelper import get_posix_data_args, get_input_from_args
 from pathlib import Path
@@ -30,4 +29,4 @@ def run_blastn(context, *args, **kwargs):
     if not fs.exists(outpath):
         raise ValueError("FastQC could not generate the file " + stripped_html_path + " due to error " + err)
 
-    return FolderItem(outpath)
+    return outpath

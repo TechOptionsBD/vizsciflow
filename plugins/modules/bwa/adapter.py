@@ -4,7 +4,6 @@ from pathlib import Path
 
 from app.system.exechelper import func_exec_run
 from app.dsl.argshelper import get_posix_data_args, get_posix_output_args, get_optional_posix_data_args, get_posix_output_folder_args, get_temp_dir
-from dsl.fileop import FolderItem
 from app.managers.datamgr import datamanager
 
 bwa = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'bwa'))
@@ -63,4 +62,4 @@ def run_bwa(context, *args, **kwargs):
     if not fs.exists(output):
         raise ValueError("bwa could not generate the file " + stripped_path + " due to error " + err)
     
-    return FolderItem(stripped_path)
+    return stripped_path

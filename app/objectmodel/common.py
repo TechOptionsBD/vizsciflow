@@ -4,6 +4,8 @@ from config import Config
 
 def isiterable(p_object):
     try:
+        if isinstance(p_object, str):
+            return False
         iter(p_object)
     except TypeError: 
         return False

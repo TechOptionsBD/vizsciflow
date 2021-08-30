@@ -4,7 +4,6 @@ from pathlib import Path
 
 from app.system.exechelper import func_exec_run
 from app.dsl.argshelper import get_posix_data_args, get_posix_output_args
-from dsl.fileop import FolderItem
 
 pear = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'pear'))
 
@@ -50,4 +49,4 @@ def run_pear(context, *args, **kwargs):
     if not fs.exists(assembled_output):
         raise ValueError("Pear operation failed due to error: " + err)
     
-    return FolderItem(stripped_path)
+    return stripped_path

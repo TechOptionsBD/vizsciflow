@@ -137,12 +137,11 @@ class Library(LibraryBase):
     def get_data_and_type_from_result(result, ret):
         name = ret.name if hasattr(ret, 'name') else ''
         datatype = ret.type.lower().split('|')[0] if hasattr(ret, 'type') else ''
-        if 'file' in datatype or 'folder' in datatype:
+        if 'file[]' in datatype or 'folder[]' in datatype:
+            t = DataType.FileList if 'file[]' in datatype else DataType.FolderList
+            return t, [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)]
+        elif 'file' in datatype or 'folder' in datatype:
             return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name
-        # elif 'file[]' in returnsLower or 'folder[]' in returnsLower:
-        #     return DataType.FileList if 'file[]' in returnsLower else DataType.FolderList
-        #     data = resulttup[i] if isinstance(resulttup[i], list) else [resulttup[i]]
-        #     data = [f if isinstance(f, FolderItem) else FolderItem(f) for f in data]
         elif datatype in known_types.keys():
             return DataType.Value, result, name
         else:

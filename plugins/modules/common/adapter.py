@@ -1,5 +1,4 @@
 from app.util import Utility
-from dsl.fileop import FolderItem
 
 def raw_print(context, data):
     context.out.append(str(data))
@@ -91,4 +90,4 @@ def raw_extract(context, *args, **kwargs):
     if not fs.exists(outpath):
         raise ValueError("Extract could not generate the file " + stripped_html_path)
 
-    return FolderItem(outpath)
+    return outpath

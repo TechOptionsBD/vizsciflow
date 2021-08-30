@@ -1,5 +1,7 @@
 from app.objectmodel.models.rdb import *
 from app.objectmodel.common import dict2obj
+from dsl.fileop import FolderItem
+from app.objectmodel.common import isiterable
 
 class UserManager():
     @staticmethod
@@ -85,7 +87,14 @@ class DataManager():
     
     @staticmethod
     def add_task_data(triplet, task):
-        task.add_output(triplet[0], str(triplet[1]))
+        if isinstance(triplet[1], FolderItem) and isiterable(triplet[1].path):
+            for it in triplet[1].path:
+                task.add_output(triplet[0], str(it))
+        elif (triplet[0] == DataType.File or triplet[0] == DataType.Folder) and isiterable(triplet[1]):
+            for it in triplet[1].path:
+                task.add_output(triplet[0], str(it))
+        else:
+            task.add_output(triplet[0], str(triplet[1]))
     
     @staticmethod
     def is_data_item(value):

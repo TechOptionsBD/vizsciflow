@@ -2,7 +2,6 @@ from os import path
 import os
 from pathlib import Path
 
-from dsl.fileop import FolderItem
 from app.system.exechelper import func_exec_run
 from app.dsl.argshelper import get_posix_data_args, get_posix_output_folder_args
 
@@ -46,4 +45,4 @@ def run_fastqc(context, *args, **kwargs):
     if not fs.exists(outpath):
         raise ValueError("FastQC could not generate the file " + stripped_html_path + " due to error " + err)
 
-    return FolderItem(stripped_html_path), FolderItem(fs.strip_root(outzip))
+    return stripped_html_path, fs.strip_root(outzip)

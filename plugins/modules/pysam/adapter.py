@@ -2,7 +2,6 @@ import os
 import pysam
 from pathlib import Path
 
-from dsl.fileop import FolderItem
 from app.dsl.argshelper import get_posix_data_args, get_posix_output_args, get_posix_output_folder_args
 
 def exec_sam_to_bam(fs, data, output):
@@ -41,4 +40,4 @@ def run_sam_to_bam(context, *args, **kwargs):
     if not fs.exists(output):
         raise ValueError("pysam could not generate the file: " + stripped_path)
     
-    return FolderItem(stripped_path)
+    return stripped_path

@@ -1,24 +1,20 @@
-FROM python:slim
+FROM python:3.8-buster
 
 RUN useradd vizsciflow
-
-#RUN git clone https://mainulhossain:!Lisfa_2005!@github.com/srlabUsask/vizsciflow.git
 WORKDIR /home/vizsciflow
 COPY . .
 
-RUN python -m venv venv
-RUN venv/bin/pip install --upgrade pip
-RUN venv/bin/pip install -r requirements/requirements.txt
-RUN venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
+RUN python -m venv .venv
+RUN .venv/bin/pip install --upgrade pip
+RUN .venv/bin/pip install -r requirements/requirements.txt
+RUN .venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
 
-RUN venv/bin/pip install gunicorn
-
-RUN chmod +x boot.sh
+RUN .venv/bin/pip install gunicorn
+# to debug celery in docker
+RUN .venv/bin/pip install debugpy -t /tmp
 
 ENV FLASK_APP manage.py
 
 RUN chown -R vizsciflow:vizsciflow ./
-USER vizsciflow
 
-EXPOSE 5000
-#ENTRYPOINT ["./boot.sh"]
+USER vizsciflow

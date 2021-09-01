@@ -1,4 +1,3 @@
-from app.main.jobsview import provenance
 import sys
 sys.path.insert(0, '../..') #modules are 2 layers above this location
 
@@ -8,8 +7,6 @@ import os
 import json
 import logging
 from pyparsing import ParseException
-
-from config import Config
 
 from . import celery
 from dsl.grammar import PythonGrammar
@@ -23,13 +20,14 @@ from app.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
             
 @celery.task(bind=True, base = AbortableTask)
 def run_script(self, runnable_id, args, provenance):
+    from app import app
     
     runnable = runnablemanager.first(id=runnable_id)
 
     machine = VizSciFlowInterpreter()
     context = machine.context
 
-    parserdir = Config.BIOWL
+    parserdir = app.config['BIOWL']
     curdir = os.getcwd()
     os.chdir(parserdir) #set dir of this file to current directory
 

@@ -1,4 +1,3 @@
-from config import Config
 from app.managers.mgrutil import ManagerUtility
 from app.objectmodel.models.loader import Loader
 
@@ -13,8 +12,10 @@ class ModuleManager():
         return self.persistance.get(**kwargs)
 
     def insert_modules(self, path):
+        from app import app
+
         funclist = Loader.load_funcs_recursive_flat(path)
-        funclist = [func for func in funclist if not func['module'].startswith(Config.MODULE_PACKAGE + '.users')]
+        funclist = [func for func in funclist if not func['module'].startswith(app.config['MODULE_PACKAGE'] + '.users')]
         return self.persistance.insert_modules(funclist)
 
     def get_module_by_name_package_for_user_access(self, user_id, name, package = None):

@@ -7,19 +7,17 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_moment import Moment
 from flask_pagedown import PageDown
-import flask_sijax
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
-from config import config, Config
-
+from config import config
 
 bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
 pagedown = PageDown()
-celery = Celery(__name__, broker=os.getenv('CELERY_BROKER_URL') or Config.broker_url, backend=os.getenv('CELERY_RESULT_BACKEND') or Config.result_backend)
+celery = Celery(__name__)
 
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
@@ -35,13 +33,15 @@ def create_app(config_name):
     app.debug = app.config['DEBUG']
     config[config_name].init_app(app)
 
+    celery.conf.broker_url = app.config["CELERY_BROKER_URL"]
+    celery.conf.result_backend = app.config["CELERY_RESULT_BACKEND"]
+
     bootstrap.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
     pagedown.init_app(app)
-    celery.conf.update(app.config)
     
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask_sslify import SSLify
@@ -55,10 +55,6 @@ def create_app(config_name):
 
     from .api_1_0 import api as api_1_0_blueprint
     app.register_blueprint(api_1_0_blueprint, url_prefix='/api/v1.0')
-
-    app.config['SIJAX_STATIC_PATH'] = os.path.join('.', os.path.dirname(__file__), 'static/js/sijax/')
-    app.config['SIJAX_JSON_URI'] = '/static/js/sijax/json2.js'
-    flask_sijax.Sijax(app)
 
     return app
 

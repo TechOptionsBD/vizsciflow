@@ -1,6 +1,5 @@
 import inspect
 import json
-from config import Config
 
 def isiterable(p_object):
     try:
@@ -140,20 +139,21 @@ def git_access():
     import os
     import logging
     from flask import g
+    from app import app
 
     try:
-        if not Config.USE_GIT:
+        if not app.config['USE_GIT']:
             return None
             
         import git
         if not hasattr(g, 'git'):
-            g.git = git.Repo(Config.WORKFLOW_VERSIONS_DIR)
+            g.git = git.Repo(app.config['WORKFLOW_VERSIONS_DIR'])
         return g.git
     except git.exc.NoSuchPathError:
-        os.mkdir(Config.WORKFLOW_VERSIONS_DIR)
+        os.mkdir(app.config['WORKFLOW_VERSIONS_DIR'])
         return git_access()
     except git.exc.InvalidGitRepositoryError:
-        git.Repo.init(Config.WORKFLOW_VERSIONS_DIR)
+        git.Repo.init(app.config['WORKFLOW_VERSIONS_DIR'])
         return git_access()
     except:
         logging.error("No local repository. Versioning of workflow will not work.")

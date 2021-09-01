@@ -5,13 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Celery: Remote Attach",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 6900
+             },
+             "pathMappings": [{
+                "localRoot": "${workspaceFolder}",
+                "remoteRoot": "."
+               }],
+              // "preLaunchTask": "docker-compose up",
+              "django": true,
+        },
+        {
             "name": "Python: manage.py",
             "type": "python",
             "request": "launch",
             "program": "manage.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceRoot}/.venv",
-            "args": ["deploydb"]
+            "args": [
+                "deploydb"
+            ]
         },
         {
             "name": "Python: Flask",
@@ -24,27 +41,14 @@
                 "FLASK_DEBUG": "1"
             },
             "args": [
-                "run", "--port", "8000"
+                "run",
+                "--port",
+                "8000"
                 //"--no-debugger"
             ],
             "envFile": "${workspaceRoot}/.venv",
             "jinja": true,
             "justMyCode": false
         }
-        // ,{
-        //     "name": "Python: Remote Attach",
-        //     "type": "python",
-        //     "request": "attach",
-        //     "connect": {
-        //         "host": "127.0.0.1",
-        //         "port": 8000
-        //     },
-        //     "pathMappings": [
-        //         {
-        //             "localRoot": "${workspaceFolder}",
-        //             "remoteRoot": "."
-        //         }
-        //     ]
-        // }
     ]
 }

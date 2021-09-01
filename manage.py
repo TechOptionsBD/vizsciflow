@@ -12,13 +12,6 @@ if os.environ.get('FLASK_COVERAGE'):
     COV = coverage.coverage(branch=True, include='app/*')
     COV.start()
 
-if os.path.exists('.env'):
-    print('Importing environment from .env...')
-    for line in open('.env'):
-        var = line.strip().split('=')
-        if len(var) == 2:
-            os.environ[var[0]] = var[1]
-
 from app import app, db
 from flask_script import Manager, Server
 from flask_migrate import Migrate
@@ -233,12 +226,11 @@ def deploydb():
     from app.managers.workflowmgr import workflowmanager
     from app.managers.dbmgr import dbmanager
 
-    from config import Config
     import logging
     logging.basicConfig(level = logging.INFO)
 
     # clear the database
-    logging.info("Clearing the graph database...")
+    logging.info("Clearing the database...")
     dbmanager.clear()
 
     #create datasources
@@ -259,16 +251,16 @@ def deploydb():
     logging.info("admin")
     
     # insert modules
-    logging.info("Inserting modules from directory: {0} ...".format(Config.MODULE_DIR))
-    modules = modulemanager.insert_modules(Config.MODULE_DIR)
+    logging.info("Inserting modules from directory: {0} ...".format(app.config['MODULE_DIR']))
+    modules = modulemanager.insert_modules(app.config['MODULE_DIR'])
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         package = module.package if module.package else "" # package name is optional
         logging.info(package + "." + module.name)
 
     # insert workflows
-    logging.info("Inserting workflows from directory: {0} ...".format(Config.WORKFLOW_DIR))
-    workflows = workflowmanager.insert_workflows(Config.WORKFLOW_DIR)
+    logging.info("Inserting workflows from directory: {0} ...".format(app.config['WORKFLOW_DIR']))
+    workflows = workflowmanager.insert_workflows(app.config['WORKFLOW_DIR'])
     logging.info("{0} workflows(s) added:".format(len(workflows)))
     for workflow in workflows:
         logging.info(workflow.name)

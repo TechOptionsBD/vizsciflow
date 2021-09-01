@@ -1,7 +1,6 @@
 import os
 import json
 import pathlib
-from config import Config
 
 class Loader:
     
@@ -46,6 +45,8 @@ class Loader:
        
     @staticmethod
     def load_funcs(library_def_file):
+        from app import app
+
         funcs = {}
         try:
             if not os.path.isfile(library_def_file) or not library_def_file.endswith(".json"):
@@ -56,7 +57,7 @@ class Loader:
                 libraries = d["functions"]
                 libraries = sorted(libraries, key = lambda k : k['package'].lower())
 
-                module = str(pathlib.Path(os.path.dirname(library_def_file)).relative_to(Config.ROOT_DIR))
+                module = str(pathlib.Path(os.path.dirname(library_def_file)).relative_to(app.config['ROOT_DIR']))
                 module = module.replace('/', '.') + '.adapter'
 
                 for f in libraries:
@@ -89,6 +90,9 @@ class Loader:
                     returns = []
                     if f.get("returns"):
                         rs = f["returns"]
+
+                        if not isinstance(rs, list):
+                            rs = [rs]
 
                         for p in rs:
                             param = {}

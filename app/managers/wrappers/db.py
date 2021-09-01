@@ -268,12 +268,8 @@ class Manager():
     @staticmethod
     def clear():
         try:
-            Service.query.delete()
-            Role.query.delete()
-            User.query.delete()
-            Workflow.query.delete()
-            DataSource.query.delete()
-
+            db.drop_all()
+            db.create_all()
             db.session.commit()
         except:
             db.session.rollback()

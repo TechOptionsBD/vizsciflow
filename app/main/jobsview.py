@@ -24,13 +24,12 @@ from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 
-from config import Config
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.runmgr import runnablemanager
 from app.objectmodel.common import AccessType, Permission, AccessRights, convert_to_safe_json
 from ..managers.modulemgr import modulemanager
-from app.objectmodel.provmod.pluginmgr import pluginmanager
+
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -118,13 +117,16 @@ def create_pkg_dir(user_package_dir, create_init = True):
 @main.route('/provenance', methods=['GET', 'POST'])
 @login_required
 def provenance():
+    from app import app
+    from app.objectmodel.provmod.pluginmgr import PluginManager
+
     try:
         if 'users' in request.args:
             return get_users()        
         elif 'delete' in request.args:
-            return pluginmanager.delete(request.args.get("delete"), 'confirm' in request.args and request.args.get("confirm").lower() == "true")
+            return PluginManager.instance().delete(request.args.get("delete"), 'confirm' in request.args and request.args.get("confirm").lower() == "true")
         elif 'demoprovenanceadd' in request.args:
-            return pluginmanager.load_demo()
+            return PluginManager.instance().load_demo()
         elif request.method == "POST" and request.form.get('html'):
             result = {"out": [], "err": []}
             try:
@@ -140,11 +142,11 @@ def provenance():
                 file = request.files['library'] if len(request.files) > 0 else None
                 #user_package_dir = os.path.normpath(os.path.join(pluginsdir, 'users', current_user.username))
 
-                scriptname = pluginmanager.get_script_name(request.form.get('script'))
+                scriptname = PluginManager.instance().get_script_name(request.form.get('script'))
                 if not scriptname:
                     raise ValueError("No plugin is defined in the script.")
                 
-                user_package_dir = create_pkg_dir(os.path.join(Config.PROVENANCE_DIR, 'users'))
+                user_package_dir = create_pkg_dir(os.path.join(app.config['PROVENANCE_DIR'], 'users'))
                 user_package_dir = create_pkg_dir(os.path.join(user_package_dir, current_user.username))
                 user_package_dir = create_pkg_dir(os.path.join(user_package_dir, scriptname))
 
@@ -152,11 +154,11 @@ def provenance():
                 with open(os.path.join(user_package_dir,  scriptname + ".py"), 'w') as script:
                     script.write(request.form.get('script'))
                         
-                pluginmanager.walk_package("{0}.users.{1}.{2}.{3}".format(Config.PROVENANCE_PACKAGE, current_user.username, scriptname, scriptname))
+                PluginManager.instance().walk_package("{0}.users.{1}.{2}.{3}".format(app.config['PROVENANCE_PACKAGE'], current_user.username, scriptname, scriptname))
 
                 # save view plugin coming as html                    
                 if request.form.get('html'):
-                    user_template_dir = create_pkg_dir(os.path.join(Config.HTML_DIR, 'users', current_user.username, scriptname), False)
+                    user_template_dir = create_pkg_dir(os.path.join(app.config['HTML_DIR'], 'users', current_user.username, scriptname), False)
                     with open(os.path.join(user_template_dir, scriptname + ".html"), 'w') as html:
                         html.write(request.form.get('html'))
                 
@@ -177,7 +179,7 @@ def provenance():
                 result['err'].append(str(e))
             return json.dumps(result)            
         else:
-            return pluginmanager.get_json_info()
+            return PluginManager.instance().get_json_info()
     
     except Exception as e:
         current_app.logger.error(str(e))
@@ -227,8 +229,10 @@ def get_users():
     return jsonify(result)
 
 def add_demo_service():
+    from app import app
+
     demoservice = {'script':'', 'mapper': ''}
-    base = os.path.join(Config.MODULE_DIR, 'demo')
+    base = os.path.join(app.config['MODULE_DIR'], 'demo')
     with open(os.path.join(base, 'service.py'), 'r') as f:
         demoservice['script'] = f.read()
     with open(os.path.join(base, 'service.json'), 'r') as f:
@@ -280,6 +284,8 @@ def check_service_function(request):
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
+    from app import app
+
     try:
         if request.method == "GET":
             if 'check_function' in request.args:
@@ -337,7 +343,7 @@ def functions():
                     # Check if the file is one of the allowed types/extensions
                     package = request.form.get('package')
                     #os.chdir(this_path) #set dir of this file to current directory
-                    user_package_dir = os.path.join(Config.MODULE_DIR, 'users', current_user.username)
+                    user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
                     if not os.path.isdir(user_package_dir):
                         os.makedirs(user_package_dir)
                     
@@ -375,7 +381,7 @@ def functions():
                         mapper.write(request.form.get('mapper'))
                     org = request.form.get('org')
                     # create '.' based module path
-                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(Config.PLUGIN_DIR)))
+                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app.config['PLUGIN_DIR'])))
                     pkgpath = os.path.join(pkgpath, os.path.basename(filename))
                     pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
                     # create an empty __init__.py to make the directory a module                

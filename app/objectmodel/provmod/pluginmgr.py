@@ -1,10 +1,10 @@
 import os
+import sys
 from json import dumps
 import inspect
 import pkgutil
 from dsl.library import load_module
-from config import Config
-from flask import request, jsonify
+from flask import request, jsonify, g
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -51,6 +51,8 @@ class PluginManager(object):
         """Reset the list of all plugins and initiate the walk over the main
         provided plugin package to load all available plugins
         """
+        from app import app
+        sys.path.append(os.path.dirname(app.instance_path))
         self.plugins = {}
         self.seen_paths = []
         print()
@@ -115,10 +117,12 @@ class PluginManager(object):
 
     @staticmethod
     def load_demo():
+        from app import app
+
         demoprovenance = {'script':'', 'html': ''}
-        with open(os.path.join(Config.PROVENANCE_DIR, 'demo', 'demoprov.py'), 'r') as f:
+        with open(os.path.join(app.config['PROVENANCE_DIR'], 'demo', 'demoprov.py'), 'r') as f:
             demoprovenance['script'] = f.read()
-        with open(os.path.join(Config.HTML_DIR, 'demo', 'demoprov.html'), 'r') as f:
+        with open(os.path.join(app.config['HTML_DIR'], 'demo', 'demoprov.html'), 'r') as f:
             demoprovenance['html'] = f.read()
         return jsonify(demoprovenance = demoprovenance)
 
@@ -156,5 +160,14 @@ class PluginManager(object):
                 break
         
         return scriptname
+    
+    @staticmethod
+    def instance():
+        from app import app
 
-pluginmanager = PluginManager(Config.PROVENANCE_PACKAGE)
+        try:
+            if not 'provpluginmgr' in g:
+                g['provpluginmgr'] = PluginManager(app.config['PROVENANCE_PACKAGE'])
+            return g['provpluginmgr']
+        except:
+            return PluginManager(app.config['PROVENANCE_PACKAGE'])

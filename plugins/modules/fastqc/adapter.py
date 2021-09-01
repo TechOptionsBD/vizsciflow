@@ -24,6 +24,9 @@ def prepare_args(fs, data, outdir, paramindex, *args):
 def run_fastqc(context, *args, **kwargs):
     
     paramindex, data, fs = get_posix_data_args(0, 'data', context, *args, **kwargs)
+    if not fs.exists(data):
+        raise ValueError("Input file {0} doesn't exist.".format(fs.strip_root(str(data))))
+
     outdir = get_posix_output_folder_args(paramindex, 'outdir', fs, context, *args, **kwargs)
 
     outpath = outdir

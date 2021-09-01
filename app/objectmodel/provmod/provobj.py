@@ -3,7 +3,6 @@ import itertools
 import operator
 
 from dsl.datatype import DataType
-from .pluginmgr import pluginmanager
 from app.managers.usermgr import usermanager
 from app.managers.workflowmgr import workflowmanager
 from app.managers.runmgr import runnablemanager
@@ -512,7 +511,8 @@ class User(object):
 
 class Plugin():
     def __init__(self, name):
-        self._plugin = pluginmanager.get(name)
+        from app.objectmodel.provmod.pluginmgr import PluginManager
+        self._plugin = PluginManager.instance().get(name)
     
     @staticmethod
     def get(name):

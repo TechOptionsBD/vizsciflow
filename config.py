@@ -5,12 +5,6 @@ class Config:
     ROOT_DIR = basedir
     DATA_DIR = os.path.join(ROOT_DIR, 'storage')
     PUBLIC_DIR = 'public'
-    CURRENT_USER = 'public'
-    WEBHDFS_ADDR = 'http://sr-p2irc-big1.usask.ca:50070'
-    WEBHDFS_USER = 'hdfs'
-    HDFS_USER = 'phenodoop'
-    HDFS_GROUP = 'phenodoop'
-    HDFS_DIR = '/user/phenodoop'
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard to guess string'
     SSL_DISABLE = False
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
@@ -22,19 +16,15 @@ class Config:
     PROVENANCE_DIR = os.path.join(PLUGIN_DIR, 'provs')
     PROVENANCE_PACKAGE = 'plugins.provs'
     MODULE_PACKAGE = 'plugins.modules'
-    HTML_DIR = os.path.join(ROOT_DIR, 'app/templates/plugins')
     WORKFLOW_DIR = os.path.join(ROOT_DIR, 'workflows/samples')
     WORKFLOW_VERSIONS_DIR = os.path.join(ROOT_DIR, 'workflows/versions')
-    #MAIL_SERVER = 'smtp.googlemail.com'
+    HTML_DIR = os.path.join(ROOT_DIR, 'app/templates/plugins')
     MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
-    MAIL_USERNAME = 'phenoproc@gmail.com' #os.environ.get('MAIL_USERNAME') or 'phenoproc@gmail.com'
-    MAIL_PASSWORD = '!Mifta_2011!' #os.environ.get('MAIL_PASSWORD') or '!phenoproc@gmail.com!'
-    broker_url = 'redis://localhost:6379/0'
-    result_backend = 'redis://localhost:6379/0'
-    imports = ['app.jobs']
+    MAIL_USERNAME = ''
+    MAIL_PASSWORD = ''
     BIOWL = os.path.join(ROOT_DIR, 'app/dsl/')
     PHENOPROC_MAIL_SUBJECT_PREFIX = '[Phenoproc]'
     PHENOPROC_MAIL_SENDER = 'Phenoproc Admin <phenoproc@gmail.com>'
@@ -44,14 +34,16 @@ class Config:
     PHENOPROC_COMMENTS_PER_PAGE = 30
     PHENOPROC_SLOW_DB_QUERY_TIME=0.5
     WORKFLOW_MODE_EDIT = False
-    DB_URL = "postgresql+psycopg2://phenodoop:sr-hadoop@localhost:5432/biowl"
+    ENV_DATABASE_URL = "postgresql+psycopg2://phenodoop:sr-hadoop@localhost:5432/biowl"
     GRAPHDB = 'bolt://localhost:7687'
     GRAPHDB_USER = 'neo4j'
     GRAPHDB_PASSWORD = 'sr-hadoop'
     GRAPHDB_DASTABASE = ''#'vizsciflow'
     GRAPHDB_VERSION = ''
-    USE_GIT = False
     DATA_MODE = 0 # 0 = DB, 1 = Graph (py2neo), 2 = Graph (neo4j-driver) 3 = Elastic Search
+    USE_GIT = False
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
     @staticmethod
     def init_app(app):
@@ -59,8 +51,9 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or Config.DB_URL
-
+    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or Config.ENV_DATABASE_URL
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 class TestingConfig(Config):
     TESTING = True
@@ -68,10 +61,15 @@ class TestingConfig(Config):
         'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
     WTF_CSRF_ENABLED = False
 
+class DockerConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or "postgresql+psycopg2://phenodoop:sr-hadoop@vizsciflowdb:5432/biowl"
+    CELERY_BROKER_URL = 'redis://vizsciflowredis:6379/0'
+    CELERY_RESULT_BACKEND = 'redis://vizsciflowredis:6379/0'
+    DEBUG = True
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or Config.DB_URL
+    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or Config.ENV_DATABASE_URL
 
     @classmethod
     def init_app(cls, app):
@@ -96,26 +94,6 @@ class ProductionConfig(Config):
         mail_handler.setLevel(logging.ERROR)
         app.logger.addHandler(mail_handler)
 
-
-class HerokuConfig(ProductionConfig):
-    SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
-
-    @classmethod
-    def init_app(cls, app):
-        ProductionConfig.init_app(app)
-
-        # handle proxy server headers
-        from werkzeug.contrib.fixers import ProxyFix
-        app.wsgi_app = ProxyFix(app.wsgi_app)
-
-        # log to stderr
-        import logging
-        from logging import StreamHandler
-        file_handler = StreamHandler()
-        file_handler.setLevel(logging.WARNING)
-        app.logger.addHandler(file_handler)
-
-
 class UnixConfig(ProductionConfig):
     @classmethod
     def init_app(cls, app):
@@ -128,13 +106,12 @@ class UnixConfig(ProductionConfig):
         syslog_handler.setLevel(logging.WARNING)
         app.logger.addHandler(syslog_handler)
 
-
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
-    'heroku': HerokuConfig,
     'unix': UnixConfig,
+    'docker': DockerConfig,
 
     'default': DevelopmentConfig
 }

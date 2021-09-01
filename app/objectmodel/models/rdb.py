@@ -5,7 +5,7 @@ import io
 import json
 import bleach
 import logging
-from flask import current_app, request, url_for
+from flask import config, current_app, request, url_for
 from flask_login import UserMixin
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -27,7 +27,6 @@ from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
 from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access
 from .loader import Loader
-from config import Config
 
 from collections import namedtuple
       
@@ -454,7 +453,7 @@ class DataSource(db.Model):
             db.session.commit()
             return datasourceitems
         except:
-            db.session.rollbakc()
+            db.session.rollback()
             raise
 
     def __repr__(self):
@@ -613,7 +612,7 @@ class Workflow(db.Model):
             with open(self.scriptpath, 'w') as f:
                 f.write(script)
             return Workflow.commit_changes()
-            #g = git.cmd.Git(Config.WORKFLOW_VERSIONS_DIR)
+            #g = git.cmd.Git(app.config['WORKFLOW_VERSIONS_DIR'])
             #if not g.ls_files(str(self.id)):
             
 #             git_access().git.add(str(self.id))
@@ -637,14 +636,16 @@ class Workflow(db.Model):
     
     @property
     def scriptpath(self):
-        return os.path.join(Config.WORKFLOW_VERSIONS_DIR, str(self.id))
+        from app import app
+        return os.path.join(app.config['WORKFLOW_VERSIONS_DIR'], str(self.id))
     
     @property                        
     def revisions(self):
+        from app import app
         revisions = []
         if not git_access():
             return revisions
-        commits = list(git_access().iter_commits(paths=Config.WORKFLOW_VERSIONS_DIR))
+        commits = list(git_access().iter_commits(paths=app.config['WORKFLOW_VERSIONS_DIR']))
         for c in commits:
             try:
                 f = c.tree / str(self.id)
@@ -660,14 +661,16 @@ class Workflow(db.Model):
 
         if revisions:
             return revisions
-        if Config.USE_GIT:
+        if app.config['USE_GIT']:
             self.git_write(self.script)
         return self.revision()
     
     def revision_by_commit(self, hexsha):
+        from app import app
+
         if not git_access():
             return self.script
-        commits = list(git_access().iter_commits(paths=Config.WORKFLOW_VERSIONS_DIR))
+        commits = list(git_access().iter_commits(paths=app.config['WORKFLOW_VERSIONS_DIR']))
         for c in commits:
             try:
                 f = c.tree / str(self.id)

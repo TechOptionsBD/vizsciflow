@@ -1,21 +1,25 @@
 version: '3.8'
 
 services:
-  web:
+  vizsciflowweb:
     build: .
     command: >
-      sh -c "venv/bin/python manage.py createdb &&
-             venv/bin/python manage.py deploydb &&
-             venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
+      sh -c ".venv/bin/python manage.py deploydb &&
+             .venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
     depends_on:
-      - db
-      - celery
-      - neo4j
+      - vizsciflowdb
+      - vizsciflowcelery
     ports:
       - 8000:5000
-    env_file:
-      - ./.env
-  db:
+    networks:
+      - vizsciflownetwork
+    container_name: vizsciflowweb
+    environment:
+      - FLASK_CONFIG=docker
+    volumes: 
+      - ./storage:/home/vizsciflow/storage
+
+  vizsciflowdb:
     image: postgres:13-alpine
     volumes:
       - ~/.docker/postgres:/var/lib/postgresql/data/
@@ -23,83 +27,102 @@ services:
       - POSTGRES_USER=phenodoop
       - POSTGRES_PASSWORD=sr-hadoop
       - POSTGRES_DB=biowl
-  neo4j:
-    container_name: Neo4j
-    image: neo4j:latest
-    volumes:
-      - ~/.docker/neo4j/data:/data
-      - ~/.docker/neo4j/plugins:/plugins
-      - ~/.docker/neo4j/import:/import
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      - NEO4J_apoc_export_file_enabled=true
-      - NEO4J_apoc_import_file_enabled=true
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*,algo.*
-      - NEO4J_dbms_memory_heap_initial__size=512m
-      - NEO4J_dbms_memory_heap_max__size=2G
-      - NEO4J_apoc_uuid_enabled=true
-      - NEO4J_dbms_default__listen__address=0.0.0.0
-      - NEO4J_dbms_allow__upgrade=true
-      - NEO4J_dbms_default__database=neo4j
-      - NEO4J_AUTH=neo4j/sr-hadoop
-    networks: ["Neo4j"]
-    restart: unless-stopped
-  es01:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
-    container_name: es01
-    environment:
-      - node.name=es01
-      - cluster.name=es-docker-cluster
-      - discovery.seed_hosts=es02,es03
-      - cluster.initial_master_nodes=es01,es02,es03
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - ~/.docker/es/data01:/usr/share/elasticsearch/data
-    ports:
-      - 9200:9200
+    container_name: vizsciflowdb
     networks:
-      - elastic
-  kib01:
-    image: docker.elastic.co/kibana/kibana:7.13.4
-    container_name: kib01
+      - vizsciflownetwork
     ports:
-      - 5601:5601
-    environment:
-      ELASTICSEARCH_URL: http://es01:9200
-      ELASTICSEARCH_HOSTS: '["http://es01:9200"]'
-    networks:
-      - elastic
-  celery:
+      - 5432:5432
+
+  # neo4j:
+  #   container_name: Neo4j
+  #   image: neo4j:latest
+  #   volumes:
+  #     - ~/.docker/neo4j/data:/data
+  #     - ~/.docker/neo4j/plugins:/plugins
+  #     - ~/.docker/neo4j/import:/import
+  #   ports:
+  #     - "7474:7474"
+  #     - "7687:7687"
+  #   environment:
+  #     - NEO4J_apoc_export_file_enabled=true
+  #     - NEO4J_apoc_import_file_enabled=true
+  #     - NEO4J_dbms_security_procedures_unrestricted=apoc.*,algo.*
+  #     - NEO4J_dbms_memory_heap_initial__size=512m
+  #     - NEO4J_dbms_memory_heap_max__size=2G
+  #     - NEO4J_apoc_uuid_enabled=true
+  #     - NEO4J_dbms_default__listen__address=0.0.0.0
+  #     - NEO4J_dbms_allow__upgrade=true
+  #     - NEO4J_dbms_default__database=neo4j
+  #     - NEO4J_AUTH=neo4j/sr-hadoop
+  #   networks:
+  #     - flownetwork
+  #   restart: unless-stopped
+
+  # es01:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+  #   container_name: es01
+  #   environment:
+  #     - node.name=es01
+  #     - cluster.name=es-docker-cluster
+  #     - discovery.seed_hosts=es02,es03
+  #     - cluster.initial_master_nodes=es01,es02,es03
+  #     - bootstrap.memory_lock=true
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - ~/.docker/es/data01:/usr/share/elasticsearch/data
+  #   ports:
+  #     - 9200:9200
+  #   networks:
+  #     - flownetwork
+
+  # kib01:
+  #   image: docker.elastic.co/kibana/kibana:7.13.4
+  #   container_name: kib01
+  #   ports:
+  #     - 5601:5601
+  #   environment:
+  #     ELASTICSEARCH_URL: http://es01:9200
+  #     ELASTICSEARCH_HOSTS: '["http://es01:9200"]'
+  #   networks:
+  #     - flownetwork
+
+  vizsciflowcelery:
     build: .
     hostname: worker
-    entrypoint: venv/bin/celery
+    entrypoint: .venv/bin/celery
     command: -A app.jobs worker --loglevel=info
-    volumes:
-      - ~/.docker/celery:/api
-    links:
-      - redis
+    # command: >
+    #   sh -c ".venv/bin/python /tmp/debugpy --listen 0.0.0.0:6900 -m celery -A app.jobs worker -l info"
+    volumes: 
+      - ./storage:/home/vizsciflow/storage
     depends_on:
-      - redis
-    env_file:
-      - ./.env
-  redis:
+      - vizsciflowredis
+    container_name: vizsciflowcelery
+    networks:
+      - vizsciflownetwork
+    environment:
+      - FLASK_CONFIG=docker
+    ports:
+      - 6900:6900
+
+  vizsciflowredis:
     image: "redis:latest"
     ports:
       - "6379:6379"
+    container_name: vizsciflowredis
+    networks:
+      - vizsciflownetwork
       
 networks:
-  Neo4j:
-  elastic:
+  vizsciflownetwork:
+    driver: bridge
   
 volumes:
   postgres:
   neo4j:
   data01:
-  celery:
+  storage:

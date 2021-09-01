@@ -1,4 +1,5 @@
 import os
+import sys
 
 from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
@@ -13,7 +14,7 @@ registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Pro
 
 class Library(LibraryBase):
     def __init__(self):
-        self.tasks = {}
+        super(Library, self).__init__()
         self.localdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'storage')
     
     def add_task(self, name, expr):
@@ -71,6 +72,9 @@ class Library(LibraryBase):
         :param function: Name of the function
         :param args: The arguments for the function
         '''
+        from app import app
+        sys.path.append(os.path.dirname(app.instance_path))
+
         task = None
         try:
             if not package and function.lower() == "addmodule":
@@ -115,7 +119,7 @@ class Library(LibraryBase):
                 function = getattr(module_obj, func.internal)
                 
                 Library.StoreArguments(context, task, func, arguments, **kwargs)
-                
+
                 result = function(context, *arguments, **kwargs)
                 result = Library.add_meta_data(result, func.returns if hasattr(func, 'returns') else None, task)
                 task.succeeded()

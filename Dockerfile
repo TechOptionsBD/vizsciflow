@@ -14,6 +14,7 @@ RUN .venv/bin/pip install gunicorn
 RUN .venv/bin/pip install debugpy -t /tmp
 
 ENV FLASK_APP manage.py
+ENV FLASK_CONFIG docker
 
 RUN chown -R vizsciflow:vizsciflow ./
 

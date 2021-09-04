@@ -233,6 +233,10 @@ def deploydb():
     logging.info("Clearing the database...")
     dbmanager.clear()
 
+    # clear the database
+    logging.info("Creating the database schemas...")
+    dbmanager.create()
+
     #create datasources
     logging.info("Inserting data sources...")
     datamanager.insert_datasources()

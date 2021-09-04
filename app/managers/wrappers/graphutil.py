@@ -11,6 +11,10 @@ class Manager():
         graph().run("MATCH (n) DETACH DELETE n")
 
     @staticmethod
+    def create():
+        pass
+    
+    @staticmethod
     def close():
         from flask import g
         from config import Config

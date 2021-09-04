@@ -5,6 +5,8 @@ class DBManager():
     def __init__(self):
         self.persistance = ManagerUtility.Manage('manager')
 
+    def create(self):
+        self.persistance.create()
     def clear(self):
         self.persistance.clear()
     def close(self):

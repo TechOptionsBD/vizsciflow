@@ -7,6 +7,7 @@ sudo apt-get install -y \
   curl \
   gnupg \
   lsb-release
+rm -f /usr/share/keyrings/docker-archive-keyring.gpg
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo \
 "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -21,17 +22,18 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 # get vizsciflow
 apt-get install -y github
-cd /home/vagrant
-git clone https://mainulhossain:!Lisfa_2005!@github.com/srlabUsask/vizsciflow.git
-cd vizsciflow
+# cd /home/vagrant
+# git clone https://mainulhossain:!Lisfa_2005!@github.com/srlabUsask/vizsciflow.git
+# cd vizsciflow
+git pull https://mainulhossain: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@github.com/srlabUsask/vizsciflow.git
 #mkdir ../postgres_data/
 #cp /vagrant_data/vizsciflow.sql ./postgres_data/
 
 #docker build -t vizsciflow:latest .
 #docker run --name vizsciflow -d -p 8000:5000 --rm vizsciflow:latest
+/usr/local/bin/docker-compose down
 /usr/local/bin/docker-compose build
 /usr/local/bin/docker-compose up -d
 
 #docker-compose exec -T db psql -U phenodoop --dbname=biowl -f /var/lib/postgresql/data/vizsciflow.sql
-docker-compose exec -T web venv/bin/python manage.py createdb
-docker-compose exec -T web venv/bin/python manage.py deploydb
+docker-compose exec -T vizsciflowweb .venv/bin/python manage.py deploydb

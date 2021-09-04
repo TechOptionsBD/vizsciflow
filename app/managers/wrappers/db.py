@@ -269,12 +269,20 @@ class Manager():
     def clear():
         try:
             db.drop_all()
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
+    
+    @staticmethod
+    def create():
+        try:
             db.create_all()
             db.session.commit()
         except:
             db.session.rollback()
             raise
-        
+
     @staticmethod
     def close():
         pass

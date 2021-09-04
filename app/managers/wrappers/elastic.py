@@ -138,6 +138,10 @@ class Manager():
         pass
 
     @staticmethod
+    def create():
+        pass
+        
+    @staticmethod
     def clear():
         final_indices = session().indices.get_alias().keys()
         

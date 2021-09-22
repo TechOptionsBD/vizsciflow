@@ -70,7 +70,11 @@ function DatasetPluginViewModel() {
   }
     
   const onDataItemDoubleClick = function (e, dataset) {
-    self.copyToEditor(dataset.path)
+    let path = dataset.path
+    let pid = dataset.dataset.pid
+    path = path.replace("Root node", "Data");
+    path = `${self.scidatamgrURI}/${pid}${path}`
+    self.copyToEditor(path)
   }
 
   const onDataItemDrag = function (e, dataset) {

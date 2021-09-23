@@ -54,12 +54,19 @@ function DatasetPluginViewModel() {
     self.renderDataset()
   }
 
-  self.copyToEditor = function (url) {
+  self.copyToEditorDoubleClick = function (url) {
       exmpl = `data = \'${url}\'`
       var pos = editor.selection.getCursor();
       editor.session.insert(pos, exmpl + "\r\n");
       editor.focus();
   }
+
+  self.copyToEditorDrag = function (url) {
+    exmpl = `\'${url}\'`
+    var pos = editor.selection.getCursor();
+    editor.session.insert(pos, exmpl);
+    editor.focus();
+}
 
   const onItemClick = function (e, data) {
     console.log('onItemClick');
@@ -74,11 +81,15 @@ function DatasetPluginViewModel() {
     let pid = dataset.dataset.pid
     path = path.replace("Root node", "Data");
     path = `${self.scidatamgrURI}/${pid}${path}`
-    self.copyToEditor(path)
+    self.copyToEditorDoubleClick(path)
   }
 
   const onDataItemDrag = function (e, dataset) {
-    self.copyToEditor(dataset.path)
+    let path = dataset.path
+    let pid = dataset.dataset.pid
+    path = path.replace("Root node", "Data");
+    path = `${self.scidatamgrURI}/${pid}${path}`
+    self.copyToEditorDrag(path)
   }
 
   const onItemExpand = function (e, dataset) {

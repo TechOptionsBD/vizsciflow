@@ -4,8 +4,7 @@ services:
   vizsciflowweb:
     build: .
     command: >
-      sh -c ".venv/bin/python manage.py deploydb &&
-             .venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
+      sh -c ".venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
     depends_on:
       - vizsciflowdb
       - vizsciflowcelery
@@ -15,7 +14,7 @@ services:
       - vizsciflownetwork
     container_name: vizsciflowweb
     environment:
-      - FLASK_CONFIG=docker
+      - FLASK_CONFIG=development
     volumes: 
       - ./storage:/home/vizsciflow/storage
 
@@ -24,14 +23,14 @@ services:
     volumes:
       - ~/.docker/postgres:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=phenodoop
-      - POSTGRES_PASSWORD=sr-hadoop
+      - POSTGRES_USER=${VIZSCIFLOW_DB_USER}
+      - POSTGRES_PASSWORD=${VIZSCIFLOW_DB_PASSWORD}
       - POSTGRES_DB=biowl
     container_name: vizsciflowdb
     networks:
       - vizsciflownetwork
     ports:
-      - 5432:5432
+      - 5433:5432
 
   # neo4j:
   #   container_name: Neo4j
@@ -105,14 +104,14 @@ services:
     networks:
       - vizsciflownetwork
     environment:
-      - FLASK_CONFIG=docker
+      - FLASK_CONFIG=development
     ports:
-      - 6900:6900
+      - 6901:6900
 
   vizsciflowredis:
     image: "redis:latest"
     ports:
-      - "6379:6379"
+      - 6380:6379
     container_name: vizsciflowredis
     networks:
       - vizsciflownetwork

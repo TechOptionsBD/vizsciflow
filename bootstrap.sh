@@ -7,8 +7,12 @@ sudo apt-get install -y \
   curl \
   gnupg \
   lsb-release
-rm -f /usr/share/keyrings/docker-archive-keyring.gpg
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+if [ ! -e /usr/share/keyrings/docker-archive-keyring.gpg]
+then
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg    
+fi
+
 echo \
 "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
 $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -20,12 +24,10 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-
 sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-# get vizsciflow
-apt-get install -y github
+# get scidatamanager
+apt-get install -y git
 # cd /home/vagrant
-# git clone https://mainulhossain:!Lisfa_2005!@github.com/srlabUsask/vizsciflow.git
-# cd vizsciflow
-git pull https://mainulhossain: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@github.com/srlabUsask/vizsciflow.git
+git pull https://$1:$2@github.com/srlabUsask/vizsciflow.git
 #mkdir ../postgres_data/
 #cp /vagrant_data/vizsciflow.sql ./postgres_data/
 
@@ -36,4 +38,5 @@ git pull https://mainulhossain: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@github.c
 /usr/local/bin/docker-compose up -d
 
 #docker-compose exec -T db psql -U phenodoop --dbname=biowl -f /var/lib/postgresql/data/vizsciflow.sql
+docker-compose exec -T vizsciflowweb .venv/bin/python manage.py createdb
 docker-compose exec -T vizsciflowweb .venv/bin/python manage.py deploydb

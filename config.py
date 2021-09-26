@@ -34,7 +34,6 @@ class Config:
     PHENOPROC_COMMENTS_PER_PAGE = 30
     PHENOPROC_SLOW_DB_QUERY_TIME=0.5
     WORKFLOW_MODE_EDIT = False
-    ENV_DATABASE_URL = "postgresql+psycopg2://phenodoop:sr-hadoop@localhost:5432/biowl"
     GRAPHDB = 'bolt://localhost:7687'
     GRAPHDB_USER = 'neo4j'
     GRAPHDB_PASSWORD = 'sr-hadoop'
@@ -51,25 +50,12 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or Config.ENV_DATABASE_URL
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
-    WTF_CSRF_ENABLED = False
-
-class DockerConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or "postgresql+psycopg2://phenodoop:sr-hadoop@vizsciflowdb:5432/biowl"
-    CELERY_BROKER_URL = 'redis://vizsciflowredis:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://vizsciflowredis:6379/0'
-    DEBUG = True
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get('ENV_DATABASE_URL') or Config.ENV_DATABASE_URL
 
     @classmethod
     def init_app(cls, app):
@@ -86,32 +72,18 @@ class ProductionConfig(Config):
                 secure = ()
         mail_handler = SMTPHandler(
             mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
-            fromaddr=cls.PHENOPROC_MAIL_SENDER,
-            toaddrs=[cls.PHENOPROC_ADMIN],
-            subject=cls.PHENOPROC_MAIL_SUBJECT_PREFIX + ' Application Error',
+            fromaddr=cls.MAIL_SENDER,
+            toaddrs=[cls.ADMIN],
+            subject=cls.MAIL_SUBJECT_PREFIX + ' Application Error',
             credentials=credentials,
             secure=secure)
         mail_handler.setLevel(logging.ERROR)
         app.logger.addHandler(mail_handler)
 
-class UnixConfig(ProductionConfig):
-    @classmethod
-    def init_app(cls, app):
-        ProductionConfig.init_app(app)
-
-        # log to syslog
-        import logging
-        from logging.handlers import SysLogHandler
-        syslog_handler = SysLogHandler()
-        syslog_handler.setLevel(logging.WARNING)
-        app.logger.addHandler(syslog_handler)
-
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
-    'unix': UnixConfig,
-    'docker': DockerConfig,
 
     'default': DevelopmentConfig
 }

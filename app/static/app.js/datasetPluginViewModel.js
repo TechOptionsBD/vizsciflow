@@ -1,6 +1,6 @@
-function DatasetPluginViewModel() {
+function DatasetPluginViewModel(scidatapath) {
   var self = this;
-  self.scidatamgrURI = 'https://p2irc-data-dev.usask.ca'
+  self.scidatamgrURI = scidatapath;
   self.datasetList = ko.observableArray();
   let datasetList;
 
@@ -100,5 +100,3 @@ function DatasetPluginViewModel() {
     console.log('onItemExpanded');
   }
 }
-
-datasetViewModel = new DatasetPluginViewModel();

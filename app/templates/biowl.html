@@ -2453,6 +2453,7 @@
 	
 	var exmplReturns = ko.observableArray();
 	var exmplParams = ko.observableArray();
+	var scidatapath ="{{ config['REACT_APP_API_URL'] }}";
 	   
    function copy2Editor(serviceURL) {
     	 $.ajax({
@@ -3420,6 +3421,7 @@ function typeInTextarea(el, newText) {
        	filterViewModel.loadSavedFilters();
        	showFilterHistory();           
 	   
+		datasetViewModel = new DatasetPluginViewModel(scidatapath);
 		ko.applyBindings(datasetViewModel, $('#datasetPluginPanel')[0]);
 		datasetViewModel.renderDataset()
 

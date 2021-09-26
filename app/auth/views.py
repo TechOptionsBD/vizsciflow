@@ -66,7 +66,8 @@ def usask_login(args):
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
-    _, username, _ = cas.validate('https://vizsciflow.usask.ca/auth/login', args.get('ticket'))
+    from app import app
+    _, username, _ = cas.validate('{0}/auth/login'.format(app.config['VIZSCIFLOW_LOGIN_WELCOME']), args.get('ticket'))
     if not username:
         flash('Invalid username or password')
         return redirect(url_for('auth.login'))

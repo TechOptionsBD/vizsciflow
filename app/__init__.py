@@ -12,6 +12,9 @@ from flask_cors import CORS
 
 from config import config
 
+##----2. Importing Global variables from the enviornment file.----
+basedir = os.path.dirname(os.path.abspath(__file__))
+
 bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
@@ -31,6 +34,9 @@ def create_app(config_name):
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
     app.config.from_object(config[config_name])
     app.debug = app.config['DEBUG']
+
+    envfile = os.path.join(os.path.dirname(basedir), '.env') # now load the secret and system specific settings
+    app.config.from_pyfile(envfile, silent=True)
     config[config_name].init_app(app)
 
     celery.conf.broker_url = app.config["CELERY_BROKER_URL"]

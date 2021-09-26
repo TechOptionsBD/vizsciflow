@@ -20,7 +20,7 @@
               "django": true,
         },
         {
-            "name": "Python: manage.py",
+            "name": "Python: deploydb",
             "type": "python",
             "request": "launch",
             "program": "manage.py",

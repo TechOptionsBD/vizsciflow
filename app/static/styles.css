@@ -268,3 +268,7 @@ div.navhref ul  li  a {
   }
   
   /* Multilevel Dropdown Ends */
+
+  .expanded-js-tree{
+      height: 30vh !important;
+  }

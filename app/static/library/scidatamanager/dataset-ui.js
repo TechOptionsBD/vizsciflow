@@ -199,7 +199,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="data-list-item-body-${data.id}" class="collapse ${settings.itemBodyClass}" aria-labelledby="headingTwo" data-parent="#accordion" style="max-height:30vh; overflow:scroll;">
+                    <div id="data-list-item-body-${data.id}" class="expanded-js-tree collapse ${settings.itemBodyClass}" aria-labelledby="headingTwo" data-parent="#accordion" style="max-height:30vh; overflow:scroll;">
                     <div >
                     <div style="display:flex">
                    <!--- <input  style="display: inline"id="search-data-${data.id}; height: 45vh; overflow: scroll" type="text" class="mt-5 form-control" placeholder="search text" aria-describedby="dataset-list-search">

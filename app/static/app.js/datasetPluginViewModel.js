@@ -80,7 +80,7 @@ function DatasetPluginViewModel(scidatapath) {
     let path = dataset.path
     let pid = dataset.dataset.pid
     path = path.replace("Root node", "Data");
-    path = `${self.scidatamgrURI}/${pid}${path}`
+    path = `${self.scidatamgrURI}/api/${pid}${path}`
     self.copyToEditorDoubleClick(path)
   }
 
@@ -88,7 +88,7 @@ function DatasetPluginViewModel(scidatapath) {
     let path = dataset.path
     let pid = dataset.dataset.pid
     path = path.replace("Root node", "Data");
-    path = `${self.scidatamgrURI}/${pid}${path}`
+    path = `${self.scidatamgrURI}/api/${pid}${path}`
     self.copyToEditorDrag(path)
   }
 

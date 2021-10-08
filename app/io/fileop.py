@@ -583,6 +583,29 @@ class GalaxyFileSystem():
         self.client.datasets.download_dataset(os.path.basename(path), file_path = localpath, use_default_filename=False)
         return localpath
 
+class SciDataFileSystem(PosixFileSystem):
+    def __init__(self, root, public = None, temp = None, prefix = None):
+        super().__init__(root, public, temp, prefix)
+
+    def strip_prefix(self, path):
+        if self.prefix and path.startswith(self.prefix):
+            r = requests.get(path, allow_redirects=True)
+            if r.status_code != 200:
+                raise ValueError('Invalid SciDataManager file or folder')
+            return r.content.decode()
+        else:
+            return path
+
+    def normalize_path(self, path):
+        if self.prefix and path.startswith(self.prefix):
+            path = self.strip_prefix(path)
+        if not self._localdir or path.startswith(self._localdir) or (self._localdir.endswith(os.sep) and path == self._localdir[:-1]):
+            return path
+        while path and path[0] == os.sep:
+            path = path[1:]    
+        return os.path.join(self._localdir, path)
+
+
 class HttpFileSystem():
     timeout = 20 # 100s timeout
     def __init__(self, url, root = None, temp = None, prefix = None):

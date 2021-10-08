@@ -19,7 +19,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import and_, or_, cast
 from sqlalchemy.types import Unicode
 from sqlalchemy import func
-
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from app.exceptions import ValidationError
 
 from app import db

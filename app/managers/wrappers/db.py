@@ -2,6 +2,7 @@ from app.objectmodel.models.rdb import *
 from app.objectmodel.common import dict2obj
 from dsl.fileop import FolderItem
 from app.objectmodel.common import isiterable
+from sqlalchemy import text
 
 class UserManager():
     @staticmethod
@@ -43,8 +44,8 @@ class UserManager():
     @staticmethod
     def get_other_users_with_entities(id, *args):
         import json
-        result = User.query.filter(id != User.id).with_entities(*args)
-        return json.dumps([r for r in result], cls=AlchemyEncoder)
+        result = User.query.filter(id != User.id).with_entities(text(*args))
+        return [json.dumps([x for x in r], cls=AlchemyEncoder) for r in result]
 
     @staticmethod
     def get_role(id):

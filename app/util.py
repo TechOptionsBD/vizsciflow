@@ -2,7 +2,7 @@ import os
 from os import path
 from flask import g
 
-from app.io.fileop import HadoopFileSystem, GalaxyFileSystem, HttpFileSystem
+from app.io.fileop import HadoopFileSystem, GalaxyFileSystem, HttpFileSystem, SciDataFileSystem
 from dsl.fileop import PosixFileSystem
 from app.managers.datamgr import datamanager
 
@@ -51,14 +51,15 @@ class Utility:
         
         fs = None
         if ds.type == 'hdfs':
-            fs = HadoopFileSystem(ds.url, ds.root, ds.temp, ds.user)
+            g.fs[ds.type] = HadoopFileSystem(ds.url, ds.root, ds.temp, ds.user)
         elif ds.type == 'posix':
-            fs = PosixFileSystem(ds.url, ds.public, ds.temp, ds.name)
+            g.fs[ds.type] = PosixFileSystem(ds.url, ds.public, ds.temp, ds.name)
+        elif ds.type == 'scidata':
+            g.fs[ds.type] = SciDataFileSystem(ds.url, ds.public, ds.temp, ds.prefix)
         elif ds.type == 'gfs':
-            fs = GalaxyFileSystem(ds.url, ds.password)
+            g.fs[ds.type] = GalaxyFileSystem(ds.url, ds.password)
         
-        g.fs[ds.type] = fs
-        return fs
+        return g.fs[ds.type]
     
     @staticmethod
     def ds_by_prefix_or_root(path):

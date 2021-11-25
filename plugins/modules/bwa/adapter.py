@@ -29,37 +29,42 @@ def build_bwa_index(ref):
     return func_exec_run(bwa, *cmdargs)
     
 def run_bwa(context, *args, **kwargs):
-    paramindex, ref, fs = get_posix_data_args(0, 'ref', context, *args, **kwargs)
-    paramindex, data1, _ = get_posix_data_args(paramindex, 'data', context, *args, **kwargs)
-    paramindex, data2, _ = get_optional_posix_data_args(paramindex, 'data2', context, *args, **kwargs)
-    paramindex, indexpath, _ = get_optional_posix_data_args(paramindex, 'index', context, *args, **kwargs)
-    output = get_posix_output_args(paramindex, 'output', fs, data1, context, ".sam", *args, **kwargs) if fs.isfile(data1) else get_posix_output_folder_args(paramindex, 'output', fs, context, *args, **kwargs)
+    try:
+        paramindex, ref, fs = get_posix_data_args(0, 'ref', context, *args, **kwargs)
+        paramindex, data1, _ = get_posix_data_args(paramindex, 'data', context, *args, **kwargs)
+        paramindex, data2, _ = get_optional_posix_data_args(paramindex, 'data2', context, *args, **kwargs)
+        paramindex, indexpath, _ = get_optional_posix_data_args(paramindex, 'index', context, *args, **kwargs)
+        output = get_posix_output_args(paramindex, 'output', fs, data1, context, ".sam", *args, **kwargs) if fs.isfile(data1) else get_posix_output_folder_args(paramindex, 'output', fs, context, *args, **kwargs)
 
-    if not indexpath:
-        indexpath = Path(ref).stem + ".bwt"
-        indexpath = fs.join(fs.dirname(ref), indexpath)
-        
-        if not fs.exists(indexpath):
-            #if not datamanager.has_access_rights(context.user_id, fs.dirname(ref), AccessRights.Write):
-            ref = fs.copyfile(ref, fs.join(get_temp_dir(context, fs.typename()), fs.basename(ref)))
+        if not indexpath:
             indexpath = Path(ref).stem + ".bwt"
             indexpath = fs.join(fs.dirname(ref), indexpath)
-            build_bwa_index(ref)
+            
+            if not fs.exists(indexpath):
+                #if not datamanager.has_access_rights(context.user_id, fs.dirname(ref), AccessRights.Write):
+                toindex = fs.normalize_path(fs.join(get_temp_dir(context, fs.typename()), fs.basename(ref)))
+                if toindex != ref:
+                    ref = fs.copyfile(ref, toindex)
+                indexpath = Path(ref).stem + ".bwt"
+                indexpath = fs.join(fs.dirname(ref), indexpath)
+                build_bwa_index(ref)
 
-    if fs.isfile(data1):
-        cmdargs, output = prepare_args(fs, ref, data1, data2, output, *args)
-        _,err = func_exec_run(bwa, *cmdargs)
-    else:
-        for r, _, f in os.walk(data1):
-            for datafile in [os.path.join(r, file) for file in f if file.endswith(".fastq") or file.endswith(".fq")]:
-                try:
-                    cmdargs, _ = prepare_args(fs, ref, datafile, None, output, *args)
-                    _,err = func_exec_run(bwa, *cmdargs)
-                except Exception as err:
-                    context.err.append(str(err))
-    
-    stripped_path = fs.strip_root(output)
-    if not fs.exists(output):
-        raise ValueError("bwa could not generate the file " + stripped_path + " due to error " + err)
-    
-    return stripped_path
+        if fs.isfile(data1):
+            cmdargs, output = prepare_args(fs, ref, data1, data2, output, *args)
+            _,err = func_exec_run(bwa, *cmdargs)
+        else:
+            for r, _, f in os.walk(data1):
+                for datafile in [os.path.join(r, file) for file in f if file.endswith(".fastq") or file.endswith(".fq")]:
+                    try:
+                        cmdargs, _ = prepare_args(fs, ref, datafile, None, output, *args)
+                        _,err = func_exec_run(bwa, *cmdargs)
+                    except Exception as err:
+                        context.err.append(str(err))
+        
+        stripped_path = fs.strip_root(output)
+        if not fs.exists(output):
+            raise ValueError("bwa could not generate the file " + stripped_path + " due to error " + err)
+        
+        return stripped_path
+    except Exception as e:
+        raise ValueError("Module invocation error at {0}: {1}".format("bwa", str(e)))

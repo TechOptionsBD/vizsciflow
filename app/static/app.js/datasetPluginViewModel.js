@@ -69,19 +69,30 @@ function DatasetPluginViewModel(scidatapath) {
 
     var pos = editor.selection.getCursor();
     text = editor.session.getLine(pos.row);
-    if (text !== undefined && text.length != 0) {
-      console.log(pos, "pos");
+    if (text !== undefined && text.length != 0)
       editor.session.insert(pos, "'" + url + "'");
-    } else editor.session.insert(pos, "data = '" + url + "'\n");
-    editor.focus();
-    editor.getSession().reset();
+    else editor.session.insert(pos, "data = '" + url + "'\n");
+
+    setTimeout(() => editor.focus(), 100)
+    // editor.focus();
+    // console.log(editor.getSession())
+    // editor.getSession().reset();
+    // $('#editor').get[0].reset()
+   
   };
 
   self.copyToEditorDrag = function (url) {
-    exmpl = `\'${url}\'`;
+    // exmpl = `\'${url}\'`;
+    // var pos = editor.selection.getCursor();
+    // editor.session.insert(pos, exmpl);
+    // editor.focus();
     var pos = editor.selection.getCursor();
-    editor.session.insert(pos, exmpl);
+    text = editor.session.getLine(pos.row);
+    if (text !== undefined && text.length != 0)
+      editor.session.insert(pos, "'" + url + "'");
+    else editor.session.insert(pos, "data = '" + url + "'\n");
     editor.focus();
+    // editor.getSession().reset();
   };
 
   const onItemClick = function (e, data) {
@@ -94,7 +105,7 @@ function DatasetPluginViewModel(scidatapath) {
 
   const onDataItemDoubleClick = function (e, dataset) {
     let path = dataset.path;
-    let pid = dataset.dataset.pid;
+    let pid = dataset?.dataset?.pid;
     path = path.replace("Root node", "Data");
     path = `${self.scidatamgrURI}/api/${pid}${path}`;
     self.copyToEditorDoubleClick(path);
@@ -102,10 +113,10 @@ function DatasetPluginViewModel(scidatapath) {
 
   const onDataItemDrag = function (e, dataset) {
     let path = dataset.path;
-    let pid = dataset.dataset.pid;
-    path = path.replace("Root node", "Data");
-    path = `${self.scidatamgrURI}/api/${pid}${path}`;
-    self.copyToEditorDrag(path);
+    let pid = dataset?.dataset?.pid;
+    path = pid && path.replace("Root node", "Data");
+    path = pid && `${self.scidatamgrURI}/api/${pid}${path}`;
+    pid && self.copyToEditorDrag(path);
   };
 
   const onItemExpand = function (e, dataset) {

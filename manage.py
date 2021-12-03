@@ -248,10 +248,15 @@ def deploydb():
     # insert test user
     logging.info("Creating users:...")
     usermanager.create_user(email="testuser@usask.ca", username="testuser", password="aaa")
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    if not os.path.isdir(os.path.join(basedir, 'storage/testuser')):
+        os.makedirs(os.path.join(basedir, 'storage/testuser'))
     logging.info("testuser")
     # usermanager.create_user(email="mainulhossain@gmail.com", username="mainulhossain", password="aaa")
     # logging.info("mainulhossain")
     usermanager.create_user(email="admin@gmail.com", username="admin", password="Admin_1")
+    if not os.path.isdir(os.path.join(basedir, 'storage/admin')):
+        os.makedirs(os.path.join(basedir, 'storage/admin'))
     logging.info("admin")
     
     # insert modules

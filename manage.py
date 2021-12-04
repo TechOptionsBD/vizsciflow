@@ -48,7 +48,7 @@ def after_request(response):
 
 @auth.verify_password
 def verify_password(username, password):
-    user = usermanager.get_by_email(username)
+    user = usermanager.get_by_username(username)
     if user is not None and user.verify_password(password):
         login_user(user)
         return True
@@ -83,7 +83,7 @@ def get_functions_api():
     finally:
         logout_user()
 
-@app.route('/api/workflow', methods=['GET'])
+@app.route('/api/workflows', methods=['GET'])
 @cross_origin(supports_credentials=True)
 @auth.login_required
 def get_workflows_api():
@@ -94,10 +94,10 @@ def get_workflows_api():
     try:
         tags = request.args.get('tags') if request.args.get('tags') else ''
         tags = tags.split(',') if tags else []
-        access = request.args.get('access') if request.args.get('access') else ''
-        return json.dumps({'samples': convert_to_safe_json(workflowmanager.get_workflows_as_list(int(access), *tags))})
+        access = int(request.args.get('access')) if request.args.get('access') else 0
+        return json.dumps({'samples': convert_to_safe_json(workflowmanager.get_workflows_as_list(access, current_user, *tags))})
     finally:
-        logout_user()       
+        logout_user()
          
 @app.route('/api/ver2/workflow', methods=['GET'])
 @cross_origin(supports_credentials=True)

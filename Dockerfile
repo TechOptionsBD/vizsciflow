@@ -11,7 +11,7 @@ RUN .venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl
 
 RUN .venv/bin/pip install gunicorn
 # to debug celery in docker
-RUN .venv/bin/pip install debugpy -t /tmp
+#RUN .venv/bin/pip install debugpy -t /tmp
 
 ENV FLASK_APP manage.py
 ENV FLASK_CONFIG development

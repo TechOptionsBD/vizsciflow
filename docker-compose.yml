@@ -3,6 +3,7 @@ version: '3.8'
 services:
   vizsciflowweb:
     build: .
+    image: deployscidatamanager/vizsciflowweb
     command: >
       sh -c ".venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
     depends_on:
@@ -91,6 +92,7 @@ services:
 
   vizsciflowcelery:
     build: .
+    image: deployscidatamanager/vizsciflowcelery
     hostname: worker
     entrypoint: .venv/bin/celery
     command: -A app.jobs worker --loglevel=info

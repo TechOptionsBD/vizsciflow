@@ -253,7 +253,7 @@
           var instance = $.jstree.reference(this);
           const pathArr = instance.get_path(e.target);
           let path = "";
-          pathArr.forEach(p => path += `/${p}`);
+          pathArr.forEach((p) => (path += `/${p}`));
           settings.onDataItemDoubleClick(e, {
             path,
             dataset,
@@ -386,16 +386,19 @@
       });
 
       $(document).on("dnd_stop.vakata", function (e, eData) {
-        if (eData.data.jstree) {
+        // console.log(eData.data.jstree, eData.event.type)
+        if (eData.data.jstree && eData.event.type !== "drop") {
           if ($(`#card-body-${dataset.id}`).jstree(true)) {
             const path = $(`#card-body-${dataset.id}`)
-              .jstree(true)
+              .jstree(false)
               .get_path(eData.element, "/");
             console.log("User stopped dragging");
 
             if (path && !path.includes("load more")) {
-              settings.onItemDrag.call(null, e, { path:`/${path}`, dataset });
+              settings.onItemDrag.call(null, e, { path: `/${path}`, dataset });
+              // $(`#card-body-${dataset.id}`).jstree(true).refresh(true);
             }
+            // $(`#card-body-${dataset.id}`).jstree(true).refresh()
           }
         }
       });

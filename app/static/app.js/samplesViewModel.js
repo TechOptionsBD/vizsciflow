@@ -95,7 +95,7 @@ function SamplesViewModel(sampleViewModel) {
             } else {
                 $(".expandedWorkflow").remove();
 
-                tooltip = "<div class=\"expandedWorkflow\" style=\"margin-top: 40px \"> <p>Name: " + item.name() + "<br>Owner: " + item.user() + "<br>Selected: " + item.selected() + "</p>";
+                tooltip = "<div class=\"expandedWorkflow\" style=\"margin-top: 40px \"> <p>ID: " + item.id() + "<br>Name: " + item.name() + "<br>Owner: " + item.user() + "<br>Selected: " + item.selected() + "</p>";
                 tooltip += "</p>";
                 tooltip += "<p>Double click item to insert into code editor.</p></div>";
 

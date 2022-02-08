@@ -124,6 +124,11 @@ def get_workflows():
     finally:
         logout_user()
 
+@manager.command
+def run_workflow(workflow_id, immediate = True, args = []):
+    runnable = run_biowl(workflow_id, None, args, immediate)
+    return runnable.id
+
 @app.route('/api/run', methods=['GET'])
 @cross_origin(supports_credentials=True)
 @auth.login_required
@@ -137,12 +142,11 @@ def run_workflow_api():
         workflow_id = request.args.get('id')
         args = args.split(',')
         args = [arg for arg in args if arg]
-                
         immediate = request.args.get('immediate').lower() == 'true' if request.args.get('immediate') else False
-        runnable = run_biowl(workflow_id, None, args, immediate)
-        return jsonify(runnableId = runnable.id)
+        runnable_id = run_workflow(workflow_id, immediate, args)
+        return make_response(jsonify(success=True, runnable_id = runnable_id), 200)
     except Exception as e:
-        return make_response(jsonify(err=str(e)), 500)
+        return make_response(jsonify(success=False, error=str(e)), 500)
     finally:
         logout_user()
         
@@ -216,6 +220,35 @@ def createdb():
     db.drop_all()
     db.create_all()
     db.session.commit()
+
+@manager.command
+def adduser(email, username, password):
+    import logging
+    logging.basicConfig(level = logging.INFO)
+    
+    try:
+        # insert test user
+        logging.info("Creating users:...")
+        usermanager.create_user(email=email, username=username, password=password)
+        logging.info("User {0} added to the system".format(username))
+    except Exception as e:
+        logging.error("Error occured while adding user {0}: {1}".format(username, str(e)))
+        raise
+
+@app.route('/api/user/add', methods=['GET'])
+@cross_origin(supports_credentials=True)
+@auth.login_required
+def add_user_api():
+    try:
+        email = request.args.get('email')
+        username = request.args.get('username')
+        password = request.args.get('password')
+        adduser(email, username, password)
+        return make_response(jsonify(success=True), 200)        
+    except Exception as e:
+        return make_response(jsonify(success=False, error=str(e)), 500)
+    finally:
+        logout_user()
 
 @manager.command
 def deploydb():

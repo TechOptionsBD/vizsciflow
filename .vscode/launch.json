@@ -23,11 +23,22 @@
             "name": "Python: deploydb",
             "type": "python",
             "request": "launch",
-            "program": "manage.py",
+            "program": "src/manage.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceRoot}/.venv",
             "args": [
                 "deploydb"
+            ]
+        },
+        {
+            "name": "Python: createdb",
+            "type": "python",
+            "request": "launch",
+            "program": "src/manage.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceRoot}/.venv",
+            "args": [
+                "createdb"
             ]
         },
         {
@@ -36,14 +47,15 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "manage.py",
+                "FLASK_APP": "src/manage.py",
                 "FLASK_ENV": "development",
                 "FLASK_DEBUG": "1"
             },
             "args": [
                 "run",
                 "--port",
-                "8000"
+                "5000",
+                "-h", "0.0.0.0"
                 //"--no-debugger"
             ],
             "envFile": "${workspaceRoot}/.venv",

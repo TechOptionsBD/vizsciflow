@@ -7,10 +7,9 @@ services:
     command: >
       sh -c ".venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
     depends_on:
-      - vizsciflowdb
-      - vizsciflowcelery
+      - vizsciflowdb      
     ports:
-      - 8000:5000
+      - 5000:5000
     networks:
       - vizsciflownetwork
     container_name: vizsciflowweb
@@ -18,6 +17,30 @@ services:
       - FLASK_CONFIG=development
     volumes: 
       - ./storage:/home/vizsciflow/storage
+    # .env_file:
+    #   - .env
+
+  vizsciflowcelery:
+    build: .
+    image: deployscidatamanager/vizsciflowcelery
+    hostname: worker
+    entrypoint: .venv/bin/celery
+    command: -A app.jobs worker --loglevel=info
+    # command: >
+    #   sh -c ".venv/bin/python /tmp/debugpy --listen 0.0.0.0:6900 -m celery -A app.jobs worker -l info"
+    volumes: 
+      - ./storage:/home/vizsciflow/storage
+    depends_on:
+      - vizsciflowredis
+    container_name: vizsciflowcelery
+    networks:
+      - vizsciflownetwork
+    environment:
+      - FLASK_CONFIG=development
+    ports:
+      - 6900:6900
+    # .env_file:
+    #   - .env
 
   vizsciflowdb:
     image: postgres:13-alpine
@@ -31,7 +54,7 @@ services:
     networks:
       - vizsciflownetwork
     ports:
-      - 5433:5432
+      - 5432:5432
 
   # neo4j:
   #   container_name: Neo4j
@@ -68,7 +91,7 @@ services:
   #     - cluster.initial_master_nodes=es01,es02,es03
   #     - bootstrap.memory_lock=true
   #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-  #   ulimits:
+  #   ulimits:Name
   #     memlock:
   #       soft: -1
   #       hard: -1
@@ -90,30 +113,10 @@ services:
   #   networks:
   #     - flownetwork
 
-  vizsciflowcelery:
-    build: .
-    image: deployscidatamanager/vizsciflowcelery
-    hostname: worker
-    entrypoint: .venv/bin/celery
-    command: -A app.jobs worker --loglevel=info
-    # command: >
-    #   sh -c ".venv/bin/python /tmp/debugpy --listen 0.0.0.0:6900 -m celery -A app.jobs worker -l info"
-    volumes: 
-      - ./storage:/home/vizsciflow/storage
-    depends_on:
-      - vizsciflowredis
-    container_name: vizsciflowcelery
-    networks:
-      - vizsciflownetwork
-    environment:
-      - FLASK_CONFIG=development
-    ports:
-      - 6901:6900
-
   vizsciflowredis:
     image: "redis:latest"
     ports:
-      - 6380:6379
+      - 6379:6379
     container_name: vizsciflowredis
     networks:
       - vizsciflownetwork

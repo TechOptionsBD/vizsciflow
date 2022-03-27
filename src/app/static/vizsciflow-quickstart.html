@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>VizSciFlow Quick Start Guide</title>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+<h1>VizSciFlow - Quick Start Guide</h1>
+<p>VizSciFlow is a workflow management system with a domain-specific language (DSL).</p>
+<p>The DSL has simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting.</p> 
+<p>Scientists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>
+
+<h3>Preparation</h3>
+<ol>
+<li>Browse to http://sr-p2irc-big3.usask.ca</li>
+<li>Click "Login" from top-right corner.</li>
+<li>If you are not registered yet, click "Click here to register" link.</li>
+<li>Create an account.</li>
+<li>An email will be sent to your email address for confirmation. Please check email and confirm your account.</li>
+<li>Now log on to the system.</li>
+</ol>
+
+<h3>Practice Example Task: Quality Checking and Visualization of Gene Sequence Data</h3>
+<ol>
+<li>Search "Check Quality" or FastQC in "Services" panel and double click it.</li>
+<li>Delete the data parameter and leave the cursor there.</li>
+<li>Search F3D6_S194_L001_R1_001.fastq in data sources and use right-click context menu to copy to editor.</li>
+<li>Your code editor should look like the following:
+<pre><code class="python">
+fq_html = fastqc.CheckQuality('/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq')
+</code></pre>
+</li>
+<li>Click "Run"  from commands panel.</li>
+<li>A new item will be added to the top of "Job Histories" panel. Double click it.</li> 
+<li>The output tab at the bottom will show the quality report of the sequence file. Click it to visualize on the browser.</li>
+</ol>
+
+<h3>Run Sample</h3>
+<ol>
+<li>Navigate to right-bottom panel named Workflows.</li>
+<li>Double click ""Local Server: Merge-Align-Convert" workflow.</li>
+<li>This is a previously saved workflow.</li>
+<li>Your code editor should look like the following:
+<pre><code class="python">
+fq_html = fastqc.CheckQuality('/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq')
+</code></pre>
+</li>
+<li>Click "Run"  from commands panel.</li>
+<li>A new item will be added to the top of "Job Histories" panel. Double click it.</li> 
+<li>The output tab at the bottom will show the quality report of the sequence file. Click it to visualize on the browser.</li>
+</ol>

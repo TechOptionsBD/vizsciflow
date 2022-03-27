@@ -1,0 +1,113 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}VizSciFlow System{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="shortcut icon" href="{{ url_for('static', filename='hadoop-logo.png') }}" type="image/x-png">
+<link rel="icon" href="{{ url_for('static', filename='hadoop-logo.png') }}" type="image/x-png">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-inverse" role="navigation">
+    {% if current_user.is_authenticated %}
+        <a id="btnfilterToggle" class="navbar-brand" href="#" title="Filter Datasources"><i class="glyphicon glyphicon-menu-hamburger"></i></a>
+    {% endif %}
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">VizSciFlow System</a>
+        </div>
+        <div class="navbar-collapse collapse navhref">
+            <ul class="nav navbar-nav">
+                <!-- <li><a href="{{ url_for('main.index') }}">Home</a></li> -->
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('main.user', username=current_user.username) }}">Profile</a></li>
+                <!-- <li class="dropdown" id="layoutSelection">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Layout <b class="caret"></b></a>
+
+                    <ul class="dropdown-menu">
+                        
+                        <li><a href="#" data-bind="click: saveCurrentLayout">Save Current</a></li>
+                        <li class="dropdown-submenu">
+                            <a href="#">Select layout <b class="fa fa-caret-right"></b> </a>
+                            <ul class="dropdown-menu" >
+                                <li data-bind="foreach: savedLayouts"><a href="#" data-bind="click: $parent.applyLayout.bind($data)"><span data-bind="text: layoutName"></span></a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div style="padding-left: 20px;">
+                                <input type="checkbox" class="form-check-input" id="dropdownCheckGrid" data-bind="checked: isGridEnabled">
+                                <label class="form-check-label dropdownCheckGrid" for="dropdownCheckGrid">
+                                    Enable Grid
+                                </label>
+                            </div>
+                        </li>
+                    </ul>
+                </li> -->
+                {% endif %}
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">View<b class="caret"></b></a>
+                
+                    <ul class="dropdown-menu" role="menu" id="viewComponents-dropdown">
+                        <li> <a class="btn btn-secondary" href="#datasourceStack">Data Sources</a></li>
+                        <li> <a class="btn btn-secondary" href="#datasetPluginPanel">SciDataManager Plugin</a></li>
+                        <li> <a class="btn btn-secondary" href="#searchHistoryPanel">Saved Filters</a></li>
+                        <li> <a class="btn btn-secondary" href="#runnableWorkflowsPanel">Job History</a></li>
+                        <li> <a class="btn btn-secondary" href="#functions">Services</a></li>
+                        <li> <a class="btn btn-secondary" href="#samples">Worksflows</a></li>
+                        <li> <a class="btn btn-secondary" href="#outputPanel">Output</a></li>
+                        <li> <a class="btn btn-secondary" href="#provplugins">Provenance Plugins</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="{{ url_for('main.about') }}">About</a></li>
+                <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                <!-- {% if current_user.can(Permission.MODERATE_COMMENTS) %}
+                <li><a href="{{ url_for('main.moderate') }}">Moderate Comments</a></li>
+                {% endif %} -->
+                {% if current_user.is_authenticated %}
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <img src="{{ current_user.gravatar(size=18) }}">
+                        {{ current_user.username }}<b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ url_for('auth.change_password') }}">Change Password</a></li>
+                        <li><a href="{{ url_for('auth.change_email_request') }}">Change Email</a></li>
+                        <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li><a href="{{ url_for('auth.login') }}">Log In</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ message }}
+    </div>
+    {% endfor %}
+
+    {% block page_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ moment.include_moment() }}
+{% endblock %}

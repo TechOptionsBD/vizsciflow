@@ -1,7 +1,8 @@
 FROM python:3.8-buster
 
+ARG UID
 RUN mkdir -p /home/vizsciflow
-RUN useradd vizsciflow 
+RUN useradd -u ${UID} vizsciflow 
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends  \

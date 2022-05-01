@@ -25,7 +25,6 @@
             "request": "launch",
             "program": "src/manage.py",
             "console": "integratedTerminal",
-            "envFile": "${workspaceRoot}/.venv",
             "args": [
                 "deploydb"
             ]
@@ -36,7 +35,6 @@
             "request": "launch",
             "program": "src/manage.py",
             "console": "integratedTerminal",
-            "envFile": "${workspaceRoot}/.venv",
             "args": [
                 "createdb"
             ]
@@ -58,7 +56,6 @@
                 "-h", "0.0.0.0"
                 //"--no-debugger"
             ],
-            "envFile": "${workspaceRoot}/.venv",
             "jinja": true,
             "justMyCode": false
         }

@@ -23,7 +23,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-
+src/storage/temp
+src/storage/users
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -96,10 +97,4 @@ ENV/
 /Pipfile.lock
 plugins/provs/users/*
 plugins/modules/users/*
-plugins/modules/pear/pear-src-0.9.11/compile
-plugins/modules/pear/pear-src-0.9.11/config.status
-plugins/modules/pear/pear-src-0.9.11/configure
-plugins/modules/pear/pear-src-0.9.11/depcomp
-plugins/modules/pear/pear-src-0.9.11/install-sh
-plugins/modules/pear/pear-src-0.9.11/missing
 runbootstrap.sh

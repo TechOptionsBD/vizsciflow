@@ -1,4 +1,4 @@
-src/.venv
+.venv
 .git
 .storage/users
 .storage/temp

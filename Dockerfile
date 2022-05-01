@@ -38,16 +38,16 @@ COPY ./src .
 COPY .env .
 COPY ./.vscode ./.vscode
 
-RUN python -m venv .venv
-RUN .venv/bin/pip install --upgrade pip
-RUN .venv/bin/pip install -r requirements/requirements.txt
-RUN .venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
+RUN python -m venv /home/vizsciflow/.venv
+RUN /home/vizsciflow/.venv/bin/pip install --upgrade pip
+RUN /home/vizsciflow/.venv/bin/pip install -r requirements/requirements.txt
+RUN /home/vizsciflow/.venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
 
-RUN .venv/bin/pip install gunicorn
-RUN .venv/bin/pip install pysam
+RUN /home/vizsciflow/.venv/bin/pip install gunicorn
+RUN /home/vizsciflow/.venv/bin/pip install pysam
 
 # to debug celery in docker
-#RUN .venv/bin/pip install debugpy -t /tmp
+#RUN /home/vizsciflow/.venv/bin/pip install debugpy -t /tmp
 
 ENV FLASK_APP manage.py
 ENV FLASK_CONFIG development

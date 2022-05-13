@@ -1,15 +1,59 @@
+import os
+from app.dsl.argshelper import get_temp_dir
 from dsl.interpreter import Interpreter
 from dsl.context import Context
 from app.dsl.vizsciflowlib import Library
 from app.dsl.vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
 from app.objectmodel.provmod.provobj import View, Stat, Monitor, Run, Module, Workflow
+from app.util import Utility
+from app.system.exechelper import func_exec_run
+from app.managers.usermgr import usermanager
 
 registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
 
+class VizSciFlowContext(Context):
+    def __init__(self, library, symboltable) -> None:
+        super().__init__(library, symboltable)
+    
+    def gettempdir(self, typename = "posix") -> str:
+        '''
+        The user directory for a fs type is the temp directory.
+        '''
+        if self.user_id:
+            if not typename in self.tempdirs:
+                fs = Utility.fs_by_typename(typename)
+                if fs.temp:
+                    temp = fs.temp
+                else:
+                    temp = os.path.join('/users', usermanager.get(id = self.user_id).first().username, 'temp')
+                self.tempdirs[typename] = fs.make_unique_dir(temp)
+            return self.tempdirs[typename]
+        else:
+            import tempfile
+            return tempfile.gettempdir()
+
+    @staticmethod
+    def exec_run(app, *args):
+        return func_exec_run(app, *args)
+    
+    @staticmethod
+    def bash_run(app, *args):
+        return func_exec_run(app, *args)
+    
+    @staticmethod
+    def normalize(data):
+        fs = Utility.fs_by_prefix_or_guess(data)
+        return fs.normalize_path(str(data))
+    
+    @staticmethod
+    def denormalize(data):
+        fs = Utility.fs_by_prefix_or_guess(data)
+        return fs.strip_root(str(data))
+
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):
-        super().__init__(Context(Library(), VizSciFlowSymbolTable))
+        super().__init__(VizSciFlowContext(Library(), VizSciFlowSymbolTable))
     
     def prepare_view(self, function, result):
         if not hasattr(self.context, 'view'):

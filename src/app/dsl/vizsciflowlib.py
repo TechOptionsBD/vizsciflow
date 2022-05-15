@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
@@ -63,6 +64,25 @@ class Library(LibraryBase):
         datamanager.StoreModuleArgs(module, func["params"] if func["params"] else [], storeArguments)
                 
         return Library.add_meta_data(func["returns"] if "returns" in func else "")
+
+    @staticmethod
+    def needs_normalization(paramType):
+        if not paramType:
+            return False
+        paramType = paramType.lower()
+        return paramType == 'file' or paramType == 'folder' or paramType == 'file|folder'  or paramType == 'folder|file' or paramType == 'file[]' or paramType == 'filder[]' or paramType == 'file[]|folder[]' or paramType == 'file[]|folder[]'
+
+    @staticmethod
+    def normalize(context, paramType, arg):
+        paramType = paramType.lower()
+        arg = str(arg)
+        if paramType == 'file' or paramType == 'folder' or paramType == 'file|folder'  or paramType == 'folder|file':
+            return context.normalize(arg)
+        elif paramType == 'file[]' or paramType == 'folder[]' or paramType == 'file[]|folder[]' or paramType == 'file[]|folder[]':
+            if isiterable(arg):
+                return [context.normalize(a) for a in arg]
+            else:
+                return [context.normalize(arg)]
     
     def call_func(self, context, package, function, args):
         '''
@@ -120,6 +140,16 @@ class Library(LibraryBase):
                 
                 Library.StoreArguments(context, task, func, arguments, **kwargs)
 
+                usedIndex = 0
+                for param in func.params:
+                    if not param.name or not Library.needs_normalization(param.type): continue
+
+                    if param.name in kwargs:
+                        kwargs[param.name] = Library.normalize(context, param.type, kwargs[param.name])
+                    elif usedIndex < len(arguments):
+                        arguments[usedIndex] = Library.normalize(context, param.type, arguments[usedIndex])
+                        usedIndex += 1
+
                 result = function(context, *arguments, **kwargs)
                 result = Library.add_meta_data(result, func.returns if hasattr(func, 'returns') else None, task)
                 task.succeeded()
@@ -127,6 +157,7 @@ class Library(LibraryBase):
         except Exception as e:
             if task:
                 task.failed(str(e))
+            logging.error("Error calling the service {0}:{1}".format(function, str(e)))
             raise
 
     @staticmethod

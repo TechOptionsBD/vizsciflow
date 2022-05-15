@@ -16,6 +16,10 @@ class VizSciFlowContext(Context):
     def __init__(self, library, symboltable) -> None:
         super().__init__(library, symboltable)
     
+    def getpublicdir(self, typename = "posix"):
+        fs = Utility.fs_by_typename(typename)
+        return fs.normalize_path(fs.public)
+        
     def gettempdir(self, typename = "posix") -> str:
         '''
         The user directory for a fs type is the temp directory.

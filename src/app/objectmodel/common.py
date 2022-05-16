@@ -1,5 +1,6 @@
 import inspect
 import json
+from collections import UserDict, UserList
 
 def isiterable(p_object):
     try:
@@ -10,15 +11,24 @@ def isiterable(p_object):
         return False
     return True
 
-known_types = {
+class KnownTypes(UserDict):
+    def __missing__(self, key):
+        if key.endswith('[]'):
+            if self.__getitem__(key[:-2]):
+                return list
+
+    def __contains__(self, key):
+        if key.endswith('[]'):
+            key = key[:-2]
+        return key in self.data
+
+known_types = KnownTypes({
     'int': int,
     'float': float,
     'str': str,
     'bool': bool,
     'any': str,
-    'string': str
-    # etc
-}
+    'string': str})
 
 class obj(object):
     def __init__(self, dict_):
@@ -128,7 +138,6 @@ class LogType:
     WARNING = "warning"
     ERROR = "error"
 
-from collections import UserList
 class VizSciFlowList(UserList):
     def first(self):
         return self[0] if len(self) > 0 else None

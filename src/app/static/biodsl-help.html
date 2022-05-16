@@ -157,45 +157,165 @@ The services/tools for the workflows are listed on the right-top corner of the U
 <p>Experienced users can extend the capabilities of the system by adding new services to it. They can write a new python module or call external program from python code.</p>
 In the service pane, the "+" button opens the dialog for Service Mapping. There is a coding tab to write the service code and a JSON tab to map the python code with DSL vocabulary. Here is a lean and thin service code:
 
-<img alt="Add New Service" src="biodsl-addservice.png" />
+<div class="row">
+	<div class="column">
+		<img alt="Adapter" src="biodsl-addservice.png" style="width:100%"/>
+	</div>
+	<div class="column">
+		<img alt="Mapper" src="biodsl-addservice-json.png" style="width:100%" />
+	</div>
+</div>
+
+<div style="float: clear;"></div>
+
+Here is an adapter for a simple demo service which takes an integer and returns it.
+<pre><code class="python">
+def demo_service(context, *args, **kwargs):
+	return args[0] if args else 0
+	</code>
+</pre>
+contextis a helper object to connect the internal system to this adapter. Here are some of its functions:
+<ul>
+	<li>gettempdir: path to user's temp directory.</li>
+	<li>getpublicdir: path to user's public directory.</li>
+	<li>normalize: Normalizes a path from VizSciFlow system to absolute path for the tool.</li>
+	<li>denormalize: Denormalizes a path to VizSciFlow system from absolute path of the tool.</li>
+</ul>
+
+<p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". It must be unique to the DSL vocabulary.</p>
+<p>If you change service function name above, you must change "internal" to match it.</p>
+<pre><code class="json">
+	{
+		"name": "DemoService",
+		"internal": "demo_service",
+		"params": [
+			{
+				"name": "data",
+				"type": "int"
+			}
+		],
+		"returns": {
+			"name": "data",
+			"type": "int"
+		}
+	}
+</code>
+</pre>
+
+Call this function in DSL editor like below:
+<pre>
+	<code class="python">
+print(DemoService(10))
+	</code>
+</pre>
+
+To add an external tool, you must know how to call the tool from python, 
+<ul>
+	<li>The location of the tool.</li>
+	<li>The arguments it accepts.</li>
+	<li>The result it returns. The return value is important to use its result in another tool.</li>
+	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and the file must be returned.</li>
+</ul>
+
+<p>We have shown below a complete example of adding FastQC tool to the system.</p>
+
+<ol>
+	<li>Download the FastQC tool from the Internet.</li>
+	<li>Add it in "Add Service" dialog using "Choose File...".</li>
+	<li>Write adapter to call its fastqc file. It should look similar to below code:</li>
+</ol>
 
 <pre><code class="python">
-def run_myservice(context, *args, *kwargs):
-	return args[0] + args[1]
+from os import path
+from pathlib import Path
+
+fastqc = path.abspath(path.join(path.dirname(__file__), 'FastQC', 'fastqc'))
+def demo_service(context, *args, **kwargs):
+	context.exec_run(fastqc, args[0], "--outdir=" + context.gettempdir())
+	filestem = Path(args[0]).stem
+	return path.join(context.gettempdir(), filestem + "_fastqc.html"), path.join(context.gettempdir(), filestem + ".zip")
 </code>
 </pre>
 
-Here is a typical json mapper of the above service. Only one of name or internal is mandatory.
+Here is the json mapper of the above service.
 <pre><code class="json">
-{
-	"functions": [
-		{
-			"org": "srlab",
-			"package": "mylib",
-			"module": "modules.users.mainul.mylib",
-			"group": "Arithmetic",
-			"name": "MyService",
-			"internal": "run_myservice",
-			"desc": "Adds two numbers and returns the sum.",
-			"returns": "number",
-			"example": "data = mylib.MyService(x, y)",
-			"params": [
-				{
-					"name": "x",
-					"type": "number",
-				},
-				{
-					"name": "y",
-					"type": "number"
-				}
-			]
-		}
-	]
-}
+	{
+		"package":"",
+		"name":"FastQService",
+		"internal":"demo_service",
+		"org":"",
+		"group":"",
+		"desc":"",
+		"href":"",
+		"params":[
+		   {
+			  "name":"data",
+			  "type":"file",
+			  "desc":""
+		   }
+		],
+		"returns":[
+		   {
+			  "name":"html",
+			  "type":"file"
+		   },
+		   {
+			  "name":"zip",
+			  "type":"file"
+		   }
+		]
+	 }
 </code>
 </pre>
 
-The new service is by default private. It can be shared to specific users or to all.
+The new service is by default private. Check the "Public" checkbox to make it public or It can be shared to specific users by selecting target users from "Share with" dropdown.
+Click the "Add" button. If there is no error, the FastQService should appear in Services panel. Click "All" radio button and then "Reload" if you don't see it.
+
+<p>Here is another example of using matplotlib in VizSciFlow. matplotlib.show will not work in VizSciFlow. The output must be saved as a file using savefig.</p>
+
+Here is an adapter for the service:
+<pre><code class="python">
+from os import path
+from pathlib import Path
+import matplotlib
+import matplotlib.pyplot as plt
+
+fastqc = path.abspath(path.join(path.dirname(__file__), 'FastQC', 'fastqc'))
+def demo_service(context, *args, **kwargs):
+	plt.plot([0, 1, 2, 3, 4], [0, 3, 5, 9, 11])
+	plt.xlabel('Months')
+	plt.ylabel('Books Read')
+
+	output = path.join(context.gettempdir(), 'books_read.png')
+	plt.savefig(output)
+	return output
+</code>
+</pre>
+
+Here is the json mapper of the above service.
+<pre><code class="json">
+	{
+		"package":"",
+		"name":"BookReadChart",
+		"internal":"demo_service",
+		"org":"",
+		"group":"",
+		"desc":"",
+		"href":"",
+		"params":[
+		],
+		"returns":[
+		   {
+			  "name":"data",
+			  "type":"file"
+		   }
+		]
+	 }
+</code>
+</pre>
+
+matplotlib may not be installed in some VizSciFlow systems by default. You can specify to install it in "pip install" text box by typing matplotlib.
+Click the "Add" button. If there is no error, the BookReadChart should appear in Services panel. Click "All" radio button and then "Reload" if you don't see it.
 
 <h3><a name="workflows">Workflows Panel</a></h3>
 <p>The right-bottom panel lists the saved workflows of the system. Workflows can be public, private or shared. New workflows can be saved by clicking the "+" button.</p>

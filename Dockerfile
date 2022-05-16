@@ -34,17 +34,17 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/vizsciflow
-COPY ./src .
+COPY ./src ./src
 COPY .env .
 COPY ./.vscode ./.vscode
 
-RUN python -m venv /home/vizsciflow/.venv
-RUN /home/vizsciflow/.venv/bin/pip install --upgrade pip
-RUN /home/vizsciflow/.venv/bin/pip install -r requirements/requirements.txt
-RUN /home/vizsciflow/.venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
+RUN python -m venv /home/.venv
+RUN /home/.venv/bin/pip install --upgrade pip
+RUN /home/.venv/bin/pip install -r ./src/requirements/requirements.txt
+RUN /home/.venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
 
-RUN /home/vizsciflow/.venv/bin/pip install gunicorn
-RUN /home/vizsciflow/.venv/bin/pip install pysam
+RUN /home/.venv/bin/pip install gunicorn
+RUN /home/.venv/bin/pip install pysam
 
 # to debug celery in docker
 #RUN /home/vizsciflow/.venv/bin/pip install debugpy -t /tmp
@@ -53,5 +53,7 @@ ENV FLASK_APP manage.py
 ENV FLASK_CONFIG development
 
 RUN chown -R vizsciflow:vizsciflow ./
+RUN chown -R vizsciflow:vizsciflow ../.venv
 
 USER vizsciflow
+WORKDIR /home/vizsciflow/src

@@ -15,8 +15,8 @@ x-common-vizsciflow:
   env_file:
     - .env
   volumes:
-    - /copernicus:/copernicus
     - ./src:/home/vizsciflow/src
+    - ./storage:/home/vizsciflow/storage
   networks:
     - vizsciflownetwork
   environment:
@@ -27,7 +27,7 @@ services:
     <<: *default-common-vizsciflow
     # command: sh -c "tail -F anything" # debug
     command: >
-      sh -c "/home/vizsciflow/.venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
+      sh -c "/home/.venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
     depends_on:
       - vizsciflowdb      
     ports:
@@ -37,10 +37,10 @@ services:
   vizsciflowcelery:
     <<: *default-common-vizsciflow
     hostname: worker
-    entrypoint: /home/vizsciflow/.venv/bin/celery
+    entrypoint: /home/.venv/bin/celery
     command: -A app.jobs worker --loglevel=info
     # command: >
-    #   sh -c "/home/vizsciflow/.venv/bin/python /tmp/debugpy --listen 0.0.0.0:6900 -m celery -A app.jobs worker -l info"
+    #   sh -c "/home/.venv/bin/python /tmp/debugpy --listen 0.0.0.0:6900 -m celery -A app.jobs worker -l info"
     depends_on:
       - vizsciflowredis
     container_name: vizsciflowcelery

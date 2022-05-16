@@ -6,13 +6,12 @@ class Loader:
     
     @staticmethod
     def get_datasources():
-        basedir = os.path.dirname(os.path.abspath(__file__))
-        storagedir = os.path.abspath(os.path.join(basedir, '../../../storage'))
+        from app import app
 
         return [{
             'name':'HDFS', 'type':'hdfs', 'url':'hdfs://206.12.102.75:54310/', 'root':'/user', 'user':'hadoop', 'password':'spark#2018', 'public':'/public', 'prefix':'HDFS'
         },{
-            'name':'LocalFS', 'type':'posix', 'url':storagedir, 'root':'/', 'user':'users', 'public':'/public'
+            'name':'LocalFS', 'type':'posix', 'url':app.config['DATA_DIR'], 'root':'/', 'user':'users', 'public':'/public'
         },{
             'name':'GalaxyFS', 'type':'gfs', 'url':'http://sr-p2irc-big8.usask.ca:8080', 'root':'/', 'password':'7483fa940d53add053903042c39f853a', 'prefix':'GalaxyFS'
         },{

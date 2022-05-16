@@ -19,7 +19,7 @@ class KnownTypes(UserDict):
 
     def __contains__(self, key):
         if key.endswith('[]'):
-            key = key[:-2]
+            return self.__contains__(key[:-2])
         return key in self.data
 
 known_types = KnownTypes({

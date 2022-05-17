@@ -271,16 +271,20 @@ Here is the json mapper of the above service.
 The new service is by default private. Check the "Public" checkbox to make it public or It can be shared to specific users by selecting target users from "Share with" dropdown.
 Click the "Add" button. If there is no error, the FastQService should appear in Services panel. Click "All" radio button and then "Reload" if you don't see it.
 
+If you double-click/drag the service, following code should appear in code editor:
+<pre>
+	<code>
+html,zip = FastQService(data)
+	</code>
+</pre>
+
 <p>Here is another example of using matplotlib in VizSciFlow. matplotlib.show will not work in VizSciFlow. The output must be saved as a file using savefig.</p>
 
 Here is an adapter for the service:
 <pre><code class="python">
 from os import path
-from pathlib import Path
-import matplotlib
 import matplotlib.pyplot as plt
 
-fastqc = path.abspath(path.join(path.dirname(__file__), 'FastQC', 'fastqc'))
 def demo_service(context, *args, **kwargs):
 	plt.plot([0, 1, 2, 3, 4], [0, 3, 5, 9, 11])
 	plt.xlabel('Months')
@@ -317,6 +321,12 @@ Here is the json mapper of the above service.
 matplotlib may not be installed in some VizSciFlow systems by default. You can specify to install it in "pip install" text box by typing matplotlib.
 Click the "Add" button. If there is no error, the BookReadChart should appear in Services panel. Click "All" radio button and then "Reload" if you don't see it.
 
+If you double-click/drag the service, following code should appear in code editor:
+<pre>
+	<code>
+BookReadChart()
+	</code>
+</pre>
 <h3><a name="workflows">Workflows Panel</a></h3>
 <p>The right-bottom panel lists the saved workflows of the system. Workflows can be public, private or shared. New workflows can be saved by clicking the "+" button.</p>
 <img alt="Workflows" src="biodsl-workflows.png">

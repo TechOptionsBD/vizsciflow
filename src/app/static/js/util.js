@@ -59,7 +59,10 @@ function activateTab(tab){
  	if (jqXHR.responseJSON !== undefined && jqXHR.responseJSON.err !== undefined) {
  		$("#error").val(jqXHR.responseJSON.err);
  	}
- 	else {
+ 	else if (jqXHR.status == 0){
+		$("#error").val("Error occured in AJAX call. Check your internet connection, VPN connectivity, Ad blocker blocking the call or access is denied due to cross-site scripting."); 
+	}
+	else {
  		$("#error").val(jqXHR.statusText);
  	}
  	activateTab(2);

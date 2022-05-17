@@ -141,14 +141,15 @@ class Library(LibraryBase):
                 Library.StoreArguments(context, task, func, arguments, **kwargs)
 
                 usedIndex = 0
-                for param in func.params:
-                    if not param.name or not Library.needs_normalization(param.type): continue
+                if hasattr(func, 'params'):
+                    for param in func.params:
+                        if not param.name or not Library.needs_normalization(param.type): continue
 
-                    if param.name in kwargs:
-                        kwargs[param.name] = Library.normalize(context, param.type, kwargs[param.name])
-                    elif usedIndex < len(arguments):
-                        arguments[usedIndex] = Library.normalize(context, param.type, arguments[usedIndex])
-                        usedIndex += 1
+                        if param.name in kwargs:
+                            kwargs[param.name] = Library.normalize(context, param.type, kwargs[param.name])
+                        elif usedIndex < len(arguments):
+                            arguments[usedIndex] = Library.normalize(context, param.type, arguments[usedIndex])
+                            usedIndex += 1
 
                 result = function(context, *arguments, **kwargs)
                 result = Library.add_meta_data(result, func.returns if hasattr(func, 'returns') else None, task)

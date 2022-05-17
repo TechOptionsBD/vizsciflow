@@ -1347,9 +1347,22 @@ function TasksViewModel() {
 
         if (self.imageTypes.includes(fileType)) {
             // self.showModal(data);
-            self.itemSrc(data.data);
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+            oReq.responseType = "arraybuffer";
             self.itemName(data.name);
-            $('.nav-tabs a[href="#outputtab"]').tab('show');
+            oReq.send();
+
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: 'image/' + fileType });
+                    itemSrc = URL.createObjectURL(blob);
+                    self.itemSrc(itemSrc);
+                    // self.showModal(data, itemSrc);
+                    $('.nav-tabs a[href="#outputtab"]').tab('show');
+                }
+            };
         }
 
         else if (self.videoTypes.includes(fileType)) {

@@ -1408,6 +1408,23 @@ function TasksViewModel() {
         }
         
         else {
+            fetch(self.dataSourcesURI + "?" + 'filecontent=' + data.data)
+                .then(resp => resp.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    // the filename you want
+
+                    //const getFileName = (fileName) => new URL(fileName).pathname.split("/").pop();
+                    const getFileName = (fileName) => fileName.split('/').pop();
+                    a.download = decodeURIComponent(getFileName(data.data));
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+
             self.itemSrc('');
             return;
         }

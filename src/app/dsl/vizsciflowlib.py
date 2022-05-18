@@ -52,7 +52,7 @@ class Library(LibraryBase):
         return False
     
     @staticmethod
-    def generate_graph(workflow_id, package, function, args):
+    def generate_graph(context, workflow_id, package, function, args):
         
         func = modulemanager.get_first_service_by_name_package(function, package).value
         arguments, kwargs = LibraryBase.split_args(args)
@@ -63,7 +63,7 @@ class Library(LibraryBase):
         module = runnablemanager.add_module(workflow_id, package, function)
         datamanager.StoreModuleArgs(module, func["params"] if func["params"] else [], storeArguments)
                 
-        return Library.add_meta_data(func["returns"] if "returns" in func else "")
+        return Library.add_meta_data(context, func["returns"] if "returns" in func else "")
 
     @staticmethod
     def needs_normalization(paramType):
@@ -83,6 +83,18 @@ class Library(LibraryBase):
                 return [context.normalize(a) for a in arg]
             else:
                 return [context.normalize(arg)]
+    
+    @staticmethod
+    def denormalize(context, paramType, arg):
+        paramType = paramType.lower()
+        arg = str(arg)
+        if paramType == 'file' or paramType == 'folder' or paramType == 'file|folder'  or paramType == 'folder|file':
+            return context.denormalize(arg)
+        elif paramType == 'file[]' or paramType == 'folder[]' or paramType == 'file[]|folder[]' or paramType == 'file[]|folder[]':
+            if isiterable(arg):
+                return [context.denormalize(a) for a in arg]
+            else:
+                return [context.denormalize(arg)]
     
     def call_func(self, context, package, function, args):
         '''
@@ -152,7 +164,7 @@ class Library(LibraryBase):
                             usedIndex += 1
 
                 result = function(context, *arguments, **kwargs)
-                result = Library.add_meta_data(result, func.returns if hasattr(func, 'returns') else None, task)
+                result = Library.add_meta_data(context, result, func.returns if hasattr(func, 'returns') else None, task)
                 task.succeeded()
             return result
         except Exception as e:
@@ -170,13 +182,15 @@ class Library(LibraryBase):
         datamanager.StoreArgumentes(context.user_id, task, list(func.params) if hasattr(func, 'params') else [], storeArguments)
 
     @staticmethod
-    def get_data_and_type_from_result(result, ret):
+    def get_data_and_type_from_result(context, result, ret):
         name = ret.name if hasattr(ret, 'name') else ''
         datatype = ret.type.lower().split('|')[0] if hasattr(ret, 'type') else ''
         if 'file[]' in datatype or 'folder[]' in datatype:
             t = DataType.FileList if 'file[]' in datatype else DataType.FolderList
+            result = Library.denormalize(context, datatype, result)
             return t, [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)]
         elif 'file' in datatype or 'folder' in datatype:
+            result = Library.denormalize(context, datatype, result)
             return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name
         elif datatype in known_types.keys():
             return DataType.Value, result, name
@@ -184,7 +198,7 @@ class Library(LibraryBase):
             return DataType.Unknown, result, name
 
     @staticmethod
-    def add_meta_data(result, returns, task):
+    def add_meta_data(context, result, returns, task):
         if not result:
             return None
 
@@ -192,19 +206,19 @@ class Library(LibraryBase):
             return result
         
         if not isiterable(returns) and isinstance(result, tuple):
-            output = Library.get_data_and_type_from_result(result[0], returns)
+            output = Library.get_data_and_type_from_result(context, result[0], returns)
             datamanager.add_task_data(output, task)
             return output[1]
 
         if isiterable(returns) and not isinstance(result, tuple):
-            output = Library.get_data_and_type_from_result(result, returns[0])
+            output = Library.get_data_and_type_from_result(context, result, returns[0])
             datamanager.add_task_data(output, task)
             return output[1]
 
         output = []
         mincount = min(len(result), len(returns))
         for i in range(0, mincount):
-            dataAndType = Library.get_data_and_type_from_result(result[i], returns[i])
+            dataAndType = Library.get_data_and_type_from_result(context, result[i], returns[i])
             datamanager.add_task_data(dataAndType, task)
             output.append(dataAndType[1])
         

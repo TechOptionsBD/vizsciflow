@@ -50,14 +50,14 @@ class GraphGenerator(object):
                     
         if package and parentNode.var_exists(package):
             obj = parentNode.get_var(package)
-            return self.context.library.generate_graph(obj, function, *v)
+            return self.context.library.generate_graph(self.context, obj, function, *v)
             
 #             if package in registry:
 #                 return self.context.library.call_func(registry[package], function.lower(), *v)
 
         # call task if exists
         if package is None and function in self.context.library.tasks:
-            return self.context.library.generate_graph_task(function, v, self.dotaskstmt)
+            return self.context.library.generate_graph_task(self.context, function, v, self.dotaskstmt)
 
         if not self.context.library.check_function(function, package):
             raise Exception(r"Function '{0}' doesn't exist.".format(function))

@@ -174,12 +174,15 @@ def demo_service(context, *args, **kwargs):
 	return args[0] if args else 0
 	</code>
 </pre>
-contextis a helper object to connect the internal system to this adapter. Here are some of its functions:
+<b>context</b> is a helper object to connect the internal system to this adapter. Here are some of its functions:
 <ul>
-	<li>gettempdir: path to user's temp directory in normalized and resolved form.</li>
-	<li>getpublicdir: path to user's public directory in normalized and resolved form.</li>
-	<li>normalize: Normalizes a path from VizSciFlow system for the tool.</li>
-	<li>denormalize: Denormalizes a path to VizSciFlow system from the path of the tool.</li>
+	<li>gettempdir(): path to user's temp directory in normalized and resolved form.</li>
+	<li>getpublicdir(): path to user's public directory in normalized and resolved form.</li>
+	<li>getnormdir(__file__): path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
+	<li>normalize(path): Normalizes a path from VizSciFlow system for the tool.</li>
+	<li>denormalize(path): Denormalizes a path to VizSciFlow system from the path of the tool.</li>
+	<li>run_exec(executable, *args): Runs an executable file.</li>
+	<li>run_bash(script, *args): Runs an bash script.</li>
 </ul>
 
 <p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". It must be unique to the DSL vocabulary.</p>
@@ -208,8 +211,9 @@ Call this function in DSL editor like below:
 print(DemoService(10))
 	</code>
 </pre>
+If you run this 10 will be printed in log.
 
-To add an external tool, you must know how to call the tool from python, 
+To add an external tool, you must know how to call the tool from python. 
 <ul>
 	<li>The location of the tool.</li>
 	<li>The arguments it accepts.</li>
@@ -229,29 +233,26 @@ To add an external tool, you must know how to call the tool from python,
 from os import path
 from pathlib import Path
 
-fastqc = path.abspath(path.join(path.dirname(__file__), 'FastQC', 'fastqc'))
 def demo_service(context, *args, **kwargs):
+	fastqc = path.join(context.getnormdir(__file__), 'FastQC', 'fastqc')
 	context.exec_run(fastqc, args[0], "--outdir=" + context.gettempdir())
 	filestem = Path(args[0]).stem
-	return path.join(context.gettempdir(), filestem + "_fastqc.html"), path.join(context.gettempdir(), filestem + ".zip")
+	html = path.join(context.gettempdir(), filestem + "_fastqc.html")
+	zip = path.join(context.gettempdir(), filestem + ".zip")
+	return html,zip
 </code>
 </pre>
 
-Here is the json mapper of the above service.
+Here is the json mapper of the above service. You need to add one parameter and two return values, all file types.
 <pre><code class="json">
 	{
 		"package":"",
 		"name":"FastQService",
 		"internal":"demo_service",
-		"org":"",
-		"group":"",
-		"desc":"",
-		"href":"",
 		"params":[
 		   {
 			  "name":"data",
 			  "type":"file",
-			  "desc":""
 		   }
 		],
 		"returns":[
@@ -286,7 +287,7 @@ from os import path
 import matplotlib.pyplot as plt
 
 def demo_service(context, *args, **kwargs):
-	plt.plot([0, 1, 2, 3, 4], [0, 3, 5, 9, 11])
+	plt.plot(args[0], args[1])
 	plt.xlabel('Months')
 	plt.ylabel('Books Read')
 
@@ -296,17 +297,23 @@ def demo_service(context, *args, **kwargs):
 </code>
 </pre>
 
-Here is the json mapper of the above service.
+Here is the json mapper of the above service. From JSON mapper tab, you have to remove the default parameter.
 <pre><code class="json">
 	{
 		"package":"",
-		"name":"BookReadChart",
+		"name":"BookChartV3",
 		"internal":"demo_service",
-		"org":"",
-		"group":"",
-		"desc":"",
-		"href":"",
 		"params":[
+		   {
+			  "name":"data",
+			  "type":"int[]",
+			  "desc":""
+		   },
+		   {
+			  "name":"data2",
+			  "type":"int[]",
+			  "desc":""
+		   }
 		],
 		"returns":[
 		   {

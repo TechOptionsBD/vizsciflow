@@ -330,7 +330,6 @@ def load_data_sources_biowl(recursive):
             datasource_tree.append(datasource)
         except Exception as e:
             logging.error("Filesystem {0} load fails with error: {1}".format(ds.name, str(e)))
-            pass
         
     return datasource_tree
 
@@ -349,7 +348,8 @@ def get_filecontent(path):
     path = path.strip()
     fs = Utility.fs_by_prefix_or_guess(path)
     image_binary = fs.read(path)
-    return send_file(io.BytesIO(image_binary), mimetype='image/jpeg', as_attachment=True, attachment_filename=fs.basename(path))
+    mime = mimetypes.guess_type(path)[0]
+    return send_file(io.BytesIO(image_binary), mimetype=mime, as_attachment=True, attachment_filename=fs.basename(path))
 
 def get_filedata(path):
     # construct data source tree
@@ -643,35 +643,38 @@ def metadata():
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
-    if request.form.get('download'):
-        return download_biowl(request.form['download'])
-    elif 'filecontent' in request.args:
-        return get_filecontent(request.args.get('filecontent'))
-    elif 'file_data' in request.args:
-        return get_filedata(request.args.get('file_data'))    
-    elif request.files and request.files['upload']:
-        return json.dumps({'path' : upload_biowl(request.files['upload'], request)})
-    elif request.args.get('addfolder'):
-        path = request.args['addfolder']
-        fileSystem = Utility.fs_by_prefix_or_guess(path)
-        parent = path if fileSystem.isdir(path) else fileSystem.dirname(path)
-        unique_filename = fileSystem.unique_fs_name(parent, 'newfolder', '')
-        dirpath = fileSystem.strip_root(fileSystem.makedirs(unique_filename))
-        return json.dumps({'text': fileSystem.basename(unique_filename), 'path' : dirpath, 'type': 'folder'})
-    elif request.args.get('delete'):
-        path = request.args['delete']
-        fileSystem = Utility.fs_by_prefix_or_guess(path)
-        return json.dumps({'path' : fileSystem.remove(fileSystem.strip_root(path))})
-    elif request.args.get('rename'):
-        fileSystem = Utility.fs_by_prefix_or_guess(request.args['oldpath'])
-        oldpath = fileSystem.strip_root(request.args['oldpath'])
-        newpath = os.path.join(os.path.dirname(oldpath), request.args['rename'])
-        return json.dumps({'path' : fileSystem.rename(oldpath, newpath)})
-    elif request.args.get('load'):
-        fs = Utility.fs_by_prefix_or_guess(request.args['load'])
-        return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
-        
-    return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
+    try:
+        if request.form.get('download'):
+            return download_biowl(request.form['download'])
+        elif 'filecontent' in request.args:
+            return get_filecontent(request.args.get('filecontent'))
+        elif 'file_data' in request.args:
+            return get_filedata(request.args.get('file_data'))    
+        elif request.files and request.files['upload']:
+            return json.dumps({'path' : upload_biowl(request.files['upload'], request)})
+        elif request.args.get('addfolder'):
+            path = request.args['addfolder']
+            fileSystem = Utility.fs_by_prefix_or_guess(path)
+            parent = path if fileSystem.isdir(path) else fileSystem.dirname(path)
+            unique_filename = fileSystem.unique_fs_name(parent, 'newfolder', '')
+            dirpath = fileSystem.strip_root(fileSystem.makedirs(unique_filename))
+            return json.dumps({'text': fileSystem.basename(unique_filename), 'path' : dirpath, 'type': 'folder'})
+        elif request.args.get('delete'):
+            path = request.args['delete']
+            fileSystem = Utility.fs_by_prefix_or_guess(path)
+            return json.dumps({'path' : fileSystem.remove(fileSystem.strip_root(path))})
+        elif request.args.get('rename'):
+            fileSystem = Utility.fs_by_prefix_or_guess(request.args['oldpath'])
+            oldpath = fileSystem.strip_root(request.args['oldpath'])
+            newpath = os.path.join(os.path.dirname(oldpath), request.args['rename'])
+            return json.dumps({'path' : fileSystem.rename(oldpath, newpath)})
+        elif request.args.get('load'):
+            fs = Utility.fs_by_prefix_or_guess(request.args['load'])
+            return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
+            
+        return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
 
 class Samples():
     @staticmethod

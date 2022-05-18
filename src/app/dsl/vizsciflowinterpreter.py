@@ -7,7 +7,7 @@ from app.dsl.vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
 from app.objectmodel.provmod.provobj import View, Stat, Monitor, Run, Module, Workflow
 from app.util import Utility
-from app.system.exechelper import func_exec_run
+from app.system.exechelper import func_exec_run, func_exec_bash_stdout
 from app.managers.usermgr import usermanager
 
 registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
@@ -19,6 +19,9 @@ class VizSciFlowContext(Context):
     def getpublicdir(self, typename = "posix"):
         fs = Utility.fs_by_typename(typename)
         return fs.normalize_path(fs.public)
+    
+    def getnormdir(self, filepath):
+        return os.path.dirname(os.path.abspath(filepath))
         
     def gettempdir(self, typename = "posix") -> str:
         '''
@@ -43,7 +46,7 @@ class VizSciFlowContext(Context):
     
     @staticmethod
     def bash_run(app, *args):
-        return func_exec_run(app, *args)
+        return func_exec_bash_stdout(app, *args)
     
     @staticmethod
     def normalize(data):
@@ -53,7 +56,7 @@ class VizSciFlowContext(Context):
     @staticmethod
     def denormalize(data):
         fs = Utility.fs_by_prefix_or_guess(data)
-        return fs.strip_root(str(data))
+        return fs.strip_root(str(data)) 
 
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):

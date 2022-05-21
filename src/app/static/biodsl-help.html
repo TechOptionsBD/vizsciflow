@@ -181,8 +181,9 @@ def demo_service(context, *args, **kwargs):
 	<li>getnormdir(__file__): path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
 	<li>normalize(path): Normalizes a path from VizSciFlow system for the tool.</li>
 	<li>denormalize(path): Denormalizes a path to VizSciFlow system from the path of the tool.</li>
-	<li>run_exec(executable, *args): Runs an executable file.</li>
-	<li>run_bash(script, *args): Runs an bash script.</li>
+	<li>exec_run(executable, *args): Runs an executable file.</li>
+	<li>bash_run(script, *args): Runs an bash script.</li>
+	<li>pyvenv_run(tooldir, script, *args): Runs an python script. toolpath=os.path.dirname(__file__)/li>
 </ul>
 
 <p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". It must be unique to the DSL vocabulary.</p>
@@ -334,6 +335,21 @@ If you double-click/drag the service, following code should appear in code edito
 BookReadChart()
 	</code>
 </pre>
+
+Here is another adapter for running a python script (fastqe) which is installed using pip install "fastqe".
+
+Here is an adapter for the service:
+<pre><code class="python">
+from os import path
+thispath = path.dirname(__file__)
+def demo_service(context, *args, **kwargs):
+	output = context.gettempdir() + '/fastqe_output.html'
+	context.pyvenv_run(thispath, 'fastqe', args[0], "--output=" + output)
+	return output
+</code>
+</pre>
+
+
 <h3><a name="workflows">Workflows Panel</a></h3>
 <p>The right-bottom panel lists the saved workflows of the system. Workflows can be public, private or shared. New workflows can be saved by clicking the "+" button.</p>
 <img alt="Workflows" src="biodsl-workflows.png">

@@ -3,132 +3,77 @@ from os import path
 from pathlib import Path
 import shutil
 
-from app.system.exechelper import func_exec_run
-from app.io.fileop import PosixFileSystem
-from app.util import Utility
+from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_optional_posix_data_args
 
-nicad = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'nicad'))
-nicadcross = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'nicad'))
+thispath = path.abspath(path.dirname(__file__))
+nicad = path.join(thispath, 'NiCad-6.2', 'nicad6')
+nicadcross = path.join(thispath, 'NiCad-6.2', 'nicad6cross')
+systemsdir = os.path.join(thispath, 'NiCad-6.2', 'systems')
 
-def run_nicad(*args, **kwargs):
+def run_nicad(context, *args, **kwargs):
+    paramindex, data, fs = get_posix_data_args(0, 'data', context, *args, **kwargs)
+    if not fs.exists(data):
+        raise ValueError("Input folder {0} doesn't exist.".format(fs.strip_root(str(data))))
+
+    paramindex, granularity = get_optional_input_from_args(paramindex, 'granularity', *args, **kwargs)
+    paramindex, language = get_optional_input_from_args(paramindex, 'language', *args, **kwargs)
     
-    paramindex = 0
-    if 'granularity' in kwargs.keys():
-        granularity = kwargs['granularity']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'granularity' missing in nicad.")
-        granularity = args[paramindex]
-        paramindex +=1
+    srcname = os.path.basename(data)
+    srcdir = os.path.join(systemsdir, srcname)
+    if os.path.exists(srcdir):
+        shutil.rmtree(srcdir)
+    os.makedirs(srcdir)
+    srcdir = shutil.copytree(data, srcdir, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+
+    cmdargs = [granularity, language, os.path.join('systems', srcname), 'default-report']
+
+    oldcwd = os.getcwd()
+    oldenvpath = os.environ["PATH"]
+    os.chdir(os.path.dirname(nicad))
+
+    out = ""
+    err = ""
+    try:
+        os.environ["PATH"] = os.environ["PATH"] + os.pathsep + '/home/vizsciflow/bin'
+        out, err = context.exec_run(nicad, *cmdargs)
+    finally:
+        os.chdir(oldcwd)
+        os.environ["PATH"] = oldenvpath
+
+    shutil.rmtree(srcdir)
     
-    if 'language' in kwargs.keys():
-        language = kwargs['language']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'language' missing in nicad.")
-        language = args[paramindex]
-        paramindex +=1
+    resultdir = os.path.join(fs.make_unique_dir(context.gettempdir()), srcname)
+    os.makedirs(resultdir)
+    for file in os.listdir(systemsdir):
+        if file != 'README.txt':
+            shutil.move(os.path.join(systemsdir, file), resultdir)
+
+    return resultdir
     
-    if 'srcdir' in kwargs.keys():
-        srcdir = kwargs['srcdir']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'srcdir' missing in nicad.")
-        srcdir = args[paramindex]
-        paramindex +=1
-        
-    srcdir = Utility.get_normalized_path(srcdir)
-    if not os.path.exists(srcdir):
-        raise ValueError("'srcdir' doesn't exist for NiCad operation.")
+def run_nicadcross(context, *args, **kwargs):
+    paramindex, data, fs = get_posix_data_args(0, 'data', context, *args, **kwargs)
+    if not fs.exists(data):
+        raise ValueError("Input folder {0} doesn't exist.".format(fs.strip_root(str(data))))
+
+    paramindex, data2, fs = get_optional_posix_data_args(0, 'data2', context, *args, **kwargs)
+
+    paramindex, granularity = get_optional_input_from_args(paramindex, 'granularity', *args, **kwargs)
+    paramindex, language = get_optional_input_from_args(paramindex, 'language', *args, **kwargs)
     
-    if 'outdir' in kwargs.keys():
-        outdir = kwargs['outdir']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'outdir' missing in nicad.")
-        srcdir = args[paramindex]
-        paramindex +=1
-    
-    outdir = Utility.get_normalized_path(outdir)
-    
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    
-    shutil.copytree(srcdir, outdir)
-    cmdargs = [granularity, language, srcdir, outdir]
-                       
-    for arg in args[2:]:
-        cmdargs.append(arg)
+    srcname = os.path.basename(data)
+    srcdir = shutil.copytree(srcdir, os.path.join(thispath, 'NiCad-6.2', 'systems'), dirs_exist_ok=True)
+
+    cmdargs = [granularity, language, 'systems' + '/' + srcname]
+    # for arg in args[2:]:
+    #     cmdargs.append(arg)
        
-    _,err = func_exec_run(nicad, *cmdargs)
-        
-    fs = PosixFileSystem(Utility.get_rootdir(2))
-    stripped_path = fs.strip_root(outdir)
-    
-    return stripped_path
-    
-def run_nicadcross(*args, **kwargs):
-    
-    paramindex = 0
-    if 'granularity' in kwargs.keys():
-        granularity = kwargs['granularity']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'granularity' missing in nicad.")
-        granularity = args[paramindex]
-        paramindex +=1
-    
-    if 'language' in kwargs.keys():
-        language = kwargs['language']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'language' missing in nicad.")
-        language = args[paramindex]
-        paramindex +=1
-    
-    if 'srcdir1' in kwargs.keys():
-        srcdir = kwargs['srcdir1']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'srcdir1' missing in nicad.")
-        srcdir1 = args[paramindex]
-        paramindex +=1
-    
-    srcdir1 = Utility.get_normalized_path(srcdir1)
-    
-    if 'srcdir2' in kwargs.keys():
-        srcdir = kwargs['srcdir2']
-    else:
-        if len(args) == paramindex:
-            raise ValueError("Argument 'srcdir2' missing in nicad.")
-        srcdir2 = args[paramindex]
-        paramindex +=1
-        
-    srcdir2 = Utility.get_normalized_path(srcdir2)
-    
-    if 'outdir' in kwargs.keys():
-        outdir = kwargs['outdir']
-    else:
-        if len(args) > paramindex:
-            outdir = args[paramindex]
-            paramindex +=1
-    
-    if outdir:
-        outdir = Utility.get_normalized_path(outdir)
-    else:
-        outdir = srcdir
-    
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    
-    cmdargs = [granularity, language, srcdir1, srcdir2, outdir]
-                       
-    for arg in args[2:]:
-        cmdargs.append(arg)
-       
-    _,err = func_exec_run(nicadcross, *cmdargs)
-        
-    fs = PosixFileSystem(Utility.get_rootdir(2))
-    stripped_path = fs.strip_root(outdir)
-    
-    return stripped_path
+    _,err = context.exec_run(nicad, *cmdargs)
+
+    resultname = srcname + '_functions--blind-clones'
+    resultpath = os.path.join(thispath, 'NiCad-6.2', 'systems', resultname)
+
+    resultdir = fs.make_unique_dir(context.gettempdir())
+    shutil.move(resultpath, resultdir)
+
+    shutil.rmtree(srcdir)
+    return context.denormalize(os.path.join(resultdir, resultname))

@@ -1,3 +1,4 @@
+import logging
 import os
 import json
 import pathlib
@@ -58,7 +59,7 @@ class Loader:
                 libraries = d["functions"]
                 libraries = sorted(libraries, key = lambda k : k['package'].lower())
 
-                module = str(pathlib.Path(os.path.dirname(library_def_file)).relative_to(app.config['ROOT_DIR']))
+                module = str(pathlib.Path(os.path.dirname(os.path.realpath(json_data.name))).relative_to(app.config['ROOT_DIR']))
                 module = module.replace('/', '.') + '.adapter'
 
                 for f in libraries:
@@ -122,6 +123,8 @@ class Loader:
                         funcs[name.lower()].extend([func])
                     else:
                         funcs[name.lower()] = [func]
+        except Exception as e:
+            logging.error("Error occurred during module loading:" + str(e))
         finally:
             return funcs
     

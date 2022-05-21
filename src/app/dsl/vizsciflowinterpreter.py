@@ -7,8 +7,9 @@ from app.dsl.vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
 from app.objectmodel.provmod.provobj import View, Stat, Monitor, Run, Module, Workflow
 from app.util import Utility
-from app.system.exechelper import func_exec_run, func_exec_bash_stdout
+from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run
 from app.managers.usermgr import usermanager
+from app.managers.modulemgr import modulemanager
 
 registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
 
@@ -16,6 +17,20 @@ class VizSciFlowContext(Context):
     def __init__(self, library, symboltable) -> None:
         super().__init__(library, symboltable)
     
+    def getmytooldir(self, name=None, package=None):
+        from app import app
+        toolsdir = os.path.join(app.config['MODULE_DIR'], 'users', usermanager.get(id = self.user_id).first().username)
+        if not name:
+            return toolsdir
+        func = modulemanager.get_module_by_name_package(name, package)
+        if not func:
+            raise ValueError('Tool {0} does not exist.'.format(name))
+        return os.path.join(toolsdir, (os.path.sep).join(func.module.split('.')[1:-1]))
+
+    # def getmyprovdir(self):
+    #     from app import app
+    #     return os.path.join(app.config['PROVENANCE_DIR'], 'users', usermanager.get(id = self.user_id).first().username)
+
     def getpublicdir(self, typename = "posix"):
         fs = Utility.fs_by_typename(typename)
         return fs.normalize_path(fs.public)
@@ -49,6 +64,10 @@ class VizSciFlowContext(Context):
         return func_exec_bash_stdout(app, *args)
     
     @staticmethod
+    def pyvenv_run(toolpath, app, *args):
+        return pyvenv_run(toolpath, app, *args)
+    
+    @staticmethod
     def normalize(data):
         fs = Utility.fs_by_prefix_or_guess(data)
         return fs.normalize_path(str(data))
@@ -56,7 +75,7 @@ class VizSciFlowContext(Context):
     @staticmethod
     def denormalize(data):
         fs = Utility.fs_by_prefix_or_guess(data)
-        return fs.strip_root(str(data)) 
+        return fs.strip_root(str(data))
 
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):

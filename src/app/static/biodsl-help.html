@@ -181,9 +181,11 @@ def demo_service(context, *args, **kwargs):
 	<li>getnormdir(__file__): path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
 	<li>normalize(path): Normalizes a path from VizSciFlow system for the tool.</li>
 	<li>denormalize(path): Denormalizes a path to VizSciFlow system from the path of the tool.</li>
-	<li>exec_run(executable, *args): Runs an executable file.</li>
-	<li>bash_run(script, *args): Runs an bash script.</li>
-	<li>pyvenv_run(tooldir, script, *args): Runs an python script. toolpath=os.path.dirname(__file__)/li>
+	<li>exec_run(executable, *args): Runs an executable file. You can also pass values for cwd=path and env=path if you need.</li>
+	<li>bash_run(script, *args): Runs an bash script. You can also pass values for cwd=path and env=path if you need.</li>
+	<li>pyvenv_run(tooldir, script, *args): Runs an python script. toolpath=os.path.dirname(__file__)</li>
+	<li>moveto(src, dest, ignores=[]): moves contents of src directory to dest</li>
+	<li>copyto(src, dest, ignores=[]): copies contents of src directory to dest</li>
 </ul>
 
 <p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". It must be unique to the DSL vocabulary.</p>

@@ -10,13 +10,69 @@ from app.util import Utility
 from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run
 from app.managers.usermgr import usermanager
 from app.managers.modulemgr import modulemanager
+from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args
+import shutil
 
 registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
 
 class VizSciFlowContext(Context):
     def __init__(self, library, symboltable) -> None:
         super().__init__(library, symboltable)
+
+    @staticmethod
+    def moveto(src, dest, ignores=[]):
+        if not dest.endswith(os.path.sep):
+            shutil.move(src, dest)
+        else:
+            for file in os.listdir(src):
+                if file not in ignores:
+                    shutil.move(os.path.join(src, file), dest)
+
+    @staticmethod
+    def copyto(src, dest, ignores=[]):
+        srcname = os.path.basename(src)
+        destdir = os.path.join(dest, srcname)
+        if os.path.exists(destdir):
+            shutil.rmtree(destdir)
+        os.makedirs(destdir)
+        ignore_patterns = None
+        if ignores:
+            ignore_patterns = ','.join(ignores)
+        return shutil.copytree(src, destdir, dirs_exist_ok=True, ignore=shutil.ignore_patterns(ignore_patterns))
+
+    def getarg(self, paramindex, argname, *args, **kwargs):
+        paramindex, data, fs = get_posix_data_args(0, argname, self, *args, **kwargs)
+        if not fs.exists(data):
+            raise ValueError("Input folder {0} doesn't exist.".format(fs.strip_root(str(data))))
+        return paramindex, data, fs
     
+    def getoptionalarg(self, paramindex, argname, *args, **kwargs):
+        paramindex, data = get_optional_input_from_args(0, argname, *args, **kwargs)
+        return paramindex, data
+
+    @staticmethod
+    def addenvpath(path):
+        envpaths = os.environ["PATH"]
+        if not path in envpaths: # Mainul: may need to check if it ends the envpaths (if it's base of some subdir) or end with :
+            os.environ["PATH"] = envpaths + os.pathsep + path
+        return os.environ["PATH"]
+
+    def createoutdir(self, outname):
+        outdir = os.path.join(self.makeuniquedir(), outname)
+        os.makedirs(outdir)
+        return outdir
+
+    def makeuniquedir(self, parent = None):
+        if not parent:
+            parent = self.gettempdir()
+        fs = Utility.fs_by_prefix_or_guess(parent)
+        return fs.make_unique_dir(parent)
+
+    def getsystooldir(self, name=None, package=None):
+        from app import app
+        if name == 'txl':
+            return '/home/vizsciflow/bin'
+
     def getmytooldir(self, name=None, package=None):
         from app import app
         toolsdir = os.path.join(app.config['MODULE_DIR'], 'users', usermanager.get(id = self.user_id).first().username)
@@ -24,7 +80,8 @@ class VizSciFlowContext(Context):
             return toolsdir
         func = modulemanager.get_module_by_name_package(name, package)
         if not func:
-            raise ValueError('Tool {0} does not exist.'.format(name))
+            return ''
+            #raise ValueError('Tool {0} does not exist.'.format(name))
         return os.path.join(toolsdir, (os.path.sep).join(func.module.split('.')[1:-1]))
 
     # def getmyprovdir(self):
@@ -56,12 +113,27 @@ class VizSciFlowContext(Context):
             return tempfile.gettempdir()
 
     @staticmethod
-    def exec_run(app, *args):
-        return func_exec_run(app, *args)
-    
+    def exec_in_env(f, app, *args, **kwargs):
+        oldcwd = os.getcwd() if 'cwd' in kwargs else None
+        oldenvpath = os.environ["PATH"] if 'env' in kwargs else None
+        try:
+            if 'cwd' in kwargs:
+                os.chdir(kwargs['cwd'])
+            if 'env' in kwargs:
+                VizSciFlowContext.addenvpath(kwargs['env'])
+
+            return func_exec_run(app, *args)
+        finally:
+            if oldcwd: os.chdir(oldcwd)
+            if oldenvpath: os.environ["PATH"] = oldenvpath
+
     @staticmethod
-    def bash_run(app, *args):
-        return func_exec_bash_stdout(app, *args)
+    def exec_run(app, *args, **kwargs):
+        return VizSciFlowContext.exec_in_env(func_exec_run, app, *args, **kwargs)
+
+    @staticmethod
+    def bash_run(app, *args, **kwargs):
+        return VizSciFlowContext.exec_in_env(func_exec_bash_stdout, app, *args, **kwargs)
     
     @staticmethod
     def pyvenv_run(toolpath, app, *args):

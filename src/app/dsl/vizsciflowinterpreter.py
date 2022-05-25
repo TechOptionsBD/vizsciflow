@@ -15,6 +15,7 @@ import shutil
 
 registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
 
+
 class VizSciFlowContext(Context):
     def __init__(self, library, symboltable) -> None:
         super().__init__(library, symboltable)
@@ -57,9 +58,11 @@ class VizSciFlowContext(Context):
             os.environ["PATH"] = envpaths + os.pathsep + path
         return os.environ["PATH"]
 
-    def createoutdir(self, outname):
-        outdir = os.path.join(self.makeuniquedir(), outname)
-        os.makedirs(outdir)
+    def createoutdir(self, outname = None):
+        outdir = self.makeuniquedir()
+        if outname:
+            outdir = os.path.join(outdir, outname)
+            os.makedirs(outdir)
         return outdir
 
     def makeuniquedir(self, parent = None):
@@ -68,13 +71,11 @@ class VizSciFlowContext(Context):
         fs = Utility.fs_by_prefix_or_guess(parent)
         return fs.make_unique_dir(parent)
 
-    def getsystooldir(self, name=None, package=None):
+    def gettoolsdir(self, name=None, package=None):
         from app import app
         if name == 'txl':
-            return '/home/vizsciflow/bin'
-
-    def getmytooldir(self, name=None, package=None):
-        from app import app
+            return '/home/vizsciflow/bin' #TODO: we need to make it flexible
+        
         toolsdir = os.path.join(app.config['MODULE_DIR'], 'users', usermanager.get(id = self.user_id).first().username)
         if not name:
             return toolsdir
@@ -82,7 +83,7 @@ class VizSciFlowContext(Context):
         if not func:
             return ''
             #raise ValueError('Tool {0} does not exist.'.format(name))
-        return os.path.join(toolsdir, (os.path.sep).join(func.module.split('.')[1:-1]))
+        return os.path.join(app.config['MODULE_DIR'], (os.path.sep).join(func.module.split('.')[2:-1])) # remove plugins/modules from front and adapter from back
 
     # def getmyprovdir(self):
     #     from app import app

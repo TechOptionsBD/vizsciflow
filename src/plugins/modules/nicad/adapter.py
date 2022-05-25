@@ -32,7 +32,7 @@ def run_nicad(context, *args, **kwargs):
     return outdir
     
 def run_nicadcross(context, *args, **kwargs):
-    txldir = context.getsystooldir('txl')
+    txldir = context.gettoolsdir('txl')
     if not txldir:
         raise ValueError("NiCad needs TXL. But it is not installed. Please install TXL first.")
 

@@ -69,7 +69,8 @@ function AddLibraryViewModel(userName) {
                 {
                     name: param.name && typeof(param.name) !== 'function' ? param.name : '',
                     type: param.type ?? '',
-                    desc: param.desc ?? ''
+                    desc: param.desc ?? '',
+                    default: param.default ?? ''
                 }
             )
         );

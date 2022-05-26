@@ -834,7 +834,7 @@
 							
 							</div>
 							<div class="col" style="float: right;padding-right: 5px">
-								<span data-bind="text: group" style="text-align: right"></span>(<span data-bind="text: package" style="text-align: left"></span>)
+								<span data-bind="text: group" style="text-align: right"></span><span data-bind="text: package().length > 0 ? '(' + package() + ')' : ''" style="text-align: left"></span>
 							</div>
 							<div style="clear:both"></div>
 						</div>

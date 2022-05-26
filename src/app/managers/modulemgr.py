@@ -11,11 +11,12 @@ class ModuleManager():
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
 
-    def insert_modules(self, path):
+    def insert_modules(self, path, addusermodules = False):
         from app import app
 
         funclist = Loader.load_funcs_recursive_flat(path)
-        funclist = [func for func in funclist if not func['module'].startswith(app.config['MODULE_PACKAGE'] + '.users')]
+        if not addusermodules:
+            funclist = [func for func in funclist if not func['module'].startswith(app.config['MODULE_PACKAGE'] + '.users')]
         return self.persistance.insert_modules(funclist)
 
     def get_module_by_name_package_for_user_access(self, user_id, name, package = None):

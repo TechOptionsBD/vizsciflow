@@ -785,15 +785,35 @@ class Service(db.Model):
                 user_id = f.pop("user_id", None)
                 if not user_id and admin:
                     user_id = admin.id
-
-                modules.append(Service.add(user_id, f, AccessType.PUBLIC, None))
                 
-            db.session.add_all(modules)
+                service = Service.get_service_by_name_package(f["name"], f["package"]).first()
+                if service:
+                    if service.user_id == user_id or user_id == admin.id:
+                        service.update(f)
+                        modules.append(service)
+                        logging.info("Module {0} is updated.".format(f["name"]))
+                    else:
+                        logging.error("Module {0} already exists.".format(f["name"]))
+                else:
+                    modules.append(Service.add(user_id, f, AccessType.PUBLIC, None))
+                    logging.into("Module {0} is added.".format(f["name"]))
+
             db.session.commit()
             return modules
         except SQLAlchemyError:
             db.session.rollback()
             raise
+    
+    def update(self, value):
+        params = value.pop('params', [])
+        for p in params:
+            self.params.append(Param(value = p))
+        
+        returns = value.pop('returns', [])
+        for p in returns:
+            self.returns.append(Return(value = p))
+
+        self.value = value
 
     @staticmethod
     def add(user_id, value, access, users):
@@ -803,24 +823,16 @@ class Service(db.Model):
             service.active = True
             service.public = True if access == AccessType.PUBLIC else False
 
-            params = value.pop('params', [])
-            for p in params:
-                service.params.append(Param(value = p))
-            
-            returns = value.pop('returns', [])
-            for p in returns:
-                service.returns.append(Return(value = p))
-
             if (access == AccessType.SHARED and users):
                 for user_id in users:
-#                 for usr in user:
-#                     print(usr)
-#                     user_id, rights = usr.split(":")
+    #                 for usr in user:
+    #                     print(usr)
+    #                     user_id, rights = usr.split(":")
                     matchuser = User.query.filter(User.id == user_id).first()
                     if matchuser:
                         service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
-                        
-            service.value = value
+
+            service.update(value)
 
             db.session.add(service)
             db.session.commit()
@@ -953,6 +965,8 @@ class Service(db.Model):
             if service.public:
                 value["access"] = "public"
             else:
+                if service.user_id == user_id:
+                    value["access"] = "private" # user_id is the owner
                 for access in service.accesses:
                     if access.user_id == user_id:
                         value["access"] = "shared" if service.user_id != user_id else "private"

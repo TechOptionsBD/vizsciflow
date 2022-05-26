@@ -10,7 +10,7 @@ from app.util import Utility
 from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run
 from app.managers.usermgr import usermanager
 from app.managers.modulemgr import modulemanager
-from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args
+from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
 import shutil
 
 registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
@@ -41,14 +41,18 @@ class VizSciFlowContext(Context):
             ignore_patterns = ','.join(ignores)
         return shutil.copytree(src, destdir, dirs_exist_ok=True, ignore=shutil.ignore_patterns(ignore_patterns))
 
-    def getarg(self, paramindex, argname, *args, **kwargs):
-        paramindex, data, fs = get_posix_data_args(0, argname, self, *args, **kwargs)
+    def getdataarg(self, paramindex, argname, *args, **kwargs):
+        paramindex, data, fs = get_posix_data_args(paramindex, argname, self, *args, **kwargs)
         if not fs.exists(data):
-            raise ValueError("Input folder {0} doesn't exist.".format(fs.strip_root(str(data))))
+            raise ValueError("Input file/folder {0} doesn't exist.".format(fs.strip_root(str(data))))
         return paramindex, data, fs
+
+    def getarg(self, paramindex, argname, *args, **kwargs):
+        paramindex, data = get_input_from_args(paramindex, argname, self, *args, **kwargs)
+        return paramindex, data
     
     def getoptionalarg(self, paramindex, argname, *args, **kwargs):
-        paramindex, data = get_optional_input_from_args(0, argname, *args, **kwargs)
+        paramindex, data = get_optional_input_from_args(paramindex, argname, *args, **kwargs)
         return paramindex, data
 
     @staticmethod

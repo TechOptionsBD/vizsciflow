@@ -2,6 +2,7 @@ import logging
 import os
 import json
 import pathlib
+from app.objectmodel.common import isiterable
 
 class Loader:
     
@@ -56,8 +57,8 @@ class Loader:
             
             with open(library_def_file, 'r') as json_data:
                 d = json.load(json_data)
-                libraries = d["functions"]
-                libraries = sorted(libraries, key = lambda k : k['package'].lower())
+                libraries = d["functions"] if "functions" in d else d
+                libraries = sorted(libraries, key = lambda k : k['package'].lower()) if isinstance(libraries, list) else [libraries]
 
                 module = str(pathlib.Path(os.path.dirname(os.path.realpath(json_data.name))).relative_to(app.config['ROOT_DIR']))
                 module = module.replace('/', '.') + '.adapter'

@@ -19,14 +19,13 @@ def get_input_from_args(paramindex, keyname, *args, **kwargs):
         barcode = str(kwargs[keyname])
     else:
         if len(args) == paramindex:
-            raise ValueError("Argument {0} missing error in function call.".format(keyname))
+            raise ValueError("Argument {0} missing in function call.".format(keyname))
         barcode = str(args[paramindex])
         paramindex +=1
     
     return paramindex, barcode
 
-def get_optional_input_from_args(paramindex, keyname, *args, **kwargs):
-    
+def get_optional_input_from_args(paramindex, keyname, *args, **kwargs):  
     barcode = ''
     if keyname in kwargs.keys():
         barcode = str(kwargs[keyname])

@@ -183,19 +183,22 @@ class Library(LibraryBase):
 
     @staticmethod
     def get_data_and_type_from_result(context, result, ret):
+        '''
+        Prepare the return value for the storage into the db.
+        '''
         name = ret.name if hasattr(ret, 'name') else ''
         datatype = ret.type.lower().split('|')[0] if hasattr(ret, 'type') else ''
         if 'file[]' in datatype or 'folder[]' in datatype:
             t = DataType.FileList if 'file[]' in datatype else DataType.FolderList
             result = Library.denormalize(context, datatype, result)
-            return t, [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)]
+            return t, [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)], name, [result]
         elif 'file' in datatype or 'folder' in datatype:
             result = Library.denormalize(context, datatype, result)
-            return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name
+            return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name, result
         elif datatype in known_types.keys():
-            return DataType.Value, result, name
+            return DataType.Value, result, name, result
         else:
-            return DataType.Unknown, result, name
+            return DataType.Unknown, result, name, result
 
     @staticmethod
     def add_meta_data(context, result, returns, task):
@@ -208,19 +211,19 @@ class Library(LibraryBase):
         if not isiterable(returns) and isinstance(result, tuple):
             output = Library.get_data_and_type_from_result(context, result[0], returns)
             datamanager.add_task_data(output, task)
-            return output[1]
+            return output[3]
 
         if isiterable(returns) and not isinstance(result, tuple):
             output = Library.get_data_and_type_from_result(context, result, returns[0])
             datamanager.add_task_data(output, task)
-            return output[1]
+            return output[3]
 
         output = []
         mincount = min(len(result), len(returns))
         for i in range(0, mincount):
             dataAndType = Library.get_data_and_type_from_result(context, result[i], returns[i])
             datamanager.add_task_data(dataAndType, task)
-            output.append(dataAndType[1])
+            output.append(dataAndType[3])
         
         return tuple(output)
 

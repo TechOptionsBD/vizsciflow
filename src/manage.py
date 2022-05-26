@@ -296,7 +296,7 @@ def deploydb():
 
     # insert modules
     logging.info("Inserting modules from directory: {0} ...".format(app.config['MODULE_DIR']))
-    modules = modulemanager.insert_modules(app.config['MODULE_DIR'])
+    modules = modulemanager.insert_modules(app.config['MODULE_DIR'], False)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         package = module.package if module.package else "" # package name is optional
@@ -310,17 +310,18 @@ def deploydb():
         logging.info(workflow.name)
 
 @manager.command
-def insertmodules(path):
+def insertmodules(path, addusermodules):
     from app.managers.modulemgr import modulemanager
     import logging
     
+    addusermodules = addusermodules == 'True'
     logging.basicConfig(level = logging.INFO)
     logging.info("Inserting modules from directory: {0} ...".format(path))
     if not os.path.exists(path):
         logging.error("Path {0} doesn't exist".format(path))
         raise ValueError("Path {0} doesn't exist".format(path))
     
-    modules = modulemanager.insert_modules(path)
+    modules = modulemanager.insert_modules(path, addusermodules)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         logging.info(module.package + "." + module.name)

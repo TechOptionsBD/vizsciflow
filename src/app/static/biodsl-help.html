@@ -12,7 +12,7 @@
 <h1>VizSciFlow Manual</h1>
 
 <p>VizSciFlow is a workflow management system with a domain-specific language (DSL).</p>
-<p>The DSL has simple syntax and a minimal set of keywords. The syntax has similarities to python’s syntax and indenting.</p> 
+<p>The DSL has simple syntax and a minimal set of keywords. The syntax has similarities to Python’s syntax and indenting.</p> 
 <p>Scientists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>  
 
 <h3><a name="keywords">Keywords:</a></h3>
@@ -181,9 +181,9 @@ def demo_service(context, *args, **kwargs):
 	<li>getnormdir(__file__): path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
 	<li>normalize(path): Normalizes a path from VizSciFlow system for the tool.</li>
 	<li>denormalize(path): Denormalizes a path to VizSciFlow system from the path of the tool.</li>
-	<li>exec_run(executable, *args): Runs an executable file. You can also pass values for cwd=path and env=path if you need.</li>
+	<li>exec_run(executable, *args): Runs an executable file. You can also pass values for cwd=path and env=path for current working directory and environment path respectively.</li>
 	<li>bash_run(script, *args): Runs an bash script. You can also pass values for cwd=path and env=path if you need.</li>
-	<li>pyvenv_run(tooldir, script, *args): Runs an python script. toolpath=os.path.dirname(__file__)</li>
+	<li>pyvenv_run(tooldir, script, *args): Runs an python script. tooldir=os.path.dirname(__file__)</li>
 	<li>moveto(src, dest, ignores=[]): moves contents of src directory to dest</li>
 	<li>copyto(src, dest, ignores=[]): copies contents of src directory to dest</li>
 </ul>
@@ -215,6 +215,15 @@ print(DemoService(10))
 	</code>
 </pre>
 If you run this 10 will be printed in log.
+
+Different types of tools can be integrated into VizSciFlow system.
+
+<ol>
+	<li>Python code: You can write python code in the code editor as a tool. If you need a module from Pypi, add the module to <b>pip install</b> textbox.</li>
+	<li>Python module: You can attach your python module with <b>Add file</b> button. You need to use the module in your adapter code.</li>
+	<li>External standalone tool: You can add the package with <b>Add File</b> and then use it from the adapter. If it is a zip/tar/bz file, it will be extracted where the adapter resides. You need to know the extracted folder to use its executable.</li>
+	<li>External installer: This type of tools can't be installed directly. They need interactive installation or compilation which only administration can do.</li>
+</ol>
 
 To add an external tool, you must know how to call the tool from python. 
 <ul>

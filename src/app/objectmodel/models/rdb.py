@@ -796,7 +796,7 @@ class Service(db.Model):
                         logging.error("Module {0} already exists.".format(f["name"]))
                 else:
                     modules.append(Service.add(user_id, f, AccessType.PUBLIC, None))
-                    logging.into("Module {0} is added.".format(f["name"]))
+                    logging.info("Module {0} is added.".format(f["name"]))
 
             db.session.commit()
             return modules
@@ -805,6 +805,9 @@ class Service(db.Model):
             raise
     
     def update(self, value):
+
+        Param.query.filter(Param.service_id==self.id).delete()
+        Return.query.filter(Return.service_id==self.id).delete()
         params = value.pop('params', [])
         for p in params:
             self.params.append(Param(value = p))

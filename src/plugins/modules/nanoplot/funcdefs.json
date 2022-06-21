@@ -1,0 +1,1 @@
+{"package":"nanoplot","name":"NanoPlot","internal":"demo_service","org":"srlab","group":"Visualization","desc":"Plotting tool for long read sequencing data and alignments","href":"","params":[{"name":"data","type":"file","desc":"","default":""}],"returns":[{"name":"data","type":"file"}]}

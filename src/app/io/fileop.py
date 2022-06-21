@@ -191,14 +191,12 @@ class HadoopFileSystem():
         
         if self.isdir(path):
             data_json['nodes'] = [self.make_json_item(os.path.join(path, fn)) for fn in self.listdir(self.normalize_path(path))]
-            data_json['loaded'] = True
         return data_json
     
     def make_json_r(self, path):
         data_json = self.make_json_item(path)
         if self.isdir(path):
             data_json['nodes'] = [self.make_json_r(os.path.join(path, fn)) for fn in self.listdir(self.normalize_path(path))]
-            data_json['loaded'] = True
         return data_json
      
     def save_upload(self, file, path):       
@@ -498,7 +496,6 @@ class GalaxyFileSystem():
                     datasets = self.client.histories.show_matching_datasets(parts[GalaxyFileSystem.hlddKey])
                     data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in datasets]
             
-            data_json['loaded'] = True
             return data_json
     
     @staticmethod    
@@ -530,7 +527,6 @@ class GalaxyFileSystem():
                     datasets = self.client.histories.show_matching_datasets(parts[GalaxyFileSystem.hlddKey])
                     data_json['nodes'] = [self.make_json_item(os.path.join(path, fn['id'])) for fn in datasets]
                     
-            data_json['loaded'] = True
             return data_json
      
     def save_upload(self, file, path):

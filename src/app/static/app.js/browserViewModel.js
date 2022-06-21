@@ -286,6 +286,38 @@ function BrowserViewModel() {
                 }
             };
         }
+        else if (fileType == 'pdf') {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+            oReq.responseType = "arraybuffer";
+
+            oReq.send();
+            self.itemName(data.data);
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: "application/pdf" });
+                    itemSrc = URL.createObjectURL(blob);
+                    self.itemSrc(itemSrc);
+                }
+            };
+        }
+        else if (fileType == 'xml') {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
+            oReq.responseType = "xml";
+            
+            oReq.send();
+            self.itemName(data.itemName());
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: "application/xml" });
+                    itemSrc = URL.createObjectURL(blob);
+                    self.itemSrc(itemSrc);
+                }
+            };
+        }
         else {
             return;
         }
@@ -317,7 +349,7 @@ function BrowserViewModel() {
                 }
             };
         }
-        else if(fileType == 'htm' || fileType == 'html'){
+        else if(fileType == 'htm' || fileType == 'html' || fileType == 'xml'){
             var oReq = new XMLHttpRequest();
             oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
             oReq.responseType = "arraybuffer";

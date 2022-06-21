@@ -298,7 +298,31 @@ def contact():
 #         result = db.engine.execute(sql)
 #         return json.dumps([dict(r) for r in result], cls=AlchemyEncoder)
 
-def load_data_sources_biowl(recursive):
+def get_data_item_from_tree(root, parents):
+    if len(parents) == 1:
+        return root
+    for r in root['children']:
+        if r.text == parents[0]:
+            return get_data_item_from_tree(r, parents[1:])
+
+def load_child_data_sources(parent, recursive = False):
+    fs = Utility.fs_type_by_prefix_or_default(parent)
+
+    parents = os.path.split(parent)
+    parents = [p for p in parents if p]
+
+    datasource_tree = load_default_data_sources()
+    if fs.prefix not in datasource_tree.keys():
+        raise ValueError("Storage doesn't exist in the system.")
+
+    root = datasource_tree[fs.prefix]
+    if parents[0] == fs.prefix:
+        parents = parents[1:]
+
+    root = get_data_item_from_tree(root, parents)
+    return fs.make_json_item_r(parent[-1]) if recursive else fs.make_json_item(parent[-1])
+
+def load_default_data_sources():
      # construct data source tree
     datasources = datamanager.get_datasources(active = True)
     datasource_tree = []
@@ -309,7 +333,50 @@ def load_data_sources_biowl(recursive):
             fs = Utility.create_fs(ds)
             if not fs:
                 continue
-            datasource = fs.make_json_item(ds.url)# { 'path': ds.url, 'text': ds.name, 'type': 'folder', 'children': [], 'loaded': True}
+            datasource = fs.make_json_item(ds.url)# { 'path': ds.url, 'text': ds.name, 'type': 'folder', 'children': []}
+            if ds.user and current_user.is_authenticated:
+                user_folder = fs.join(ds.user, current_user.username)
+                if not fs.exists(user_folder):
+                    fs.makedirs(user_folder)
+                    
+                if fs.exists(user_folder):
+                    users_json = fs.make_json_item(ds.user)
+                    if 'children' in datasource.keys() and not isinstance(datasource['children'], list):
+                        datasource['children'] = [] # switch children from boolean to list
+                    datasource['children'].append(users_json)
+                    if 'children' in users_json.keys() and not isinstance(users_json['children'], list):
+                        users_json['children'] = [] # switch children from boolean to list
+                    users_json['children'].append(fs.make_json(user_folder))
+                        
+            if ds.public and fs.exists(ds.public):
+                if 'children' in datasource.keys() and not isinstance(datasource['children'], list):
+                    datasource['children'] = [] # switch children from boolean to list    
+                datasource['children'].append(fs.make_json(ds.public))
+
+            if ds.temp and not fs.exists(ds.temp):
+                fs.makedirs(ds.temp)
+
+            datasource_tree.append(datasource)
+        except Exception as e:
+            logging.error("Filesystem {0} load fails with error: {1}".format(ds.name, str(e)))
+        
+    return datasource_tree
+
+def load_data_sources_biowl(recursive):
+    if not recursive:
+        return load_default_data_sources()
+
+     # construct data source tree
+    datasources = datamanager.get_datasources(active = True)
+    datasource_tree = []
+    for ds in datasources:
+        try:
+            if ds.type != 'posix': # temporary code
+                continue
+            fs = Utility.create_fs(ds)
+            if not fs:
+                continue
+            datasource = fs.make_json_item(ds.url)# { 'path': ds.url, 'text': ds.name, 'type': 'folder', 'children': []}
             if ds.user and current_user.is_authenticated:
                 user_folder = fs.join(ds.user, current_user.username)
                 if not fs.exists(user_folder):
@@ -326,7 +393,6 @@ def load_data_sources_biowl(recursive):
             if ds.temp and not fs.exists(ds.temp):
                 fs.makedirs(ds.temp)
 
-            datasource["loaded"] = True
             datasource_tree.append(datasource)
         except Exception as e:
             logging.error("Filesystem {0} load fails with error: {1}".format(ds.name, str(e)))
@@ -639,7 +705,7 @@ def metadata():
 #         return json.dumps(load_metadataproperties())
 #     elif request.form.get('save'):
 #         return json.dumps(save_metadata(request))
-       
+
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
@@ -671,6 +737,8 @@ def datasources():
         elif request.args.get('load'):
             fs = Utility.fs_by_prefix_or_guess(request.args['load'])
             return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
+        elif 'children' in request.args:
+            return json.dumps(load_child_data_sources(request.args['children']))
             
         return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
     except Exception as e:

@@ -8,8 +8,7 @@
            "name":"NiCad",
            "internal":"run_nicad",
            "runmode": "local",
-           "desc": "Automated Detection of Near-Miss Intentional Clones",
-           "example":"output = NiCad(granularity='functions', language='java', srcdir='/public/nicad/srcdir', output='/public/nicad/outdir'])",
+           "desc": "Automated Detection of Near-Miss Intentional Clones. This tool will modify the parent of the source folder. Copy the source folder to a temporary folder and use it as data, if you do not want to modify its parent. For example, data = context.copyto(data, context.createoutdir(), '.git')",
            "params":[  
             {
                 "name": "data",
@@ -25,13 +24,13 @@
                 "name": "language",
                 "type": "string",
                "default": "java",
-               "description": "java|c|python"
+               "description": "java|c|python|php"
             }
             ],
             "returns":[
 				{
 					"name": "data",
-					"type": "folder"
+					"type": "file"
 				}
 			]         
        },
@@ -44,7 +43,6 @@
            "internal":"run_nicadcross",
            "runmode": "local",
            "desc": "Automated Detection of Near-Miss Intentional Clones. It does an cross-system test - that is, given two systems s1 and s2, it reports only clones of fragments of s1 in s2.  This is useful in incremental clone detection for new versions, or for detecting clones between two systems to be checked for cross-cloning.",
-           "example":"NiCadCross(granularity=, language=, srcdir1=, srcdir2=])",
            "params":[  
             {
                 "name": "data",
@@ -55,24 +53,493 @@
                 "type": "folder"
             },
             {  
-                "name":"granularity",
-                "type":"string",
-                "default": "functions",
-                "description": "functions|blocks"
-             },
-             {
-                 "name": "language",
-                 "type": "string",
-                "default": "java",
-                "description": "java|c|python"
-             }
+               "name":"granularity",
+               "type":"string",
+               "default": "functions",
+               "description": "functions|blocks"
+            },
+            {
+               "name": "language",
+               "type": "string",
+               "default": "java",
+               "description": "java|c|python|php"
+            }
             ],
             "returns":[
 				{
 					"name": "data",
-					"type": "folder"
+					"type": "file"
+				},
+                {
+					"name": "data",
+					"type": "file"
 				}
-			]
-       }
+			] 
+       },
+       {
+        "package": "nicad",
+        "name": "Extract",
+        "internal": "run_extract",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "folder",
+            "desc": ""
+          },
+          {
+            "name": "granularity",
+            "type": "string",
+            "desc": "functions|blocks",
+            "default": "'functions'"
+          },
+          {
+            "name": "language",
+            "type": "string",
+            "desc": "java|python|c|php",
+            "default": "'java'"
+          },
+          {
+            "name": "select",
+            "type": "string",
+            "desc": "",
+            "default": "''"
+          },
+          {
+            "name": "ignore",
+            "type": "string",
+            "desc": "",
+            "default": "'_NO_IGNORE_'"
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "Abstract",
+        "internal": "run_abstract",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+          },
+          {
+            "name": "granularity",
+            "type": "str",
+            "desc": "functions|blocks",
+            "default": "'functions'"
+          },
+          {
+            "name": "language",
+            "type": "str",
+            "desc": "java|cs|python|c|php",
+            "default": "'java'"
+          },
+          {
+            "name": "nonterminals",
+            "type": "str",
+            "desc": "",
+            "default": "'*'"
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "Filter",
+        "internal": "run_filter",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+          },
+          {
+            "name": "granularity",
+            "type": "str",
+            "desc": "functions|blocks",
+            "default": "'functions'"
+          },
+          {
+            "name": "language",
+            "type": "str",
+            "desc": "java|cs|python|c|php",
+            "default": "'java'"
+          },
+          {
+            "name": "nonterminals",
+            "type": "str",
+            "desc": "",
+            "default": "'*'"
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "Transform",
+        "internal": "run_transform",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+        {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+        },
+        {
+        "name": "granularity",
+        "type": "str",
+        "desc": "functions|blocks",
+        "default": "'functions'"
+        },
+        {
+        "name": "language",
+        "type": "str",
+        "desc": "java|cs|python|c|php",
+        "default": "'java'"
+        },
+        {
+            "name": "transform",
+            "type": "string",
+            "desc": "",
+            "default": "sort"
+        }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "Rename",
+        "internal": "run_rename",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+          },
+          {
+            "name": "granularity",
+            "type": "str",
+            "desc": "functions|blocks",
+            "default": "'functions'"
+          },
+          {
+            "name": "language",
+            "type": "str",
+            "desc": "java|cs|python|c|php",
+            "default": "'java'"
+          },
+          {
+            "name": "renaming",
+            "type": "str",
+            "desc": "blind|consistent",
+            "default": "'blind'"
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "Normalize",
+        "internal": "run_normalize",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+          },
+          {
+            "name": "granularity",
+            "type": "str",
+            "desc": "functions|blocks",
+            "default": "'functions'"
+          },
+          {
+            "name": "language",
+            "type": "str",
+            "desc": "java|cs|python|c|php",
+            "default": "'java'"
+          },
+          {
+            "name": "normalizer",
+            "type": "str",
+            "desc": "",
+            "default": "'java-normalize-ifconditions-functions'"
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "CleanAll",
+        "internal": "run_cleanall",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "folder",
+            "desc": ""
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "folder"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "FindClones",
+        "internal": "run_findclones",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+          },
+          {
+            "name": "threshold",
+            "type": "float",
+            "desc": ""
+          },
+          {
+            "name": "minclonesize",
+            "type": "int",
+            "desc": ""
+          },
+          {
+            "name": "maxclonesize",
+            "type": "int",
+            "desc": ""
+          },
+          {
+            "name": "showsource",
+            "desc": ""
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "FindClonePairs",
+        "internal": "run_findclonepairs",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+          },
+          {
+            "name": "threshold",
+            "type": "float",
+            "desc": ""
+          },
+          {
+            "name": "minclonesize",
+            "type": "int",
+            "desc": ""
+          },
+          {
+            "name": "maxclonesize",
+            "type": "int",
+            "desc": ""
+          },
+          {
+            "name": "showsource",
+            "desc": ""
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "ClusterPairs",
+        "internal": "run_clusterpairs",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "GetSource",
+        "internal": "run_getsource",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": ""
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "GetNormSource",
+        "internal": "run_getnormsource",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": "The extracted functions or blocks in xml"
+          },
+          {
+            "name": "data2",
+            "type": "file",
+            "desc": "The clones in xml"
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "MakePairHTML",
+        "internal": "run_makepairhtml",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": "Clone source file in xml."
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "package": "nicad",
+        "name": "SplitClasses",
+        "internal": "run_splitclasses",
+        "org": "",
+        "group": "",
+        "desc": "",
+        "href": "",
+        "params": [
+          {
+            "name": "data",
+            "type": "file",
+            "desc": "Clone source file in xml."
+          }
+        ],
+        "returns": [
+          {
+            "name": "data",
+            "type": "folder"
+          }
+        ]
+      }
    ]
 }

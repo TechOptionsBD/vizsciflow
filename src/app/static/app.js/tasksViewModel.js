@@ -1406,7 +1406,42 @@ function TasksViewModel() {
                 }
             };
         }
-        
+        else if (fileType == 'pdf') {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+            oReq.responseType = "arraybuffer";
+
+            oReq.send();
+            self.itemName(data.data);
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: "application/pdf" });
+                    itemSrc = URL.createObjectURL(blob);
+                    self.itemSrc(itemSrc);
+                    // self.showModal(data, itemSrc);
+                    $('.nav-tabs a[href="#outputtab"]').tab('show');
+                }
+            };
+        }
+        else if (fileType == 'xml') {
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+            oReq.responseType = "arraybuffer";
+
+            oReq.send();
+            self.itemName(data.data);
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: "application/xml" });
+                    itemSrc = URL.createObjectURL(blob);
+                    self.itemSrc(itemSrc);
+                    // self.showModal(data, itemSrc);
+                    $('.nav-tabs a[href="#outputtab"]').tab('show');
+                }
+            }
+        }
         else {
             fetch(self.dataSourcesURI + "?" + 'filecontent=' + data.data)
                 .then(resp => resp.blob())

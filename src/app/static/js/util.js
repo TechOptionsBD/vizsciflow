@@ -92,3 +92,11 @@ function activateTab(tab){
  	$('#reportid').text("Runnable Id: " + reportId.toString());
  }
  
+ function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}

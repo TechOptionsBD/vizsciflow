@@ -134,7 +134,6 @@ function DataSourceViewModel() {
                 if (item != null) {
                     item.text = data.text;
                     item.nodes = data.nodes;
-                    item.loaded = data.loaded;
 
                     ko.cleanNode($("#dataSourcesPanel")[0]);
                     ko.applyBindings(self, $("#dataSourcesPanel")[0]);
@@ -160,7 +159,6 @@ function DataSourceViewModel() {
                 if (item != null) {
                     item.text = data.text;
                     item.nodes = data.children;
-                    item.loaded = data.loaded;
                     for (var j = 0; j < item.nodes.length; ++j) {
                         var newAddedItem = self.getItemByPath(item.nodes[j], newAddedItemPath);
                         if (newAddedItem != null) {

@@ -43,6 +43,12 @@ RUN /home/.venv/bin/pip install --upgrade pip
 RUN /home/.venv/bin/pip install -r ./src/requirements/requirements.txt
 RUN /home/.venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
 
+# separate venv for pycoQC
+RUN python -m venv /home/.venvpycoqc
+RUN /home/.venvpycoqc/bin/pip install --upgrade pip
+RUN /home/.venvpycoqc/bin/pip install pycoQC
+
+
 RUN /home/.venv/bin/pip install gunicorn
 RUN /home/.venv/bin/pip install pysam
 

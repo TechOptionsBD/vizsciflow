@@ -81,6 +81,5 @@ redis==3.5.3
 coverage==5.5
 multiqc
 NanoPlot
-pycoQC
 cutadapt
 fastqe

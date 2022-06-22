@@ -1,3 +1,3 @@
 #!/bin/bash
-source /home/.venv/bin/activate
+source /home/.venvpycoqc/bin/activate
 pip install PycoQC --upgrade

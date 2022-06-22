@@ -191,7 +191,7 @@ class Library(LibraryBase):
         if 'file[]' in datatype or 'folder[]' in datatype:
             t = DataType.FileList if 'file[]' in datatype else DataType.FolderList
             result = Library.denormalize(context, datatype, result)
-            return t, [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)], name, [result]
+            return t, [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)], name, result if isiterable(result) else [result]
         elif 'file' in datatype or 'folder' in datatype:
             result = Library.denormalize(context, datatype, result)
             return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name, result

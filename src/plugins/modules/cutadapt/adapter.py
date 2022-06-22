@@ -13,10 +13,11 @@ def demo_service(context, *args, **kwargs):
 
     outdir = context.createoutdir()
     outputs = []
+    out = None
     if not data2:
         # single-end data
         output =  path.join(outdir, 'trimmed_' + path.basename(data))
-        _, err = context.pyvenv_run(thispath, 'cutadapt', '-j 6', data, cmdargs + " -o " + output)
+        out, err = context.pyvenv_run(thispath, 'cutadapt', '-j 6', data, cmdargs + " -o " + output)
         outputs.append(output)
     else:
         # paired-end data
@@ -34,11 +35,12 @@ def demo_service(context, *args, **kwargs):
     if not path.exists(outputs[0]):
         raise ValueError("CutAdapt could not generate the result file: " + err)
 
-    report = path.join(outdir, Path(data).stem + '_report.html')
-   
-    text = '<html><pre>' + context.denormalize(outputs[0]) + '</pre></html>'
-    with open(report,"w") as file:
-        file.write(text)
+    if out:
+        report = path.join(outdir, Path(data).stem + '_report.html')
 
-    outputs.append(report)
+        text = '<html><pre>' + out + '</pre></html>'
+        with open(report,"w") as file:
+            file.write(text)
+        outputs.append(report)
+
     return outputs

@@ -2,7 +2,12 @@ from os import path
 thispath = path.dirname(__file__)
 
 def demo_service(context, *args, **kwargs):
-	output = context.createoutdir()
-	context.pyvenv_run(thispath, 'multiqc', ' '.join([context.normalize(arg) for arg in args]), "-o " + output)
+	arguments = context.parse_args('MultiQC', 'fastqc', *args, **kwargs)
+	outdir = context.createoutdir()
+	context.pyvenv_run(thispath, 'multiqc', ' '.join(arguments['data']), "-o " + outdir)
 	
-	return context.denormalize(output + '/multiqc_report.html')
+	output = path.join(outdir, 'multiqc_report.html')
+	if not path.exists(output):
+		raise ValueError("MultiQC could not generate the result file")
+
+	return output

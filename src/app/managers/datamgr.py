@@ -55,6 +55,10 @@ class DataManager():
                         paramType = DataType.File
                     elif 'folder' in paramType:
                         paramType = DataType.Folder
+                    if 'file[]' in paramType:
+                        paramType = DataType.FileList
+                    elif 'folder[]' in paramType:
+                        paramType = DataType.FolderList
                 
                 module.add_arg(paramType, args[i])
                
@@ -71,6 +75,12 @@ class DataManager():
                         paramType = DataType.File
                     elif 'folder' in paramType:
                         paramType = DataType.Folder
+                    elif 'folder' in paramType:
+                        paramType = DataType.Folder
+                    elif 'file[]' in paramType:
+                        paramType = DataType.FileList
+                    elif 'folder[]' in paramType:
+                        paramType = DataType.FolderList
                     elif any(item in known_types.keys() for item in paramType):
                         paramType = DataType.Value
                     else:

@@ -75,14 +75,13 @@ class Library(LibraryBase):
     @staticmethod
     def normalize(context, paramType, arg):
         paramType = paramType.lower()
-        arg = str(arg)
         if paramType == 'file' or paramType == 'folder' or paramType == 'file|folder'  or paramType == 'folder|file':
-            return context.normalize(arg)
+            return context.normalize(str(arg))
         elif paramType == 'file[]' or paramType == 'folder[]' or paramType == 'file[]|folder[]' or paramType == 'file[]|folder[]':
             if isiterable(arg):
-                return [context.normalize(a) for a in arg]
+                return [context.normalize(str(a)) for a in arg]
             else:
-                return [context.normalize(arg)]
+                return [context.normalize(str(arg))]
     
     @staticmethod
     def denormalize(context, paramType, arg):

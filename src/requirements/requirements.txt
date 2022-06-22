@@ -79,3 +79,8 @@ WTForms==2.3.3
 xmltodict==0.12.0
 redis==3.5.3
 coverage==5.5
+multiqc
+NanoPlot
+pycoQC
+cutadapt
+fastqe

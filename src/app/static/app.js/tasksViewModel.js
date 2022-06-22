@@ -1320,12 +1320,12 @@ function TasksViewModel() {
                         break;
                     case 1024: //fileList
                         element.data.forEach(ele => {
-                            self.pushLogData(ele, 1024);
+                            self.pushLogData(ele, 2);
                         });
                         break;
                     case 2048: //folderlist
                         element.data.forEach(ele => {
-                            self.pushLogData(ele, 2048);
+                            self.pushLogData(ele, 1);
                         });
                         break;
                     case 4096: //value type

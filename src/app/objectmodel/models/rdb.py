@@ -1318,7 +1318,10 @@ class Task(db.Model):
         data = []#[{ "datatype": data.value["valuetype"], "data": data.value["value"]} for data in self.outputs]
         for output in self.outputs:
             dataitem = Data.query.get(output.data_id)
-            data.append({ "datatype": dataitem.value["type"], "data": dataitem.value["value"]})
+            datavalue = dataitem.value["value"]
+            if int(dataitem.value["type"]) == DataType.FileList or int(dataitem.value["type"]) == DataType.FolderList:
+                datavalue = datavalue.strip('][').split(', ')
+            data.append({ "datatype": dataitem.value["type"], "data": datavalue})
             
         log = { 
             'name': self.name,

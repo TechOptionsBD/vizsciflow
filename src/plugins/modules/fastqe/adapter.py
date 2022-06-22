@@ -1,11 +1,19 @@
 from os import path
+from pathlib import Path
+
 thispath = path.dirname(__file__)
 
 def demo_service(context, *args, **kwargs):
-    outdir = context.createoutdir()
-    output = path.join(outdir, args[0].split("/")[-1].split('.')[0]+ '_fastqe.html')
-    context.pyvenv_run(thispath, 'fastqe', args[0] + ' --min --max --output=' + output)
     
+    arguments = context.parse_args('FastQE', 'fastqc', *args, **kwargs)
+    
+    outdir = context.createoutdir()
+    output = path.join(outdir, Path(arguments['data']).stem + "_fastqe.html")
+    _, err = context.pyvenv_run(thispath, 'fastqe', arguments['data'] + ' --min --max --output=' + output)
+    
+    if not path.exists(output):
+        raise ValueError("FastQE could not generate the result file: " + err)
+
     f = open(output, 'r+')
     emoji = f.read()
    

@@ -1,1 +1,29 @@
-{"package":"redotable","name":"reDOTable","internal":"demo_service","org":"","group":"","desc":"","href":"","params":[{"name":"x_seq","type":"file","desc":"","default":""},{"name":"y_seq","type":"file","desc":"","default":""}],"returns":[{"name":"map","type":"file"}]}
+{
+    "package":"redotable",
+    "name":"reDOTable",
+    "internal":"demo_service",
+    "org":"",
+    "group":"",
+    "desc":"",
+    "href":"",
+    "params":[
+       {
+          "name":"x_seq",
+          "type":"file",
+          "desc":"",
+          "default":""
+       },
+       {
+          "name":"y_seq",
+          "type":"file",
+          "desc":"",
+          "default":""
+       }
+    ],
+    "returns":[
+       {
+          "name":"map",
+          "type":"file"
+       }
+    ]
+ }

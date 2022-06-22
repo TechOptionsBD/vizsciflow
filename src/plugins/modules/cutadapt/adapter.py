@@ -1,16 +1,23 @@
 from os import path
+from pathlib import Path
+
 thispath = path.dirname(__file__)
 
 def demo_service(context, *args, **kwargs):
-   
-    cmdargs = " ".join(["-{0[0]} {1}".format(pair[0], str(pair[1])) for pair in kwargs.items()])
+    arguments = context.parse_args('CutAdapt', 'cutadapt', *args, **kwargs)
+
+    data = arguments.pop('data')
+    data2 = arguments.pop('data2') if 'data2' in arguments else ''
+
+    cmdargs = " ".join(["-{0[0]} {1}".format(pair[0], str(pair[1])) for pair in arguments.items()])
 
     outdir = context.createoutdir()
-    if len(args) < 2:
+    outputs = []
+    if not data2:
         # single-end data
-        output =  path.join(outdir, 'trimmed_' + args[0].split('/')[-1])
-        out, err = context.pyvenv_run(thispath, 'cutadapt -j 6', context.normalize(args[0]), cmdargs + " -o " + output)
-   
+        output =  path.join(outdir, 'trimmed_' + path.basename(data))
+        _, err = context.pyvenv_run(thispath, 'cutadapt', '-j 6', data, cmdargs + " -o " + output)
+        outputs.append(output)
     else:
         # paired-end data
 
@@ -20,14 +27,18 @@ def demo_service(context, *args, **kwargs):
         # Read 2 with the trimmed and filtered reverse reads
         out2 = path.join(outdir, 'out2.fastq')
        
-        out, err = context.pyvenv_run(thispath, 'cutadapt -j 6', context.normalize(args[0]) + " " + context.normalize(args[1]), cmdargs + " -o " + out1 + " -p " + out2)
-        output = out1
+        out, err = context.pyvenv_run(thispath, 'cutadapt', '-j 6', data + " " + data2, cmdargs + " -o " + out1 + " -p " + out2)
+        outputs.append(out1)
+        outputs.append(out2)
     
-    report = context.gettempdir() + '/' + args[0].split("/")[-1].split('.')[0]+ '_report.html'
-   
-    text = '<html><pre>' + context.denormalize(out) + '</pre></html>'
-    file = open(report,"w")
-    file.write(text)
-    file.close()
+    if not path.exists(outputs[0]):
+        raise ValueError("CutAdapt could not generate the result file: " + err)
 
-    return output, report
+    report = path.join(outdir, Path(data).stem + '_report.html')
+   
+    text = '<html><pre>' + context.denormalize(outputs[0]) + '</pre></html>'
+    with open(report,"w") as file:
+        file.write(text)
+
+    outputs.append(report)
+    return outputs

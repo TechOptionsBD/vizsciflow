@@ -1,3 +1,19 @@
+addLink = function(val){
+	return $('<a />', {
+		'href': 'javascript:void(0)',
+		'text': val.data
+	}).on('click', function() {
+		if ((parseInt(val.datatype) & 0x02) == 0 && (parseInt(val.datatype) & 0x400) == 0) {
+			$.redirect('/datasources', { 'download': val.data }, "POST", "_blank");
+		}
+		else {
+			// var w = window.open();
+			// $(w.document.body).text(val['data']);
+			tasksViewModel.openInDetailsView(val)
+		}
+	});
+}
+
 jsonArray2Table = function(table, jsonArr) {
 	$.each(jsonArr, function (index, value) {
         var row = $('<tr></tr>');
@@ -13,26 +29,21 @@ jsonArray2Table = function(table, jsonArr) {
 			data = [data];
 		}
 		var added = false;
-    	$.each(data, function (key, val) {		
-            var link =  $('<a />', {
-                'href': 'javascript:void(0)',
-				'text': val['data']
-			}).on('click', function() {
-				if ((parseInt(value['datatype']) & 0x02) != 0 || (parseInt(value['datatype']) & 0x400) != 0) {
-					$.redirect('/datasources', { 'download': val['data'] }, "POST", "_blank");
-				}
-				else {
-					// var w = window.open();
-					// $(w.document.body).text(val['data']);
-					tasksViewModel.openInDetailsView(val)
-				}
-            });
-            
-			if (added)
-				cell.append("<br/><br/>");
+    	$.each(data, function (key, val) {
+			datavals = val.data;
+            if (!Array.isArray(datavals)) {
+				datavals = [datavals];
+			}
+
+			$.each(datavals, function (key, dataval) {
+				let linkval = { 'data': dataval, 'datatype': 0x02};
+				link = addLink(linkval);
+				if (added)
+					cell.append("<br/><br/>");
 				
-            cell.append(link);
-			added = true;
+	            cell.append(link);
+				added = true;
+			});
 		});
         row.append(cell);
         

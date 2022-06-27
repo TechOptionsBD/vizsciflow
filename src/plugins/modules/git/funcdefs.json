@@ -14,7 +14,7 @@
 	  },
 	  {
 		"name": "data",
-		"type": "str",
+		"type": "folder",
 		"desc": "The local path"
 	  }
 	],

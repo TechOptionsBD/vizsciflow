@@ -17,13 +17,13 @@
             {  
                "name":"granularity",
                "type":"string",
-               "default": "functions",
+               "default": "'functions'",
                "description": "functions|blocks"
             },
             {
                 "name": "language",
                 "type": "string",
-               "default": "java",
+               "default": "'java'",
                "description": "java|c|python|php"
             }
             ],
@@ -55,13 +55,13 @@
             {  
                "name":"granularity",
                "type":"string",
-               "default": "functions",
+               "default": "'functions'",
                "description": "functions|blocks"
             },
             {
                "name": "language",
                "type": "string",
-               "default": "java",
+               "default": "'java'",
                "description": "java|c|python|php"
             }
             ],

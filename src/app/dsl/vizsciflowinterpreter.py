@@ -59,7 +59,7 @@ class VizSciFlowContext(Context):
     def addenvpath(path):
         envpaths = os.environ["PATH"]
         if not path in envpaths: # Mainul: may need to check if it ends the envpaths (if it's base of some subdir) or end with :
-            os.environ["PATH"] = envpaths + os.pathsep + path
+            os.environ["PATH"] =  path + os.pathsep + envpaths
         return os.environ["PATH"]
 
     def createoutdir(self, outname = None):

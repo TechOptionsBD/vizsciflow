@@ -91,3 +91,7 @@ def raw_extract(context, *args, **kwargs):
         raise ValueError("Extract could not generate the file " + stripped_html_path)
 
     return outpath
+
+def raw_joinpath(context, *args, **kwargs):
+    fs = Utility.fs_by_prefix_or_guess(args[0])
+    return fs.join(args[0], args[1])

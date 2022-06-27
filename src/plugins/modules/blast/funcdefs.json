@@ -4,7 +4,7 @@
 			"org": "srlab",
 			"package": "blast",
 			"group": "Alignment",
-			"name": "SearchN",
+			"name": "BlastN",
 			"internal": "run_blastn",
 			"desc": "Search DNA sequence against a database.",
 			"href": "services.html#BlastN",
@@ -15,17 +15,48 @@
 					"type": "file"
 				}
 			],
-			"example": "data = blast.SearchN(data)",
 			"params": [
 				{
 					"name": "data",
 					"type": "file",
-					"desc": "Sequences to search for."
+					"desc": "Sequences to search for.",
+					"default": ""
 				},
 				{
 					"name": "db",
 					"type": "string",
-					"desc": "Database to search into."
+					"desc": "Database to search into.",
+					"default": ""
+				}
+			]
+		},
+		{
+			"org": "srlab",
+			"package": "blast",
+			"group": "Alignment",
+			"name": "BlastP",
+			"internal": "run_blastp",
+			"desc": "Search DNA sequence against a database.",
+			"href": "services.html#BlastP",
+			"public": true,
+			"returns": [
+				{
+					"name": "data",
+					"type": "file"
+				}
+			],
+			"params": [
+				{
+					"name": "data",
+					"type": "file",
+					"desc": "Sequences to search for.",
+					"default": ""
+				},
+				{
+					"name": "db",
+					"type": "string",
+					"desc": "Database to search into.",
+					"default": ""
 				}
 			]
 		}

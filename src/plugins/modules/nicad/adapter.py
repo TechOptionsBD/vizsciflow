@@ -3,12 +3,13 @@ from os import path, rename
 from pathlib import Path
 
 thispath = path.abspath(path.dirname(__file__))
-nicaddirname = 'NiCad-6.2'
+nicaddirname = 'bin'
 nicad = path.join(thispath, nicaddirname, 'nicad6')
 nicadcross = path.join(thispath, nicaddirname, 'nicad6cross')
 
 def get_txldir(context):
-    txldir = context.gettoolsdir('txl')
+    txldir = path.join(context.gettoolsdir('nicad'), 'txl', 'bin')
+    #txldir =  context.gettoolsdir('txl')
     if not txldir:
         raise ValueError("NiCad needs TXL. But it is not installed. Please install TXL first.")
     return txldir

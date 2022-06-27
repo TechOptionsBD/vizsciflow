@@ -1,19 +1,29 @@
 from os import path
 from pathlib import Path
-blastn = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'blastn'))
-            
+
+def run_blast(blast, context, *args, **kwargs):
+    arguments = context.parse_args('BlastN', 'blast', *args, **kwargs)
+
+    cmdargs = ["-db", arguments['db'], "-query", arguments['query']]
+
+    out, err = context.exec_run(blast, *cmdargs)
+
+    if out:
+        report = path.join(context.createoutdir(), "{0}-{1}.{2}".format(Path(arguments['query']).stem, Path(arguments['db']).stem, 'protein-protein.blast.html'))
+
+        text = '<html><pre>' + out + '</pre></html>'
+        with open(report, "w") as file:
+            file.write(text)
+   
+        return report
+    
+    else:
+        raise ValueError("Blast didn't run successfully:" + err)
+
 def run_blastn(context, *args, **kwargs):
-           
-    paramindex, data, fs = context.getdataarg(0, 'data', *args, **kwargs)
-    _, db, _ = context.getdataarg(paramindex, 'db', *args, **kwargs)
+    blastn = path.join(context.getnormdir(__file__), 'bin', 'blastn')
+    return run_blast(blastn, context, *args, **kwargs)
 
-    outpath = context.createoutdir()
-        
-    cmdargs = ["-query", data, "-db", Path(db).stem, "-out", outpath]
-    _,err = context.exec_run(blastn, *cmdargs, cwd=path.dirname(db))
-
-    stripped_html_path = fs.strip_root(outpath)
-    if not fs.exists(outpath):
-        raise ValueError("Blast could not generate the file " + stripped_html_path + " due to error " + err)
-
-    return outpath
+def run_blastp(context, *args, **kwargs):
+    blastp = path.join(context.getnormdir(__file__), 'bin', 'blastp')
+    return run_blast(blastp, context, *args, **kwargs)

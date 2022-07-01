@@ -3,7 +3,7 @@
        {
            "org": "srlab",
            "package": "nicad",
-           "group": "clonecheck",
+           "group": "Software Analytics",
            "level": 0,
            "name":"NiCad",
            "internal":"run_nicad",
@@ -16,13 +16,13 @@
             },
             {  
                "name":"granularity",
-               "type":"string",
+               "type":"str",
                "default": "'functions'",
                "description": "functions|blocks"
             },
             {
                 "name": "language",
-                "type": "string",
+                "type": "str",
                "default": "'java'",
                "description": "java|c|python|php"
             }
@@ -37,7 +37,7 @@
        {
            "org": "srlab",
            "package": "nicad",
-           "group": "clonecheck",
+           "group": "Software Analytics",
            "level": 0,
            "name":"NiCadCross",
            "internal":"run_nicadcross",
@@ -54,13 +54,13 @@
             },
             {  
                "name":"granularity",
-               "type":"string",
+               "type":"str",
                "default": "'functions'",
                "description": "functions|blocks"
             },
             {
                "name": "language",
-               "type": "string",
+               "type": "str",
                "default": "'java'",
                "description": "java|c|python|php"
             }
@@ -81,7 +81,7 @@
         "name": "Extract",
         "internal": "run_extract",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -92,25 +92,25 @@
           },
           {
             "name": "granularity",
-            "type": "string",
+            "type": "str",
             "desc": "functions|blocks",
             "default": "'functions'"
           },
           {
             "name": "language",
-            "type": "string",
+            "type": "str",
             "desc": "java|python|c|php",
             "default": "'java'"
           },
           {
             "name": "select",
-            "type": "string",
+            "type": "str",
             "desc": "",
             "default": "''"
           },
           {
             "name": "ignore",
-            "type": "string",
+            "type": "str",
             "desc": "",
             "default": "'_NO_IGNORE_'"
           }
@@ -127,7 +127,7 @@
         "name": "Abstract",
         "internal": "run_abstract",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -167,7 +167,7 @@
         "name": "Filter",
         "internal": "run_filter",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -207,7 +207,7 @@
         "name": "Transform",
         "internal": "run_transform",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -230,9 +230,9 @@
         },
         {
             "name": "transform",
-            "type": "string",
+            "type": "str",
             "desc": "",
-            "default": "sort"
+            "default": "'sort'"
         }
         ],
         "returns": [
@@ -247,7 +247,7 @@
         "name": "Rename",
         "internal": "run_rename",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -287,7 +287,7 @@
         "name": "Normalize",
         "internal": "run_normalize",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -327,7 +327,7 @@
         "name": "CleanAll",
         "internal": "run_cleanall",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -349,7 +349,7 @@
         "name": "FindClones",
         "internal": "run_findclones",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -390,7 +390,7 @@
         "name": "FindClonePairs",
         "internal": "run_findclonepairs",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -402,21 +402,26 @@
           {
             "name": "threshold",
             "type": "float",
-            "desc": ""
+            "desc": "",
+            "default": "0.0"
           },
           {
             "name": "minclonesize",
             "type": "int",
-            "desc": ""
+            "desc": "",
+            "default": "3"
           },
           {
             "name": "maxclonesize",
             "type": "int",
-            "desc": ""
+            "desc": "",
+            "default": "2000"
           },
           {
             "name": "showsource",
-            "desc": ""
+            "type": "str",
+            "desc": "",
+            "default": "'showsource'" 
           }
         ],
         "returns": [
@@ -431,7 +436,7 @@
         "name": "ClusterPairs",
         "internal": "run_clusterpairs",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -453,7 +458,7 @@
         "name": "GetSource",
         "internal": "run_getsource",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -475,7 +480,7 @@
         "name": "GetNormSource",
         "internal": "run_getnormsource",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -502,7 +507,7 @@
         "name": "MakePairHTML",
         "internal": "run_makepairhtml",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [
@@ -524,7 +529,7 @@
         "name": "SplitClasses",
         "internal": "run_splitclasses",
         "org": "",
-        "group": "",
+        "group": "Software Analytics",
         "desc": "",
         "href": "",
         "params": [

@@ -1,0 +1,72 @@
+{
+    "functions": [
+	{
+		"package": "nicad",
+		"name": "ValidateClone",
+		"internal": "run_validateclone",
+		"org": "srlab",
+		"group": "",
+		"desc": "",
+		"href": "",
+		"params": [
+		{
+			"name": "data",
+			"type": "file",
+			"desc": "The clone file"
+		},
+		{
+			"name": "model",
+			"type": "file",
+			"desc": "Trained neural network."
+		},
+		{
+			"name": "threshold",
+			"type": "float",
+			"desc": "The validation threshold.",
+			"default": 0.5
+		}
+		],
+		"returns": [
+		{
+			"name": "data",
+			"type": "file",
+			"desc": "The validation statistics."
+		}
+		]
+  	},
+	  {
+		"package": "nicad",
+		"name": "ValidateCloneManually",
+		"internal": "run_validateclonemanually",
+		"org": "srlab",
+		"group": "",
+		"desc": "",
+		"href": "",
+		"params": [
+		{
+			"name": "data",
+			"type": "file",
+			"desc": "The clone file"
+		},
+		{
+			"name": "model",
+			"type": "file",
+			"desc": "Trained neural network."
+		},
+		{
+			"name": "threshold",
+			"type": "float",
+			"desc": "The validation threshold.",
+			"default": 0.5
+		}
+		],
+		"returns": [
+		{
+			"name": "data",
+			"type": "file",
+			"desc": "The validation statistics."
+		}
+		]
+  	}
+]
+}

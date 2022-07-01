@@ -1,6 +1,7 @@
 import os
 from os import path, rename
 from pathlib import Path
+from app.util import Utility
 
 thispath = path.abspath(path.dirname(__file__))
 nicaddirname = 'bin'
@@ -61,15 +62,43 @@ def run_extract(context, *args, **kwargs):
     arguments = context.parse_args('extract', 'nicad', *args, **kwargs)
 
     cmdargs = [arguments['granularity'], arguments['language'], arguments['data']]
-    if 'select' in arguments.keys():
+    if 'select' in arguments.keys() and arguments['select']:
         cmdargs.append(arguments['select'])
     if 'ignore' in arguments.keys():
-        if 'select' not in arguments.keys():
-            cmdargs.append("''")
+        # if 'select' not in arguments.keys():
+        #     cmdargs.append("''")
         cmdargs.append(arguments['ignore'])
 
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+
+    if Utility.ValueOrNone(err) >= 99:
+        raise ValueError("ERROR: Extraction failed, code {0}".format(err))
+
     return get_output(arguments['data'], get_gransuffix(arguments['granularity']), out)
+
+def run_transform(context, *args, **kwargs):
+    script = get_scriptpath(context, 'Transform')
+
+    arguments = context.parse_args('transform', 'nicad', *args, **kwargs)
+    cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['transform']]
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Transformation failed, code {0}".format(err))
+
+    return get_output(arguments['data'], '-transform.xml', out)
+
+def run_rename(context, *args, **kwargs):
+
+    script = get_scriptpath(context, 'Rename')
+
+    arguments = context.parse_args('rename', 'nicad', *args, **kwargs)
+    cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['renaming']]
+    
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Renaming failed, code {0}".format(err))
+
+    return get_output(arguments['data'], '-{0}.xml'.format(arguments['renaming']), out)
 
 def run_filter(context, *args, **kwargs):
 
@@ -80,16 +109,11 @@ def run_filter(context, *args, **kwargs):
     if 'nonterminals' in arguments.keys():
         cmdargs.append(arguments['nonterminals'])
     
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Failed failed, code {0}".format(err))
+
     return get_output(arguments['data'], '-filter.xml', out)
-
-def run_transform(context, *args, **kwargs):
-    script = get_scriptpath(context, 'Filter')
-
-    arguments = context.parse_args('transform', 'nicad', *args, **kwargs)
-    cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['transform']]
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
-    return get_output(arguments['data'], '-transform.xml', out)
 
 def run_abstract(context, *args, **kwargs):
     script = get_scriptpath(context, 'Abstract')
@@ -99,28 +123,24 @@ def run_abstract(context, *args, **kwargs):
     if 'nonterminals' in arguments.keys():
         cmdargs.append(arguments['nonterminals'])
     
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Abstraction failed, code {0}".format(err))
+
     return get_output(arguments['data'], '-abstract.xml', out)
 
-def run_rename(context, *args, **kwargs):
-
-    script = get_scriptpath(context, 'Rename')
-
-    arguments = context.parse_args('rename', 'nicad', *args, **kwargs)
-    cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['renaming']]
-    
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
-    return get_output(arguments['data'], '-renaming.xml', out)
-
-#TODO
-def run_normalizer(context, *args, **kwargs):
+def run_normalize(context, *args, **kwargs):
 
     script = get_scriptpath(context, 'Normalize')
 
     arguments = context.parse_args('normalize', 'nicad', *args, **kwargs)
     cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['normalizer']]
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Normalization failed, code {0}".format(err))
+
     return get_output(arguments['data'], '-normalized.xml', out)
+
 
 def run_cleanall(context, *args, **kwargs):
 
@@ -130,29 +150,6 @@ def run_cleanall(context, *args, **kwargs):
     cmdargs = [arguments['data']]
     context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
     return arguments['data']
-
-def run_findclones(context, *args, **kwargs):
-
-    script = get_scriptpath(context, 'FindClones')
-
-    arguments = context.parse_args('findclones', 'nicad', *args, **kwargs)
-    cmdargs = [arguments['data'], arguments['threshold']]
-    
-    if 'minclonesize' in arguments.keys():
-        cmdargs.append(arguments['minclonesize'])
-
-    if 'maxclonesize' in arguments.keys():
-        cmdargs.append(arguments['maxclonesize'])
-    
-    if 'showsource' in arguments.keys():
-        cmdargs.append(arguments['showsource'])
-
-    context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
-    
-    resultdir = Path(arguments['data']).stem + '-clones' # output saved into this folder
-    #os.makedirs(resultdir)
-    outname = resultdir + '-' + str(arguments['threshold']) + '.xml'
-    return path.join(resultdir, outname)
 
 def run_findclonepairs(context, *args, **kwargs):
 
@@ -170,7 +167,10 @@ def run_findclonepairs(context, *args, **kwargs):
     if 'showsource' in arguments.keys():
         cmdargs.append(arguments['showsource'])
 
-    context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Clone analysis failed, code {0}".format(err))
+
     resultdir = Path(arguments['data']).stem + '-clones' # output saved into this folder
     #os.makedirs(resultdir)
     outname = resultdir + '-' + str(arguments['threshold']) + '.xml'
@@ -183,7 +183,10 @@ def run_clusterpairs(context, *args, **kwargs):
     arguments = context.parse_args('clusterpairs', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
 
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Clustering failed, code {0}".format(err))
+
     return get_output(arguments['data'], '-classes.xml', out)
 
 def run_getsource(context, *args, **kwargs):
@@ -192,7 +195,10 @@ def run_getsource(context, *args, **kwargs):
     arguments = context.parse_args('getsource', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
     
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Get sources failed, code {0}".format(err))
+
     return get_output(arguments['data'], '-withsource.xml', out)
 
 def run_getnormsource(context, *args, **kwargs):
@@ -201,7 +207,9 @@ def run_getnormsource(context, *args, **kwargs):
 
     arguments = context.parse_args('getnormsource', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data'], arguments['data2']]
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Get normalized sources failed, code {0}".format(err))
     return get_output(arguments['data'], '-normsource.xml', out)
 
 def run_makepairhtml(context, *args, **kwargs):
@@ -209,7 +217,9 @@ def run_makepairhtml(context, *args, **kwargs):
     script = get_scriptpath(context, 'MakePairHTML')
     arguments = context.parse_args('makepairhtml', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Get Make HTML failed, code {0}".format(err))
     return get_output(arguments['data'], '.html', out)
 
 def run_splitclasses(context, *args, **kwargs):
@@ -219,5 +229,32 @@ def run_splitclasses(context, *args, **kwargs):
     arguments = context.parse_args('splitclasses', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
     
-    out, _ = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Get Make HTML failed, code {0}".format(err))
     return get_output(arguments['data'], '', out)
+
+def run_findclones(context, *args, **kwargs):
+
+    script = get_scriptpath(context, 'FindClones')
+
+    arguments = context.parse_args('findclones', 'nicad', *args, **kwargs)
+    cmdargs = [arguments['data'], arguments['threshold']]
+    
+    if 'minclonesize' in arguments.keys():
+        cmdargs.append(arguments['minclonesize'])
+
+    if 'maxclonesize' in arguments.keys():
+        cmdargs.append(arguments['maxclonesize'])
+    
+    if 'showsource' in arguments.keys():
+        cmdargs.append(arguments['showsource'])
+
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    if Utility.ValueOrNone(err) != 0:
+        raise ValueError("ERROR: Find clones failed, code {0}".format(err))
+
+    resultdir = Path(arguments['data']).stem + '-clones' # output saved into this folder
+    #os.makedirs(resultdir)
+    outname = resultdir + '-' + str(arguments['threshold']) + '.xml'
+    return path.join(resultdir, outname)

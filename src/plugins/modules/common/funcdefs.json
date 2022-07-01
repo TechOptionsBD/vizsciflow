@@ -21,7 +21,7 @@
            "group": "system",
            "name":"len",
            "internal":"raw_len",
-           "desc": "Gets length of a list or string.",
+           "desc": "Gets length of a list or str.",
            "returns": 
               {
                  "name": "data",
@@ -31,7 +31,7 @@
            "params":[  
             {  
                "name":"data",
-               "type":"string|list"
+               "type":"str|list"
             }            
             ]
        },
@@ -211,7 +211,7 @@
             "returns":
                {
                   "name": "data",
-                  "type": "string"
+                  "type": "str"
                },
            "example": "data = basename(data)"
        },
@@ -251,7 +251,7 @@
             "returns": [
                {
                   "name": "data",
-                  "type": "string"
+                  "type": "str"
                }
             ],
            "example": "datatype = GetDataType(data)"

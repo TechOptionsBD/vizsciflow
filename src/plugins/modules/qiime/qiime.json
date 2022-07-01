@@ -8,7 +8,6 @@
 			"internal": "run_qiime_demux_single",
 			"runmode": "local",
 			"desc": "Demultiplex any number of single-end FASTA or a FASTQ files based on a list of barcodes.",
-			"returns": "file",
 			"example": "data = qiime.DemuxSingle(data, barcode, barcodeCol)",
 			"example2": "data = qiime.DemuxSingle(data, barcode='', barcodeCol='', output='')",
 			"params": [				
@@ -22,9 +21,14 @@
 				},
 				{
 					"name": "barcodeCol",
-					"type": "string"
+					"type": "str"
 				}
-			]
+			],
+            "returns": 
+            {
+                "name": "data",
+                "type": "file"
+            }
 		},
 		{
 			"org": "srlab",
@@ -34,7 +38,6 @@
 			"internal": "run_qiime_demux_summarize",
 			"runmode": "local",
 			"desc": "Generates a summary of the demultiplexing results.",
-			"returns": "file",
 			"example": "visual = qiime.DemuxSummarize(data)",
 			"example2": "visual = qiime.DemuxSummarize(data, output='')",
 			"params": [				
@@ -42,7 +45,12 @@
 					"name": "data",
 					"type": "file"
 				}
-			]
+			],
+            "returns": 
+            {
+                "name": "data",
+                "type": "file"
+            }
 		},
 		{
 			"org": "srlab",
@@ -52,7 +60,6 @@
 			"internal": "run_qiime_dada2_denoise_single",
 			"runmode": "local",
 			"desc": "Detects and corrects Illumina amplicon sequence data.",
-			"returns": "file",
 			"example": "data = qiime.Dada2DenoiseSingle(data, trimleft=0, trunclen=120)",
 			"example2": "data = qiime.Dada2DenoiseSingle(data, trimleft=0, trunclen=120, repseqs='', table='', stats='')",
 			"params": [				
@@ -68,7 +75,12 @@
 					"name": "trunclen",
 					"type": "int"
 				}
-			]
+			],
+            "returns": 
+            {
+                "name": "data",
+                "type": "file"
+            }
 		},
 		{
 			"org": "srlab",
@@ -78,7 +90,6 @@
 			"internal": "run_qiime_deblur_denoise_16s",
 			"runmode": "local",
 			"desc": "Detects and corrects Illumina amplicon sequence data.",
-			"returns": "file[seqs,table,stats]",
 			"example": "dataList = qiime.DeblurDenoise16S(data, trimlen=120)",
 			"example2": "data = qiime.DeblurDenoise16S(data, trimlen=120, repseqs='', table='', stats='')",
 			"params": [				
@@ -90,6 +101,12 @@
 					"name": "trimlen",
 					"type": "int"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file[]"
+            }
 			]
 		},
 		{
@@ -100,7 +117,6 @@
 			"internal": "run_qiime_quality_qscore",
 			"runmode": "local",
 			"desc": "Applies a quality filtering process based on quality score.",
-			"returns": "file[seqs, stats]",
 			"example": "dataList = qiime.FilterQScore(data)",
 			"example2": "dataList = qiime.FilterQScore(data, repseqs='', stats='')",
 			"params": [				
@@ -108,6 +124,12 @@
 					"name": "data",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file[]"
+            }
 			]
 		},
 		{
@@ -118,7 +140,6 @@
 			"internal": "run_qiime_metadata_tabulate",
 			"runmode": "local",
 			"desc": "Generate visualization for summary statistics.",
-			"returns": "file",
 			"example": "visual = qiime.MetadataTabulate(data)",
 			"example2": "visual = qiime.MetadataTabulate(data)",
 			"params": [				
@@ -126,6 +147,12 @@
 					"name": "data",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -136,7 +163,6 @@
 			"internal": "run_qiime_deblur_visualize_stats",
 			"runmode": "local",
 			"desc": "Generate visualization for summary statistics.",
-			"returns": "file",
 			"example": "visual = qiime.DeblurVisualizeStats(data)",
 			"example2": "visual = qiime.DeblurVisualizeStats(data)",
 			"params": [				
@@ -144,6 +170,12 @@
 					"name": "data",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -154,7 +186,6 @@
 			"internal": "run_qiime_feature_table_summarize",
 			"runmode": "local",
 			"desc": "Generate visual summaries of the data.",
-			"returns": "file",
 			"example": "visual = qiime.FeatureTableSummarize(data, metadata)",
 			"example2": "visual = qiime.FeatureTableSummarize(data, metadata)",
 			"params": [
@@ -166,6 +197,12 @@
 					"name": "metadata",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},		
 		{
@@ -176,7 +213,6 @@
 			"internal": "run_qiime_feature_table_tabulate_seqs",
 			"runmode": "local",
 			"desc": "Generate visual summaries of the data.",
-			"returns": "file",
 			"example": "visual = qiime.FeatureTableTabulate(data)",
 			"example2": "visual = qiime.FeatureTableTabulate(data)",
 			"params": [
@@ -184,6 +220,12 @@
 					"name": "data",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -194,7 +236,6 @@
 			"internal": "run_qiime_phylogeny_tree",
 			"runmode": "local",
 			"desc": "Generate a phylogenetic tree of the data.",
-			"returns": "files[alignedSeqs, maskedAlignedSeqs, unrootedTree, rootedTree]",
 			"example": "dataList = qiime.PhylogenyTree(data)",
 			"example2": "dataList = qiime.PhylogenyTree(data)",
 			"params": [
@@ -202,6 +243,12 @@
 					"name": "data",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file[]"
+            }
 			]
 		},		
 		{
@@ -212,7 +259,6 @@
 			"internal": "run_qiime_diversity_core_metrics",
 			"runmode": "local",
 			"desc": "Diversity core metrics analysis of phylogenetic tree.",
-			"returns": "folder",
 			"example": "outpath = qiime.DiversityCoreMetrics(data, table, metadata, sampling)",
 			"example2": "outpath = qiime.DiversityCoreMetrics(data, table='', metadata='', sampling=0, outpath='')",
 			"params": [
@@ -238,6 +284,12 @@
 					"type": "folder",
 					"desc":"bray_curtis_distance_matrix.qza rarefied_table.qza bray_curtis_emperor.qzv shannon_vector.qza bray_curtis_pcoa_results.qza unweighted_unifrac_distance_matrix.qza evenness_vector.qza unweighted_unifrac_emperor.qzv faith_pd_vector.qza unweighted_unifrac_pcoa_results.qza jaccard_distance_matrix.qza weighted_unifrac_distance_matrix.qza jaccard_emperor.qzv weighted_unifrac_emperor.qzv jaccard_pcoa_results.qza weighted_unifrac_pcoa_results.qza observed_otus_vector.qza"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "folder"
+            }
 			]
 		},
 		{
@@ -248,7 +300,6 @@
 			"internal": "run_qiime_diversity_alpha_significance",
 			"runmode": "local",
 			"desc": "Diversity alpha group significance.",
-			"returns": "file",
 			"example": "visual = qiime.DiversityAlpha(data, metadata)",
 			"example2": "visual = qiime.DiversityAlpha(data, metadata='', output)",
 			"params": [
@@ -264,6 +315,12 @@
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -274,7 +331,6 @@
 			"internal": "run_qiime_diversity_beta_significance",
 			"runmode": "local",
 			"desc": "Diversity beta group significance.",
-			"returns": "file",
 			"example": "visual = qiime.DiversityBeta(data, metadata, metaDataCol)",
 			"example2": "visual = qiime.DiversityBeta(data, metadata='', metaDataCol='', output)",
 			"params": [
@@ -288,12 +344,18 @@
 				},
 				{
 					"name": "metadataCol",
-					"type": "string"
+					"type": "str"
 				},
 				{
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -304,7 +366,6 @@
 			"internal": "run_qiime_emperor_plot",
 			"runmode": "local",
 			"desc": "Explore principal coordinates (PCoA) plots in the context of sample metadata.",
-			"returns": "file",
 			"example": "visual = qiime.EmperorPlot(data, metadata, customAxes)",
 			"example2": "visual = qiime.EmperorPlot(data, metadata, customAxes, output)",
 			"params": [
@@ -318,12 +379,18 @@
 				},
 				{
 					"name": "customAxes",
-					"type": "string"
+					"type": "str"
 				},
 				{
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -334,7 +401,6 @@
 			"internal": "run_qiime_diversity_alpha_rarefaction",
 			"runmode": "local",
 			"desc": "Explore alpha diversity as a function of sampling depth.",
-			"returns": "file",
 			"example": "visual = qiime.DiversityRarefaction(data, table, metadata, maxDepth)",
 			"example2": "visual = qiime.DiversityRarefaction(data, table, metadata, minDepth = 1, maxDepth = 4000)",
 			"params": [
@@ -348,12 +414,18 @@
 				},
 				{
 					"name": "customAxes",
-					"type": "string"
+					"type": "str"
 				},
 				{
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -364,7 +436,6 @@
 			"internal": "run_qiime_feature_classifier_classify_sklearn",
 			"runmode": "local",
 			"desc": "Generate taxonomy from sequence using a pre-trained Naive Bayes classifier.",
-			"returns": "file",
 			"example": "data = qiime.ClassifierSklearn(data, classifier)",
 			"example2": "data = qiime.ClassifierSklearn(data, classifier, output)",
 			"params": [
@@ -380,6 +451,12 @@
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -390,7 +467,6 @@
 			"internal": "run_qiime_taxa_barplot",
 			"runmode": "local",
 			"desc": "Generate bar plots to view the taxonomic composition of samples interactively.",
-			"returns": "file",
 			"example": "visual = qiime.TaxaBarPlot(data, table, metadata)",
 			"example2": "visual = qiime.TaxaBarPlot(data, table, metadata)",
 			"params": [
@@ -410,6 +486,12 @@
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -420,7 +502,6 @@
 			"internal": "run_qiime_feature_table_filter_samples",
 			"runmode": "local",
 			"desc": "Create a feature table that contains specific samples.",
-			"returns": "file",
 			"example": "data = qiime.FilterSamples(data, metadata, where)",
 			"example2": "data = qiime.FilterSamples(data, metadata, where)",
 			"params": [
@@ -434,12 +515,18 @@
 				},
 				{
 					"name": "where",
-					"type": "string"
+					"type": "str"
 				},
 				{
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -450,7 +537,6 @@
 			"internal": "run_qiime_composition_add_pseudocount",
 			"runmode": "local",
 			"desc": "Create a composition artifact which is based on frequencies of features on a per-sample basis.",
-			"returns": "file",
 			"example": "data = qiime.ComposeAddPseudocount(data)",
 			"example2": "data = qiime.ComposeAddPseudocount(data, output='')",
 			"params": [
@@ -463,6 +549,12 @@
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -473,7 +565,6 @@
 			"internal": "run_qiime_composition_ancom",
 			"runmode": "local",
 			"desc": "Determine what features differ in abundance across the samples of the two subjects.",
-			"returns": "file",
 			"example": "visual = qiime.ComposeAncom(data, metadata, metaDataCol)",
 			"example2": "visual = qiime.ComposeAncom(data, metadata, metaDataCol, output='')",
 			"params": [
@@ -487,12 +578,18 @@
 				},
 				{
 					"name": "metadataCol",
-					"type": "string"
+					"type": "str"
 				},
 				{
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -503,7 +600,6 @@
 			"internal": "run_qiime_taxa_collapse",
 			"runmode": "local",
 			"desc": "Collapse the features in feature table to perform a differential abundance test at a specific taxonomic level.",
-			"returns": "file",
 			"example": "data = qiime.TaxaCollapse(data, table, level)",
 			"example2": "data = qiime.TaxaCollapse(data, table, level, output='')",
 			"params": [
@@ -523,6 +619,12 @@
 					"name": "output",
 					"type": "file"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -533,7 +635,6 @@
 			"internal": "run_qiime_import",
 			"runmode": "local",
 			"desc": "Import data files into qiime repository type.",
-			"returns": "file",
 			"example": "data = qiime.Import(data, type='EMPSingleEndSequences') # data is the input path for data file(s) and barcode, if needed for the type",
 			"example2": "data = qiime.Import(data, type='EMPSingleEndSequences', output=sys.dir(data)+'/'+basename(data))",
 			"params": [
@@ -544,8 +645,14 @@
 				},
 				{
 					"name": "data",
-					"type": "string"
+					"type": "str"
 				}
+			],
+            "returns": [
+            {
+                "name": "data",
+                "type": "file"
+            }
 			]
 		},
 		{
@@ -556,9 +663,14 @@
 			"internal": "run_qiime_import_types",
 			"runmode": "local",
 			"desc": "Importable types.",
-			"returns": "string",
 			"example": "data = qiime.ImportTypes()",
-			"example2": "data = qiime.ImportTypes()"
+			"example2": "data = qiime.ImportTypes()",
+            "returns": [
+            {
+                "name": "data",
+                "type": "str"
+            }
+			]
 		}
 	]
 }

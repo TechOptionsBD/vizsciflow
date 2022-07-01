@@ -9,30 +9,30 @@
            "internal":"run_flash",
            "runmode": "local",
            "desc": "Merge mates from fragments that are shorter than twice the read length.",
-           "returns": "file",
            "example":"data = flash.Merge(data, data2)",
            "example2":"data = flash.Merge(data, data2, outdir='', max_overlap=50)",
            "params":[  
             {  
                "name":"data",
-               "type":"string",
+               "type":"str",
                "desc":"forward fastq file"
             },
             {  
                "name":"data2",
-               "type":"string",
+               "type":"str",
                "desc":"reverse fastq file"
             },
             {
-               "name": "output",
-               "type": "string",
-               "desc":"optional. Output path with filename prefix."
-            },
-            {
                 "name": "max_overlap",
-                "type": "int"
+                "type": "int",
+                "default": 50
             }            
-            ]
+            ],
+           "returns": 
+              {
+                 "name": "data",
+                 "type": "file"
+              }
        },
        {
            "org": "srlab",
@@ -43,23 +43,24 @@
            "internal":"run_flash_recursive",
            "runmode": "local",
            "desc": "Merge mates from fragments that are shorter than twice the read length.",
-           "returns": "string",
            "example":"mergedDir = MergeR(indir)",
            "example2":"mergedDir = MergeR(indir=, [outdir=], [max_overlap=50])",
            "params":[  
             {  
-               "name":"indir",
-               "type":"string"
-            },
-            {  
-               "name":"outdir",
-               "type":"string"
+               "name":"data",
+               "type":"str"
             },
             {
                 "name": "max_overlap",
-                "type": "int"
+                "type": "int",
+                "default": 50
             }            
-            ]
+            ],
+            "returns": 
+            {
+                "name": "data",
+                "type": "file"
+            }
        }
    ]
 }

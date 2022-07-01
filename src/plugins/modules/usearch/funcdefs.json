@@ -16,7 +16,7 @@
            "params":[  
             {  
                "name":"command",
-               "type":"string"
+               "type":"str"
             },
             {  
                "name":"input",
@@ -24,7 +24,7 @@
             },
             {  
                "name":"outtype",
-               "type":"string",
+               "type":"str",
                "default":"fasta"
             }            
             ]

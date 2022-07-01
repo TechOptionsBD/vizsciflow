@@ -24,7 +24,7 @@
 				},
 				{
 					"name": "db",
-					"type": "string",
+					"type": "str",
 					"desc": "Database to search into.",
 					"default": ""
 				}
@@ -54,7 +54,7 @@
 				},
 				{
 					"name": "db",
-					"type": "string",
+					"type": "str",
 					"desc": "Database to search into.",
 					"default": ""
 				}

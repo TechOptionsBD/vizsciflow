@@ -27,8 +27,7 @@ known_types = KnownTypes({
     'float': float,
     'str': str,
     'bool': bool,
-    'any': str,
-    'string': str})
+    'any': str})
 
 class obj(object):
     def __init__(self, dict_):

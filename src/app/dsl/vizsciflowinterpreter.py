@@ -77,8 +77,6 @@ class VizSciFlowContext(Context):
 
     def gettoolsdir(self, name=None, package=None):
         from app import app
-        if name == 'txl':
-            return '/home/vizsciflow/bin' #TODO: we need to make it flexible
         
         toolsdir = os.path.join(app.config['MODULE_DIR'], 'users', usermanager.get(id = self.user_id).first().username)
         if not name:

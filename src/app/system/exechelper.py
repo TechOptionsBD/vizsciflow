@@ -10,7 +10,7 @@ def func_exec_stdout(app, *args):
         os.chmod(app, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
     cmd = app
     if args:
-        cmd += ' ' + ' '.join(args)        
+        cmd += ' ' + ' '.join(str(arg) for arg in args)
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     return p.stdout, p.stderr
 

@@ -69,7 +69,7 @@ class DataManager():
             if not self.is_data_item(args[i]):
                 paramType = DataType.Value
                 if i < len(params):
-                    paramType = params[i].type
+                    paramType = params[i].type if hasattr(params[i], 'type') else 'any'
                     paramType = paramType.lower().split('|')
                     if 'file' in paramType:
                         paramType = DataType.File

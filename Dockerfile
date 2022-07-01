@@ -48,6 +48,13 @@ RUN python -m venv /home/.venvpycoqc
 RUN /home/.venvpycoqc/bin/pip install --upgrade pip
 RUN /home/.venvpycoqc/bin/pip install pycoQC
 
+# separate venv for python2
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /home/get-pip.py
+RUN python2 /home/get-pip.py
+RUN python2 -m pip install virtualenv
+RUN python2 -m virtualenv /home/.venvpy2
+RUN /home/.venvpy2/bin/pip install --upgrade pip
+RUN /home/.venvpy2/bin/pip install -r ./src/requirements/requirements2.txt
 
 RUN /home/.venv/bin/pip install gunicorn
 RUN /home/.venv/bin/pip install pysam

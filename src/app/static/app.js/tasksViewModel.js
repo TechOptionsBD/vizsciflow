@@ -1437,7 +1437,7 @@ function TasksViewModel() {
             oReq.onload = function (oEvent) {
                 if (this.status == 200) {
                     var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: "application/xml" });
+                    var blob = new Blob([arrayBuffer], { type: "text/plain" });
                     itemSrc = URL.createObjectURL(blob);
                     self.itemSrc(itemSrc);
                     // self.showModal(data, itemSrc);

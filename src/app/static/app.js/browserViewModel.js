@@ -312,7 +312,7 @@ function BrowserViewModel() {
             oReq.onload = function (oEvent) {
                 if (this.status == 200) {
                     var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: "application/xml" });
+                    var blob = new Blob([arrayBuffer], { type: "text/plain" });
                     itemSrc = URL.createObjectURL(blob);
                     self.itemSrc(itemSrc);
                 }
@@ -349,7 +349,7 @@ function BrowserViewModel() {
                 }
             };
         }
-        else if(fileType == 'htm' || fileType == 'html' || fileType == 'xml'){
+        else if(fileType == 'htm' || fileType == 'html'){
             var oReq = new XMLHttpRequest();
             oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
             oReq.responseType = "arraybuffer";
@@ -360,6 +360,23 @@ function BrowserViewModel() {
                 if (this.status == 200) {
                     var arrayBuffer = oReq.response;
                     var blob = new Blob([arrayBuffer], { type: fileType });
+                    itemSrc = URL.createObjectURL(blob);
+
+                    self.showModal(data, itemSrc);
+                }
+            };
+        }
+        else if(fileType == 'xml'){
+            var oReq = new XMLHttpRequest();
+            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.originalPath(), true);
+            oReq.responseType = "arraybuffer";
+
+            oReq.send();
+
+            oReq.onload = function (oEvent) {
+                if (this.status == 200) {
+                    var arrayBuffer = oReq.response;
+                    var blob = new Blob([arrayBuffer], { type: 'text/plain' });
                     itemSrc = URL.createObjectURL(blob);
 
                     self.showModal(data, itemSrc);

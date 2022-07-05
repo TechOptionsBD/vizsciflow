@@ -47,7 +47,8 @@ def pyvenv_run(toolpath, app, *args):
         os.chmod(script, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
 
     # Mainul: we may need to use subprocess.run here for long running operation
-    out, err = subprocess.Popen(["/bin/bash", script, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    cmd = [str(arg) for arg in args]
+    out, err = subprocess.Popen(["/bin/bash", script, *cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     return out.decode('utf-8'), err.decode('utf-8')
 
 def func_exec_run(app, *args):

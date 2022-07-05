@@ -1345,7 +1345,11 @@ function TasksViewModel() {
 
         self.currentItemPath(data.data);
 
-        if (self.imageTypes.includes(fileType)) {
+        if (data.datatype == 0x01 || data.datatype == 0x800) {
+            dataSourceViewModel.selectByPath(data.data);
+            $('.nav-tabs a[href="#browsertab"]').tab('show');
+        }
+        else if (self.imageTypes.includes(fileType)) {
             // self.showModal(data);
             var oReq = new XMLHttpRequest();
             oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
@@ -1364,7 +1368,6 @@ function TasksViewModel() {
                 }
             };
         }
-
         else if (self.videoTypes.includes(fileType)) {
             var oReq = new XMLHttpRequest();
             oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);

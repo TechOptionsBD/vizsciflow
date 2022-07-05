@@ -177,6 +177,11 @@ function DataSourceViewModel() {
         });
     }
 
+    self.selectByPath = function(path) {
+        var node = self.getItemByPath(self.dataSources()[0], path);
+        $('#tree').jstree("deselect_all");
+        $("#tree").jstree(true).select_node(node);
+    }
 
     self.selectedNode = function () {
         node = $('#tree').jstree("get_selected")

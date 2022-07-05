@@ -5,6 +5,8 @@ import logging
 from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
 from dsl.fileop import FolderItem
+from dsl.filemgr import FileManager
+
 from app.managers.runmgr import runnablemanager
 from app.managers.datamgr import datamanager
 from app.managers.modulemgr import modulemanager
@@ -15,7 +17,7 @@ registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Pro
 
 class Library(LibraryBase):
     def __init__(self):
-        super(Library, self).__init__()
+        super(Library, self).__init__(FileManager())
         self.localdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'storage')
     
     def add_task(self, name, expr):

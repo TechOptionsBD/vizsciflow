@@ -70,16 +70,15 @@ class VizSciFlowContext(Context):
     
     @property
     def outdir(self):
-        if not self._outdir:
-            self._outdir = self.createoutdir()
-        return self._outdir
+        return self._outdir if self._outdir else self.createoutdir()
         
     def createoutdir(self, outname = None):
-        outdir = self.outdir if self.outdir else self.makeuniquedir()
+        self._outdir = self._outdir if self._outdir else self.makeuniquedir()
         if outname:
-            outdir = os.path.join(outdir, outname)
+            outdir = os.path.join(self._outdir, outname)
             os.makedirs(outdir)
-        return outdir
+            return outdir
+        return self._outdir
 
     def makeuniquedir(self, parent = None):
         if not parent:

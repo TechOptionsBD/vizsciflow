@@ -69,9 +69,9 @@ class VizSciFlowContext(Context):
         return fs.unique_filename(outdir, prefix, extension)
     
     @property
-    def get_outdir(self):
+    def outdir(self):
         if not self._outdir:
-            self.createoutdir()
+            self._outdir = self.createoutdir()
         return self._outdir
         
     def createoutdir(self, outname = None):

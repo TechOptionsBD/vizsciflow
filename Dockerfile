@@ -67,6 +67,8 @@ ENV FLASK_CONFIG development
 
 RUN chown -R vizsciflow:vizsciflow ./
 RUN chown -R vizsciflow:vizsciflow ../.venv
+RUN chown -R vizsciflow:vizsciflow ../.venvpycoqc
+RUN chown -R vizsciflow:vizsciflow ../.venvpy2
 
 USER vizsciflow
 WORKDIR /home/vizsciflow/src

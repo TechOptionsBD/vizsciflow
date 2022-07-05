@@ -91,7 +91,7 @@ class HadoopFileSystem():
         return path
     
     def unique_fs_name(self, path, prefix, ext):
-        return IOHelper.unique_fs_name(self, path, prefix, ext)
+        return self.unique_fs_name(path, prefix, ext)
     
     def remove(self, path):
         try: 
@@ -651,7 +651,7 @@ class HttpFileSystem():
         raise NotImplementedError("makedir")
     
     def unique_fs_name(self, path, prefix, ext):
-        return IOHelper.unique_fs_name(self, path, prefix, ext)
+        return self.unique_fs_name(path, prefix, ext)
     
     def remove(self, path):
         raise NotImplementedError("remove")

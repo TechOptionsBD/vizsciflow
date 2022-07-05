@@ -41,7 +41,8 @@ COPY ./.vscode ./.vscode
 RUN python -m venv /home/.venv
 RUN /home/.venv/bin/pip install --upgrade pip
 RUN /home/.venv/bin/pip install -r ./src/requirements/requirements.txt
-RUN /home/.venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
+#RUN /home/.venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
+RUN /home/.venv/bin/pip install wfdsl==0.1.15
 
 # separate venv for pycoQC
 RUN python -m venv /home/.venvpycoqc

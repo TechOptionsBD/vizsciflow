@@ -49,15 +49,39 @@
 			"desc": "The clone file"
 		},
 		{
-			"name": "model",
-			"type": "file",
-			"desc": "Trained neural network."
+			"name": "response",
+			"type": "str",
+			"desc": "The response of manual validation."
 		},
 		{
-			"name": "threshold",
-			"type": "float",
-			"desc": "The validation threshold.",
-			"default": 0.5
+			"name": "fragment1",
+			"type": "file",
+			"desc": "The path of fragment 1."
+		},
+		{
+			"name": "startline1",
+			"type": "int",
+			"desc": "The start line of fragment 1."
+		},
+		{
+			"name": "endline1",
+			"type": "int",
+			"desc": "The end line of fragment 1."
+		},
+		{
+			"name": "fragment2",
+			"type": "file",
+			"desc": "The path of fragment 2."
+		},
+		{
+			"name": "startLine2",
+			"type": "int",
+			"desc": "The start line of fragment 2."
+		},
+		{
+			"name": "endLine2",
+			"type": "int",
+			"desc": "The end line of fragment 2."
 		}
 		],
 		"returns": [

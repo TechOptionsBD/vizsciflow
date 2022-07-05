@@ -18,6 +18,7 @@ registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module'
 
 class VizSciFlowContext(Context):
     def __init__(self, library, symboltable) -> None:
+        self._outdir = None
         super().__init__(library, symboltable)
 
     @staticmethod
@@ -62,8 +63,19 @@ class VizSciFlowContext(Context):
             os.environ["PATH"] =  path + os.pathsep + envpaths
         return os.environ["PATH"]
 
+    def createuniquefile(self, prefix, extension=''):
+        outdir = self.createoutdir()
+        fs = Utility.fs_by_prefix_or_guess(outdir)
+        return fs.unique_filename(outdir, prefix, extension)
+    
+    @property
+    def get_outdir(self):
+        if not self._outdir:
+            self.createoutdir()
+        return self._outdir
+        
     def createoutdir(self, outname = None):
-        outdir = self.makeuniquedir()
+        outdir = self.outdir if self.outdir else self.makeuniquedir()
         if outname:
             outdir = os.path.join(outdir, outname)
             os.makedirs(outdir)

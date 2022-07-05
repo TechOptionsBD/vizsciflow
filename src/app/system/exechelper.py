@@ -8,18 +8,22 @@ def func_exec_stdout(app, *args):
     if not os.access(app, os.X_OK):
         st = os.stat(app)
         os.chmod(app, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
-    cmd = app
-    if args:
-        cmd += ' ' + ' '.join(str(arg) for arg in args)
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    return p.stdout, p.stderr
+    # cmd = app
+    # if args:
+    #     cmd += ' ' + ' '.join(str(arg) for arg in args)
+    #p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    #return p.stdout, p.stderr
+    cmd = [str(arg) for arg in args]
+    out, err = subprocess.Popen([app, *cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    return out, err
 
 def func_exec_bash_stdout(app, *args):
     if not os.access(app, os.X_OK):
         st = os.stat(app)
         os.chmod(app, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
 
-    out, err = subprocess.Popen(["/bin/bash", app, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    cmd = [str(arg) for arg in args]
+    out, err = subprocess.Popen(["/bin/bash", app, *cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     return out.decode('utf-8'), err.decode('utf-8')
     
 def pyvenv_run(toolpath, app, *args):

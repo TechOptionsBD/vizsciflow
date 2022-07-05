@@ -1,0 +1,47 @@
+{
+    "package": "blast",
+    "name": "BlastToRaw",
+    "internal": "demo_service",
+    "org": "",
+    "group": "Bioinformatics",
+    "desc": "",
+    "href": "",
+    "params": [
+        {
+            "name": "blast",
+            "type": "file",
+            "desc": "Blast file to convert and/or process",
+            "default": ""
+        },
+        {
+            "name": "qbed",
+            "type": "file",
+            "desc": "BED file for query sequence",
+            "default": ""
+        },
+        {
+            "name": "sbed",
+            "type": "file",
+            "desc": "BED file for query sequence",
+            "default": ""
+        },
+        {
+            "name": "tandem_Nmax",
+            "type": "int",
+            "desc": "merge tandem genes within distance",
+            "default": "10"
+        },
+        {
+            "name": "cscore",
+            "type": "int",
+            "desc": "retain hits that have good bitscore",
+            "default": "0"
+        }
+    ],
+    "returns": [
+        {
+            "name": "outputs",
+            "type": "file[]"
+        }
+    ]
+}

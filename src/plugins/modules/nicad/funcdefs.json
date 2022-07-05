@@ -101,18 +101,6 @@
             "type": "str",
             "desc": "java|python|c|php",
             "default": "'java'"
-          },
-          {
-            "name": "select",
-            "type": "str",
-            "desc": "",
-            "default": "''"
-          },
-          {
-            "name": "ignore",
-            "type": "str",
-            "desc": "",
-            "default": "'_NO_IGNORE_'"
           }
         ],
         "returns": [

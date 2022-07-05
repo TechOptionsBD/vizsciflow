@@ -851,7 +851,7 @@ function TasksViewModel() {
     });
     self.paramToArg = function(param) {
 		paramarg = param.name
-		if (param.default !== undefined) {
+		if (param.default !== undefined && param.default !== "") {
 			var paramvalue = param.default;
             if (paramvalue == null) {
                 paramvalue = "None"; 

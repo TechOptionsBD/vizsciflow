@@ -1,4 +1,4 @@
-FROM python:3.8-buster
+FROM python:3.8-bullseye
 
 ARG UID
 RUN mkdir -p /home/vizsciflow
@@ -31,6 +31,7 @@ RUN apt-get update \
         zlib1g-dev \
         default-jre \
         default-jdk \
+        python \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/vizsciflow

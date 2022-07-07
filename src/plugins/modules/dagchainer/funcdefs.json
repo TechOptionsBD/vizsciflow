@@ -1,0 +1,65 @@
+{
+    "package": "CoGe",
+    "name": "DagChainer",
+    "internal": "dag_chainer",
+    "org": "srlab",
+    "group": "SynMap",
+    "desc": "Algorithm to identify syntenic regions between genomes",
+    "href": "",
+    "params": [
+        {
+            "name": "dag",
+            "type": "file",
+            "desc": "dag file with format a_seqid<tab>a_accn<tab>a_start<tab>a_end<tab>b_seqid<tab>b_accn<tab>b_start<tab>b_end<tab>e-value",
+            "default": ""
+        },
+        {
+            "name": "gap_init",
+            "type": "int",
+            "desc": "gap open penalty",
+            "default": "0"
+        },
+        {
+            "name": "gap_extend",
+            "type": "int",
+            "desc": "gap extension penalty",
+            "default": "-3"
+        },
+        {
+            "name": "min_score",
+            "type": "int",
+            "desc": "minimum alignment score",
+            "default": "0"
+        },
+        {
+            "name": "gap_dist",
+            "type": "float",
+            "desc": "average distance expected between 2 syntenic genes",
+            "default": "10.0"
+        },
+        {
+            "name": "gap_max",
+            "type": "float",
+            "desc": "maximum distance between 2 matches",
+            "default": "20.0"
+        },
+        {
+            "name": "e_value",
+            "type": "float",
+            "desc": "maximum e-value",
+            "default": "0.05"
+        },
+        {
+            "name": "min_aligned_pairs",
+            "type": "int",
+            "desc": "minimum number of pairs to be considered a diagonal",
+            "default": "5"
+        }
+    ],
+    "returns": [
+        {
+            "name": "data",
+            "type": "file"
+        }
+    ]
+}

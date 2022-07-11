@@ -1,15 +1,13 @@
 from os import path
-from pathlib import Path
 
 thispath = path.dirname(__file__)
 
 def demo_service(context, *args, **kwargs):
     
-    dagtool = path.join(thispath, 'dag_tools.py')
+    dagtool = path.join(thispath, 'bin', 'dag_tools.py')
     arguments = context.parse_args('DAGFormatter', 'CoGe', *args, **kwargs)
 
-    
-    outdir = path.join(context.createoutdir(), Path(arguments["blast_file"]).stem + ".dag.all")
+    outdir = path.join(context.createoutdir(), path.basename(arguments["blast_file"]) + ".dag.all")
 
     cmdargs = ["=".join(["--"+pair[0], pair[1]]) for pair in arguments.items()] + ["-c"]
     stdout, err = context.pyvenv_run(thispath, "python", dagtool, *cmdargs)

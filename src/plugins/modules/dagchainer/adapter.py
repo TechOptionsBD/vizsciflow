@@ -15,10 +15,9 @@ def dag_chainer(context, *args, **kwargs):
     cmdargs = [" ".join([options[key], str(arguments[key])]) for key in arguments.keys() if arguments[key]]
     stdout, log = context.pyvenv_run(thispath, "python2", dagchainer, *cmdargs)
     
-    
     if log:
         # display log report
-        context.out.append("DAGChainer log:\n"+str(log))
+        context.out.append("DAGChainer log:\n" + str(log))
     
     with open(output, "w") as file:
         # write stdout to output file

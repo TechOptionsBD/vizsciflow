@@ -1,5 +1,5 @@
 {
-    "package": "",
+    "package": "blast",
     "name": "Blast2Bed",
     "internal": "demo_service",
     "org": "srlab",

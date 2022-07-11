@@ -5,10 +5,10 @@ thispath = path.dirname(__file__)
 
 def gene_order(context, *args, **kwargs):
     
-    geneorder = path.join(thispath, 'gene_order.py')
+    geneorder = path.join(thispath, 'bin', 'gene_order.py')
     arguments = context.parse_args('GeneOrder', 'CoGe', *args, **kwargs)
 
-    output = path.join(context.createoutdir(), Path(arguments["input"]).stem + ".go")
+    output = path.join(context.createoutdir(), path.basename(arguments["input"]) + ".go")
     input = arguments.pop("input")
 
     cmdargs = [" ".join(["--"+pair[0], pair[1]]) for pair in arguments.items() if pair[1]]

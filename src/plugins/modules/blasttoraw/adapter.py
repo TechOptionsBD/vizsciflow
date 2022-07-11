@@ -4,15 +4,16 @@ from pathlib import Path
 thispath = path.dirname(__file__)
 
 def demo_service(context, *args, **kwargs):
-	blast_to_raw = path.join(thispath, 'quota-alignment', 'scripts', 'blast_to_raw.py')
+	blast_to_raw = path.join(thispath, 'bin', 'scripts', 'blast_to_raw.py')
 	
 	# parse user arguments
 	arguments = context.parse_args('BlastToRaw', 'blast', *args, **kwargs)
+	blastfile = arguments.pop("blast")
 	
 	# prepare output directories
 	outdir = context.createoutdir()
-	
-	blaststem = Path(arguments['blast']).stem
+	blaststem = Path(blastfile).stem
+
 	qdups = path.join(outdir, blaststem +'.q.localdups')
 	qnodups = path.join(outdir, blaststem +'.q.nolocaldups.bed')
 	
@@ -21,14 +22,14 @@ def demo_service(context, *args, **kwargs):
 	
 	out = path.join(outdir, "{0}.tdd{1}.cs{2}.filtered".format(blaststem, arguments['tandem_Nmax'], arguments['cscore']))
 
-
-	cmdargs = ["--localdups"] + ["=".join(["--"+key, str(arguments[key])]) for key in arguments.keys() if key != "blast"]
-	stdout, log = context.pyvenv_run(thispath, "python2", blast_to_raw, arguments["blast"], *cmdargs)
+	# run tool
+	cmdargs = ["--localdups"] + ["=".join(["--"+key, str(arguments[key])]) for key in arguments.keys()]
+	stdout, log = context.pyvenv_run(thispath, "python2", blast_to_raw, blastfile, *cmdargs)
 
 
 	if log:
 		# display log report
-		context.out.append(str(log))
+		context.out.append("BlastToRaw log:\n" + str(log))
 
 	with open(out, "w") as file:
 		# write stdout to output file

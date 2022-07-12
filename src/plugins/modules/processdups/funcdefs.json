@@ -1,0 +1,23 @@
+{
+    "package": "CoGe",
+    "name": "ProcessDups",
+    "internal": "process_dups",
+    "org": "srlab",
+    "group": "SynMap",
+    "desc": "Read in a file containing tandem duplicates and generate CoGe links to FeatList, GEvo, and FastaView for further analysis",
+    "href": "",
+    "params": [
+        {
+            "name": "data",
+            "type": "file",
+            "desc": "File containing tandem duplicates",
+            "default": ""
+        }
+    ],
+    "returns": [
+        {
+            "name": "data",
+            "type": "file"
+        }
+    ]
+}

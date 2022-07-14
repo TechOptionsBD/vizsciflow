@@ -20,6 +20,12 @@
 			"desc": "Trained neural network."
 		},
 		{
+			"name": "language",
+			"type": "str",
+			"desc": "The language.",
+			"default": "'java'"
+		},
+		{
 			"name": "threshold",
 			"type": "float",
 			"desc": "The validation threshold.",
@@ -89,6 +95,29 @@
 			"name": "data",
 			"type": "file",
 			"desc": "The validation statistics."
+		}
+		]
+  	},
+	{
+		"package": "nicad",
+		"name": "TrainModel",
+		"internal": "run_trainmodel",
+		"org": "srlab",
+		"group": "Software Analytics",
+		"desc": "Training on new dataset",
+		"href": "",
+		"params": [
+		{
+			"name": "data",
+			"type": "file",
+			"desc": "The training dataset."
+		}
+		],
+		"returns": [
+		{
+			"name": "data",
+			"type": "file",
+			"desc": "The trained model."
 		}
 		]
   	}

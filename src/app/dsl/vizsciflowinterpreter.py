@@ -63,7 +63,7 @@ class VizSciFlowContext(Context):
             os.environ["PATH"] =  path + os.pathsep + envpaths
         return os.environ["PATH"]
 
-    def createuniquefile(self, prefix, extension=''):
+    def createuniquefile(self, prefix='', extension=''):
         outdir = self.createoutdir()
         fs = Utility.fs_by_prefix_or_guess(outdir)
         return fs.unique_filename(outdir, prefix, extension)
@@ -89,13 +89,9 @@ class VizSciFlowContext(Context):
     def gettoolsdir(self, name=None, package=None):
         from app import app
         
-        toolsdir = os.path.join(app.config['MODULE_DIR'], 'users', usermanager.get(id = self.user_id).first().username)
-        if not name:
-            return toolsdir
         func = modulemanager.get_module_by_name_package(name, package)
         if not func:
-            return ''
-            #raise ValueError('Tool {0} does not exist.'.format(name))
+            raise ValueError('Tool {0} does not exist.'.format(name))
         return os.path.join(app.config['MODULE_DIR'], (os.path.sep).join(func.module.split('.')[2:-1])) # remove plugins/modules from front and adapter from back
 
     # def getmyprovdir(self):

@@ -5,7 +5,7 @@
       "package": "txl",
       "group": "Software Analytics",
       "level": 0,
-      "name": "Compile",
+      "name": "Txl",
       "internal": "run_txl",
       "desc": "The txl command invokes the TXL interpreter to compile, load and execute a TXL program on an input file. Transformed output (only) is saved in an output file.",
       "params": [

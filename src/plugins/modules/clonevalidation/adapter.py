@@ -3,47 +3,45 @@ import pickle
 from os import path
 import xml.etree.ElementTree as ET
 
+thispath = path.dirname(__file__)
+
 def get_txlfeaturesdir(context):
-    txldir = path.join(context.gettoolsdir('txl'), 'bin', 'features')
-    #txldir =  context.gettoolsdir('txl')
+    txldir = path.join(context.gettoolsdir('Txl', 'txl'), 'bin', 'features')
     if not txldir:
         raise ValueError("TXL is not installed. Please install TXL first.")
     return txldir
 
 def get_txldir(context):
-    txldir = path.join(context.gettoolsdir('txl'), 'bin', 'bin')
-    #txldir =  context.gettoolsdir('txl')
+    txldir = path.join(context.gettoolsdir('Txl', 'txl'), 'bin', 'bin')
     if not txldir:
         raise ValueError("TXL is not installed. Please install TXL first.")
     return txldir
 
 def app_code_clone_getValidationScore(context, sourceCode1, sourceCode2,model, lang):
 
-	#load the trained Neural Net
-	with open(model, 'rb') as fileObject:
-		loaded_fnn = pickle.load(fileObject, encoding='latin1')
-
 	type1sim_by_line, type2sim_by_line, type3sim_by_line = app_code_clone_similaritiesNormalizedByLine(context, sourceCode1, sourceCode2,lang)
 	type1sim_by_token, type2sim_by_token, type3sim_by_token = app_code_clone_similaritiesNormalizedByToken(context, sourceCode1, sourceCode2,lang)
+	
+	loadmodelpath = path.join(thispath, 'loadmodel.py')
 
-	network_prediction = loaded_fnn.activate([type2sim_by_line, type2sim_by_line, type3sim_by_line, type1sim_by_token, type2sim_by_token, type3sim_by_token])
-
-	return network_prediction[1]
+	cmdargs = [type2sim_by_line, type2sim_by_line, type3sim_by_line, type1sim_by_token, type2sim_by_token, type3sim_by_token]
+	stdout, log = context.pyvenv_run(thispath, "python2", loadmodelpath, model, *cmdargs)
+	if log:
+		raise ValueError("Can't get validation score from the trained model.")
+	return float(stdout)
 
 
 def app_code_clone_execTxl(context, txlFilePath, sourceCode, lang, saveOutputFile=False):
 	# get an unique file name for storing the code temporarily
-	sourceFile = context.createuniquefile(extension = '.txt')
+	sourceFile = context.normalize(context.createuniquefile(extension = 'txt'))
 	# write submitted source code to corresponding files
 	with open(sourceFile, "w") as fo:
 		fo.write(sourceCode)
 
-	# get the required txl file for feature extraction
-	# txlPath = '/home/ubuntu/Webpage/txl_features/txl_features/java/PrettyPrint.txl'
 
 	# do the feature extraction by txl
 
-	txlpath = path.join(get_txldir(), 'txl')
+	txlpath = path.join(get_txldir(context), 'txl')
 	cmdargs = ['-Dapply', txlFilePath, sourceFile]
 	out, err = context.exec_run(txlpath, *cmdargs)
 
@@ -57,7 +55,7 @@ def app_code_clone_execTxl(context, txlFilePath, sourceCode, lang, saveOutputFil
 	if saveOutputFile == False:
 		return out, err
 	else:
-		outputFileLocation = context.createuniquefile(extension = '.txt')
+		outputFileLocation = context.normalize(context.createuniquefile(extension = 'txt'))
 		with open(outputFileLocation, "w") as fo:
 			fo.write(out)
 
@@ -83,14 +81,14 @@ def run_validateclone(context, *args, **kwargs):
 	for aCloneIndex in range(mlValidationCount, totalClonePairs):
 		fragment_1_path, fragment_1_startline, fragment_1_endline, fragment_1_clone, fragment_2_path, fragment_2_startline, fragment_2_endline, fragment_2_clone, clones_validated,	total_clones = get_next_clone_pair_for_validation(arguments['data'], mlValidation_output_file)
 
-		true_probability = app_code_clone_getValidationScore(context, fragment_1_clone, fragment_2_clone, arguments['language'])
+		true_probability = app_code_clone_getValidationScore(context, fragment_1_clone, fragment_2_clone, arguments['model'], arguments['language'])
 
 		with open(mlValidation_output_file, "a") as validationFile:
 			validationFile.write('true' if true_probability >= arguments['threshold'] else 'false' + ',' + fragment_1_path + ',' + fragment_1_startline + ',' + fragment_1_endline+','+fragment_2_path+','+fragment_2_startline+','+fragment_2_endline + '\n')
 
 	return mlValidation_output_file
 
-def run_clonevalidationmanually(context, *args, **kwargs):
+def run_validateclonemanually(context, *args, **kwargs):
 
 	arguments = context.parse_args('ValidateCloneManually', 'nicad', *args, **kwargs)
 
@@ -234,15 +232,14 @@ thispath = path.dirname(__file__)
 
 def app_code_clone_getCodeCloneSimilarity(context, sourceCode1, sourceCode2, lang, txlFilePath):
 	saveOutputFile = True
-	outputFileLocation1, out1, err1 = app_code_clone_execTxl(txlFilePath, sourceCode1, lang, saveOutputFile)
-	outputFileLocation2, out2, err2 = app_code_clone_execTxl(txlFilePath, sourceCode2, lang, saveOutputFile)
+	outputFileLocation1, out1, err1 = app_code_clone_execTxl(context, txlFilePath, sourceCode1, lang, saveOutputFile)
+	outputFileLocation2, out2, err2 = app_code_clone_execTxl(context, txlFilePath, sourceCode2, lang, saveOutputFile)
 
 	javapath = '/usr/bin/java'
 	clonesimilaritypath = path.join(thispath, 'bin', 'calculateCloneSimilarity.jar')
 	cmdargs = ['-jar', clonesimilaritypath, outputFileLocation1, outputFileLocation2]
 	similarityValue, err = context.exec_run(javapath, *cmdargs)
 
-	similarityValue = str(similarityValue, 'utf-8')
 	similarityValue = similarityValue.replace('\n', '')
 
 	# once done remove the temp files
@@ -267,14 +264,9 @@ def app_code_clone_similaritiesNormalizedByLine(context, sourceCode1, sourceCode
 
 
 def app_code_clone_similaritiesNormalizedByToken(context, sourceCode1, sourceCode2, lang):
-	# getting the txl and the input file to parse
-	# sourceCode1 = request.form['sourceCode_1']
-	# sourceCode2 = request.form['sourceCode_2']
-	# lang = request.form['lang']
 
 	txlFilePath = path.join(get_txlfeaturesdir(context), 'java', 'consistentRenameIdentifiers.txl')
-	type1sim_by_token = app_code_clone_getCodeCloneSimilarity(
-	    sourceCode1, sourceCode2, lang, txlFilePath)
+	type1sim_by_token = app_code_clone_getCodeCloneSimilarity(context, sourceCode1, sourceCode2, lang, txlFilePath)
 
 	txlFilePath = path.join(get_txlfeaturesdir(context), 'java', 'normalizeLiteralsToZero.txl')
 	type2sim_by_token = app_code_clone_getCodeCloneSimilarity(context, sourceCode1, sourceCode2, lang, txlFilePath)
@@ -282,11 +274,16 @@ def app_code_clone_similaritiesNormalizedByToken(context, sourceCode1, sourceCod
 	txlFilePath = path.join(get_txlfeaturesdir(context), 'java', 'normalizeLiteralsToZero.txl')
 	type3sim_by_token = app_code_clone_getCodeCloneSimilarity(context, sourceCode1, sourceCode2, lang, txlFilePath)
 
-	# out = {'type_1_similarity_by_token': type1sim_by_token, 'type_2_similarity_by_token': type2sim_by_token,
-	# 	   'type_3_similarity_by_token': type3sim_by_token}
-    #
-	# return jsonify({'error_msg': 'None',
-	# 				'log_msg': 'Preprocessing Source Codes...\nNormalizing Source Codes...\nCalculating Similarities...\nDone.',
-	# 				'output': out})
-
 	return type1sim_by_token, type2sim_by_token, type3sim_by_token
+
+def run_trainmodel(context, *args, **kwargs):
+
+	arguments = context.parse_args('TrainModel', 'nicad', *args, **kwargs)
+	output = context.normalizepath(context.createuniquefile('trainedNetwork'))
+
+	loadmodelpath = path.join(thispath, 'trainmodel.py')
+	_, log = context.pyvenv_run(loadmodelpath, "python2train", arguments['data'], output)
+	if log or not path.exists(output):
+		raise ValueError("Can't train model.")
+	
+	return output

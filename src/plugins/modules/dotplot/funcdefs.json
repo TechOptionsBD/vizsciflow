@@ -15,13 +15,13 @@
         },
         {
             "name": "xhead",
-            "type": "str",
+            "type": "file",
             "desc": "Header for labels of chromosomes from the genome on x-axis",
             "default": ""
         },
         {
             "name": "yhead",
-            "type": "str",
+            "type": "file",
             "desc": "Header for labels of chromosomes from the genome on y-axis",
             "default": ""
         }

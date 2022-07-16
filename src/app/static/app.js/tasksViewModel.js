@@ -1337,6 +1337,15 @@ function TasksViewModel() {
         });
     };
 
+    self.mimeTypeFromImageType = function(fileType) {
+        if (self.imageTypes.includes(fileType)){
+            if (fileType == 'svg'){
+                return 'svg+xml';
+            }
+        }
+        return fileType
+    };
+
     //TODO: need to modify for output tab list view
     self.openInDetailsView = function (data, ele) {
         var fileType = self.getFileExtension(data.data);
@@ -1360,7 +1369,7 @@ function TasksViewModel() {
             oReq.onload = function (oEvent) {
                 if (this.status == 200) {
                     var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: 'image/' + fileType });
+                    var blob = new Blob([arrayBuffer], { type: 'image/' + self.mimeTypeFromImageType(fileType) });
                     itemSrc = URL.createObjectURL(blob);
                     self.itemSrc(itemSrc);
                     // self.showModal(data, itemSrc);

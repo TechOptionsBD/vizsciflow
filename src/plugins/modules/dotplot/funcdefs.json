@@ -1,7 +1,7 @@
 {
     "package": "CoGe",
     "name": "DotPlot",
-    "internal": "dotplot",
+    "internal": "run_dotplot",
     "org": "SynMap",
     "group": "Visualization",
     "desc": "Generate a .svg image of a dotplot between two species",
@@ -15,13 +15,13 @@
         },
         {
             "name": "xhead",
-            "type": "str",
+            "type": "file",
             "desc": "Header for labels of chromosomes from the genome on x-axis",
             "default": ""
         },
         {
             "name": "yhead",
-            "type": "str",
+            "type": "file",
             "desc": "Header for labels of chromosomes from the genome on y-axis",
             "default": ""
         }

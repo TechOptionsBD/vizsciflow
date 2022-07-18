@@ -4,6 +4,7 @@ from pathlib import Path
 thispath = path.dirname(__file__)
 
 def gevo_link(context, *args, **kwargs):
+    
     gevolink = path.join(context.getnormdir(__file__), 'bin', 'gevolinks.pl')
     
     arguments = context.parse_args('GevoLink', 'CoGe', *args, **kwargs)
@@ -22,4 +23,4 @@ def gevo_link(context, *args, **kwargs):
             error_msg = "The generated error is: " + err
         raise ValueError(error_msg)
 
-    return [gevo, condensed]
+    return (gevo, condensed)

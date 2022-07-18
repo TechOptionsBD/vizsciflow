@@ -28,8 +28,12 @@
     ],
     "returns": [
         {
-            "name": "data",
-            "type": "file[]"
+            "name": "gevo_links",
+            "type": "file"
+        },
+        {
+            "name":"condensed_links",
+            "type":"file"
         }
     ]
 }

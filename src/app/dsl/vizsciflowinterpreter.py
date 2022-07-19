@@ -132,7 +132,7 @@ class VizSciFlowContext(Context):
             if 'env' in kwargs:
                 VizSciFlowContext.addenvpath(kwargs['env'])
 
-            return func_exec_run(app, *args)
+            return f(app, *args)
         finally:
             if oldcwd: os.chdir(oldcwd)
             if oldenvpath: os.environ["PATH"] = oldenvpath

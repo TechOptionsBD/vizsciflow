@@ -11,8 +11,8 @@
 		"params": [
 		{
 			"name": "data",
-			"type": "file",
-			"desc": "The clone file"
+			"type": "folder",
+			"desc": "The folder with clone pair files."
 		},
 		{
 			"name": "model",
@@ -35,8 +35,8 @@
 		"returns": [
 		{
 			"name": "data",
-			"type": "file",
-			"desc": "The validation statistics."
+			"type": "folder",
+			"desc": "The folder with validation statistics files (.mValidated)."
 		}
 		]
   	},
@@ -52,7 +52,7 @@
 		{
 			"name": "data",
 			"type": "file",
-			"desc": "The clone file"
+			"desc": "The clone file."
 		},
 		{
 			"name": "response",
@@ -104,13 +104,13 @@
 		"internal": "run_trainmodel",
 		"org": "srlab",
 		"group": "Software Analytics",
-		"desc": "Training on new dataset",
+		"desc": "Training on new dataset.",
 		"href": "",
 		"params": [
 		{
 			"name": "data",
 			"type": "file",
-			"desc": "The training dataset."
+			"desc": "The training dataset in csv file."
 		}
 		],
 		"returns": [

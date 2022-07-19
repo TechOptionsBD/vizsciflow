@@ -83,3 +83,5 @@ multiqc
 NanoPlot
 cutadapt
 fastqe
+paramiko
+scp

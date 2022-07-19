@@ -20,7 +20,7 @@ def process_dups(context, *args, **kwargs):
     tools = np.array(["FeatList.pl?", "GEvo.pl?", "FastaView.pl?"])
     links = np.char.add(baseurl, tools)
     
-    outpath = context.createoutdir() + path.basename(infile) + ".tandems"
+    outpath = path.join(context.createoutdir(), path.basename(infile) + ".tandems")
 
     with open(outpath, "w") as fp:
         # write header

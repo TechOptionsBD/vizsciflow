@@ -56,13 +56,13 @@
                "name":"granularity",
                "type":"str",
                "default": "'functions'",
-               "description": "functions|blocks"
+               "description": "'functions'|'blocks'"
             },
             {
                "name": "language",
                "type": "str",
                "default": "'java'",
-               "description": "java|c|python|php"
+               "description": "'java'|'c'|'python'|'php'"
             }
             ],
             "returns":[
@@ -99,7 +99,7 @@
           {
             "name": "language",
             "type": "str",
-            "desc": "java|python|c|php",
+            "desc": "'java'|'python'|'c'|'php'",
             "default": "'java'"
           }
         ],
@@ -133,14 +133,14 @@
           {
             "name": "language",
             "type": "str",
-            "desc": "java|cs|python|c|php",
+            "desc": "'java'|'cs'|'python'|'c'|'php'",
             "default": "'java'"
           },
           {
             "name": "nonterminals",
             "type": "str",
-            "desc": "",
-            "default": "'*'"
+            "desc": "'none'|'condition'|'expression'",
+            "default": "'none'"
           }
         ],
         "returns": [
@@ -167,20 +167,20 @@
           {
             "name": "granularity",
             "type": "str",
-            "desc": "functions|blocks",
+            "desc": "'functions'|'blocks'",
             "default": "'functions'"
           },
           {
             "name": "language",
             "type": "str",
-            "desc": "java|cs|python|c|php",
+            "desc": "'java'|'cs'|'python'|'c'|php'",
             "default": "'java'"
           },
           {
             "name": "nonterminals",
             "type": "str",
-            "desc": "",
-            "default": "'*'"
+            "desc": "'none'|'declaration'",
+            "default": "'none'"
           }
         ],
         "returns": [
@@ -207,20 +207,20 @@
         {
         "name": "granularity",
         "type": "str",
-        "desc": "functions|blocks",
+        "desc": "'functions'|'blocks'",
         "default": "'functions'"
         },
         {
         "name": "language",
         "type": "str",
-        "desc": "java|cs|python|c|php",
+        "desc": "'java'|'cs'|'python'|'c'|'php'",
         "default": "'java'"
         },
         {
             "name": "transform",
             "type": "str",
-            "desc": "",
-            "default": "'sort'"
+            "desc": "'none'|'sort'",
+            "default": "'none'"
         }
         ],
         "returns": [
@@ -247,19 +247,19 @@
           {
             "name": "granularity",
             "type": "str",
-            "desc": "functions|blocks",
+            "desc": "'functions'|'blocks'",
             "default": "'functions'"
           },
           {
             "name": "language",
             "type": "str",
-            "desc": "java|cs|python|c|php",
+            "desc": "'java'|'cs'|'python'|'c'|'php'",
             "default": "'java'"
           },
           {
             "name": "renaming",
             "type": "str",
-            "desc": "blind|consistent",
+            "desc": "'none'|'blind'|'consistent'",
             "default": "'blind'"
           }
         ],
@@ -287,19 +287,19 @@
           {
             "name": "granularity",
             "type": "str",
-            "desc": "functions|blocks",
+            "desc": "'functions'|'blocks'",
             "default": "'functions'"
           },
           {
             "name": "language",
             "type": "str",
-            "desc": "java|cs|python|c|php",
+            "desc": "'java'|'cs'|'python'|'c'|'php'",
             "default": "'java'"
           },
           {
-            "name": "normalizer",
+            "name": "normalization",
             "type": "str",
-            "desc": "",
+            "desc": "'none'|'java-normalize-ifconditions-functions'|'xmlsortblocks'|'cabstractifconditions'",
             "default": "'java-normalize-ifconditions-functions'"
           }
         ],
@@ -349,21 +349,24 @@
           {
             "name": "threshold",
             "type": "float",
-            "desc": ""
+            "desc": "",
+            "default": 0.3
           },
           {
             "name": "minclonesize",
             "type": "int",
-            "desc": ""
+            "desc": "",
+            "default": "10"
           },
           {
             "name": "maxclonesize",
             "type": "int",
-            "desc": ""
+            "desc": "",
+            "default": "2500"
           },
           {
             "name": "showsource",
-            "desc": ""
+            "default": "'showsource'"
           }
         ],
         "returns": [
@@ -391,19 +394,19 @@
             "name": "threshold",
             "type": "float",
             "desc": "",
-            "default": "0.0"
+            "default": "0.3"
           },
           {
             "name": "minclonesize",
             "type": "int",
             "desc": "",
-            "default": "3"
+            "default": "10"
           },
           {
             "name": "maxclonesize",
             "type": "int",
             "desc": "",
-            "default": "2000"
+            "default": "2500"
           },
           {
             "name": "showsource",

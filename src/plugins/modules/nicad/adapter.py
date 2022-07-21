@@ -148,7 +148,7 @@ def run_cleanall(context, *args, **kwargs):
 
     arguments = context.parse_args('cleanall', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
-    context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
     return arguments['data']
 
 def run_findclonepairs(context, *args, **kwargs):
@@ -161,20 +161,19 @@ def run_findclonepairs(context, *args, **kwargs):
     if 'minclonesize' in arguments.keys():
         cmdargs.append(arguments['minclonesize'])
 
-    if 'maxclonesize' in arguments.keys():
-        cmdargs.append(arguments['maxclonesize'])
+        if 'maxclonesize' in arguments.keys():
+            cmdargs.append(arguments['maxclonesize'])
     
-    if 'showsource' in arguments.keys():
-        cmdargs.append(arguments['showsource'])
+        if 'showsource' in arguments.keys():
+            cmdargs.append('showsource')
 
     out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
     if Utility.ValueOrNone(err) != 0:
         raise ValueError("ERROR: Clone analysis failed, code {0}".format(err))
 
-    resultdir = Path(arguments['data']).stem + '-clones' # output saved into this folder
-    #os.makedirs(resultdir)
-    outname = resultdir + '-' + str(arguments['threshold']) + '.xml'
-    return path.join(resultdir, outname)
+    resultdirname = Path(arguments['data']).stem + '-clones' # output saved into this folder
+    outname = resultdirname + '-' + str(arguments['threshold']) + '.xml'
+    return path.join(path.dirname(arguments['data']), resultdirname, outname)
 
 def run_clusterpairs(context, *args, **kwargs):
 
@@ -244,17 +243,17 @@ def run_findclones(context, *args, **kwargs):
     if 'minclonesize' in arguments.keys():
         cmdargs.append(arguments['minclonesize'])
 
-    if 'maxclonesize' in arguments.keys():
-        cmdargs.append(arguments['maxclonesize'])
+        if 'maxclonesize' in arguments.keys():
+            cmdargs.append(arguments['maxclonesize'])
     
-    if 'showsource' in arguments.keys():
-        cmdargs.append(arguments['showsource'])
+        if 'showsource' in arguments.keys():
+            cmdargs.append('showsource')
+
 
     out, err = context.bash_run(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
     if Utility.ValueOrNone(err) != 0:
         raise ValueError("ERROR: Find clones failed, code {0}".format(err))
 
-    resultdir = Path(arguments['data']).stem + '-clones' # output saved into this folder
-    #os.makedirs(resultdir)
-    outname = resultdir + '-' + str(arguments['threshold']) + '.xml'
-    return path.join(resultdir, outname)
+    resultdirname = Path(arguments['data']).stem + '-clones' # output saved into this folder
+    outname = resultdirname + '-' + str(arguments['threshold']) + '.xml'
+    return path.join(path.dirname(arguments['data']), resultdirname, outname)

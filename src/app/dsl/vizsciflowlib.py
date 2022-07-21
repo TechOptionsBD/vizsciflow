@@ -157,12 +157,13 @@ class Library(LibraryBase):
                 usedIndex = 0
                 if hasattr(func, 'params'):
                     for param in func.params:
-                        if not param.name or not Library.needs_normalization(param.type): continue
+                        type = param.type if hasattr(param, 'type') else 'str'
+                        if not param.name or not Library.needs_normalization(type): continue
 
                         if param.name in kwargs:
-                            kwargs[param.name] = Library.normalize(context, param.type, kwargs[param.name])
+                            kwargs[param.name] = Library.normalize(context, type, kwargs[param.name])
                         elif usedIndex < len(arguments):
-                            arguments[usedIndex] = Library.normalize(context, param.type, arguments[usedIndex])
+                            arguments[usedIndex] = Library.normalize(context, type, arguments[usedIndex])
                             usedIndex += 1
 
                 result = function(context, *arguments, **kwargs)

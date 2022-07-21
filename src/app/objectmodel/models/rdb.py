@@ -808,6 +808,8 @@ class Service(db.Model):
 
         Param.query.filter(Param.service_id==self.id).delete()
         Return.query.filter(Return.service_id==self.id).delete()
+        db.session.commit()
+        
         params = value.pop('params', [])
         for p in params:
             self.params.append(Param(value = p))

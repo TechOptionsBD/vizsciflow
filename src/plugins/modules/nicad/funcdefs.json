@@ -297,7 +297,7 @@
             "default": "'java'"
           },
           {
-            "name": "normalization",
+            "name": "normalizer",
             "type": "str",
             "desc": "'none'|'java-normalize-ifconditions-functions'|'xmlsortblocks'|'cabstractifconditions'",
             "default": "'java-normalize-ifconditions-functions'"

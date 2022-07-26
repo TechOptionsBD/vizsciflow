@@ -1,12 +1,41 @@
 {
 	"functions": [
 		{
+			"package": "blast",
+			"name": "CreateBlastDB",
+			"internal": "run_makeblastdb",
+			"org": "srlab",
+			"group": "Alignment",
+			"desc": "Create a custom database from a multi-FASTA file of sequences",
+			"href": "services.html#CreateBlastDB",
+			"params": [
+				{
+					"name": "data",
+					"type": "file",
+					"desc": "Multi-FASTA file of sequences to create database from",
+					"default": ""
+				},
+				{
+					"name": "dbtype",
+					"type": "str",
+					"desc": "Molecule type ('nucl', 'prot')",
+					"default": "'nucl'"
+				}
+			],
+			"returns": [
+				{
+					"name": "blastdb",
+					"type": "str"
+				}
+			]
+		},
+		{
 			"org": "srlab",
 			"package": "blast",
 			"group": "Alignment",
 			"name": "BlastN",
 			"internal": "run_blastn",
-			"desc": "Search DNA sequence against a database.",
+			"desc": "Search a nucleotide database using a nucleotide query.",
 			"href": "services.html#BlastN",
 			"public": true,
 			"returns": [
@@ -17,16 +46,28 @@
 			],
 			"params": [
 				{
-					"name": "data",
+					"name": "query",
 					"type": "file",
-					"desc": "Sequences to search for.",
+					"desc": "Nucleotide sequence(s) to search for.",
 					"default": ""
 				},
 				{
 					"name": "db",
 					"type": "str",
-					"desc": "Database to search into.",
+					"desc": "Nucleotide database to search into.",
 					"default": ""
+				},
+				{
+					"name": "outfmt",
+					"type": "str",
+					"desc": "Format of BLAST result",
+					"default": "0"
+				},
+				{
+					"name": "evalue",
+					"type": "str",
+					"desc": "Expected value cutoff",
+					"default": "0.001"
 				}
 			]
 		},
@@ -36,7 +77,7 @@
 			"group": "Alignment",
 			"name": "BlastP",
 			"internal": "run_blastp",
-			"desc": "Search DNA sequence against a database.",
+			"desc": "Search protein database using a protein query.",
 			"href": "services.html#BlastP",
 			"public": true,
 			"returns": [
@@ -47,16 +88,154 @@
 			],
 			"params": [
 				{
-					"name": "data",
+					"name": "query",
 					"type": "file",
-					"desc": "Sequences to search for.",
+					"desc": "Protein sequence(s) to search for.",
 					"default": ""
 				},
 				{
 					"name": "db",
 					"type": "str",
-					"desc": "Database to search into.",
+					"desc": "Protein database to search into.",
 					"default": ""
+				},
+				{
+					"name": "outfmt",
+					"type": "str",
+					"desc": "Format of BLAST result",
+					"default": "0"
+				},
+				{
+					"name": "evalue",
+					"type": "str",
+					"desc": "Expected value cutoff",
+					"default": "0.001"
+				}
+			]
+		},
+		{
+			"org": "srlab",
+			"package": "blast",
+			"group": "Alignment",
+			"name": "tBlastN",
+			"internal": "run_tblastn",
+			"desc": "Search translated nucleotide database using a protein query.",
+			"href": "services.html#tBlastN",
+			"public": true,
+			"returns": [
+				{
+					"name": "data",
+					"type": "file"
+				}
+			],
+			"params": [
+				{
+					"name": "query",
+					"type": "file",
+					"desc": "Protein sequence(s) to search for.",
+					"default": ""
+				},
+				{
+					"name": "db",
+					"type": "str",
+					"desc": "Nucleotide database to search into.",
+					"default": ""
+				},
+				{
+					"name": "outfmt",
+					"type": "str",
+					"desc": "Format of BLAST result",
+					"default": "0"
+				},
+				{
+					"name": "evalue",
+					"type": "str",
+					"desc": "Expected value cutoff",
+					"default": "0.001"
+				}
+			]
+		},
+		{
+			"org": "srlab",
+			"package": "blast",
+			"group": "Alignment",
+			"name": "BlastX",
+			"internal": "run_blastx",
+			"desc": "Search protein database using a translated nucleotide query.",
+			"href": "services.html#BlastX",
+			"public": true,
+			"returns": [
+				{
+					"name": "data",
+					"type": "file"
+				}
+			],
+			"params": [
+				{
+					"name": "query",
+					"type": "file",
+					"desc": "Nucleotide sequence(s) to search for.",
+					"default": ""
+				},
+				{
+					"name": "db",
+					"type": "folder",
+					"desc": "Protein database to search into.",
+					"default": ""
+				},
+				{
+					"name": "outfmt",
+					"type": "str",
+					"desc": "Format of BLAST result",
+					"default": "0"
+				},
+				{
+					"name": "evalue",
+					"type": "str",
+					"desc": "Expected value cutoff",
+					"default": "0.001"
+				}
+			]
+		},
+		{
+			"org": "srlab",
+			"package": "blast",
+			"group": "Alignment",
+			"name": "tBlastX",
+			"internal": "run_tblastx",
+			"desc": "Translate query and database nucleotide sequences and blast them as proteins.",
+			"href": "services.html#tBlastX",
+			"public": true,
+			"returns": [
+				{
+					"name": "data",
+					"type": "file"
+				}
+			],
+			"params": [
+				{
+					"name": "query",
+					"type": "file",
+					"desc": "Nucleotide sequence(s) to search for.",
+					"default": ""
+				},
+				{
+					"name": "db",
+					"type": "str",
+					"desc": "Nucleotide database to search into.",
+					"default": ""
+				},
+				{
+					"name": "outfmt",
+					"type": "str",
+					"desc": "Format of BLAST result",
+					"default": "0"
+				},
+				{
+					"name": "evalue",
+					"type": "str",
+					"desc": "Expected value cutoff",
+					"default": "0.001"
 				}
 			]
 		}

@@ -77,3 +77,12 @@ def run_blastx(context, *args, **kwargs):
 
 def run_tblastx(context, *args, **kwargs):
     return run_blast("tBlastX", context, *args, **kwargs)
+
+# MegaBlast and Discontinuous MegaBlast are specified by BlastN's -task argument
+def run_megablast(context, *args, **kwargs):
+    kwargs["task"]="megablast"
+    return run_blastn(context, *args, **kwargs)
+
+def run_dcmegablast(context, *args, **kwargs):
+    kwargs["task"]="dc-megablast"
+    return run_blastn(context, *args, **kwargs)

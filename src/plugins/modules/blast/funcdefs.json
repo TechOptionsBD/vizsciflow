@@ -59,15 +59,21 @@
 				},
 				{
 					"name": "outfmt",
-					"type": "str",
+					"type": "int",
 					"desc": "Format of BLAST result",
 					"default": "0"
 				},
 				{
 					"name": "evalue",
-					"type": "str",
+					"type": "int",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
+				},
+				{
+					"name": "task",
+					"type": "str",
+					"desc": "('blastn', 'blastn-short', 'dc-megablast', 'megablast', 'rmblastn')",
+					"default": "'blastn'"
 				}
 			]
 		},
@@ -110,6 +116,12 @@
 					"type": "str",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
+				},
+				{
+					"name": "task",
+					"type": "str",
+					"desc": "('blastp', 'blastp-fast', 'blastp-short')",
+					"default": "'blastp'"
 				}
 			]
 		},
@@ -152,6 +164,12 @@
 					"type": "str",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
+				},
+				{
+					"name": "task",
+					"type": "str",
+					"desc": "('tblastn', 'tblastn-fast')",
+					"default": "'tblastn'"
 				}
 			]
 		},
@@ -194,6 +212,12 @@
 					"type": "str",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
+				},
+				{
+					"name": "task",
+					"type": "str",
+					"desc": "('blastx', 'blastx-fast')",
+					"default": "'blastx'"
 				}
 			]
 		},

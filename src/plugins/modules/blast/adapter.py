@@ -35,7 +35,7 @@ def run_blast(blast, context, *args, **kwargs):
     # query and database are mandatory
     query, db = arguments.pop("query"), arguments.pop("db")
 
-    outpath = path.join(context.createoutdir(), "{0}-{1}.{2}".format(Path(query).stem, Path(db).stem, blast.lower()))
+    outpath = path.join(context.createoutdir(), "{0}-{1}.{2}".format(Path(query).stem, Path(db).stem, arguments["task"] if "task" in arguments.keys() else blast.lower()))
 
     # the rest are optional arguments
     optargs = [["-"+key, str(arguments[key])] for key in arguments.keys() if arguments[key]]
@@ -62,7 +62,6 @@ def run_blast(blast, context, *args, **kwargs):
 
 
 # Below are variants of Blast
-
 def run_blastn(context, *args, **kwargs):
     return run_blast("BlastN", context, *args, **kwargs)
 
@@ -78,3 +77,12 @@ def run_blastx(context, *args, **kwargs):
 
 def run_tblastx(context, *args, **kwargs):
     return run_blast("tBlastX", context, *args, **kwargs)
+
+# MegaBlast and Discontinuous MegaBlast are specified by BlastN's -task argument
+def run_megablast(context, *args, **kwargs):
+    kwargs["task"]="megablast"
+    return run_blastn(context, *args, **kwargs)
+
+def run_dcmegablast(context, *args, **kwargs):
+    kwargs["task"]="dc-megablast"
+    return run_blastn(context, *args, **kwargs)

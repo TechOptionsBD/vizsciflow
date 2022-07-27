@@ -7,7 +7,8 @@ function SampleViewModel() {
     self.access = ko.observable();
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
-
+    self.wfArgs = ko.observableArray();
+    self.wfReturns = ko.observableArray();
     self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
 
     self.addSample = function(task) {
@@ -34,6 +35,10 @@ function SampleViewModel() {
             formdata.append('args', ko.toJSON(self.wfArgs));
         }
 
+        if(self.wfReturns() !== null){
+            formdata.append('returns', ko.toJSON(self.wfReturns));
+        }
+
         ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
             if (!$.isEmptyObject(data)) {
                 data = JSON.parse(data);
@@ -45,8 +50,6 @@ function SampleViewModel() {
             samplesViewModel.load();
         });
     }
-
-    self.wfArgs = ko.observableArray();
 
     self.addArgs = function () {
         self.wfArgs.push(
@@ -62,6 +65,19 @@ function SampleViewModel() {
         self.wfArgs.remove(data);
     };
 
+    self.addReturns = function () {
+        self.wfReturns.push(
+            ko.observableDictionary({
+                name: '',
+                type: '',
+                desc: ''
+            })
+        );
+    };
+    
+    self.removeReturns = function (data, e) {
+        self.wfReturns.remove(data);
+    };
 
     self.getCodeEditor = function() { return self.sampleEditor; }
 

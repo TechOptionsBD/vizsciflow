@@ -33,7 +33,7 @@ from ..managers.modulemgr import modulemanager
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
-def update_workflow(user_id, workflow_id, script):
+def update_workflow(user_id, workflow_id, script, params, returns):
     if workflow_id:
         workflow = workflowmanager.first(id=workflow_id)
         writeaccess = workflow.temp
@@ -53,9 +53,9 @@ def update_workflow(user_id, workflow_id, script):
         if writeaccess:
             workflow.update_script(script)
         else:
-            workflow = Samples.create_workflow(user_id, workflow.name, workflow.desc, script, AccessType.PRIVATE, '', True, workflow.id)
+            workflow = Samples.create_workflow(user_id, workflow.name, workflow.desc, script, params, returns, AccessType.PRIVATE, '', True, workflow.id)
     else:
-        workflow = Samples.create_workflow(user_id, "No Name", "No Description", script, AccessType.PRIVATE, '', True)
+        workflow = Samples.create_workflow(user_id, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
     return workflow
     
 def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
@@ -312,7 +312,7 @@ def functions():
             if request.form.get('workflowId'):
                 workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
                 if request.form.get('script'):
-                    workflow = update_workflow(current_user.id, workflowId, request.form.get('script'))
+                    workflow = update_workflow(current_user.id, workflowId, request.form.get('script'), request.form.get('args'), request.form.get('returns'))
                     return jsonify(workflowId = workflow.id)
 
                 # Here we must have a valid workflow id

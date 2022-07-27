@@ -201,8 +201,8 @@ class ModuleManagerMock():
         return Workflow.query.get(workflow_id)    
     
     @staticmethod
-    def create_workflow(user_id, name, desc, script, access, users, temp, derived = 0):
-        return Workflow.create(user_id, name, desc if desc else '', script, 2 if not access else int(access), users, temp, derived)
+    def create_workflow(user_id, name, desc, script, params, returns, access, users, temp, derived = 0):
+        return Workflow.create(user_id, name, desc if desc else '', script, params, returns, 2 if not access else int(access), users, temp, derived)
 
     @staticmethod
     def get(**kwargs):

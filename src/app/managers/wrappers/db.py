@@ -121,6 +121,10 @@ class DataManager():
     def insert_datasources():
         return DataSource.insert_datasources()
 
+    @staticmethod
+    def get_mimetype(extension):
+        return MimeType.query.filter_by(extension = extension).first()
+
 class ModuleManager():
     @staticmethod
     def first(**kwargs):

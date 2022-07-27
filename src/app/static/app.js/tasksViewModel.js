@@ -1455,24 +1455,59 @@ function TasksViewModel() {
             }
         }
         else {
-            fetch(self.dataSourcesURI + "?" + 'filecontent=' + data.data)
-                .then(resp => resp.blob())
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    // the filename you want
 
-                    //const getFileName = (fileName) => new URL(fileName).pathname.split("/").pop();
-                    const getFileName = (fileName) => fileName.split('/').pop();
-                    a.download = decodeURIComponent(getFileName(data.data));
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                })
+            $.ajax({
+                url: "/datasources?mimetype=" + data.data //api.elements.target.attr('href') // Use href attribute as URL
+            })
+            .then(function(content) {
+                // Set the tooltip content upon successful retrieval
+                content = JSON.parse(content);
+                if (content.mimetype == 'text/plain'){
+                    
+                    var oReq = new XMLHttpRequest();
+                    oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+                    oReq.responseType = "arraybuffer";
 
-            self.itemSrc('');
+                    oReq.send();
+                    self.itemName(data.data);
+                    oReq.onload = function (oEvent) {
+                        if (this.status == 200) {
+                            var arrayBuffer = oReq.response;
+                            var blob = new Blob([arrayBuffer], { type: "text/plain" });
+                            itemSrc = URL.createObjectURL(blob);
+                            self.itemSrc(itemSrc);
+                            // self.showModal(data, itemSrc);
+                            $('.nav-tabs a[href="#outputtab"]').tab('show');
+                        }
+                    }
+                }
+                else{
+                    fetch(self.dataSourcesURI + "?" + 'filecontent=' + data.data)
+                    .then(resp => resp.blob())
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        // the filename you want
+
+                        //const getFileName = (fileName) => new URL(fileName).pathname.split("/").pop();
+                        const getFileName = (fileName) => fileName.split('/').pop();
+                        a.download = decodeURIComponent(getFileName(data.data));
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    })
+
+                    self.itemSrc('');
+                }
+                
+            }, function(xhr, status, error) {
+                // Upon failure... set the tooltip content to error
+                //api.set('content.text', status + ': ' + error);
+            });
+
+            
             return;
         }
     };

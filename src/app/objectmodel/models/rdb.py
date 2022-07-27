@@ -29,7 +29,7 @@ from app.objectmodel.common import Permission, AccessRights, AccessType, Status,
 from .loader import Loader
 
 from collections import namedtuple
-      
+     
 class AlchemyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj.__class__, DeclarativeMeta):
@@ -520,11 +520,12 @@ class Workflow(db.Model):
     public = db.Column(db.Boolean, default=False)
     temp = db.Column(db.Boolean, default=False)
     derived = db.Column(db.Integer, nullable=True)
-    args = db.Column(JSON, nullable=True)
     
     accesses = db.relationship('WorkflowAccess', backref='workflow', lazy=True, cascade="all,delete-orphan") 
     runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflow', lazy='dynamic')
     annotations = db.relationship('WorkflowAnnotation', backref='workflow', lazy='dynamic', cascade="all,delete-orphan")
+    params = db.relationship('WorkflowParam', backref='workflow', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
+    returns = db.relationship('WorkflowReturn', backref='workflow', lazy='dynamic', cascade="all,delete-orphan")
     #children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
     
     def add_access(self, user_id, rights =  AccessRights.NotSet):
@@ -555,17 +556,20 @@ class Workflow(db.Model):
         try:
             access = int(kwargs.pop('access', 0))
             users = kwargs.pop('users', None)
+            paramargs = kwargs.pop('params', [])
+            returnsargs = kwargs.pop('returns', [])
+
             wf = Workflow(**kwargs)
-            #name, desc, script, access, users, temp=False, derived = 0, args = None
-            wf.public = (access == 0)
+            wf.public = (access == AccessType.PUBLIC)
             if users:
                 users = list(users.split(","))
-            if (access == AccessType.SHARED and users):
-                for user_id in users:
-                    user = User.query.filter(User.id == user_id).first()
-                    if user:
-                        wf.accesses.append(WorkflowAccess(user_id = user.id, rights = AccessRights.Read))
+                if users and access == AccessType.SHARED:
+                    for user_id in users:
+                        user = User.query.filter(User.id == user_id).first()
+                        if user:
+                            wf.accesses.append(WorkflowAccess(user_id = user.id, rights = AccessRights.Read))
 
+            wf.update(paramargs, returnsargs)
             db.session.add(wf)
             db.session.commit()
             
@@ -584,6 +588,46 @@ class Workflow(db.Model):
             db.session.rollback()
             raise
     
+    def update(self, params, returns):
+
+        WorkflowParam.query.filter(WorkflowParam.workflow_id==self.id).delete()
+        WorkflowReturn.query.filter(WorkflowReturn.workflow_id==self.id).delete()
+        db.session.commit()
+
+        if params:
+            for p in params:
+                self.params.append(WorkflowParam(value = p))
+        
+        if returns:
+            for p in returns:
+                self.returns.append(WorkflowReturn(value = p))
+
+    @staticmethod
+    def add(user_id, value, access, users):
+        try:
+            service = Service()
+            service.user_id = user_id
+            service.active = True
+            service.public = True if access == AccessType.PUBLIC else False
+
+            if (access == AccessType.SHARED and users):
+                for user_id in users:
+    #                 for usr in user:
+    #                     print(usr)
+    #                     user_id, rights = usr.split(":")
+                    matchuser = User.query.filter(User.id == user_id).first()
+                    if matchuser:
+                        service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
+
+            service.update(value)
+
+            db.session.add(service)
+            db.session.commit()
+            return service
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
     @staticmethod
     def remove(current_user_id, workflow_id):
         try:
@@ -688,7 +732,7 @@ class Workflow(db.Model):
             'name': self.name,
             'desc': self.desc,
             'script': self.script,
-            'args': self.args
+            'params': Service.get_params_returns_json(self)
         }
         return json_post
     
@@ -747,7 +791,18 @@ class WorkflowAccess(db.Model):
             db.session.rollback()
             raise  
      
-    
+class WorkflowParam(db.Model):
+    __tablename__ = 'workflowparams'
+    id = db.Column(db.Integer, primary_key=True)
+    workflow_id = db.Column(db.Integer, ForeignKey('workflows.id'))
+    value = db.Column(JSON, nullable = False)
+
+class WorkflowReturn(db.Model):
+    __tablename__ = 'workflowreturns'
+    id = db.Column(db.Integer, primary_key=True)
+    workflow_id = db.Column(db.Integer, ForeignKey('workflows.id'))
+    value = db.Column(JSON, nullable = False)
+
 class Param(db.Model):
     __tablename__ = 'params'
     id = db.Column(db.Integer, primary_key=True)
@@ -809,7 +864,7 @@ class Service(db.Model):
         Param.query.filter(Param.service_id==self.id).delete()
         Return.query.filter(Return.service_id==self.id).delete()
         db.session.commit()
-        
+
         params = value.pop('params', [])
         for p in params:
             self.params.append(Param(value = p))
@@ -1776,7 +1831,8 @@ class MimeType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, nullable = False)
     desc = db.Column(db.Text, nullable = True)
-    
+    extension = db.Column(db.Text, nullable = True)
+        
     dataAllocations = db.relationship("DataSourceAllocation", secondary="data_mimetypes")
     
     @staticmethod

@@ -414,7 +414,10 @@ def get_filecontent(path):
     path = path.strip()
     fs = Utility.fs_by_prefix_or_guess(path)
     image_binary = fs.read(path)
-    mime = mimetypes.guess_type(path)[0]
+
+    mime = datamanager.get_mimetype(path)
+    if not mime:
+        mime = mimetypes.guess_type(path)[0]
     return send_file(io.BytesIO(image_binary), mimetype=mime, as_attachment=True, attachment_filename=fs.basename(path))
 
 def get_filedata(path):
@@ -422,7 +425,9 @@ def get_filedata(path):
     path = path.strip()
     with open(path, 'rb') as reader:
         file_binary = reader.read()
-        mime = mimetypes.guess_type(path)[0]
+        mime = datamanager.get_mimetype(path)
+        if not mime:
+            mime = mimetypes.guess_type(path)[0]
         return send_file(io.BytesIO(file_binary), mimetype=mime, as_attachment=True, attachment_filename=os.path.basename(path))
 
 def upload_biowl(file, request):
@@ -706,12 +711,17 @@ def metadata():
 #     elif request.form.get('save'):
 #         return json.dumps(save_metadata(request))
 
+def get_mimetype(path):
+    return datamanager.get_mimetype(path)
+
 @main.route('/datasources', methods=['GET', 'POST'])
 @login_required
 def datasources():
     try:
         if request.form.get('download'):
             return download_biowl(request.form['download'])
+        elif 'mimetype' in request.args:
+            return json.dumps({'mimetype': get_mimetype(request.args.get('mimetype'))})
         elif 'filecontent' in request.args:
             return get_filecontent(request.args.get('filecontent'))
         elif 'file_data' in request.args:
@@ -823,7 +833,7 @@ class Samples():
         #return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
 
     @staticmethod
-    def create_workflow(user, name, desc, script, publicaccess, users, temp, derived = 0, args = None):
+    def create_workflow(user, name, desc, script, params, returns, publicaccess, users, temp, derived = 0):
         access = 9
         if script and name:
             if publicaccess == 'true':
@@ -835,13 +845,15 @@ class Samples():
                 else:
                     access = 2
                     users = False   
-            return workflowmanager.create(user_id=user, name=name, desc=desc if desc else '', script=script, access=access, users=users, temp=temp, derived=derived, args=args)
+            return workflowmanager.create(user_id=user, name=name, desc=desc if desc else '', script=script, params=params, returns=returns, access=access, users=users, temp=temp, derived=derived)
 
     @staticmethod
-    def add_workflow(user, name, desc, script, access, users, temp, args):
-        workflow = Samples.create_workflow(user, name, desc, script, access, users, temp, 0, args)
+    def add_workflow(user, name, desc, script, params, returns, access, users, temp):
+        workflow = Samples.create_workflow(user, name, desc, script, params, returns, access, users, temp, 0)
         return json.dumps(workflow.to_json_info())
-                
+
+'''
+Used for saving workflow into the filesystem instead of in the database
     @staticmethod
     def add_sample(sample, name, desc, shared):
         this_path = os.path.dirname(os.path.abspath(__file__))
@@ -874,7 +886,8 @@ class Samples():
 #                json.dump(samples, fp, indent=4, separators=(',', ': '))
         finally:
             return json.dumps({ 'out': '', 'err': ''})
-       
+'''
+
 def workflow_compare(workflow1, workflow2):
     try:
         from ..jobs import generate_graph_from_workflow
@@ -921,7 +934,7 @@ def workflow_rev_compare(request):
 def samples():
     try:
         if request.form.get('sample'):
-            return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False, json.loads(request.form.get('args')) if request.form.get('args') else None)
+            return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('params'), request.form.get('returns'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
         elif request.args.get('sample_id'):
             workflow = workflowmanager.get_or_404(request.args.get('sample_id'))
             return json.dumps(workflow.to_json())

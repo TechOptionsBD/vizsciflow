@@ -52,6 +52,7 @@ function SamplesViewModel(sampleViewModel) {
             scriptname = "No Name";
         }
         self.sampleViewModel.wfArgs([]);
+        self.sampleViewModel.wfReturns([]);
         self.sampleViewModel.name(scriptname);
         sampleViewModel.getUsers();
         $('#addSample').modal('show');
@@ -112,6 +113,7 @@ function SamplesViewModel(sampleViewModel) {
             $('#script-name').text('New script');
             editor.session.setValue("");
             $('#args').val('');
+            //$('#returns').val('');
             return;
         }
         

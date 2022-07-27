@@ -1,6 +1,7 @@
 from dsl.datatype import DataType
 from app.managers.mgrutil import ManagerUtility
 from app.objectmodel.common import AccessRights, known_types
+from pathlib import Path
 
 class DataManager():
     def __init__(self):
@@ -114,6 +115,13 @@ class DataManager():
 
     def insert_datasources(self):
         return self.persistance.insert_datasources()
-
+    
+    def get_mimetype(self, file):
+        if path:
+            path = Path(path)
+            if path.suffix:
+                mime = self.persistance.get_mimetype(path.suffix[1:])
+                if mime:
+                    return mime.name
         
 datamanager = DataManager()

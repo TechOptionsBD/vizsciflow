@@ -1,7 +1,7 @@
 {
     "package":"cutadapt",
     "name":"CutAdapt",
-    "internal":"demo_service",
+    "internal":"run_cutadapt",
     "org":"srlab",
     "group":"Quality",
     "desc":"Finds and removes adapter sequences, primers, poly-A tails and other types of unwanted sequence from high-throughput sequencing reads",
@@ -26,15 +26,15 @@
          "default":"'CTGTCTCTTATACACATCT'"
        },
        {
-          "name":"min",
+          "name":"min_length",
           "type":"int",
-          "desc":"",
-          "default":"20"
+          "desc":"Discard reads shorter than LEN",
+          "default":"0"
        },
        {
            "name":"quality",
            "type":"int",
-           "desc":"",
+           "desc":"Trim low-quality bases from 5' and/or 3' ends of each read before adapter removal.",
            "default":"20"
        }
     ],

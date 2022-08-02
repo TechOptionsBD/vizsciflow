@@ -117,8 +117,8 @@ class DataManager():
         return self.persistance.insert_datasources()
     
     def get_mimetype(self, file):
-        if path:
-            path = Path(path)
+        if file:
+            path = Path(file)
             if path.suffix:
                 mime = self.persistance.get_mimetype(path.suffix[1:])
                 if mime:

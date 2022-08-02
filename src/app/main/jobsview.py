@@ -57,14 +57,53 @@ def update_workflow(user_id, workflow_id, script, params, returns):
     else:
         workflow = Samples.create_workflow(user_id, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
     return workflow
-    
+
+def run_biowl_internal(workflow_id, script, args, provenance = False):
+    from ..jobs import run_script
+
+    argsjson = {}
+    if args:
+        if not isinstance(args, dict):
+            try:
+                argsjson = json.loads(args)
+            except:
+                argslist = args.split(',')
+                for a in argslist:
+                    keyval = a.split('=')
+                    argsjson[keyval[0]] = keyval[1]
+        else:
+            argsjson = args
+
+    workflow = workflowmanager.first(id=workflow_id)
+    runnable = runnablemanager.create_runnable(current_user, workflow, script if script else workflow.script, provenance, argsjson)
+           
+    if isinstance(args, dict):
+        argsparse = []
+        for k,v in args.items():
+            argsparse.append(k + '=' + f'"{v}"' if isinstance(v, str) else str(v))
+        args = ",".join(argsparse)
+    return run_script(runnable.id, args, provenance)
+
 def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
     from ..jobs import run_script
+    argsjson = {}
+    if args:
+        if not isinstance(args, dict):
+            try:
+                argsjson = json.loads(args)
+            except:
+                argslist = args.split(',')
+                for a in argslist:
+                    keyval = a.split('=')
+                    argsjson[keyval[0]] = keyval[1]
+        else:
+            argsjson = args
+
     workflow = workflowmanager.first(id=workflow_id)
-    runnable = runnablemanager.create_runnable(current_user, workflow, script if script else workflow.script, provenance, args)
-           
-    run_script(runnable.id, args, provenance) if immediate else run_script.delay(runnable.id, args, provenance)
+    runnable = runnablemanager.create_runnable(current_user, workflow, script if script else workflow.script, provenance, argsjson)
         
+    run_script(runnable.id, args, provenance) if immediate else run_script.delay(runnable.id, args, provenance)
+    
     return runnable
 
 def save_and_run_workflow(script, args, immediate = True, provenance = False):

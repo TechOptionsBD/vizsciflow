@@ -15,6 +15,9 @@ class RunnableManager:
     
     def create_runnable(self, user, workflow, script, provenance, args):
         return self.persistance.create_runnable(user, workflow, script, provenance, args)
+
+    def add_return(self, runnable_id, retval):
+        return self.persistance.add_return(runnable_id, retval)
     
     def invoke_module(self, runnable_id, function_name, package):
         return self.persistance.invoke_module(runnable_id, function_name, package)

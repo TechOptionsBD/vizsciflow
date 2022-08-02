@@ -221,6 +221,9 @@ class WorkflowManager():
     def insert_workflows(path):
         return Workflow.insert_workflows(path)
 
+    @staticmethod
+    def get_returns_json(workflow_id):
+        return dict2obj(Workflow.get_returns_json(workflow_id))
 
 class RunnableManager():
     @staticmethod
@@ -244,6 +247,17 @@ class RunnableManager():
     @staticmethod
     def runnables_of_user(user_id):
         return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.created_on.desc())
+
+    @staticmethod
+    def add_return(runnable_id, triplet):
+        if isinstance(triplet[1], FolderItem) and isiterable(triplet[1].path):
+            for it in triplet[1].path:
+                Runnable.add_return(runnable_id, triplet[0], str(it))
+        elif (triplet[0] == DataType.File or triplet[0] == DataType.Folder) and isiterable(triplet[1]):
+            for it in triplet[1].path:
+                Runnable.add_return(runnable_id, triplet[0], str(it))
+        else:
+            Runnable.add_return(runnable_id, triplet[0], str(triplet[1]))
 
 class FilterManager():
     @staticmethod

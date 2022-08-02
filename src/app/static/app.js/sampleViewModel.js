@@ -7,7 +7,7 @@ function SampleViewModel() {
     self.access = ko.observable();
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
-    self.wfArgs = ko.observableArray();
+    self.wfParams = ko.observableArray();
     self.wfReturns = ko.observableArray();
     self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
 
@@ -31,8 +31,8 @@ function SampleViewModel() {
             formdata.append('sharedusers', self.selectedSharingUsers());
         }
 
-        if(self.wfArgs() !== null){
-            formdata.append('args', ko.toJSON(self.wfArgs));
+        if(self.wfParams() !== null){
+            formdata.append('params', ko.toJSON(self.wfParams));
         }
 
         if(self.wfReturns() !== null){
@@ -51,8 +51,8 @@ function SampleViewModel() {
         });
     }
 
-    self.addArgs = function () {
-        self.wfArgs.push(
+    self.addParam = function () {
+        self.wfParams.push(
             ko.observableDictionary({
                 name: '',
                 type: '',
@@ -61,8 +61,8 @@ function SampleViewModel() {
         );
     };
     
-    self.removeArgs = function (data, e) {
-        self.wfArgs.remove(data);
+    self.removeParam = function (data, e) {
+        self.wfParams.remove(data);
     };
 
     self.addReturns = function () {

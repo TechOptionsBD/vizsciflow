@@ -11,6 +11,8 @@ from app.managers.runmgr import runnablemanager
 from app.managers.datamgr import datamanager
 from app.managers.modulemgr import modulemanager
 from app.objectmodel.common import isiterable, known_types
+from app.managers.workflowmgr import workflowmanager
+from app.objectmodel.common import dict2obj
 
 from app.objectmodel.provmod.provobj import *
 registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
@@ -98,6 +100,20 @@ class Library(LibraryBase):
             else:
                 return [context.denormalize(str(arg))]
     
+    @staticmethod
+    def normalize_args(context, params, *arguments, **kwargs):
+        usedIndex = 0
+        for param in params:
+            type = param.type if hasattr(param, 'type') else 'str'
+            if not param.name or not Library.needs_normalization(type): continue
+
+            if param.name in kwargs:
+                kwargs[param.name] = Library.normalize(context, type, kwargs[param.name])
+            elif usedIndex < len(arguments):
+                arguments[usedIndex] = Library.normalize(context, type, arguments[usedIndex])
+                usedIndex += 1
+        return arguments, kwargs
+
     def call_func(self, context, package, function, args):
         '''
         Call a function from a module.
@@ -144,31 +160,23 @@ class Library(LibraryBase):
                     return provcls
             
             func = modulemanager.get_module_by_name_package(function, package)
-            if not func.module:
-                Library.StoreArguments(context, task, func, arguments, **kwargs)
-                if function.lower() == "extract":
-                    result = Library.Extract(func, context, *args, **kwargs)
+            if func.package == 'system' and func.name.lower() == 'workflow':
+                workflow = workflowmanager.first(id=context.workflow_id(*arguments, **kwargs))
+                params = [dict2obj(param.value) for param in workflow.params if workflow.params]
+                returns = [dict2obj(ret.value) for ret in workflow.returns if workflow.returns]
             else:
-                module_obj = load_module(func.module)
-                function = getattr(module_obj, func.internal)
-                
-                Library.StoreArguments(context, task, func, arguments, **kwargs)
+                params = list(func.params) if hasattr(func, 'params') else []
+                returns = func.returns if hasattr(func, 'returns') else None
 
-                usedIndex = 0
-                if hasattr(func, 'params'):
-                    for param in func.params:
-                        type = param.type if hasattr(param, 'type') else 'str'
-                        if not param.name or not Library.needs_normalization(type): continue
+            Library.StoreArguments(context, task, params, arguments, **kwargs)
 
-                        if param.name in kwargs:
-                            kwargs[param.name] = Library.normalize(context, type, kwargs[param.name])
-                        elif usedIndex < len(arguments):
-                            arguments[usedIndex] = Library.normalize(context, type, arguments[usedIndex])
-                            usedIndex += 1
+            module_obj = load_module(func.module)
+            function = getattr(module_obj, func.internal)
+            result = function(context, *arguments, **kwargs)
 
-                result = function(context, *arguments, **kwargs)
-                result = Library.add_meta_data(context, result, func.returns if hasattr(func, 'returns') else None, task)
-                task.succeeded()
+            result = Library.add_meta_data(context, result, returns, task)
+
+            task.succeeded()
             return result
         except Exception as e:
             if task:
@@ -177,12 +185,12 @@ class Library(LibraryBase):
             raise
 
     @staticmethod
-    def StoreArguments(context, task, func, arguments, **kwargs):
+    def StoreArguments(context, task, params, arguments, **kwargs):
         storeArguments = list(arguments)
         for _, v in kwargs.items():
             storeArguments.append(v)
             
-        datamanager.StoreArgumentes(context.user_id, task, list(func.params) if hasattr(func, 'params') else [], storeArguments)
+        datamanager.StoreArgumentes(context.user_id, task, params, storeArguments)
 
     @staticmethod
     def get_data_and_type_from_result(context, result, ret):
@@ -226,6 +234,33 @@ class Library(LibraryBase):
         for i in range(0, mincount):
             dataAndType = Library.get_data_and_type_from_result(context, result[i], returns[i])
             datamanager.add_task_data(dataAndType, task)
+            output.append(dataAndType[3])
+        
+        return tuple(output)
+
+    @staticmethod
+    def add_runnable_returns(context, result, returns):
+        if not result:
+            return None
+
+        if not returns:
+            return result
+        
+        if not isiterable(returns) and isinstance(result, tuple):
+            output = Library.get_data_and_type_from_result(context, result[0], returns)
+            runnablemanager.add_return(context.runnable, output)
+            return output[3]
+
+        if isiterable(returns) and not isinstance(result, tuple):
+            output = Library.get_data_and_type_from_result(context, result, returns[0])
+            runnablemanager.add_return(context.runnable, output)
+            return output[3]
+
+        output = []
+        mincount = min(len(result), len(returns))
+        for i in range(0, mincount):
+            dataAndType = Library.get_data_and_type_from_result(context, result[i], returns[i])
+            runnablemanager.add_return(context.runnable, output)
             output.append(dataAndType[3])
         
         return tuple(output)

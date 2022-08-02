@@ -178,6 +178,14 @@ class VizSciFlowContext(Context):
 
         return arguments
 
+    def workflow_id(*args, **kwargs):
+        id = kwargs.pop('id', None)
+        if not id:
+            id = args[0]
+        if not id:
+            raise ValueError("No valid workflow.")
+        return id
+
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):
         super().__init__(VizSciFlowContext(Library(), VizSciFlowSymbolTable))

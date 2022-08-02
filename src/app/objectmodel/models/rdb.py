@@ -509,7 +509,6 @@ class Dataset(db.Model):
 class Workflow(db.Model):
     __tablename__ = "workflows"
     id = db.Column(db.Integer, primary_key=True)
-    #parent_id = db.Column(db.Integer, db.ForeignKey('workflows.id'), default=-1, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
@@ -526,7 +525,6 @@ class Workflow(db.Model):
     annotations = db.relationship('WorkflowAnnotation', backref='workflow', lazy='dynamic', cascade="all,delete-orphan")
     params = db.relationship('WorkflowParam', backref='workflow', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     returns = db.relationship('WorkflowReturn', backref='workflow', lazy='dynamic', cascade="all,delete-orphan")
-    #children = db.relationship("Workflow", cascade="all, delete-orphan", backref=db.backref("parent", remote_side=id), collection_class=attribute_mapped_collection('name'))
     
     def add_access(self, user_id, rights =  AccessRights.NotSet):
         try:
@@ -538,7 +536,14 @@ class Workflow(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
-    
+
+    @staticmethod
+    def get_returns_json(workflow_id):
+        workflow = Workflow.query.get(workflow_id)
+        if workflow and workflow.returns:
+            return [ret.value for ret in workflow.returns]
+        return []
+
     @staticmethod
     def insert_workflows(path):
         admin = User.query.filter(User.username=='admin').first()
@@ -595,10 +600,14 @@ class Workflow(db.Model):
         db.session.commit()
 
         if params:
+            if isinstance(params, str):
+                params = json.loads(params)
             for p in params:
                 self.params.append(WorkflowParam(value = p))
         
         if returns:
+            if isinstance(returns, str):
+                returns = json.loads(returns)
             for p in returns:
                 self.returns.append(WorkflowReturn(value = p))
 
@@ -801,6 +810,18 @@ class WorkflowReturn(db.Model):
     __tablename__ = 'workflowreturns'
     id = db.Column(db.Integer, primary_key=True)
     workflow_id = db.Column(db.Integer, ForeignKey('workflows.id'))
+    value = db.Column(JSON, nullable = False)
+
+class RunnableArg(db.Model):
+    __tablename__ = 'runnableargs'
+    id = db.Column(db.Integer, primary_key=True)
+    runnable_id = db.Column(db.Integer, ForeignKey('runnables.id'))
+    value = db.Column(JSON, nullable = False)
+
+class RunnableReturn(db.Model):
+    __tablename__ = 'runnablereturns'
+    id = db.Column(db.Integer, primary_key=True)
+    runnable_id = db.Column(db.Integer, ForeignKey('runnables.id'))
     value = db.Column(JSON, nullable = False)
 
 class Param(db.Model):
@@ -1424,7 +1445,6 @@ class Runnable(db.Model):
     celery_id = db.Column(db.String(64))
     status = db.Column(db.String(30), default=Status.PENDING)
     script = db.Column(db.Text, nullable=False)
-    args = db.Column(db.Text, default='')
     out = db.Column(db.Text, default='')
     error = db.Column(db.Text, default='')
     view = db.Column(db.Text, default='')
@@ -1434,7 +1454,20 @@ class Runnable(db.Model):
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
     
     tasks = db.relationship('Task', backref='runnable', order_by="asc(Task.id)", lazy='subquery', cascade="all,delete-orphan") 
-    #runnables = db.relationship('Runnable', cascade="all,delete-orphan", backref='workflow', lazy='dynamic')
+    args = db.relationship('RunnableArg', backref='runnable', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
+    returns = db.relationship('RunnableReturn', backref='runnable', lazy='dynamic', cascade="all,delete-orphan")
+
+    @staticmethod
+    def add_return(runnable_id, datatype, value, **kwargs):
+        runnable = Runnable.query.get(runnable_id)
+        data = Data.get_by_type_value(datatype, value)
+        if not data:
+            data = Data.add(value, datatype, **kwargs)
+        
+        data.allocate_for_user(runnable.user_id, AccessRights.Owner)
+        DataProperty.add(data.id, "execution {0}".format(runnable_id), { 'workflow': { 'job_id': runnable_id, 'workflow_id': runnable.workflow_id, 'inout': 'out'} })
+
+        return data
 
     def updateTime(self):
         try:
@@ -1541,11 +1574,20 @@ class Runnable(db.Model):
             'modified': self.modified_on.strftime("%d-%m-%Y %H:%M:%S") if self.modified_on else '',
             'status': self.status
         }
-        
+
     @staticmethod
     def create(user_id, workflow_id, script, args):
         try:
-            runnable = Runnable(workflow_id=workflow_id, user_id=user_id, script=script, args=args, status = Status.PENDING)
+            runnable = Runnable(workflow_id=workflow_id, user_id=user_id, script=script, status = Status.PENDING)
+            RunnableArg.query.filter(RunnableArg.runnable_id==runnable.id).delete()
+            db.session.commit()
+
+            if args:
+                if isinstance(args, str):
+                    args = json.loads(args)
+                for p in args:
+                    runnable.args.append(RunnableArg(value = p))
+        
             db.session.add(runnable)
             db.session.commit()
             return runnable

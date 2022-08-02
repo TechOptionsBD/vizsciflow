@@ -51,7 +51,7 @@ function SamplesViewModel(sampleViewModel) {
         if (scriptname.length <= 0) {
             scriptname = "No Name";
         }
-        self.sampleViewModel.wfArgs([]);
+        self.sampleViewModel.wfParams([]);
         self.sampleViewModel.wfReturns([]);
         self.sampleViewModel.name(scriptname);
         sampleViewModel.getUsers();

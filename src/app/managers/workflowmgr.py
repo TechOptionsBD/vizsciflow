@@ -71,5 +71,7 @@ class WorkflowManager():
     def insert_workflows(self, path):
         return self.persistance.insert_workflows(path)
 
+    def get_returns_json(self, workflow_id):
+        return self.persistance.get_returns_json(workflow_id)        
 
 workflowmanager = WorkflowManager()

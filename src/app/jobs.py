@@ -17,7 +17,8 @@ from app.objectmodel.common import Status
 from app.managers.runmgr import runnablemanager
 from app.managers.workflowmgr import workflowmanager
 from app.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
-            
+from app.dsl.vizsciflowlib import Library
+
 @celery.task(bind=True, base = AbortableTask)
 def run_script(self, runnable_id, args, provenance):
     from app import app
@@ -31,6 +32,7 @@ def run_script(self, runnable_id, args, provenance):
     curdir = os.getcwd()
     os.chdir(parserdir) #set dir of this file to current directory
 
+    retval = None
     try:
 
         context.runnable = runnable.id
@@ -47,13 +49,16 @@ def run_script(self, runnable_id, args, provenance):
             if args_tokens:
                 machine.args_to_symtab(args_tokens) 
         prog = parser.parse(runnable.script)
-        machine.run(prog)
-                            
+        retval = machine.run(prog)
+
+        Library.add_runnable_returns(context, retval, workflowmanager.get_returns_json(runnable.workflow.id))
+
         runnable.set_status(Status.SUCCESS, False)
     except (ParseException, Exception) as e:
         logging.error(str(e))
         context.err.append(str(e))
         runnable.set_status(Status.FAILURE, False)
+        raise
     finally:
         os.chdir(curdir)
         runnable.error = "\n".join(context.err)
@@ -61,7 +66,7 @@ def run_script(self, runnable_id, args, provenance):
         runnable.view = json.dumps(context.view if hasattr(context, 'view') else '')
         runnable.update()
         
-    return runnable.to_json_log()
+    return retval
 
 def stop_script(task_id):
 #    from celery.contrib.abortable import AbortableAsyncResult

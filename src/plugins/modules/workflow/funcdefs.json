@@ -1,0 +1,21 @@
+{
+	"functions": [
+		{
+			"org": "srlab",
+			"package": "system",
+			"group": "Quality",
+			"name": "Workflow",
+			"internal": "run_workflow",
+			"desc": "Run a subworkflow.",
+			"public": true,
+			"example": "returnvals = system.Workflow(id)",
+			"params": [
+				{
+					"name": "id",
+					"type": "int",
+					"desc": "Workflow ID."
+				}
+			]
+		}
+	]
+}

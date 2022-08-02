@@ -65,7 +65,7 @@
 				},
 				{
 					"name": "evalue",
-					"type": "int",
+					"type": "float",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
 				},
@@ -107,13 +107,13 @@
 				},
 				{
 					"name": "outfmt",
-					"type": "str",
+					"type": "int",
 					"desc": "Format of BLAST result",
 					"default": "0"
 				},
 				{
 					"name": "evalue",
-					"type": "str",
+					"type": "float",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
 				},
@@ -155,13 +155,13 @@
 				},
 				{
 					"name": "outfmt",
-					"type": "str",
+					"type": "int",
 					"desc": "Format of BLAST result",
 					"default": "0"
 				},
 				{
 					"name": "evalue",
-					"type": "str",
+					"type": "float",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
 				},
@@ -203,13 +203,13 @@
 				},
 				{
 					"name": "outfmt",
-					"type": "str",
+					"type": "int",
 					"desc": "Format of BLAST result",
 					"default": "0"
 				},
 				{
 					"name": "evalue",
-					"type": "str",
+					"type": "float",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
 				},
@@ -251,13 +251,13 @@
 				},
 				{
 					"name": "outfmt",
-					"type": "str",
+					"type": "int",
 					"desc": "Format of BLAST result",
 					"default": "0"
 				},
 				{
 					"name": "evalue",
-					"type": "str",
+					"type": "float",
 					"desc": "Expected value cutoff",
 					"default": "0.001"
 				}

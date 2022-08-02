@@ -25,5 +25,24 @@
         "data = pysam.SamToBam(data)",
         "print(data)",
         ""
+    ],
+    "returns": [
+        {
+            "name": "data",
+            "type": "file",
+            "desc": "The final binary  alignment and map (BAM) file."
+        }
+    ],
+    "params": [
+        {
+            "name": "data",
+            "type": "file",
+            "desc": "The sequence file in fastq or fa format."
+        },
+        {
+            "name": "ref",
+            "type": "file",
+            "desc": "The reference DNA file."
+        }
     ]
 }

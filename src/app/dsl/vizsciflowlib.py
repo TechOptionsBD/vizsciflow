@@ -103,6 +103,8 @@ class Library(LibraryBase):
     @staticmethod
     def normalize_args(context, params, *arguments, **kwargs):
         usedIndex = 0
+        arguments = list(arguments)
+        kwargs = dict(kwargs)
         for param in params:
             type = param.type if hasattr(param, 'type') else 'str'
             if not param.name or not Library.needs_normalization(type): continue
@@ -170,6 +172,7 @@ class Library(LibraryBase):
 
             Library.StoreArguments(context, task, params, arguments, **kwargs)
 
+            arguments, kwargs = Library.normalize_args(context, params, *arguments, **kwargs)
             module_obj = load_module(func.module)
             function = getattr(module_obj, func.internal)
             result = function(context, *arguments, **kwargs)

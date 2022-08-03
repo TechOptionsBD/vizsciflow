@@ -186,10 +186,14 @@ function TasksViewModel() {
             if (data === undefined)
                 return;
 
-            reportId = parseInt(data.runnableId);
-
-            runnablesViewModel.load();
-            runnablesViewModel.loadHistory(reportId, true);
+            if (data.err) {
+                showXHRText(data.err);    
+            }
+            else {
+                reportId = parseInt(data.runnableId);
+                runnablesViewModel.load();
+                runnablesViewModel.loadHistory(reportId, true);
+            }
 
         }).fail(function (jqXHR, textStatus) {
             $('#refresh').hide();

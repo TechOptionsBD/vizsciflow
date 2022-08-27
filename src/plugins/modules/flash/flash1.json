@@ -1,0 +1,66 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "flash",
+           "group": "Analysis",
+           "level": 0,
+           "name":"Merge",
+           "internal":"run_flash",
+           "runmode": "local",
+           "desc": "Merge mates from fragments that are shorter than twice the read length.",
+           "example":"data = flash.Merge(data, data2)",
+           "example2":"data = flash.Merge(data, data2, outdir='', max_overlap=50)",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"str",
+               "desc":"forward fastq file"
+            },
+            {  
+               "name":"data2",
+               "type":"str",
+               "desc":"reverse fastq file"
+            },
+            {
+                "name": "max_overlap",
+                "type": "int",
+                "default": 50
+            }            
+            ],
+           "returns": 
+              {
+                 "name": "data",
+                 "type": "file"
+              }
+       },
+       {
+           "org": "srlab",
+           "package": "flash",
+           "group": "Analysis",
+           "level": 0,
+           "name":"MergeR",
+           "internal":"run_flash_recursive",
+           "runmode": "local",
+           "desc": "Merge mates from fragments that are shorter than twice the read length.",
+           "example":"mergedDir = MergeR(indir)",
+           "example2":"mergedDir = MergeR(indir=, [outdir=], [max_overlap=50])",
+           "params":[  
+            {  
+               "name":"data",
+               "type":"str"
+            },
+            {
+                "name": "max_overlap",
+                "type": "int",
+                "default": 50
+            }            
+            ],
+            "returns": 
+            {
+                "name": "data",
+                "type": "file"
+            }
+       }
+   ]
+}

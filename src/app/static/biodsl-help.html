@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>VizSciFlow Manual</title>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+<h1>VizSciFlow Manual</h1>
+
+<p>VizSciFlow is a workflow management system with a domain-specific language (DSL).</p>
+<p>The DSL has simple syntax and a minimal set of keywords. The syntax has similarities to Python’s syntax and indenting.</p> 
+<p>Scientists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>  
+
+<h3><a name="keywords">Keywords:</a></h3>
+The keywords of VizSciFlow are listed below:
+
+<table>
+  <tr>
+    <th>Construct</th>
+    <th>Keywords</th>
+    <th>Example</th>
+  </tr>
+  <tr>
+    <td>Conditional</td><td><font color="green">if</font></td><td><pre><code class="python">
+for f in GetFiles('/public/MiSeq_SOP'):
+    if GetDataType(f) == 'fastq':
+        fq_html = fastqc.CheckQuality(f)
+</code></pre></td>
+  </tr>
+
+  <tr>
+     <td>Iteration</td> <td><font color="green">for ... in </font></td> <td><pre><code class="python">
+for f in GetFiles('/public/MiSeq_SOP'):
+    if GetDataType(f) == 'fastq':
+        fq_html = fastqc.CheckQuality(f)
+</code></pre>
+</td>
+  </tr>
+  <tr>
+  	<td>Parallelization</td>
+  	<td><font color="green">parallel ... with</font></td><td><pre><code class="python">
+datas = ['/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq']
+parallel:
+    fq_html = fastqc.CheckQuality(datas[0])
+with:
+    fq_html = fastqc.CheckQuality(datas[1])</code></pre></td>
+  </tr>
+  <tr>
+  	<td>Subworkflow</td><td><font color="green">task</font></td><td><pre><code class="python">
+task AlignSequences(ref, data, data2):
+    CheckQuality(data)
+    CheckQuality(data2)
+
+    data = pear.Merge(data, data2)
+    data = bwa.Align(ref, data)
+    data = SamToBam(data)
+    return data
+
+AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq')
+</code></pre></td>
+  </tr>
+  <tr>
+        <td/><td/><td>An anonymous task without name is called at once. Named tasks are called from somewhere else.</td>
+    </tr>
+</table>
+
+
+<h3><a name="syntax">Syntax:</a></h3>
+VizSciFlow uses simple pythonic syntax and indenting. Advanced syntaxes like lambda, class, iterators, generators, annotation are not allowed. Here is a complete example of a VizSciFlow script:
+<p>Like Python, VizSciFlow is structured with <a href="">indentation</a> i.e. the statements within a block line up vertically. The block ends at a line less indented or the end of the file. If a block has to be more deeply nested, it is simply indented further to the right.</p>
+Here is a VizSciFlow indenting example:
+<pre><code class="python">
+task AlignSequences(ref, data, data2):
+    CheckQuality(data)
+    CheckQuality(data2)
+
+    data = pear.Merge(data, data2)
+    data = bwa.Align(ref, data)
+    data = SamToBam(data)
+    return data
+
+AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq')
+</code></pre>
+
+<p>VizSciFlow is a dynamic language. The type of a literal is inferred from the value. For example:</p>
+<table>
+<tr>
+<td>Integer </td>
+<td>i = 10</td>
+</tr>
+<tr>
+<td>Float</td>
+<td>f = 10.0f</td>
+</tr>
+<tr>
+<td>Text</td>
+<td>s = "Hello World!"</td>
+</tr>
+</table>
+
+
+<h3>The VizSciFlow <a name="webui">web interface</a></h3>
+The domain experts can use VizSciFlow web interface to quickly create a workflow. The IDE looks as below:
+<img alt>
+
+A typical set of events are:
+<ul>
+	<li>Search the desired service from the Services panel to the right.</li>
+	<li>Drag the service to insert into the code editor.</li>
+	<li>Alternatively, you can also start typing the service name on code editor and press Ctrl+Space for automatic code completion.</li>
+	<li>Search the data item from the DataSources panel to the left.</li>
+	<li>Replace the data argument on the code editor by dragging the desired data source and dropping on this panel.</li>
+	<li>Run the workflow from command panel.</li>
+	<li>An item is added to the left-bottom panel for the execution job. Check it for automatic status update of each step or double click for instant load.</li>
+</ul>
+
+
+<h3><a name="datasources">Data Sources Panel</a></h3>
+<p>
+This is the left-top panel of the user interface. It lists all the data items available from different file systems (posix, galaxy, hdfs). The public folder of each file system is available to all users for read access. Another folder named as username is available for read-write accesses. The generated files during workflow execution are usually found in this folder.
+</p>
+<img alt="Data Sources" src="biodsl-datasources.png" />
+<p>To insert a data item into the code editor, first remove the argument name from the service call and then click right button on the item and select "To Editor".</p>
+
+<h4>Data Source Toolbar</h4>
+There is a small toolbar on top of data source panel.
+<ul>
+	<li>Add: Adds a folder at the selected item.</li>
+	<li>Remove: Removes the selected item.</li>
+	<li>Rename: Renames the selected item.</li>
+	<li>Upload: Uploads an item from the client machine to the selected folder.</li>
+	<li>Download: Downloads the selected file.</li>
+	<li>Reload: Reloads the tree from the file system.</li>
+	<li>About: Opens the help page.</li>
+</ul>
+
+<p>Sometimes, you may need to insert the selected data item in the arguments box. Right click on the selected item and press "To args" context menu item.</p>
+
+<h3><a name="services">Services Panel</a></h3>
+<img alt="Services" src="biodsl-services.png" />
+<p>
+The services/tools for the workflows are listed on the right-top corner of the UI. There are 3 different access modes for the service.
+</p>
+<ol>
+	<li>Public: Accessible by all users.</li>
+	<li>Shared: Accessible only by those users who are given accesses.</li>
+	<li>Private: Accessible only by the logged on user himself.</li>
+</ol>
+
+<!-- <p>There are two operation modes of the services shown by a dropdown list. If basic is selected, some advanced operations for experienced users are hidden from the service list.</p> -->
+
+<h4><a name="addservice">Add New Service</a></h4>
+<p>Experienced users can extend the capabilities of the system by adding new services to it. They can write a new python module or call external program from python code.</p>
+In the service pane, the "+" button opens the dialog for Service Mapping. There is a coding tab to write the service code and a JSON tab to map the python code with DSL vocabulary. Here is a lean and thin service code:
+
+<div class="row">
+	<div class="column">
+		<img alt="Adapter" src="biodsl-addservice.png" style="width:100%"/>
+	</div>
+	<div class="column">
+		<img alt="Mapper" src="biodsl-addservice-json.png" style="width:100%" />
+	</div>
+</div>
+
+<div style="float: clear;"></div>
+
+Here is an adapter for a simple demo service which takes an integer and returns it.
+<pre><code class="python">
+def demo_service(context, *args, **kwargs):
+	return args[0] if args else 0
+	</code>
+</pre>
+<b>context</b> is a helper object to connect the internal system to this adapter. Here are some of its functions:
+<ul>
+	<li>gettempdir(): path to user's temp directory in normalized and resolved form.</li>
+	<li>getpublicdir(): path to user's public directory in normalized and resolved form.</li>
+	<li>getnormdir(__file__): path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
+	<li>normalize(path): Normalizes a path from VizSciFlow system for the tool.</li>
+	<li>denormalize(path): Denormalizes a path to VizSciFlow system from the path of the tool.</li>
+	<li>exec_run(executable, *args): Runs an executable file. You can also pass values for cwd=path and env=path for current working directory and environment path respectively.</li>
+	<li>bash_run(script, *args): Runs an bash script. You can also pass values for cwd=path and env=path if you need.</li>
+	<li>pyvenv_run(tooldir, script, *args): Runs an python script. tooldir=os.path.dirname(__file__)</li>
+	<li>moveto(src, dest, ignores=[]): moves contents of src directory to dest</li>
+	<li>copyto(src, dest, ignores=[]): copies contents of src directory to dest</li>
+</ul>
+
+<p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". It must be unique to the DSL vocabulary.</p>
+<p>If you change service function name above, you must change "internal" to match it.</p>
+<pre><code class="json">
+	{
+		"name": "DemoService",
+		"internal": "demo_service",
+		"params": [
+			{
+				"name": "data",
+				"type": "int"
+			}
+		],
+		"returns": {
+			"name": "data",
+			"type": "int"
+		}
+	}
+</code>
+</pre>
+
+Call this function in DSL editor like below:
+<pre>
+	<code class="python">
+print(DemoService(10))
+	</code>
+</pre>
+If you run this 10 will be printed in log.
+
+Different types of tools can be integrated into VizSciFlow system.
+
+<ol>
+	<li>Python code: You can write python code in the code editor as a tool. If you need a module from Pypi, add the module to <b>pip install</b> textbox.</li>
+	<li>Python module: You can attach your python module with <b>Add file</b> button. You need to use the module in your adapter code.</li>
+	<li>External standalone tool: You can add the package with <b>Add File</b> and then use it from the adapter. If it is a zip/tar/bz file, it will be extracted where the adapter resides. You need to know the extracted folder to use its executable.</li>
+	<li>External installer: This type of tools can't be installed directly. They need interactive installation or compilation which only administration can do.</li>
+</ol>
+
+To add an external tool, you must know how to call the tool from python. 
+<ul>
+	<li>The location of the tool.</li>
+	<li>The arguments it accepts.</li>
+	<li>The result it returns. The return value is important to use its result in another tool.</li>
+	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and the file must be returned.</li>
+</ul>
+
+<p>We have shown below a complete example of adding FastQC tool to the system.</p>
+
+<ol>
+	<li>Download the FastQC tool from the Internet.</li>
+	<li>Add it in "Add Service" dialog using "Choose File...".</li>
+	<li>Write adapter to call its fastqc file. It should look similar to below code:</li>
+</ol>
+
+<pre><code class="python">
+from os import path
+from pathlib import Path
+
+def demo_service(context, *args, **kwargs):
+	fastqc = path.join(context.getnormdir(__file__), 'FastQC', 'fastqc')
+	context.exec_run(fastqc, args[0], "--outdir=" + context.gettempdir())
+	filestem = Path(args[0]).stem
+	html = path.join(context.gettempdir(), filestem + "_fastqc.html")
+	zip = path.join(context.gettempdir(), filestem + ".zip")
+	return html,zip
+</code>
+</pre>
+
+Here is the json mapper of the above service. You need to add one parameter and two return values, all file types.
+<pre><code class="json">
+	{
+		"package":"",
+		"name":"FastQService",
+		"internal":"demo_service",
+		"params":[
+		   {
+			  "name":"data",
+			  "type":"file",
+		   }
+		],
+		"returns":[
+		   {
+			  "name":"html",
+			  "type":"file"
+		   },
+		   {
+			  "name":"zip",
+			  "type":"file"
+		   }
+		]
+	 }
+</code>
+</pre>
+
+The new service is by default private. Check the "Public" checkbox to make it public or It can be shared to specific users by selecting target users from "Share with" dropdown.
+Click the "Add" button. If there is no error, the FastQService should appear in Services panel. Click "All" radio button and then "Reload" if you don't see it.
+
+If you double-click/drag the service, following code should appear in code editor:
+<pre>
+	<code>
+html,zip = FastQService(data)
+	</code>
+</pre>
+
+<p>Here is another example of using matplotlib in VizSciFlow. matplotlib.show will not work in VizSciFlow. The output must be saved as a file using savefig.</p>
+
+Here is an adapter for the service:
+<pre><code class="python">
+from os import path
+import matplotlib.pyplot as plt
+
+def demo_service(context, *args, **kwargs):
+	plt.plot(args[0], args[1])
+	plt.xlabel('Months')
+	plt.ylabel('Books Read')
+
+	output = path.join(context.gettempdir(), 'books_read.png')
+	plt.savefig(output)
+	return output
+</code>
+</pre>
+
+Here is the json mapper of the above service. From JSON mapper tab, you have to remove the default parameter.
+<pre><code class="json">
+	{
+		"package":"",
+		"name":"BookChartV3",
+		"internal":"demo_service",
+		"params":[
+		   {
+			  "name":"data",
+			  "type":"int[]",
+			  "desc":""
+		   },
+		   {
+			  "name":"data2",
+			  "type":"int[]",
+			  "desc":""
+		   }
+		],
+		"returns":[
+		   {
+			  "name":"data",
+			  "type":"file"
+		   }
+		]
+	 }
+</code>
+</pre>
+
+matplotlib may not be installed in some VizSciFlow systems by default. You can specify to install it in "pip install" text box by typing matplotlib.
+Click the "Add" button. If there is no error, the BookReadChart should appear in Services panel. Click "All" radio button and then "Reload" if you don't see it.
+
+If you double-click/drag the service, following code should appear in code editor:
+<pre>
+	<code>
+BookReadChart()
+	</code>
+</pre>
+
+Here is another adapter for running a python script (fastqe) which is installed using pip install "fastqe".
+
+Here is an adapter for the service:
+<pre><code class="python">
+from os import path
+thispath = path.dirname(__file__)
+def demo_service(context, *args, **kwargs):
+	output = context.gettempdir() + '/fastqe_output.html'
+	context.pyvenv_run(thispath, 'fastqe', args[0], "--output=" + output)
+	return output
+</code>
+</pre>
+
+
+<h3><a name="workflows">Workflows Panel</a></h3>
+<p>The right-bottom panel lists the saved workflows of the system. Workflows can be public, private or shared. New workflows can be saved by clicking the "+" button.</p>
+<img alt="Workflows" src="biodsl-workflows.png">
+
+<h3><a name="jobs">Job Histories Panel</a></h3>
+<p>The left-bottom panel lists all the workflow instances run by this user. You can stop currently running workflows.</p>
+<img alt="Job Histories" src="biodsl-jobhistories.png">
+<p>Newer jobs are shown on the top. Jobs which were modified in the last 5 minutes are shown red colored.</p> 
+<p>Double click an item to display the status information of workflow execution.</p>
+<p>If you check a single running job, the incremental execution status of each step is shown on the report viewer.</p>
+
+</body>

@@ -1,0 +1,27 @@
+{
+	"package": "git",
+	"name": "GitClone",
+	"internal": "run_gitclone",
+	"org": "",
+	"group": "",
+	"desc": "",
+	"href": "",
+	"params": [
+	  {
+		"name": "url",
+		"type": "str",
+		"desc": "The repository path"
+	  },
+	  {
+		"name": "data",
+		"type": "folder",
+		"desc": "The local path"
+	  }
+	],
+	"returns": [
+	  {
+		"name": "data",
+		"type": "folder"
+	  }
+	]
+  }

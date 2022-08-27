@@ -1,0 +1,119 @@
+function SampleViewModel() {
+    var self = this;
+    self.samplesURI = '/samples';
+    self.tasksURI = '/functions';
+    self.name = ko.observable("No Name");
+    self.desc = ko.observable("No Description");
+    self.access = ko.observable();
+    self.userList = ko.observableArray();
+    self.selectedSharingUsers = ko.observableArray();
+    self.wfParams = ko.observableArray();
+    self.wfReturns = ko.observableArray();
+    self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
+
+    self.addSample = function(task) {
+        $('#addSample').modal('hide');
+        
+        var formdata = new FormData();
+        formdata.append('sample', self.sampleEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
+        
+        if (self.name() === undefined)
+            return;
+        formdata.append('name', self.name());
+        
+        if (self.desc() !== undefined)
+            formdata.append('desc', self.desc());
+        
+        if (self.access()) {
+            formdata.append('publicaccess', self.access());
+        }
+        else{
+            formdata.append('sharedusers', self.selectedSharingUsers());
+        }
+
+        if(self.wfParams() !== null){
+            formdata.append('params', ko.toJSON(self.wfParams));
+        }
+
+        if(self.wfReturns() !== null){
+            formdata.append('returns', ko.toJSON(self.wfReturns));
+        }
+
+        ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
+            if (!$.isEmptyObject(data)) {
+                data = JSON.parse(data);
+                 workflowId = data.id;
+                 $('#script-name').text(data.name);
+                 editor.session.getUndoManager().markClean();
+             }
+            
+            samplesViewModel.load();
+        });
+    }
+
+    self.addParam = function () {
+        self.wfParams.push(
+            ko.observableDictionary({
+                name: '',
+                type: '',
+                desc: ''
+            })
+        );
+    };
+    
+    self.removeParam = function (data, e) {
+        self.wfParams.remove(data);
+    };
+
+    self.addReturns = function () {
+        self.wfReturns.push(
+            ko.observableDictionary({
+                name: '',
+                type: '',
+                desc: ''
+            })
+        );
+    };
+    
+    self.removeReturns = function (data, e) {
+        self.wfReturns.remove(data);
+    };
+
+    self.getCodeEditor = function() { return self.sampleEditor; }
+
+    self.getUsers = function () { 
+        self.userList([]);
+        self.selectedSharingUsers([]); 
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 1 }).done(function (data) {
+            
+            data = Array.isArray(data) ? data : JSON.parse(data);
+            data.forEach(element => {
+                self.userList.push({id: parseInt(element[0]), name:  element[1]});
+            });
+
+            self.initiateMultiselectUser();
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    };
+
+    self.initiateMultiselectUser = function () {  
+        $("#wfUserSelection").multiselect({
+            includeSelectAllOption: true,
+            inheritClass: true,
+            buttonWidth: '100%',
+            enableFiltering: true,
+            dropUp: true,
+            maxHeight: 200
+        });
+    };
+
+    self.access.subscribe(function(newVal){
+        
+        if (newVal) {
+            $("#wfUserSelection").multiselect('disable');
+        } else {
+            $("#wfUserSelection").multiselect('enable');
+        }
+    });
+}

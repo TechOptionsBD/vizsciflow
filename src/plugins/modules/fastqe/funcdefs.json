@@ -1,0 +1,23 @@
+{
+    "package": "fastqc",
+    "name": "FastQE",
+    "internal": "demo_service",
+    "org": "srlab",
+    "group": "Quality",
+    "desc": "Read one or more FASTQ files, fastqe will compute quality stats for each file and print those stats as emoji",
+    "href": "",
+    "params": [
+        {
+            "name": "data",
+            "type": "file",
+            "desc": "data to assess",
+            "default": ""
+        }
+    ],
+    "returns": [
+        {
+            "name": "data",
+            "type": "file"
+        }
+    ]
+}

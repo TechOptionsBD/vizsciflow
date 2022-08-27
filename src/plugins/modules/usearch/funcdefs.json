@@ -1,0 +1,33 @@
+{
+    "functions": [
+       {
+           "org": "srlab",
+           "package": "usearch",
+           "group": "Search",
+           "name":"Usearch",
+           "internal":"run_usearch",
+           "runmode": "local",
+           "desc": "Ultra-fast bioinformatics search.",
+           "returns":
+            {  
+               "name":"data",
+               "type":"file"
+            },
+           "params":[  
+            {  
+               "name":"command",
+               "type":"str"
+            },
+            {  
+               "name":"input",
+               "type":"file"
+            },
+            {  
+               "name":"outtype",
+               "type":"str",
+               "default":"fasta"
+            }            
+            ]
+       }
+   ]
+}

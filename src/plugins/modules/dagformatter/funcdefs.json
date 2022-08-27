@@ -1,0 +1,35 @@
+{
+    "package": "CoGe",
+    "name": "DAGFormatter",
+    "internal": "demo_service",
+    "org": "srlab",
+    "group": "SynMap",
+    "desc": "Prepare BLAST file for DAGChainer",
+    "href": "",
+    "params": [
+        {
+            "name": "blast_file",
+            "type": "file",
+            "desc": "BLAST file to format",
+            "default": ""
+        },
+        {
+            "name": "query",
+            "type": "str",
+            "desc": "the name of the query organism",
+            "default": "'a'"
+        },
+        {
+            "name": "subject",
+            "type": "str",
+            "desc": "the name of the subject organism",
+            "default": "'b'"
+        }
+    ],
+    "returns": [
+        {
+            "name": "data",
+            "type": "file"
+        }
+    ]
+}

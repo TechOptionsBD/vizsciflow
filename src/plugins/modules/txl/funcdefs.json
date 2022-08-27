@@ -1,0 +1,32 @@
+{
+  "functions": [
+    {
+      "org": "srlab",
+      "package": "txl",
+      "group": "Software Analytics",
+      "level": 0,
+      "name": "Txl",
+      "internal": "run_txl",
+      "desc": "The txl command invokes the TXL interpreter to compile, load and execute a TXL program on an input file. Transformed output (only) is saved in an output file.",
+      "params": [
+        {
+          "name": "data",
+          "type": "file",
+          "description": "Specifies the input file to be transformed by the TXL program"
+        },
+        {
+          "name": "txlfile",
+          "type": "file",
+          "default": "''",
+          "description": "TXL program itself. It must be named ending in '.Txl'. If the txlfile is omitted, then it is inferred from the file name suffix of the given inputfile. For example, if the input file to be transformed is myinput.pas then the TXL file is inferred to be pas.Txl."
+        }
+      ],
+      "returns": [
+        {
+          "name": "data",
+          "type": "file"
+        }
+      ]
+    }
+  ]
+}

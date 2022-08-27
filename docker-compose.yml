@@ -17,6 +17,7 @@ x-common-vizsciflow:
   volumes:
     - ./src:/home/vizsciflow/src
     - ./storage:/home/vizsciflow/storage
+    - /var/run/docker.sock:/var/run/docker.sock
   networks:
     - vizsciflownetwork
   environment:
@@ -39,8 +40,6 @@ services:
     hostname: worker
     entrypoint: /home/.venv/bin/celery
     command: -A app.jobs worker --loglevel=info
-    # command: >
-    #   sh -c "/home/.venv/bin/python /tmp/debugpy --listen 0.0.0.0:6900 -m celery -A app.jobs worker -l info"
     depends_on:
       - vizsciflowredis
     container_name: vizsciflowcelery

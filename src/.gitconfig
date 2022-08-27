@@ -1,0 +1,5 @@
+[credential]
+	helper = "!f() { /home/vizsciflow/.vscode-server/bin/da15b6fd3ef856477bf6f4fb29ba1b7af717770d/node /tmp/vscode-remote-containers-2787fd2d806f729e16b31a764b969e6aa76a2bf3.js $*; }; f"
+[user]
+	name = mainulhossain
+	email = mainulhossain@gmail.com

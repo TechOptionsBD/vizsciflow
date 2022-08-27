@@ -2,7 +2,7 @@ FROM python:3.8-bullseye
 
 ARG UID
 RUN mkdir -p /home/vizsciflow
-RUN useradd -u ${UID} vizsciflow 
+RUN useradd -u ${UID} vizsciflow
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends  \
@@ -32,7 +32,27 @@ RUN apt-get update \
         default-jre \
         default-jdk \
         python \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release \
   && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+RUN echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends  \
+  acl \
+  sudo \
+  docker-ce-cli
+RUN echo "vizsciflow:vizsciflow" | chpasswd && adduser vizsciflow sudo
+RUN groupadd docker
+RUN usermod -aG docker vizsciflow
+#RUN echo "vizsciflow" | setfacl --modify user:vizsciflow:rw /var/run/docker.sock
 
 WORKDIR /home/vizsciflow
 COPY ./src ./src

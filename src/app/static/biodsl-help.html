@@ -154,9 +154,35 @@ The services/tools for the workflows are listed on the right-top corner of the U
 <!-- <p>There are two operation modes of the services shown by a dropdown list. If basic is selected, some advanced operations for experienced users are hidden from the service list.</p> -->
 
 <h4><a name="addservice">Add New Service</a></h4>
-<p>Experienced users can extend the capabilities of the system by adding new services to it. They can write a new python module or call external program from python code.</p>
-In the service pane, the "+" button opens the dialog for Service Mapping. There is a coding tab to write the service code and a JSON tab to map the python code with DSL vocabulary. Here is a lean and thin service code:
 
+<p>
+Experienced users can extend the capabilities of the system by adding new services to it. Different types of tools can be integrated into VizSciFlow system.
+
+<ol>
+	<li>Python code: You can wrap python code in the code editor as a tool. If you need a module from Pypi, add the module to <b>pip install</b> textbox.</li>
+	<li>Python module: You can attach your python module with <b>Add file</b> button. You need to use the module in your adapter code.</li>
+	<li>External standalone tool: You can add the package with <b>Add File</b> and then use it from the adapter. If it is a zip/tar/bz file, it will be extracted where the adapter resides. You need to know the extracted folder to use its executable.</li>
+	<li>External installer: This type of tools can't be installed directly. They need interactive installation or compilation which only administrators can do. More about it in the limitations below.</li>
+</ol>
+
+To add an external tool, you must know how to call the tool from python. 
+<ul>
+	<li>The location of the tool.</li>
+	<li>The arguments it accepts.</li>
+	<li>The result it returns. The return value is important to use its result in another tool.</li>
+	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and the file must be returned.</li>
+</ul>
+
+
+</p>
+
+In the service pane, the "+" button opens the dialog for <strong>Service Mapping</strong>. There are two tabs:
+<ul>
+	<li><strong>Code</strong>:It containes the adapter code to connect VizSciFlow DSL with external module or executable. The VizSciFlow scheduler triggers this code during execution.</li>
+	<li><strong>JSON</strong>:It binds the service with VizSciFlow service/module catalog.</li>
+</ul>
+Here is a simple service code which returns the first argument:
+</p>
 <div class="row">
 	<div class="column">
 		<img alt="Adapter" src="biodsl-addservice.png" style="width:100%"/>
@@ -168,28 +194,28 @@ In the service pane, the "+" button opens the dialog for Service Mapping. There 
 
 <div style="float: clear;"></div>
 
-Here is an adapter for a simple demo service which takes an integer and returns it.
+Here is an adapter for a simple demo service which takes an argument and returns it.
 <pre><code class="python">
 def demo_service(context, *args, **kwargs):
-	return args[0] if args else 0
+	return str(args[0]) if args else 0
 	</code>
 </pre>
-<b>context</b> is a helper object to connect the internal system to this adapter. Here are some of its functions:
+<b>context</b> is a helper object to connect the internal system to this adapter. VizSciFlow has a virtual file system (VFS) concept. Many of <i>context's</i> functions converts file/folder path from VFS (denormalized) to physical file system (normalized). Inputs and outputs of a module/service must be in VFS (denormalized) path. Here are some functions of <i>context</i>:
 <ul>
-	<li>gettempdir(): path to user's temp directory in normalized and resolved form.</li>
-	<li>getpublicdir(): path to user's public directory in normalized and resolved form.</li>
-	<li>getnormdir(__file__): path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
-	<li>normalize(path): Normalizes a path from VizSciFlow system for the tool.</li>
-	<li>denormalize(path): Denormalizes a path to VizSciFlow system from the path of the tool.</li>
-	<li>exec_run(executable, *args): Runs an executable file. You can also pass values for cwd=path and env=path for current working directory and environment path respectively.</li>
-	<li>bash_run(script, *args): Runs an bash script. You can also pass values for cwd=path and env=path if you need.</li>
-	<li>pyvenv_run(tooldir, script, *args): Runs an python script. tooldir=os.path.dirname(__file__)</li>
-	<li>moveto(src, dest, ignores=[]): moves contents of src directory to dest</li>
-	<li>copyto(src, dest, ignores=[]): copies contents of src directory to dest</li>
+	<li><i>gettempdir():</i> path to user's temp directory in normalized and resolved form.</li>
+	<li><i>getpublicdir():</i> path to user's public directory in normalized and resolved form.</li>
+	<li><i>getnormdir(__file__):</i> When used in an adapter file, path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
+	<li><i>normalize(path):</i> Normalizes a path from VizSciFlow VFS to physical path.</li>
+	<li><i>denormalize(path):</i> Denormalizes a path from physical path to VizSciFlow VFS.</li>
+	<li><i>moveto(src, dest, ignores=[]):</i> moves contents of src directory to dest</li>
+	<li><i>copyto(src, dest, ignores=[]):</i> copies contents of src directory to dest</li>
+	<li><i>exec_run(executable, *args):</i> Runs an executable file. You can also pass values for cwd=path and env=path for current working directory and environment path respectively.</li>
+	<li><i>bash_run(script, *args):</i> Runs an bash script. You can also pass values for cwd=path and env=path if needed.</li>
+	<li><i>pyvenv_run(tooldir, script, *args):</i> Runs an python script. tooldir=os.path.dirname(__file__)</li>
 </ul>
 
-<p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". It must be unique to the DSL vocabulary.</p>
-<p>If you change service function name above, you must change "internal" to match it.</p>
+<p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". <strong>&lt;package&gt;.&lt;name&gt;</strong> or (only <strong>&lt;name&gt;</strong> if package is empty) must be unique to the DSL vocabulary.</p>
+<p><strong>internal</strong> must match the service function name.</p>
 <pre><code class="json">
 	{
 		"name": "DemoService",
@@ -216,22 +242,6 @@ print(DemoService(10))
 </pre>
 If you run this 10 will be printed in log.
 
-Different types of tools can be integrated into VizSciFlow system.
-
-<ol>
-	<li>Python code: You can write python code in the code editor as a tool. If you need a module from Pypi, add the module to <b>pip install</b> textbox.</li>
-	<li>Python module: You can attach your python module with <b>Add file</b> button. You need to use the module in your adapter code.</li>
-	<li>External standalone tool: You can add the package with <b>Add File</b> and then use it from the adapter. If it is a zip/tar/bz file, it will be extracted where the adapter resides. You need to know the extracted folder to use its executable.</li>
-	<li>External installer: This type of tools can't be installed directly. They need interactive installation or compilation which only administration can do.</li>
-</ol>
-
-To add an external tool, you must know how to call the tool from python. 
-<ul>
-	<li>The location of the tool.</li>
-	<li>The arguments it accepts.</li>
-	<li>The result it returns. The return value is important to use its result in another tool.</li>
-	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and the file must be returned.</li>
-</ul>
 
 <p>We have shown below a complete example of adding FastQC tool to the system.</p>
 
@@ -291,7 +301,7 @@ html,zip = FastQService(data)
 	</code>
 </pre>
 
-<p>Here is another example of using matplotlib in VizSciFlow. matplotlib.show will not work in VizSciFlow. The output must be saved as a file using savefig.</p>
+<p>Here is another example of using matplotlib in VizSciFlow. Since the executation model of VizSciFlow is unattended execution (in contrast to interactive execution), <i>matplotlib.show</i> will not work. The output must be saved as a file using savefig.</p>
 
 Here is an adapter for the service:
 <pre><code class="python">
@@ -347,9 +357,8 @@ BookReadChart()
 	</code>
 </pre>
 
-Here is another adapter for running a python script (fastqe) which is installed using pip install "fastqe".
+Here is another adapter for running a python script (fastqe) which is installed using pip install "fastqe". As it is installed as a module, we need to use python shell to run it. <strong>context.pyvenv_run</strong> can do it.
 
-Here is an adapter for the service:
 <pre><code class="python">
 from os import path
 thispath = path.dirname(__file__)
@@ -360,6 +369,35 @@ def demo_service(context, *args, **kwargs):
 </code>
 </pre>
 
+
+<strong>Advanced:</strong>
+<ul>
+<li><strong>Older python environment:</strong>VizSciFlow is developed using Python 3.6+. If a tool is developed using older version of Python (say 2.7), users need a workaround to integrate it.
+	We have provided a Python 2.7 virtual environment for it. Users need to create a .sh executable with the following code and run it using <i>context.pyvenv</i>.
+	<pre><code class="python">
+	#!/bin/bash
+	source /home/.venvpy2/bin/activate
+	python2 $1 $2 $3 $4 $5 $6 $7 $8
+	</code>
+	</pre>
+	</li>
+	<li><strong>Incompatible python library dependency:</strong>For unmaintaned libraries, it may happen that a tool needs a library which is incompatible to other tools of the python environment. Users need to create a .sh executable with the following code and run it using <i>context.pyvenv</i>.
+		<pre><code class="python">
+		#!/bin/bash
+		source /home/.venvpycoqc/bin/activate
+		python2 $1 $2 $3 $4 $5 $6 $7 $8
+		</code>
+		</pre>
+	</li>
+</ul>
+
+<strong>Limitations of tool integration:</strong>
+There are some limitations to the tool integration by users in VizSciFlow. We have listed them below:
+<ul>
+	<li><strong>Admin access:</strong>If a tool needs admin or sudo access, it can't be integrated by the normal users. If a tools needs a different version of system library (e.g. libc) or needs manual configuration, system admin must do it.</li>
+	<li><strong>Needs compilation:</strong>Tools which need to be compiled and installed from source, cannot be integrated by users. The admin must do it.</li>
+	</li>
+</ul>
 
 <h3><a name="workflows">Workflows Panel</a></h3>
 <p>The right-bottom panel lists the saved workflows of the system. Workflows can be public, private or shared. New workflows can be saved by clicking the "+" button.</p>

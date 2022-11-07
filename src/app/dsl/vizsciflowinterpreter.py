@@ -92,7 +92,10 @@ class VizSciFlowContext(Context):
         func = modulemanager.get_module_by_name_package(name, package)
         if not func:
             raise ValueError('Tool {0} does not exist.'.format(name))
-        return os.path.join(app.config['MODULE_DIR'], (os.path.sep).join(func.module.split('.')[2:-1])) # remove plugins/modules from front and adapter from back
+        tooldir = os.path.join(app.config['MODULE_DIR'], (os.path.sep).join(func.module.split('.')[2:-1])) # remove plugins/modules from front and adapter from back
+        if not os.path.exists(tooldir):
+            raise ValueError(f"Path for tool {package}.{name} does not exist")
+        return tooldir
 
     # def getmyprovdir(self):
     #     from app import app

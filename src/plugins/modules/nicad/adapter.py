@@ -10,25 +10,24 @@ nicadcross = path.join(thispath, nicaddirname, 'nicad6cross')
 
 def get_txldir(context):
     txldir = path.join(context.gettoolsdir('txl'), 'bin', 'bin')
-    #txldir =  context.gettoolsdir('txl')
-    if not txldir:
-        raise ValueError("NiCad needs TXL. But it is not installed. Please install TXL first.")
+    if not path.exists(txldir):
+        raise ValueError(f"TXL bin directory does not exist.")
     return txldir
 
 def get_nicaddir(context):
     nicaddir = path.join(context.gettoolsdir('nicad'), nicaddirname)
-    if not nicaddir:
-        raise ValueError("NiCad is needed for this operation. But it is not installed. Please install NiCad first.")
+    if not path.exists(nicaddir):
+        raise ValueError(f"NiCad bin directory does not exist.")
     return nicaddir
 
 def get_gransuffix(granularity):
     return '_' + granularity + '.xml'
 
 def get_scriptpath(context, script):
-    scriptpath = path.join(get_nicaddir(context), 'scripts', script)
-    if not scriptpath:
-        raise ValueError("Tools {0} is not found.".format(script))
-    return scriptpath
+    scriptdir = path.join(get_nicaddir(context), 'scripts', script)
+    if not path.exists(scriptdir):
+        raise ValueError(f"NiCad script directory does not exist.")
+    return scriptdir
 
 def get_output(data, suffix, out):
     system = Path(data).stem + suffix # + '.xml'

@@ -1404,7 +1404,8 @@ class Task(db.Model):
         log = { 
             'name': self.name,
             'status': self.status,
-            'data': data
+            'data': data,
+            'duration': (self.ended_on - self.started_on).microseconds
         }
 #         if self.status == Status.SUCCESS and (self.datatype & DataType.FileList) > 0:
 #             log['data'] = log['data'].strip('}{').split(',')
@@ -1505,7 +1506,7 @@ class Runnable(db.Model):
             #self.update_cpu_memory()
     
         if value == Status.SUCCESS or value == Status.FAILURE or value == Status.REVOKED:
-            self.duration = (datetime.utcnow() - self.started_on).total_seconds()
+            self.duration = (datetime.utcnow() - self.started_on).microseconds
             #self.update_cpu_memory()
         
         if update:

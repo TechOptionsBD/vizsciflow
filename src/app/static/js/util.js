@@ -47,7 +47,7 @@ jsonArray2Table = function(table, jsonArr) {
 		});
         row.append(cell);
         
-        cell = $("<td>" + value['status'] + "</td>");
+        cell = $("<td>" + value['status'] + "<br>" + parseInt(value['duration'])/1000 + " ms" + "</td>");
         cell.css('text-align', 'center');
         if (value['status'] === 'SUCCESS') {
         	cell.css('background-color', 'green')

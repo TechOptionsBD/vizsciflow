@@ -7,7 +7,7 @@ from app.dsl.vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
 from app.objectmodel.provmod.provobj import View, Stat, Monitor, Run, Module, Workflow
 from app.util import Utility
-from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run
+from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit
 from app.managers.usermgr import usermanager
 from app.managers.modulemgr import modulemanager
 from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
@@ -147,6 +147,10 @@ class VizSciFlowContext(Context):
     @staticmethod
     def bash_run(app, *args, **kwargs):
         return VizSciFlowContext.exec_in_env(func_exec_bash_stdout, app, *args, **kwargs)
+    
+    @staticmethod
+    def bash_run_out_err_exit(app, *args, **kwargs):
+        return VizSciFlowContext.exec_in_env(func_exec_bash_out_err_exit, app, *args, **kwargs)
     
     @staticmethod
     def pyvenv_run(toolpath, app, *args):

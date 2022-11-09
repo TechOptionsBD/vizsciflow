@@ -17,6 +17,15 @@ def func_exec_stdout(app, *args):
     out, err = subprocess.Popen([app, *cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     return out, err
 
+def func_exec_bash_out_err_exit(app, *args):
+    if not os.access(app, os.X_OK):
+        st = os.stat(app)
+        os.chmod(app, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
+
+    cmd = [str(arg) for arg in args]
+    proc = subprocess.run(["/bin/bash", app, *cmd], capture_output=True, text = True)
+    return proc.stdout, proc.stderr, proc.returncode
+
 def func_exec_bash_stdout(app, *args):
     if not os.access(app, os.X_OK):
         st = os.stat(app)

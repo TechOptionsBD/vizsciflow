@@ -1,5 +1,6 @@
 from os import path
 from pathlib import Path
+import re
 
 thispath = path.dirname(__file__)
 
@@ -13,8 +14,11 @@ def demo_service(context, *args, **kwargs):
     paramindex, query, fs = context.getdataarg(0, 'query', *args, **kwargs)
     _, db, _ = context.getdataarg(paramindex, 'db', *args, **kwargs)
     
+    # find databse ID of input data
+    ids = re.findall(r'\d+', Path(query).stem + Path(db).stem)
+
     # run BLASTZ and write result to output file
-    output = path.join(context.createoutdir(), "{0}_{1}.{2}".format(Path(query).stem, Path(db).stem, 'lastz'))
+    output = path.join(context.createoutdir(), "{0}_{1}.CDS-CDS.{2}".format(ids[0], ids[1], 'lastz'))
     cmdargs = ["-A 44 -i", query, "-d", db, "-o", output, '--path='+lastz]
     
     _, err = context.pyvenv_run(thispath, "python2", blastz, *cmdargs)

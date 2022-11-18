@@ -62,11 +62,11 @@ def run_extract(context, *args, **kwargs):
 
     cmdargs = [arguments['granularity'], arguments['language'], arguments['data']]
     if 'select' in arguments.keys() and arguments['select']:
-        cmdargs.append(arguments['select'])
+        cmdargs.append(arguments['select'] if arguments['select'] else 'none')
     if 'ignore' in arguments.keys():
         # if 'select' not in arguments.keys():
         #     cmdargs.append("''")
-        cmdargs.append(arguments['ignore'])
+        cmdargs.append(arguments['ignore'] if arguments['ignore'] else 'none')
 
     out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
 
@@ -134,6 +134,7 @@ def run_normalize(context, *args, **kwargs):
 
     arguments = context.parse_args('normalize', 'nicad', *args, **kwargs)
     cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['normalizer']]
+    
     out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Normalization failed, code {0}".format(out))
@@ -163,7 +164,7 @@ def run_findclonepairs(context, *args, **kwargs):
         if 'maxclonesize' in arguments.keys():
             cmdargs.append(arguments['maxclonesize'])
     
-        if 'showsource' in arguments.keys():
+        if 'showsource' in arguments.keys() and arguments['showsource'] and arguments['showsource'].lower() != 'none':
             cmdargs.append('showsource')
 
     out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
@@ -183,7 +184,7 @@ def run_clusterpairs(context, *args, **kwargs):
 
     out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
     if Utility.ValueOrNone(exit_code) != 0:
-        raise ValueError("ERROR: Clustering failed, code {0}".format(out))
+        raise ValueError(f"ERROR: Clustering failed, code {exit_code}")
 
     return get_output(arguments['data'], '-classes.xml', out)
 

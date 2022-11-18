@@ -366,7 +366,8 @@
           },
           {
             "name": "showsource",
-            "default": "'showsource'"
+            "type": "str",
+            "desc":"showsource|none"
           }
         ],
         "returns": [
@@ -411,8 +412,7 @@
           {
             "name": "showsource",
             "type": "str",
-            "desc": "",
-            "default": "'showsource'" 
+            "desc": "showsource"
           }
         ],
         "returns": [

@@ -58,7 +58,7 @@ def update_workflow(user_id, workflow_id, script, params, returns):
         workflow = Samples.create_workflow(user_id, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
     return workflow
 
-def run_biowl_internal(workflow_id, script, args, provenance = False):
+def run_biowl_internal(workflow_id, user_id, script, args, provenance = False):
     from ..jobs import run_script
 
     argsjson = {}
@@ -75,7 +75,7 @@ def run_biowl_internal(workflow_id, script, args, provenance = False):
             argsjson = args
 
     workflow = workflowmanager.first(id=workflow_id)
-    runnable = runnablemanager.create_runnable(current_user, workflow, script if script else workflow.script, provenance, argsjson)
+    runnable = runnablemanager.create_runnable(user_id, workflow, script if script else workflow.script, provenance, argsjson)
            
     if isinstance(args, dict):
         argsparse = []
@@ -100,7 +100,7 @@ def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
             argsjson = args
 
     workflow = workflowmanager.first(id=workflow_id)
-    runnable = runnablemanager.create_runnable(current_user, workflow, script if script else workflow.script, provenance, argsjson)
+    runnable = runnablemanager.create_runnable(current_user.id, workflow, script if script else workflow.script, provenance, argsjson)
         
     run_script(runnable.id, args, provenance) if immediate else run_script.delay(runnable.id, args, provenance)
     

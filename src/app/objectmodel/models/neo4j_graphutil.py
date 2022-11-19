@@ -1106,10 +1106,11 @@ class RunnableItem(NodeItem): #number1
         return item
     
     @staticmethod
-    def create(user, workflow, script, provenance, args):
+    def create(user_id, workflow, script, provenance, args):
         item = RunnableItem(name=workflow.name, script=script, provenance=provenance, args=args)
         graph().push(item)
 
+        user = UserItem.first(id=user_id)
         user.runs.add(item)
         graph().push(user)
         workflow.runs.add(item)

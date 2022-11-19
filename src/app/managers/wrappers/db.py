@@ -235,8 +235,8 @@ class RunnableManager():
          return Runnable.query.filter_by(**kwargs)
 
     @staticmethod
-    def create_runnable(user, workflow, script, provenance, args):
-        return Runnable.create(user.id, workflow.id, script, args)
+    def create_runnable(user_id, workflow, script, provenance, args):
+        return Runnable.create(user_id, workflow.id, script, args)
     
     @staticmethod
     def invoke_module(runnable_id, function_name, package):

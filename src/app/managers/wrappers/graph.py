@@ -153,8 +153,8 @@ class RunnableManager():
         return RunnableItem.get(**kwargs).first()
 
     @staticmethod
-    def create_runnable(user, workflow, script, provenance, args):
-        return RunnableItem.create(user, workflow, script, provenance, args)
+    def create_runnable(user_id, workflow, script, provenance, args):
+        return RunnableItem.create(user_id, workflow, script, provenance, args)
     
     @staticmethod
     def add_module(workflow_id, package, function):

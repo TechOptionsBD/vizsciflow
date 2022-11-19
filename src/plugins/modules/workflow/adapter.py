@@ -8,4 +8,4 @@ def run_workflow(context, *args, **kwargs):
     if not id:
         raise ValueError("No valid workflow.")
     
-    return run_biowl_internal(id, None, kwargs)
+    return run_biowl_internal(id, context.user_id, None, kwargs)

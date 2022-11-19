@@ -2,6 +2,7 @@ import os
 from app.dsl.argshelper import get_temp_dir
 from dsl.interpreter import Interpreter
 from dsl.context import Context
+from dsl.taskmgr import TaskManager
 from app.dsl.vizsciflowlib import Library
 from app.dsl.vizsciflowsymtab import VizSciFlowSymbolTable
 from dsl.wfobj import *
@@ -11,6 +12,7 @@ from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_r
 from app.managers.usermgr import usermanager
 from app.managers.modulemgr import modulemanager
 from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
+from app import app
 import shutil
 
 registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
@@ -204,7 +206,35 @@ class VizSciFlowInterpreter(Interpreter):
             self.context.view[function].append(result)
         else:
             self.context.view[function] = [result]
-                
+
+    def doforpar_stmt(self, vars, expr):
+        for k,v in vars.items():
+            self.context.add_var(k, v)
+        self.dopar_stmt(expr)
+        
+    def dopar_stmt(self, expr):
+        '''
+        Execute a for expression.
+        :param expr:
+        '''
+        with app.app_context():
+            self.run_multstmt(lambda: self.eval(expr))
+        
+    def dofor(self, expr):
+        '''
+        Execute a for expression.
+        :param expr:
+        '''
+        if len(expr) <= 3:
+            #sequential for
+            super().dofor(expr)
+        else:
+            #parallel for
+            taskManager = TaskManager() 
+            for var in self.eval(expr[1]):
+                taskManager.submit_func(self.doforpar_stmt, {expr[0]: var}, expr[3])
+            taskManager.wait()
+                        
     def dofunc(self, expr):
         '''
         Execute func expression.
@@ -223,7 +253,7 @@ class VizSciFlowInterpreter(Interpreter):
                 if package == "View" or package == "Stat"  or package == "Monitor":
                     self.prepare_view(function.lower(), result)
                 return result
-           
+        
         # call task if exists
         if package is None and function in self.context.library.tasks:
             return self.context.library.run_task(function, v, self.dotaskstmt)
@@ -232,3 +262,4 @@ class VizSciFlowInterpreter(Interpreter):
             raise Exception(r"Function '{0}' doesn't exist.".format(function))
             
         return self.context.library.call_func(self.context, package, function, v)
+    

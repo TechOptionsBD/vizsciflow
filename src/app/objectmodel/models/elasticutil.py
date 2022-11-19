@@ -1142,8 +1142,8 @@ class ElasticRunnable(ElasticNode): #number1
         return invocation
 
     @staticmethod
-    def create(user, workflow, script, provenance, args):
-        item = ElasticRunnable(name=workflow.name, script=script, provenance=provenance, args=args, user_id = user.id, workflow_id = workflow.id)
+    def create(user_id, workflow, script, provenance, args):
+        item = ElasticRunnable(name=workflow.name, script=script, provenance=provenance, args=args, user_id = user_id, workflow_id = workflow.id)
         return ElasticManager.push(item)
 
     @staticmethod

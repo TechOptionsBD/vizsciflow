@@ -9,13 +9,13 @@ import logging
 from pyparsing import ParseException
 
 from . import celery
-from dsl.grammar import PythonGrammar
 from dsl.parser import WorkflowParser
 from dsl.wftimer import Timer
 
 from app.objectmodel.common import Status
 from app.managers.runmgr import runnablemanager
 from app.managers.workflowmgr import workflowmanager
+from app.dsl.vizsciflowgrammar import VizSciFlowGrammar
 from app.dsl.vizsciflowinterpreter import VizSciFlowInterpreter
 from app.dsl.vizsciflowlib import Library
 
@@ -43,7 +43,7 @@ def run_script(self, runnable_id, args, provenance):
             runnable.celery_id = self.request.id
         runnable.set_status(Status.STARTED, True)
 
-        parser = WorkflowParser(PythonGrammar())   
+        parser = WorkflowParser(VizSciFlowGrammar())   
         if args:
             args_tokens = parser.parse_subgrammar(parser.grammar.arguments, args)
             if args_tokens:

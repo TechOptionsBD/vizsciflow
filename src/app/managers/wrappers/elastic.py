@@ -114,8 +114,8 @@ class RunnableManager():
         return ElasticRunnable.get(**kwargs).first()
 
     @staticmethod
-    def create_runnable(user, workflow, script, provenance, args):
-        return ElasticRunnable.create(user, workflow, script, provenance, args)
+    def create_runnable(user_id, workflow, script, provenance, args):
+        return ElasticRunnable.create(user_id, workflow, script, provenance, args)
        
     # @staticmethod
     # def add_module(workflow_id, package, function):

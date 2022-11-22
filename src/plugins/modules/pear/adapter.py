@@ -15,16 +15,8 @@ def prepare_args(fs, data1, data2, output, *args):
         stem = output[:separator_index]
         extensions = output[separator_index + 1:]
         output = fs.unique_filename(os.path.dirname(output), os.path.basename(stem), extensions)
-        
-    cmdargs.append("-o {0}".format(fs.normalize_path(output)))
     
-#     for arg in args[3:]:
-#         cmdargs.append(arg)
-    
-    cmdargs.append("-f {0}".format(data1))
-    cmdargs.append("-r {0}".format(data2))
-    
-    return cmdargs
+    return ['-o', fs.normalize_path(output), '-f', data1, '-r', data2]
 
 def run_pear(context, *args, **kwargs):
     

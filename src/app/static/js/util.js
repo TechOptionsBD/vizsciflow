@@ -47,7 +47,7 @@ jsonArray2Table = function(table, jsonArr) {
 		});
         row.append(cell);
         
-        cell = $("<td>" + value['status'] + "<br>" + parseInt(value['duration'])/1000 + " ms" + "</td>");
+        cell = $("<td>" + value['status'] + "</td>");
         cell.css('text-align', 'center');
         if (value['status'] === 'SUCCESS') {
         	cell.css('background-color', 'green')
@@ -58,7 +58,32 @@ jsonArray2Table = function(table, jsonArr) {
     			.css('color', 'white');
         }
         row.append(cell);
-        table.append(row);
+        
+		cell = $("<td>" + parseInt(value['duration'])/1000 + " ms" + "</td>");
+        row.append(cell);
+
+		cell = $("<td>" + "</td>");
+		var button = $('<input type="button" value="Log..." />');
+		button.attr('id', value['id']);
+		button.click(function() {
+    		taskId = parseInt(this.getAttribute('id'));
+			$('#showTaskLogs').modal('show');
+
+			ajaxcalls.simple('/runnables', 'GET', { 'tasklogs': taskId }).done(function (data) {
+            
+				data.logs.forEach(element => {
+					logs = $('#tasklogs').text() + element.log + '\r\n';
+					$('#tasklogs').text(logs);
+				});
+	
+			}).fail(function (jqXHR) {
+				showXHRText(jqXHR);
+			});
+		});
+		button.appendTo(cell);
+
+        row.append(cell);
+		table.append(row);
     });
 }
 

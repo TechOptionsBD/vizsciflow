@@ -1401,7 +1401,8 @@ class Task(db.Model):
                 datavalue = datavalue.strip('][').split(', ')
             data.append({ "datatype": dataitem.value["type"], "data": datavalue})
             
-        log = { 
+        log = {
+            'id': self.id,
             'name': self.name,
             'status': self.status,
             'data': data,
@@ -1421,6 +1422,11 @@ class Task(db.Model):
     def moduledef(self):
         v = self.service.value
         return namedtuple("value", v.keys())(*v.values())
+    
+    @staticmethod
+    def get_logs(task_id):
+        task = Task.query.get(task_id)
+        return [tasklog.to_json_log() for tasklog in task.tasklogs.filter(or_(TaskLog.type==LogType.STDERR, TaskLog.type==LogType.STDOUT))]
        
 class TaskLog(db.Model):
     __tablename__ = 'tasklogs'
@@ -1430,6 +1436,13 @@ class TaskLog(db.Model):
     type = db.Column(db.Text, default=LogType.ERROR)
     log = db.Column(db.Text)
     
+    def to_json_log(self):
+        return {
+            'time': str(self.time),
+            'type': self.type,
+            'log': self.log
+        }
+        
     def updateTime(self):
         try:
             self.time = datetime.utcnow()

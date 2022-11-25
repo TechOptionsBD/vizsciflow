@@ -28,4 +28,7 @@ class RunnableManager:
     def runnables_of_user(self, user_id):
         return self.persistance.runnables_of_user(user_id)
     
+    def get_task_logs(self, task_id):
+        return self.persistance.get_task_logs(task_id)
+    
 runnablemanager = RunnableManager()

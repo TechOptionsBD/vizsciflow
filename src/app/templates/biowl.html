@@ -659,8 +659,10 @@
 											<thead>
 												<tr>
 													<th class="report-header" scope="col" width="15%">Task</th>
-													<th class="report-header" scope="col" width="65%" style="text-align:center;">Data</th>
+													<th class="report-header" scope="col" width="65%" style="text-align:center;">Output</th>
 													<th class="report-header" scope="col" width="15%" style="text-align:center;">Status</th>
+													<th class="report-header" scope="col" width="15%" style="text-align:center;">Time</th>
+													<th class="report-header" scope="col" width="15%" style="text-align:center;">Logs</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -1119,11 +1121,6 @@
 	  </div>
 	</div>
   </div>
-
-
-
-
-
 
 <div id="addSample" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -2456,6 +2453,25 @@
 			
 			<div class="modal-body" style="padding: 0;">
 				<ul id="NodeInfo"></ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="showTaskLogs" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addSampleDialogLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4>Show Task Log</h4>
+			</div>
+			<div class="modal-body">
+				<div class="control-group">
+					<textarea id="tasklogs"></textarea>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Close</button>
 			</div>
 		</div>
 	</div>

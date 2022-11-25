@@ -249,6 +249,10 @@ class RunnableManager():
         return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.created_on.desc())
 
     @staticmethod
+    def get_task_logs(task_id):
+        return Task.get_logs(task_id)
+    
+    @staticmethod
     def add_return(runnable_id, triplet):
         if isinstance(triplet[1], FolderItem) and isiterable(triplet[1].path):
             for it in triplet[1].path:

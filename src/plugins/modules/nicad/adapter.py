@@ -68,8 +68,9 @@ def run_extract(context, *args, **kwargs):
         #     cmdargs.append("''")
         cmdargs.append(arguments['ignore'] if arguments['ignore'] else 'none')
 
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
-
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+    
     if Utility.ValueOrNone(exit_code) >= 99:
         raise ValueError("ERROR: Extraction failed, code {0}".format(out))
 
@@ -80,7 +81,10 @@ def run_transform(context, *args, **kwargs):
 
     arguments = context.parse_args('transform', 'nicad', *args, **kwargs)
     cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['transform']]
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    
+    context.save_stdout_stderr(out, err)
+    
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Transformation failed, code {0}".format(out))
 
@@ -93,7 +97,9 @@ def run_rename(context, *args, **kwargs):
     arguments = context.parse_args('rename', 'nicad', *args, **kwargs)
     cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['renaming']]
     
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+    
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Renaming failed, code {0}".format(out))
 
@@ -108,7 +114,9 @@ def run_filter(context, *args, **kwargs):
     if 'nonterminals' in arguments.keys():
         cmdargs.append(arguments['nonterminals'])
     
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Failed failed, code {0}".format(out))
 
@@ -122,7 +130,9 @@ def run_abstract(context, *args, **kwargs):
     if 'nonterminals' in arguments.keys():
         cmdargs.append(arguments['nonterminals'])
     
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Abstraction failed, code {0}".format(out))
 
@@ -135,7 +145,9 @@ def run_normalize(context, *args, **kwargs):
     arguments = context.parse_args('normalize', 'nicad', *args, **kwargs)
     cmdargs = [arguments['granularity'], arguments['language'], arguments['data'], arguments['normalizer']]
     
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Normalization failed, code {0}".format(out))
 
@@ -148,7 +160,9 @@ def run_cleanall(context, *args, **kwargs):
 
     arguments = context.parse_args('cleanall', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     return arguments['data']
 
 def run_findclonepairs(context, *args, **kwargs):
@@ -167,7 +181,9 @@ def run_findclonepairs(context, *args, **kwargs):
         if 'showsource' in arguments.keys() and arguments['showsource'] and arguments['showsource'].lower() != 'none':
             cmdargs.append('showsource')
 
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Clone analysis failed, code {0}".format(out))
 
@@ -182,7 +198,9 @@ def run_clusterpairs(context, *args, **kwargs):
     arguments = context.parse_args('clusterpairs', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
 
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError(f"ERROR: Clustering failed, code {exit_code}")
 
@@ -194,7 +212,9 @@ def run_getsource(context, *args, **kwargs):
     arguments = context.parse_args('getsource', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
     
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Get sources failed, code {0}".format(out))
 
@@ -206,7 +226,9 @@ def run_getnormsource(context, *args, **kwargs):
 
     arguments = context.parse_args('getnormsource', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data'], arguments['data2']]
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Get normalized sources failed, code {0}".format(out))
     return get_output(arguments['data'], '-normsource.xml', out)
@@ -216,7 +238,9 @@ def run_makepairhtml(context, *args, **kwargs):
     script = get_scriptpath(context, 'MakePairHTML')
     arguments = context.parse_args('makepairhtml', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Get Make HTML failed, code {0}".format(out))
     return get_output(arguments['data'], '.html', out)
@@ -228,7 +252,9 @@ def run_splitclasses(context, *args, **kwargs):
     arguments = context.parse_args('splitclasses', 'nicad', *args, **kwargs)
     cmdargs = [arguments['data']]
     
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Get Make HTML failed, code {0}".format(out))
     return get_output(arguments['data'], '', out)
@@ -250,7 +276,9 @@ def run_findclones(context, *args, **kwargs):
             cmdargs.append('showsource')
 
 
-    out, _, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    out, err, exit_code = context.bash_run_out_err_exit(script, *cmdargs, cwd=get_nicaddir(context), env=get_txldir(context))
+    context.save_stdout_stderr(out, err)
+
     if Utility.ValueOrNone(exit_code) != 0:
         raise ValueError("ERROR: Find clones failed, code {0}".format(out))
 

@@ -135,7 +135,9 @@ class Status:
 class LogType:
     INFO = "info"
     WARNING = "warning"
-    ERROR = "error"
+    ERROR = "error",
+    STDERR = "stderr",
+    STDOUT = "stdout"
 
 class VizSciFlowList(UserList):
     def first(self):

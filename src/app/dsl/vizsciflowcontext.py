@@ -10,6 +10,8 @@ from app.managers.usermgr import usermanager
 from app.managers.modulemgr import modulemanager
 from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit
 from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
+from app.objectmodel.models.rdb import Task
+from app.objectmodel.common import LogType
 
 class VizSciFlowContext(Context):
     lock = threading.Lock()
@@ -31,7 +33,15 @@ class VizSciFlowContext(Context):
         ident = threading.get_ident()
         if ident != self.ident:
             self.propstack[ident] = copy.copy(self.propstack[self.ident])
-            
+    
+    @property
+    def task_id(self):
+        return self.getprop('task_id')
+    
+    @task_id.setter
+    def task_id(self, value):
+        self.setprop('task_id', value)
+                
     @property
     def user_id(self):
         return self.getprop('user_id')
@@ -65,6 +75,12 @@ class VizSciFlowContext(Context):
         with self.lock:
             self.setprop('outdir', value)
     
+    def save_stdout_stderr(self, out, err):
+        if out:
+            Task.query.get(self.task_id).add_log(out, LogType.STDOUT)
+        if err:
+            Task.query.get(self.task_id).add_log(err, LogType.STDERR)
+
     @staticmethod
     def moveto(src, dest, ignores=[]):
         if not dest.endswith(os.path.sep):

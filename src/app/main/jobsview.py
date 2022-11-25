@@ -563,12 +563,17 @@ def get_task_full_status(runnable_id):
 #      with open(remotepath, "rb") as data:
 #          b64_text = base64.b64encode(data.read())
 #      return json.dumps( { "payload": b64_text, "extention": file_extension} )
-     
+
+def get_task_logs(task_id):
+    return runnablemanager.get_task_logs(task_id)
+    
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
 def runnables():
     from ..jobs import stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
     try:
+        if 'tasklogs' in request.args:
+            return jsonify(logs = get_task_logs(int(request.args.get('tasklogs'))))
         if request.args.get('tooltip'):
             return get_task_full_status(int(request.args.get('tooltip')))
         elif request.args.get('id'):

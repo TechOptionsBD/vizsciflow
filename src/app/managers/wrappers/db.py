@@ -125,6 +125,14 @@ class DataManager():
     def get_mimetype(extension):
         return MimeType.query.filter_by(extension = extension).first()
 
+    @staticmethod
+    def load_listview_datasets(user_id, page, no_of_item):
+        return DataSource.load_listview_datasets(user_id, page, no_of_item)
+
+    @staticmethod
+    def load_dataset_data_for_plugin(dataset_id, data_id, page_num):
+        return DataSource.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+    
 class ModuleManager():
     @staticmethod
     def first(**kwargs):

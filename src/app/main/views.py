@@ -891,6 +891,7 @@ Used for saving workflow into the filesystem instead of in the database
 def workflow_compare(workflow1, workflow2):
     try:
         from ..jobs import generate_graph_from_workflow
+        from app.objectmodel.provmod.provobj import View, Run
         from ..managers.runmgr import runnablemanager
         from difflib import ndiff
         
@@ -918,6 +919,7 @@ def workflow_compare(workflow1, workflow2):
 def workflow_rev_compare(request):
     try:
         from ..jobs import generate_graph
+        from app.objectmodel.provmod.provobj import View
         
         workflow = workflowmanager.get_or_404(request.args.get('revcompare'))
         
@@ -982,3 +984,51 @@ def webhook():
     
     func_exec_stdout(os.path.join(target, 'pullwebhook.sh'), '{0} {1} {2} '.format(target, gitdir, branch))
     return json.dumps({})
+
+def load_listview_datasets(user_id, page, no_of_item):
+    """
+    Load list view of Datasets with basic information  
+    
+    """
+    return datamanager.load_listview_datasets(user_id, page, no_of_item)
+
+def load_plugin_datasets(request):
+    """
+    Load plugin Datasets. 
+    
+    """
+    try:
+        page = int(request.args.get("pageNum")) if request.args.get("pageNum") else 1
+        no_of_item = int(request.args.get("numOfItems")) if request.args.get("numOfItems") else 20000
+
+        return load_listview_datasets(current_user.id, page, no_of_item)
+    except Exception as e:
+        return {'data': [], 'hasMore': False, 'itemCount': 0, 'pageNum': '0'}
+
+
+@main.route('/api/plugin/datasets', methods=['GET'])
+def loadPluginInfo():
+    return load_plugin_datasets(request)
+
+import datetime
+
+def custom_date_serializer(obj):
+    """Custom json serializer"""
+    if isinstance(obj, (datetime)):
+        return obj.isoformat()
+    raise TypeError ("Type %s not serializable" % type(obj))
+    
+def load_plugin_data(dataset_id, data_id, page_num):
+    """
+    Load plugin data for VizSciFlow. 
+    
+    """
+    try:
+        data =  datamanager.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+        return json.dumps(data, default=custom_date_serializer)
+    except Exception as e:
+        return {'data': [], 'hasMore': False, 'itemCount': 0, 'pageNum': '0'}
+
+@main.route('/api/plugin/dataset/data', methods=['GET'])
+def loadPlugeinData():
+    return load_plugin_data(request.args.get("dataset_id"), request.args.get("data_id"), request.args.get("page_num"))

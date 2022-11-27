@@ -123,5 +123,11 @@ class DataManager():
                 mime = self.persistance.get_mimetype(path.suffix[1:])
                 if mime:
                     return mime.name
-        
+    
+    def load_listview_datasets(self, user_id, page, no_of_item):
+        return self.persistance.load_listview_datasets(user_id, page, no_of_item)
+    
+    def load_dataset_data_for_plugin(self, dataset_id, data_id, page_num):
+        return self.persistance.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+    
 datamanager = DataManager()

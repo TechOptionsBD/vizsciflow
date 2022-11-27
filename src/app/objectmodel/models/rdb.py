@@ -458,6 +458,146 @@ class DataSource(db.Model):
 
     def __repr__(self):
         return '<DataSource %r>' % self.name
+    
+    def to_json(self):
+        try:
+            from app.util import Utility
+            fs = Utility.create_fs(self)
+            return {
+                    'id': self.id if self.id else "",
+                    'name': self.name if self.name else "",
+                    'url': fs.strip_root(self.url) if self.url else "",
+                    'type': self.type if self.type else "",
+                    #'root': self.root if self.root else "",
+                    'public': self.public if self.public else "",
+                    'user': self.user if self.user else "",
+                    'password': self.password if self.password else "",
+                    'active': str(self.active) if self.active else "False",
+                    'user': self.temp if self.temp else ""
+                }
+        except:
+            logging.error(f"Cannot connect to the file system {self.name}")
+            raise
+        
+    @staticmethod
+    def get_my_datasets_list_view(group_members, filtered_datasets=None):
+        #error will not handle in helper method
+        if not filtered_datasets:
+            selected_dataset = Dataset.query.filter(
+                                Dataset.id.in_(DatasetContributor.query.filter( DatasetContributor.group_member_id.in_(group_members)).with_entities(DatasetContributor.dataset_id))).order_by(desc(Dataset.id))
+        else:
+            selected_dataset = Dataset.query.filter(
+                                Dataset.id.in_(filtered_datasets),
+                                Dataset.id.in_(DatasetContributor.query.filter( DatasetContributor.group_member_id.in_(group_members)).with_entities(DatasetContributor.dataset_id))).order_by(desc(Dataset.id))
+
+        return selected_dataset
+    
+    @staticmethod
+    def add_item_in_list_view(selected_items, count,floor,celling, items, has_more, selected_item_ids, restricted_items, user_id, filtered_items=None):
+        #error will not handle in helper method
+        for each_item in selected_items:
+            try:
+                if each_item.id not in selected_item_ids and each_item.id not in restricted_items:
+                    count += 1
+                    if count > floor and count <= celling:
+                        items['data'].append(each_item.to_json())
+                    if count > celling :
+                        has_more = True
+                    selected_item_ids.append(each_item.id)
+                    if filtered_items is not None and filtered_items != []:
+                        filtered_items.remove(each_item.id)
+            except:
+                pass
+        return items, count, has_more, selected_item_ids, filtered_items
+    
+    @staticmethod
+    def get_child_details_for_plugin(parent, child, data_dir):
+        fullPath = child
+        if parent != '-1':
+            fullPath = os.path.join(parent, child)
+
+        if os.path.isdir(os.path.join(data_dir, child)):
+            is_child = True if os.path.isdir(os.path.join(data_dir, child)) else False
+            data_json = {
+                'id': fullPath,
+                'text': child,
+                'children': is_child,
+                'type': 'folder'
+            }
+        else:
+            dir_name,base_name = os.path.split(fullPath)
+            data_json = {
+                'id': fullPath,
+                'text': child,
+                'children': False,
+                'type': 'file'
+            }
+        return data_json
+    
+    @staticmethod
+    def load_dataset_data_for_plugin(dataset_id, data_id, dataset_details, page=1, no_of_item=5):
+        try:
+            count = 0
+            has_more = False
+            dataset_details = {}
+            all_data = []
+            celling = int(page) * int(no_of_item)
+            floor = (int(page) - 1) * int(no_of_item)
+            datasource = DataSource.query.get(dataset_id)
+            data_dir = os.path.join(datasource.url, data_id) if data_id != '-1' else datasource.url
+
+            all_data = [f for f in os.listdir(data_dir) if not f.startswith('T_')] 
+
+            root_childrens = []
+            for each_data in all_data:
+                count += 1
+                if count > floor and count <= celling:
+                    data_details = DataSource.get_child_details_for_plugin(data_id, each_data, data_dir)
+                    root_childrens.append(data_details) 
+                if count > celling :
+                    has_more = True
+                    break
+
+            if data_id == '-1' and page == '1':
+                dataset_details['nodes'] = {"id": "", "text":"Root node", "children": root_childrens}
+            else:
+                dataset_details['nodes'] = root_childrens
+
+            dataset_details["loadNodeId"] = "#>" + str(dataset_id) if data_id == '-1' else str(data_id) + ">" + str(dataset_id)
+            dataset_details['hasMore'] = has_more
+            dataset_details['pageNum'] = int(page)
+            dataset_details['itemCount'] = len(all_data)
+
+            return dataset_details
+
+        except Exception as e:
+            logging.error(f"Exception thrown while loading dataset from the storage: {str(e)}")
+            raise
+           
+    @staticmethod
+    def load_listview_datasets(user_id: int, page: int, no_of_item: int):
+        count = 0
+        has_more = False
+        selected_dataset_ids = []
+        
+        celling = page * no_of_item
+        floor = (page - 1) * no_of_item
+        datasets = {"data": [], "pageNum": page}
+        
+        datasources = DataSource.query.filter_by(active = True)
+        print(datasources.count)
+        # restricted_items = DatasetUtility.access_restricted_of_dataset(my_groups, child_groups, selected_datasets)
+        datasets,count,has_more, selected_dataset_ids, filtered_datasets = DataSource.add_item_in_list_view(datasources, 
+                                                        count, floor, celling, datasets, has_more, 
+                                                        selected_dataset_ids, [], user_id, [])
+
+
+        datasets['hasMore'] = has_more
+        datasets['itemCount'] = count
+        if filtered_datasets!=None:
+            datasets['dataset_ids'] = selected_dataset_ids
+        
+        return datasets
 
 class Dataset(db.Model):
     __tablename__ = 'datasets'

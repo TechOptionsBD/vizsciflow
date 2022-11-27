@@ -465,7 +465,7 @@ class DataSource(db.Model):
             fs = Utility.create_fs(self)
             return {
                     'id': self.id if self.id else "",
-                    'name': self.name if self.name else "",
+                    'title': self.name if self.name else "",
                     'url': fs.strip_root(self.url) if self.url else "",
                     'type': self.type if self.type else "",
                     #'root': self.root if self.root else "",
@@ -473,25 +473,13 @@ class DataSource(db.Model):
                     'user': self.user if self.user else "",
                     'password': self.password if self.password else "",
                     'active': str(self.active) if self.active else "False",
-                    'user': self.temp if self.temp else ""
+                    'user': self.temp if self.temp else "",
+                    'group': ""
                 }
         except:
             logging.error(f"Cannot connect to the file system {self.name}")
             raise
         
-    @staticmethod
-    def get_my_datasets_list_view(group_members, filtered_datasets=None):
-        #error will not handle in helper method
-        if not filtered_datasets:
-            selected_dataset = Dataset.query.filter(
-                                Dataset.id.in_(DatasetContributor.query.filter( DatasetContributor.group_member_id.in_(group_members)).with_entities(DatasetContributor.dataset_id))).order_by(desc(Dataset.id))
-        else:
-            selected_dataset = Dataset.query.filter(
-                                Dataset.id.in_(filtered_datasets),
-                                Dataset.id.in_(DatasetContributor.query.filter( DatasetContributor.group_member_id.in_(group_members)).with_entities(DatasetContributor.dataset_id))).order_by(desc(Dataset.id))
-
-        return selected_dataset
-    
     @staticmethod
     def add_item_in_list_view(selected_items, count,floor,celling, items, has_more, selected_item_ids, restricted_items, user_id, filtered_items=None):
         #error will not handle in helper method

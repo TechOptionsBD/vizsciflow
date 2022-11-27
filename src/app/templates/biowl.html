@@ -298,7 +298,27 @@
 						</div>
 					</div>
 			</div>
-			
+
+			<!-- datasource panel -->
+			<div id="datasetLateLoadPanel" class="panel panel-primary">
+				<div class="panel-heading">
+					<button class="close closeComponent" title="Close" type="button">×</button>
+					<div class="row">
+						<div style="display : block">
+							<h4 class="col-sm-8">Dataset Panel</h4>
+
+							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Update Plugin Title"
+								data-bind="click: reload">
+								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+							</button>
+						</div>
+					</div>
+				</div> 
+				<div class="panel-body" style="max-height: 50vh; overflow-y: auto;">
+					<div id="datasetLatePlugin"></div>
+				</div>
+			</div>
+
 			<!-- scidatamanager plugin panel -->
 			<div id="datasetPluginPanel" class="panel panel-primary">
 				<div class="panel-heading">
@@ -614,6 +634,8 @@
 							id="refresh"></span>
 					</div>
 				</div>
+				<div id="argumentsPanel" class="panel panel-primary">
+				</div>
 				<div id="outputPanel" class="panel panel-primary">
 					<div class="panel-heading">
 						<button class="close closeComponent" title="Close" type="button">×</button>
@@ -662,7 +684,7 @@
 													<th class="report-header" scope="col" width="65%" style="text-align:center;">Output</th>
 													<th class="report-header" scope="col" width="15%" style="text-align:center;">Status</th>
 													<th class="report-header" scope="col" width="15%" style="text-align:center;">Time</th>
-													<th class="report-header" scope="col" width="15%" style="text-align:center;">Logs</th>
+													<th class="report-header" scope="col" width="15%" style="text-align:center;">Details</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -3471,9 +3493,13 @@ function typeInTextarea(el, newText) {
        	filterViewModel.loadSavedFilters();
        	showFilterHistory();           
 	   
-		datasetViewModel = new DatasetPluginViewModel(scidatapath);
+		datasetViewModel = new DatasetPluginViewModel(scidatapath, "#datasetPlugin");
 		ko.applyBindings(datasetViewModel, $('#datasetPluginPanel')[0]);
 		datasetViewModel.renderDataset()
+
+		datasetLateLoadViewModel = new DatasetPluginViewModel("", "#datasetLatePlugin");
+		ko.applyBindings(datasetLateLoadViewModel, $('#datasetLateLoadPanel')[0]);
+		datasetLateLoadViewModel.renderDataset()
 
     $(window).on('unload', function() {
         if (refreshId != 0)

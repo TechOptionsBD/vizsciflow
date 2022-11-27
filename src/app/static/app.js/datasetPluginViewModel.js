@@ -1,12 +1,13 @@
-function DatasetPluginViewModel(scidatapath) {
+function DatasetPluginViewModel(scidatapath, datasetCtrlParam) {
   var self = this;
   self.scidatamgrURI = scidatapath;
   self.datasetList = ko.observableArray();
+  self.datasetCtrl = datasetCtrlParam;
   let datasetList;
 
   const initPlugin = function () {
     // initialize plugin
-    datasetList = $("#datasetPlugin").datasetlist({
+    datasetList = $(self.datasetCtrl).datasetlist({
       data: self.datasetList(),
       searchBar: true,
       searchBarPlaceholder: "Search dataset in list",
@@ -57,7 +58,7 @@ function DatasetPluginViewModel(scidatapath) {
   };
 
   self.reload = function () {
-    $("#datasetPlugin").empty();
+    $(self.datasetCtrl).empty();
     self.renderDataset();
   };
 

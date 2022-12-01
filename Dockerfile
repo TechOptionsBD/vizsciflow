@@ -57,12 +57,10 @@ RUN usermod -aG docker vizsciflow
 WORKDIR /home/vizsciflow
 COPY ./src ./src
 COPY .env .
-COPY ./.vscode ./.vscode
 
 RUN python -m venv /home/.venv
 RUN /home/.venv/bin/pip install --upgrade pip
 RUN /home/.venv/bin/pip install -r ./src/requirements/requirements.txt
-#RUN /home/.venv/bin/pip install -i https://test.pypi.org/simple/ wfdsl 
 RUN /home/.venv/bin/pip install wfdsl==0.1.15
 
 # separate venv for pycoQC
@@ -70,7 +68,7 @@ RUN python -m venv /home/.venvpycoqc
 RUN /home/.venvpycoqc/bin/pip install --upgrade pip
 RUN /home/.venvpycoqc/bin/pip install pycoQC
 
-# separate venv for python2
+# separate venv for python 2.7
 RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /home/get-pip.py
 RUN python2 /home/get-pip.py
 RUN python2 -m pip install virtualenv
@@ -87,6 +85,7 @@ RUN /home/.venv/bin/pip install pysam
 ENV FLASK_APP manage.py
 ENV FLASK_CONFIG development
 
+# Give ownership to vizsciflow user
 RUN chown -R vizsciflow:vizsciflow ./
 RUN chown -R vizsciflow:vizsciflow ../.venv
 RUN chown -R vizsciflow:vizsciflow ../.venvpycoqc

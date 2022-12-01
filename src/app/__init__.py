@@ -35,7 +35,7 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
     app.debug = app.config['DEBUG']
 
-    envfile = os.path.join(os.path.dirname(basedir), '.env') # now load the secret and system specific settings
+    envfile = os.path.join(os.path.dirname(basedir), '../.env') # now load the secret and system specific settings
     app.config.from_pyfile(envfile, silent=True)
     config[config_name].init_app(app)
 

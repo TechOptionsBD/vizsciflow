@@ -95,7 +95,7 @@ function TasksViewModel() {
         $("#output").val("");
         $("#error").val("");
         $("#log tbody").empty();
-        $("#duration").text("0s");
+        $("#duration").text("0 ms");
         printExecStatus("");
     }
 
@@ -783,7 +783,7 @@ function TasksViewModel() {
             $("#log tbody").empty();
             jsonArray2Table($("#log"), data['log']);
             printExecStatus(data['status']);
-            $("#duration").text(data.duration + 's');
+            $("#duration").text(parseInt(data.duration)/1000 + ' ms');
         });
     }
     self.beginEditLibrary = function (task) {

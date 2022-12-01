@@ -79,7 +79,7 @@ function RunnablesViewModel() {
             $("#error").val(data['err']);
             $("#log tbody").empty();
             jsonArray2Table($("#log"), data['log']);
-            $("#duration").html(data['duration'] + 's');
+            $("#duration").html(parseInt(data['duration'])/1000 + ' ms');
             printExecStatus(data['status']);
             tasksViewModel.loadLogData(data.log);
         }).fail(function (jqXHR, textStatus) {

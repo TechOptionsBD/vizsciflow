@@ -93,7 +93,7 @@ function ProvPluginsViewModel() {
         $("#output").val("");
         $("#error").val("");
         $("#log tbody").empty();
-        $("#duration").text("0s");
+        $("#duration").text("0 ms");
         printExecStatus("");
     }
 

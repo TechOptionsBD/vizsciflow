@@ -19,8 +19,8 @@ jsonArray2Table = function(table, jsonArr) {
         var row = $('<tr></tr>');
         
         var cell = $("<td>" + value['name'] + "</td>")
-       		.css('overflow', 'hidden')
-       		.css('word-wrap', 'break-word');
+			.css('overflow', 'hidden')	
+			.css('word-wrap', 'break-word');
         row.append(cell);
         
     	cell = $('<td></td>');
@@ -59,22 +59,23 @@ jsonArray2Table = function(table, jsonArr) {
         }
         row.append(cell);
         
-		cell = $("<td>" + parseInt(value['duration'])/1000 + " ms" + "</td>");
+		time = parseInt(value['duration'])/1000;
+		cell = $("<td>" + time.toFixed(1) + " ms" + "</td>");
         row.append(cell);
 
 		cell = $("<td>" + "</td>");
 		var button = $('<input type="button" value="Log..." />');
 		button.attr('id', value['id']);
 		button.click(function() {
+			$('#tasklogs').text("");			
     		taskId = parseInt(this.getAttribute('id'));
-			$('#showTaskLogs').modal('show');
-
 			ajaxcalls.simple('/runnables', 'GET', { 'tasklogs': taskId }).done(function (data) {
-            
 				data.logs.forEach(element => {
 					logs = $('#tasklogs').text() + element.log + '\r\n';
 					$('#tasklogs').text(logs);
 				});
+				if ($('#tasklogs').text())
+					$('#showTaskLogs').modal('show');
 	
 			}).fail(function (jqXHR) {
 				showXHRText(jqXHR);

@@ -523,14 +523,14 @@ class DataSource(db.Model):
         return data_json
     
     @staticmethod
-    def load_dataset_data_for_plugin(dataset_id, data_id, dataset_details, page=1, no_of_item=5):
+    def load_dataset_data_for_plugin(dataset_id, data_id, page=1, no_of_item=10):
         try:
             count = 0
             has_more = False
             dataset_details = {}
             all_data = []
-            celling = int(page) * int(no_of_item)
-            floor = (int(page) - 1) * int(no_of_item)
+            celling = page * no_of_item
+            floor = (page - 1) * no_of_item
             datasource = DataSource.query.get(dataset_id)
             data_dir = os.path.join(datasource.url, data_id) if data_id != '-1' else datasource.url
 
@@ -553,7 +553,7 @@ class DataSource(db.Model):
 
             dataset_details["loadNodeId"] = "#>" + str(dataset_id) if data_id == '-1' else str(data_id) + ">" + str(dataset_id)
             dataset_details['hasMore'] = has_more
-            dataset_details['pageNum'] = int(page)
+            dataset_details['pageNum'] = page
             dataset_details['itemCount'] = len(all_data)
 
             return dataset_details
@@ -868,9 +868,9 @@ class Workflow(db.Model):
             'user': self.user.username,
             'name': self.name,
             'desc': self.desc,
-            'script': self.script,
-            'params': Service.get_params_returns_json(self)
+            'script': self.script
         }
+        json_post.update(Service.get_params_returns_json(self))
         return json_post
     
     def to_json_tooltip(self):
@@ -1130,7 +1130,7 @@ class Service(db.Model):
 
     @staticmethod
     def get_params_returns_json(service):
-        result = {}
+        result = { 'params': '', 'returns': '' }
         if service:
             if service.params:
                 params = [param.value for param in service.params]

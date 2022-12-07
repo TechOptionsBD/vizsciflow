@@ -68,9 +68,7 @@
 
 
 <!-- app js files -->
-<script src="/static/app.js/dataSourceViewModel.js"></script>
 <script src="/static/app.js/browserViewModel.js"></script>
-<script src="/static/app.js/datasetsViewModel.js"></script>
 <script src="/static/app.js/datasetAddViewModel.js"></script>
 <script src="/static/app.js/datasetviewViewModel.js"></script>
 <script src="/static/app.js/metadataViewModel.js"></script>
@@ -175,130 +173,6 @@
 			</div>
 		</div>
 		<div class="col-md-3 box-one" style="padding: 0">
-			<div id="datasourceStack" class="panel panel-primary" style="position: relative;">
-				<div class="panel-heading" >
-						<!-- checked: access, -->
-					<button class="close closeComponent" title="Close" type="button">×</button>
-					<div class="row" style="padding-left: 15px">
-							<label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="0"  checked="checked" autocomplete="off">Data Sources</label>
-							<!-- <label class="radio-inline"> <input type="radio" name="dataSourcesTab" value="1"  autocomplete="off">Datasets</label> -->
-						<!-- <div>
-							<h4 class="col-sm-6">Data Sources</h4>
-						</div> -->
-					</div>
-				</div>
-				<div id="dataSourcesPanel">
-					<div class="panel datasources-panel-header">
-						<div class="btn-group btn-group-sm">
-							<!--<button class="btn btn-primary pull-right" data-toggle="tooltip"
-																			data-placement="top" title="Recursive Reload"
-																			data-bind="click: load.bind($data, true)">
-																			<i class="glyphicon glyphicon-unchecked"></i>
-																		</button> -->
-							<button id="btnAbout" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-								title="About" data-bind="click: about">
-								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-							</button>
-							<button id="btnReload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-								title="Reload" data-bind="click: load.bind($data, true)">
-								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-							</button>
-							<button id="btnDownload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-								title="Download" data-bind="click: download">
-								<i class="glyphicon glyphicon-download toolbar-icon"></i>
-							</button>
-							<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal" data-placement="top"
-								title="Upload" data-bind="click: beginFileUpload">
-								<i class="glyphicon glyphicon-upload toolbar-icon"></i>
-							</button>
-							<button id="btnBeginUpdateMetadata" class="btn btn-primary pull-right" data-toggle="modal"
-								data-placement="top" title="Update Metadata" data-bind="click: beginUpdateMetadata">
-								<i class="glyphicon glyphicon-edit toolbar-icon"></i>
-							</button>
-							<button id="btnDeleteFolderFile" class="btn btn-primary pull-right" data-toggle="tooltip"
-								data-placement="top" title="Delete Folder/File" data-bind="click: remove">
-								<i class="glyphicon glyphicon-minus toolbar-icon"></i>
-							</button>
-							<button id="btnAddFolder" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-								title="Add Folder" data-bind="click: addFolder, clickBubble: false">
-								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
-							</button>
-						</div>
-						<div id="dataSourcesSearchPanel" class="form-inline">
-							<input class="form-control" style="width: 67%" type="text" placeholder="Search…"
-								data-bind="value: searchDataSource, valueUpdate: 'keyup'" />
-							<!-- <button id="btnOpenFilterDialog" class="btn btn-primary" data-toggle="tooltip"
-								data-placement="top" title="Filter" data-bind="click: openFilterDialog.bind($data, false)">
-								<i class="glyphicon glyphicon-filter"></i>
-							</button> -->
-						</div>
-					</div>
-					<div id="dataSourcesTreeView" class="panel-body draggable-datasources"
-						style="height: 416px; overflow-y: scroll; padding: 0">
-						<div id="tree" data-bind="jstree: { data: dataSources }"></div>
-					</div>
-				</div>
-				<div id="dataSetsPanel" hidden >
-						<div class="panel datasources-panel-header">
-							<div class="btn-group btn-group-sm">
-								<button id="btnAbout" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-									title="About" data-bind="click: about">
-									<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
-								</button>
-								<button id="btnReload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-									title="Reload" data-bind="click: load.bind($data, true)">
-									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-								</button>
-								<!-- <button id="btnDownload" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-									title="Download" data-bind="click: download">
-									<i class="glyphicon glyphicon-download toolbar-icon"></i>
-								</button>
-								<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal" data-placement="top"
-									title="Upload" data-bind="click: beginFileUpload">
-									<i class="glyphicon glyphicon-upload toolbar-icon"></i>
-								</button> -->
-								<button id="btnEditSchema" class="btn btn-primary pull-right" data-toggle="modal"
-									data-placement="top" title="Edit Schema" data-bind="click: editSchema">
-									<i class="glyphicon glyphicon-edit toolbar-icon"></i>
-								</button> 
-								<button id="btnDeleteSchema" class="btn btn-primary pull-right" data-toggle="tooltip"
-									data-placement="top" title="Delete Schema" data-bind="click: deleteSchema">
-									<i class="glyphicon glyphicon-minus toolbar-icon"></i>
-								</button>
-								<button id="btnAddNewDataset" class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
-									title="Add New" data-bind="click : addNew">
-									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
-								</button>
-							</div>
-							<div id="dataSetsSearchPanel" class="form-inline">
-								<input id="txtDatasetsSearch" class="form-control" style="width: 67%" type="text" placeholder="Search…"
-									 data-bind="value: datasetFilter, valueUpdate: 'keyup' " /> 	
-							</div>
-						</div>
-						<div id="dataSetsListView" class="panel-body draggable-datasources"
-							style="height: 416px; overflow-y: scroll; padding: 0" >
-							<div data-bind="foreach: filteredDatasets">
-                                <div class="dataset-listview" data-bind="click: $parent.click.bind($data),  datasetHover : $data, css: {'dataset-listview-selected' : $data.id == $parent.currentSelection()}, trigAddUpdateDataset: $data">
-									<label class="dataset-item-label">
-										<h4 data-bind="text: name, searchTextMatch : $data"></h4>
-										<a data-bind="attr: {href: 'http://' + url} ,text: url, searchTextMatch : $data" style="margin-left: 10px" target="_blank"></a><br>
-										<span data-bind="text: description, searchTextMatch : $data" style="margin-left: 10px"></span>
-									</label>
-								</div>
-							</div>
-							<!-- <ul data-bind="foreach: datasets">
-                                <li>
-									<div class="dataset-listview">
-										<h2 data-bind="text: Title"></h2>
-										<label data-bind="text: Url"></label>
-										<label data-bind="text: UpdatedDate"></label>
-									</div>
-								</li>
-							</ul> -->
-						</div>
-					</div>
-			</div>
-
 			<!-- datasource panel -->
 			<div id="datasetLateLoadPanel" class="panel panel-primary">
 				<div class="panel-heading">
@@ -3031,144 +2905,6 @@ function typeInTextarea(el, newText) {
 
 		return items;
    }
-   
-   ko.bindingHandlers.jstree = {
-	    buildTree: function (element, treeData) {
-			//$(element).jstree('destroy');
-			
-			// before destroy jstree check jstree already exists or not
-			if($(element).find("li").length > 0){
-               $(element).empty();
-			}
-
-	        $(element).jstree({
-	            'core': {
-	                'animation': 0,
-	                'check_callback': true,
-	                'multiple': false,
-					// 'data': {
-					// 	'url': '/datasources',
-					// 	'data': function(node) {
-					// 		return {'children': node.original.path }
-					// 	}
-					// }
-	                'data': treeData
-	            },
-	            'contextmenu': {
-	            	'items': customMenu
-	            },
-	            'types': {
-	                'folder': {
-	                	'valid_children': ['folder','file']
-	                },
-	                'file': {
-	                	'icon': 'glyphicon glyphicon-file',
-	                	'max_depth': 0
-	                }
-	            },
-	            "search": {
-	    			"case_insensitive": true,
-	    			"show_only_matches" : true
-	    		},
-                'plugins': ['search', 'state', 'types', 'wholerow', 'contextmenu']
-	        });
-			$(element).bind('ready.jstree', function (e, data) {
-			   $('.jstree-node').on("dragstart", function (e) {
-				   e.stopPropagation();
-				   var nodeId = e.target.id.replace("_anchor", "");
-				   var node = $("#tree").jstree(true).get_node(nodeId);
-				   var nodeData = "\'"+node.original.path + "\'";
-				   var cursorPos = editor.selection.getCursor();
-				   var editorText = editor.session.getLine(cursorPos.row);
-				   if (!editorText) {
-					   e.originalEvent.dataTransfer.setData('text/plain', "data = " + nodeData + "\r\n")
-				   }
-				   else {
-					   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
-				   }
-			   });
-		   });
-		   $(element).on("redraw.jstree", function(e, data){
-			   $('.jstree-node').on("dragstart", function(e){
-				   e.stopPropagation();
-				   var nodeId = e.target.id.replace("_anchor", "");
-				   var node = $("#tree").jstree(true).get_node(nodeId);
-				   var nodeData = "\'"+node.original.path + "\'";
-				   var cursorPos = editor.selection.getCursor();
-				   var editorText = editor.session.getLine(cursorPos.row);
-				   if (!editorText) {
-					   e.originalEvent.dataTransfer.setData('text/plain', "data = " + nodeData + "\r\n")
-				   }
-				   else {
-					   e.originalEvent.dataTransfer.setData("text/plain", nodeData);
-				   }
-			   });
-
-			   metadataViewModel.selectNode();
-			   setTimeout(() => {
-				filterViewModel.selectNode();
-			   }, 100);
-		   });
-		   $(element).on('select_node.jstree', function (e, data) {
-
-			   showMetadata(data.node.original.path);
-			   showBrowser(data.node);
-			   //    var isMetatab = $("#metatab").hasClass('active');
-			   //    var isBrowserTab = $("#browsertab").hasClass('active');
-			   //    if (isMetatab) {
-			   // 	   showMetadata(data.node.original.path);
-			   //    }
-			   //    else if(isBrowserTab){
-			   // 	   showBrowser(data.node);
-			   //    }
-
-		   });
-		   $(element).on("search.jstree", function () {
-			   var node = $('#tree').jstree().get_selected(true)[0];
-
-			   if (!node || node.state.hidden) {
-				   browserViewModel.emptyBrowser();
-			   }
-			   else if (node && !node.state.hidden) {
-				   showBrowser(node);
-			   }
-		   });
-
-		   $(element).on("clear_search.jstree", function (nodes, str, res) {
-			   var node = $('#tree').jstree().get_selected(true)[0];
-			   var searchString = ko.utils.unwrapObservable(dataSourceViewModel.searchDataSource);
-
-			   if(node && !searchString){
-			   		showBrowser(node);
-			   }
-		   });
-
-		   $(element).on("before_open.jstree", function (event, data) {
-		   });
-
-		   $(element).on("open_node.jstree", function (event, data) {
-		   });
-	    },
-	    update: function (element, valueAccessor) {
-	        var treeData = ko.unwrap(valueAccessor());
-	        ko.bindingHandlers.jstree.buildTree(element, treeData.data());
-	    }
-	};
-   
-   
-    // Create the View Model and initialise with initial data 
-    var dataSourceViewModel = new DataSourceViewModel();
-    ko.applyBindings(dataSourceViewModel, $("#dataSourcesPanel")[0]);
-    
-//     $('#rename-filefolder-dialog').on('shown.bs.modal', function () {
-//     	var node = dataSourceViewModel.selectedNode();
-//     	if (node === undefined)
-//     		return;
-//     	var filename = node.path.replace(/^.*[\\\/]/, '')
-//         $('#rename-filefolder-text').val(filename);
-//         $('#rename-filefolder-text').focus();
-//     });
-		
 
     // configure ace.js for code editor
     var langTools = ace.require("ace/ext/language_tools");
@@ -3435,7 +3171,6 @@ function typeInTextarea(el, newText) {
 	  
 	   
 	    var datasetAddViewModel = new DatasetAddViewModel();
-		var datasetsViewModel = new DatasetsViewModel();
 		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
 		var addProvPluginViewModel = new AddProvPluginViewModel(ace);
         var sampleViewModel = new SampleViewModel();
@@ -3462,7 +3197,6 @@ function typeInTextarea(el, newText) {
         var metadataViewModel = new MetaDataViewModel();
         
 		ko.applyBindings(datasetAddViewModel, $("#dataSets-addNew-dialog")[0]);
-		ko.applyBindings(datasetsViewModel , $("#dataSetsPanel")[0]);
         ko.applyBindings(tasksViewModel, $('#main')[0]);
         ko.applyBindings(tasksViewModel, $('#functions')[0]);
 		ko.applyBindings(provpluginsViewModel, $('#provplugins')[0]);
@@ -3480,10 +3214,6 @@ function typeInTextarea(el, newText) {
 
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
     
-        dataSourceViewModel.loadMetadataProperties();
-        ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
-
-        
        	ko.applyBindings(filterViewModel, $('#filter-dialog')[0]);
        	ko.applyBindings(filterViewModel, $('#searchHistoryPanel')[0]);
        	ko.applyBindings(filterViewModel, $('#filterhistoryView')[0]);

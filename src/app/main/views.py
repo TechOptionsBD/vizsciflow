@@ -1031,4 +1031,4 @@ def load_plugin_data(dataset_id, data_id, page_num):
 
 @main.route('/api/plugin/dataset/data', methods=['GET'])
 def loadPlugeinData():
-    return load_plugin_data(request.args.get("dataset_id"), request.args.get("data_id"), request.args.get("page_num"))
+    return load_plugin_data(request.args.get("dataset_id"), request.args.get("data_id"), int(request.args.get("page_num")))

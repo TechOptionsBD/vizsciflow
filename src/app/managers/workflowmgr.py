@@ -9,6 +9,9 @@ class WorkflowManager():
     def create(self, **kwargs):
         return self.persistance.create(**kwargs)
 
+    def update(self, **kwargs):
+        return self.persistance.update(**kwargs)
+    
     def first(self, **kwargs):
         return self.persistance.first(**kwargs)
     

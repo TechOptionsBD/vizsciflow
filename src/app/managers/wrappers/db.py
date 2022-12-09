@@ -217,6 +217,10 @@ class WorkflowManager():
         Workflow.remove(user_id, workflow_id)
 
     @staticmethod
+    def update(id, **kwargs):
+        return WorkflowManager.first(id=id).update(**kwargs)
+    
+    @staticmethod
     def get_workflows_as_list(access, user_id, *args):
         terms = ["tag='{0}'".format(v) for v in args]
         if access == 0 or access == 3:

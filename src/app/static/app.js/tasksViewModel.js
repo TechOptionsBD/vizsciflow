@@ -1,4 +1,4 @@
-function TasksViewModel() {
+function TasksViewModel(sampleViewModel) {
     
     var self = this;
     self.tasksURI = '/functions';
@@ -12,6 +12,7 @@ function TasksViewModel() {
     self.isListLog = ko.observable(true);
     self.fileImgPath = '/static/file_icon_blue.png';
     self.folderImgPath = '/static/folder_Icon_blue.png';
+    self.sampleViewModel = sampleViewModel;
     this.filteredTasks = ko.computed(function () {
         return this.tasks().filter(function (task) {
             if (!self.taskFilter() || 
@@ -133,13 +134,9 @@ function TasksViewModel() {
             return; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
 
         // workflow not saved yet
-        if (!workflowId) {
-
+        if (!workflowId && save) {
             // Show save dialog if user explicitely clicked save/saveas button
-            if (save) {
-                return samplesViewModel.beginAdd();
-            }
-
+            return self.sampleViewModel.beginAdd({saveas: true});
             // save with default name and private access.
         }
 
@@ -155,7 +152,7 @@ function TasksViewModel() {
                 }
                 else {
                     workflowId = parseInt(data['workflowId']);
-                    $('#script-name').text(data['name']);
+                    self.sampleViewModel.name(data['name']);
                     editor.session.getUndoManager().markClean();
                 }
             }
@@ -176,7 +173,7 @@ function TasksViewModel() {
         var formdata = new FormData();
 
         formdata.append('workflowId', parseInt(workflowId));
-        formdata.append('args', $('#args').val());
+        formdata.append('args', ko.toJSON(self.sampleViewModel.wfArgs));
         formdata.append('immediate', $('#immediate').prop('checked'));
         self.clearResults();
 
@@ -205,22 +202,14 @@ function TasksViewModel() {
         let currentMode = handleModeViewModel.getMode();
 
         try {
-            var updateDlg = self.updateWorkflow();
-            if (updateDlg) {
-                updateDlg.on('hidden.bs.modal', function () { 
-                    if(currentMode == 'wfMode')
-                        self.runBioWLInternal(task);
-                    
-                    else if(currentMode == 'provMode')
-                        self.runProvenanceInternal(task);
-                });
-            }
-            else{
-                if(currentMode == 'wfMode')
+            self.updateWorkflow();
+            switch(currentMode){
+                case 'wfMode':
                     self.runBioWLInternal(task);
-                
-                else if(currentMode == 'provMode')
+                    break;
+                case 'provMode':
                     self.runProvenanceInternal(task);
+                    break;
             }
         }
         catch(e) {
@@ -294,7 +283,7 @@ function TasksViewModel() {
         var formdata = new FormData();
 
         formdata.append('workflowId', parseInt(workflowId));
-        formdata.append('args', $('#args').val());
+        formdata.append('args', ko.toJSON(self.sampleViewModel.wfArgs));
         formdata.append('immediate', 'true');
         formdata.append('provenance', 'true');
         self.clearResults();
@@ -769,7 +758,7 @@ function TasksViewModel() {
         $('#refresh').show();
         var formdata = new FormData();
         formdata.append('code', editor.getSession().getValue());
-        formdata.append('args', $('#args').val());
+        formdata.append('args', ko.toJSON(self.sampleViewModel.wfArgs));
         formdata.append('immediate', $('#immediate').prop('checked'));
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function (data) {
             $('#refresh').hide();
@@ -1536,11 +1525,7 @@ function TaskSharingViewModel() {
     self.access = ko.observable();
     self.userList = ko.observableArray();
     self.access.subscribe(function(newVal){
-        if (newVal) {
-            $("#ddlShareService").multiselect('disable');
-        } else {
-            $("#ddlShareService").multiselect('enable');
-        }
+        $("#ddlShareService").multiselect(newVal ? 'disable' : 'enable');
     });
 
     self.saveServiceSharing = function () {  

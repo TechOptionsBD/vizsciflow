@@ -684,6 +684,19 @@ class Workflow(db.Model):
 
         return [Workflow.create(**s) for s in samples]
 
+    def update_accesses(self, users):
+        if isinstance(users, str):
+            users = users.strip()
+            if not users:
+                return
+            users = list(users.split(","))
+        if not users:
+            return
+        for user_id in users:
+            user = User.query.get(user_id)
+            if user:
+                self.accesses.append(WorkflowAccess(user_id = user.id, rights = AccessRights.Read))
+                    
     @staticmethod
     def create(**kwargs):
         try:
@@ -694,15 +707,10 @@ class Workflow(db.Model):
 
             wf = Workflow(**kwargs)
             wf.public = (access == AccessType.PUBLIC)
-            if users:
-                users = list(users.split(","))
-                if users and access == AccessType.SHARED:
-                    for user_id in users:
-                        user = User.query.filter(User.id == user_id).first()
-                        if user:
-                            wf.accesses.append(WorkflowAccess(user_id = user.id, rights = AccessRights.Read))
+            if users and access == AccessType.SHARED:
+                wf.update_accesses(access, users)
 
-            wf.update(paramargs, returnsargs)
+            wf.update(params=paramargs, returns=returnsargs)
             db.session.add(wf)
             db.session.commit()
             
@@ -721,24 +729,77 @@ class Workflow(db.Model):
             db.session.rollback()
             raise
     
-    def update(self, params, returns):
+    def update(self, **kwargs):
+        if 'access' in kwargs:
+            access = int(kwargs['access'])
+            self.public = (access == AccessType.PUBLIC)
+            
+        if 'users' in kwargs and not self.public:
+            self.update_accesses(kwargs['users'])
 
-        WorkflowParam.query.filter(WorkflowParam.workflow_id==self.id).delete()
-        WorkflowReturn.query.filter(WorkflowReturn.workflow_id==self.id).delete()
-        db.session.commit()
-
-        if params:
+        if 'user_id' in kwargs:
+            self.user_id = kwargs['user_id']
+        if 'name' in kwargs:
+            self.name = kwargs['name']
+        if 'desc' in kwargs:
+            self.desc = kwargs['desc']
+        if 'script' in kwargs:
+            self.update_script(kwargs['script'])
+        if 'temp' in kwargs:
+            self.temp = kwargs['temp']
+        if 'derived' in kwargs:
+            self.derived = kwargs['derived']
+        
+        if 'params' in kwargs:
+            params = kwargs['params']
             if isinstance(params, str):
                 params = json.loads(params)
-            for p in params:
-                self.params.append(WorkflowParam(value = p))
+            self.params = [WorkflowParam(value = p) for p in params] if params else []
         
-        if returns:
+        if 'returns' in kwargs:
+            returns = kwargs['returns']
             if isinstance(returns, str):
                 returns = json.loads(returns)
-            for p in returns:
-                self.returns.append(WorkflowReturn(value = p))
+            self.returns = [WorkflowReturn(value = r) for r in returns] if returns else []
+        
+        return self
 
+    def isEqual(self, **kwargs):
+        if 'script' in kwargs:
+            if self.script != kwargs['script']:
+                return False
+        
+        if 'params' in kwargs:
+            params = kwargs['params']
+            if isinstance(params, str):
+                params = json.loads(params)
+            if params and not self.params:
+                return False
+            if not params and self.params and self.params.count():
+                return False
+            if params.length != self.params.count():
+                return False
+            for i in range(0, params.length):
+                if params[i] != self.params[0].value:
+                    return False
+        
+        if 'returns' in kwargs:
+            returns = kwargs['returns']
+            if isinstance(returns, str):
+                returns = json.loads(returns)
+            if returns and not self.returns:
+                return False
+            if not returns and self.returns and self.returns.count():
+                return False
+            if returns.length != self.returns.count():
+                return False
+            for i in range(0, returns.length):
+                if returns[i] != self.returns[0].value:
+                    return False
+                
+        return True
+            
+        
     @staticmethod
     def add(user_id, value, access, users):
         try:
@@ -752,7 +813,7 @@ class Workflow(db.Model):
     #                 for usr in user:
     #                     print(usr)
     #                     user_id, rights = usr.split(":")
-                    matchuser = User.query.filter(User.id == user_id).first()
+                    matchuser = User.query.get(user_id)
                     if matchuser:
                         service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
 
@@ -888,7 +949,7 @@ class Workflow(db.Model):
         json_post = {
             'id': self.id,
             'user': self.user.username,
-            'name': self.name
+            'name': self.name,
         }
         return json_post
     
@@ -1130,17 +1191,14 @@ class Service(db.Model):
 
     @staticmethod
     def get_params_returns_json(service):
-        result = { 'params': '', 'returns': '' }
+        result = { 'params': [], 'returns': [] }
         if service:
             if service.params:
-                params = [param.value for param in service.params]
-                if params:
-                    result['params'] = params
+                result['params'] = [param.value for param in service.params]
             
             if service.returns:
-                returns = [param.value for param in service.returns]
-                if returns:
-                    result['returns'] = returns
+                result['returns'] = [param.value for param in service.returns]
+                
         return result
 
     @staticmethod

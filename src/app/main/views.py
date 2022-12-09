@@ -833,8 +833,13 @@ class Samples():
         #return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
 
     @staticmethod
-    def create_workflow(user, name, desc, script, params, returns, publicaccess, users, temp, derived = 0):
+    def create_workflow(user, id, name, desc, script, params, returns, publicaccess, users, temp, derived = 0):
         access = 9
+        if id:
+            workflow = workflowmanager.first(id = id)
+            if workflow:
+                return workflow.update(user_id=user, name=name, desc=desc, script=script, params=params, returns=returns, access=access, users=users, temp=temp, derived=derived)
+            
         if script and name:
             if publicaccess == 'true':
                 access = 0
@@ -844,13 +849,16 @@ class Samples():
                     access = 1
                 else:
                     access = 2
-                    users = False   
+                    users = False
             return workflowmanager.create(user_id=user, name=name, desc=desc if desc else '', script=script, params=params, returns=returns, access=access, users=users, temp=temp, derived=derived)
 
     @staticmethod
-    def add_workflow(user, name, desc, script, params, returns, access, users, temp):
-        workflow = Samples.create_workflow(user, name, desc, script, params, returns, access, users, temp, 0)
-        return json.dumps(workflow.to_json_info())
+    def add_workflow(user, id, name, desc, script, params, returns, access, users, temp):
+        workflow = Samples.create_workflow(user, id, name, desc, script, params, returns, access, users, temp, 0)
+        info = workflow.to_json()
+        info["is_owner"] = info["user"] == current_user.username
+        info["access"] = access
+        return json.dumps(info)
 
 '''
 Used for saving workflow into the filesystem instead of in the database
@@ -936,7 +944,7 @@ def workflow_rev_compare(request):
 def samples():
     try:
         if request.form.get('sample'):
-            return Samples.add_workflow(current_user.id, request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('params'), request.form.get('returns'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
+            return Samples.add_workflow(current_user.id, request.form.get('id'), request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('params'), request.form.get('returns'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
         elif request.args.get('sample_id'):
             workflow = workflowmanager.get_or_404(request.args.get('sample_id'))
             return json.dumps(workflow.to_json())

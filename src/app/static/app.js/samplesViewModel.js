@@ -15,12 +15,12 @@ function SamplesViewModel(sampleViewModel) {
     self.wfVersionList = ko.observableArray();
     self.selectedWfVersionId1 = ko.observableArray();
     self.selectedWfVersionId2 = ko.observableArray();
-     self.filteredWorkflows = ko.computed(function(){
-        return this.items().filter(function(item){
-            if(!self.workflowFilter() || item.name().toLowerCase().indexOf(self.workflowFilter().toLowerCase()) !== -1)
-              return item;
+    self.filteredWorkflows = ko.computed(function(){
+    return this.items().filter(function(item){
+        if(!self.workflowFilter() || item.name().toLowerCase().indexOf(self.workflowFilter().toLowerCase()) !== -1)
+            return item;
         });
-       },this);
+    },this);
      
    self.about = function() {
        
@@ -42,20 +42,50 @@ function SamplesViewModel(sampleViewModel) {
         self.saveCurrentLoadintoEditor(null);
     }
     
-    self.beginAdd = function() {
-        var script = editor.getSession().getValue();
-        if (script.length > 0) {
-            self.sampleViewModel.getCodeEditor().setValue(script, 1);
-         }
-        var scriptname = $('#script-name').text();
-        if (scriptname.length <= 0) {
-            scriptname = "No Name";
+    self.beginAdd = function(saveas) {
+        var script = editor.getSession().getValue().trim();
+        if (script.length == 0 && workflowId == 0) { // script empty and not saved yet
+            return false;
         }
-        self.sampleViewModel.wfParams([]);
-        self.sampleViewModel.wfReturns([]);
-        self.sampleViewModel.name(scriptname);
-        sampleViewModel.getUsers();
-        $('#addSample').modal('show');
+
+        if (saveas === undefined)
+            saveas = false;
+        saveas = saveas.saveas || workflowId <= 0;
+        
+        self.sampleViewModel.getCodeEditor().setValue(script, 1);
+
+        if (workflowId == 0) {
+            self.sampleViewModel.wfParams([]);
+            self.sampleViewModel.wfReturns([]);
+            if (!self.sampleViewModel.name())
+                self.sampleViewModel.name("No Name");
+            if (!self.sampleViewModel.desc())
+                self.sampleViewModel.desc("No description");
+            self.sampleViewModel.getUsers();
+            self.sampleViewModel.workflowId(0);
+        }
+        else {
+
+            ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': workflowId}).done(function(data) {
+            
+                if ($.isEmptyObject(data))
+                    return;
+                
+                self.sampleViewModel.copyFromJson(data);
+                if (saveas) {
+                    self.sampleViewModel.workflowId(0);
+                }
+            });
+        }
+        self.sampleViewModel.getUsers();
+
+        $('#addSample').modal('show')
+            .on('show.bs.modal', function () {
+                // $("#addSampleButton").data("saveas", saveas);
+            })
+            .on('hidden.bs.modal', function () {
+
+            });
     }
     
     self.firstSelectedItem = function() {
@@ -109,25 +139,21 @@ function SamplesViewModel(sampleViewModel) {
     self.loadIntoEditor = function(item) {
         
         if (!item) {
-            workflowId = 0;
-            $('#script-name').text('New script');
-            editor.session.setValue("");
-            $('#args').val('');
-            //$('#returns').val('');
+            self.sampleViewModel.clear();
+            editor.session.setValue("", 1);
             return;
         }
         
          ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item.id}).done(function(data) {
             
-               if ($.isEmptyObject(data))
-                   return;
+            if ($.isEmptyObject(data))
+                return;
             
+            self.sampleViewModel.copyFromJson(data);
             editor.session.setValue(data['script']);
             editor.focus();
 
-            workflowId = item.id();
-            $('#script-name').text(item.name());
-            $('#args').val('');
+            workflowId = self.sampleViewModel.workflowId();
             
         }).fail(function(jqXHR) {
             showXHRText(jqXHR);
@@ -144,8 +170,6 @@ function SamplesViewModel(sampleViewModel) {
             editor.focus();
 
             workflowId = item.id();
-            $('#script-name').text(item.name());
-            $('#args').val('');
         }).fail(function(jqXHR) {
             showXHRText(jqXHR);
         });
@@ -153,7 +177,7 @@ function SamplesViewModel(sampleViewModel) {
     
     self.saveCurrentLoadintoEditor = function(item) {
         if (self.saveNeeded()) {
-              centerDialog($('#save-needed'));
+            centerDialog($('#save-needed'));
             $('#save-needed').modal('show')
                 .on('click', '#save-needed-yes', function(e) {
                     var updateDlg = tasksViewModel.updateWorkflow(true);

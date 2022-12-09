@@ -36,6 +36,17 @@ basedir = os.path.dirname(os.path.abspath(__file__))
 def update_workflow(user_id, workflow_id, script, params, returns):
     if workflow_id:
         workflow = workflowmanager.first(id=workflow_id)
+        kwargs = {}
+        if script is not None:
+            kwargs['script'] = script
+        if params is not None:
+            kwargs['params'] = params
+        if returns is not None:
+            kwargs['returns'] = returns
+
+        if workflow.isEqual(**kwargs):
+            return workflow
+        
         writeaccess = workflow.temp
         
         if not writeaccess:
@@ -53,9 +64,9 @@ def update_workflow(user_id, workflow_id, script, params, returns):
         if writeaccess:
             workflow.update_script(script)
         else:
-            workflow = Samples.create_workflow(user_id, workflow.name, workflow.desc, script, params, returns, AccessType.PRIVATE, '', True, workflow.id)
+            workflow = Samples.create_workflow(user_id, 0, workflow.name, workflow.desc, script, params, returns, AccessType.PRIVATE, '', True, workflow.id)
     else:
-        workflow = Samples.create_workflow(user_id, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
+        workflow = Samples.create_workflow(user_id, 0, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
     return workflow
 
 def run_biowl_internal(workflow_id, user_id, script, args, provenance = False):
@@ -349,7 +360,7 @@ def functions():
     
         if request.method == "POST":
             if request.form.get('workflowId'):
-                workflowId = request.form.get('workflowId') if int(request.form.get('workflowId')) else 0
+                workflowId = int(request.form.get('workflowId')) if int(request.form.get('workflowId')) else 0
                 if request.form.get('script'):
                     workflow = update_workflow(current_user.id, workflowId, request.form.get('script'), request.form.get('args'), request.form.get('returns'))
                     return jsonify(workflowId = workflow.id)
@@ -363,7 +374,7 @@ def functions():
                 args = request.form.get('args') if request.form.get('args') else ''
                 immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
                 provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
-                runnable = run_biowl(int(workflowId), None, args, immediate, provenance)
+                runnable = run_biowl(workflowId, None, args, immediate, provenance)
                 return jsonify(runnableId = runnable.id)
 
             elif request.form.get('mapper'):

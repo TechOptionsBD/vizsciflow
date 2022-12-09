@@ -2,6 +2,7 @@ function SampleViewModel() {
     var self = this;
     self.samplesURI = '/samples';
     self.tasksURI = '/functions';
+    self.workflowId = ko.observable(0);
     self.name = ko.observable("No Name");
     self.desc = ko.observable("No Description");
     self.access = ko.observable();
@@ -10,13 +11,49 @@ function SampleViewModel() {
     self.wfParams = ko.observableArray();
     self.wfReturns = ko.observableArray();
     self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
+    self.wfArgs = ko.observableArray();
+   
+    self.clear = function(){
+        self.workflowId(0);
+        self.name("No Name");
+        self.desc("No description");
+        self.wfParams.removeAll();
+        self.wfReturns.removeAll();
+        self.wfArgs.removeAll();
+        self.getCodeEditor().session.setValue("", 1);
+    }
 
-    self.addSample = function(task) {
+    self.copyFromJson = function(data) {
+        self.workflowId(parseInt(data["id"]));
+        self.name(data['name']);
+        self.desc(data['desc']);
+        self.wfParams(data['params']);
+        self.wfReturns(data['returns']);
+        self.copyArgsFromParams(self.wfParams());
+    }
+    
+    self.copyArgsFromParams = function(params){
+        self.wfArgs.removeAll();
+        ko.utils.arrayForEach(params, function(param) {
+            self.wfArgs.push(
+                ko.observableDictionary({
+                    name: param['name'],
+                    type: param['type'],
+                    desc: param['desc'],
+                    value: param['default'] === undefined ? "" : param['default']
+                })
+            );
+        });
+    }
+
+    self.add = function() {
         $('#addSample').modal('hide');
         
         var formdata = new FormData();
         formdata.append('sample', self.sampleEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
         
+        formdata.append('id', self.workflowId() === undefined ? 0 : self.workflowId());
+
         if (self.name() === undefined)
             return;
         formdata.append('name', self.name());
@@ -42,12 +79,24 @@ function SampleViewModel() {
         ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
             if (!$.isEmptyObject(data)) {
                 data = JSON.parse(data);
-                 workflowId = data.id;
-                 $('#script-name').text(data.name);
-                 editor.session.getUndoManager().markClean();
-             }
-            
-            samplesViewModel.load();
+
+                if (samplesViewModel.access() == data.access || samplesViewModel.access() == 3){
+                    samplesViewModel.items.push({
+                        id: ko.observable(data.id),
+                        user:ko.observable(data.user),
+                        name: ko.observable(data.name),
+                        selected: ko.observable(false),
+                        access: ko.observable(data.access),
+                        isOwner: ko.observable(data.is_owner)
+                    });
+                }
+
+                self.copyFromJson(data);
+
+                // update view
+                workflowId = data.id;
+                editor.session.getUndoManager().markClean();
+            }
         });
     }
 
@@ -56,7 +105,8 @@ function SampleViewModel() {
             ko.observableDictionary({
                 name: '',
                 type: '',
-                desc: ''
+                desc: '',
+                default:''
             })
         );
     };
@@ -88,7 +138,8 @@ function SampleViewModel() {
             
             data = Array.isArray(data) ? data : JSON.parse(data);
             data.forEach(element => {
-                self.userList.push({id: parseInt(element[0]), name:  element[1]});
+                e = JSON.parse(element);
+                self.userList.push({id: parseInt(e[0]), name:  e[1]});
             });
 
             self.initiateMultiselectUser();
@@ -109,11 +160,6 @@ function SampleViewModel() {
     };
 
     self.access.subscribe(function(newVal){
-        
-        if (newVal) {
-            $("#wfUserSelection").multiselect('disable');
-        } else {
-            $("#wfUserSelection").multiselect('enable');
-        }
+        $("#wfUserSelection").multiselect(newVal ? 'disable' : 'enable');
     });
 }

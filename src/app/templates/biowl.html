@@ -310,10 +310,9 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6 box-two" id="main">
-				<div class="panel panel-primary" id="codeeditor" style="margin: 2px">
-				
-					<div class="panel-heading text-center">
+		<div class="col-md-6 box-two">
+			<div class="panel panel-primary" id="codeeditor" style="margin: 2px">
+				<div class="panel-heading text-center">
 					<h4 style="margin-bottom:10px">VizSciFlow Workflow & Provenance Editor</h4>
 
 					<div class="btn-group" style="left: 1.5vw; position: absolute;">
@@ -332,35 +331,35 @@
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="New Workflow" id="newwf" onclick="samplesViewModel.newwf()">
 								<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 							</button>
-							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" data-bind="click: updateWorkflow.bind(true)">
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save Workflow" id="savewf" onclick="samplesViewModel.beginAdd({saveas: false})">
 								<i class="glyphicon glyphicon-floppy-disk toolbar-icon"></i>
 							</button>
-							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save As Workflow..." id="saveaswf" onclick="samplesViewModel.beginAdd()">
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save As Workflow..." id="saveaswf" onclick="samplesViewModel.beginAdd({saveas: true})">
 								<i class="glyphicon glyphicon-floppy-save toolbar-icon"></i>
 							</button>
 							
 							<div class="btn-group" role="group">
-							    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							      <span class="glyphicon glyphicon-text-size toolbar-icon" aria-hidden="true"></span>
-					                <span class="caret"></span>
-					                <span class="sr-only">Text size</span>
-							    </button>
-							    <ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupDrop1" id="panel-fontsize">
-							      <li><a class="dropdown-item" href="#">10</a></li>
-							      <li><a class="dropdown-item" href="#">11</a></li>
-							      <li><a class="dropdown-item" href="#">12</a></li>
-							      <li><a class="dropdown-item" href="#">14</a></li>
-							      <li><a class="dropdown-item" href="#">16</a></li>
-							      <li><a class="dropdown-item" href="#">18</a></li>
-							      <li><a class="dropdown-item" href="#">20</a></li>
-							      <li><a class="dropdown-item" href="#">24</a></li>							      
-							    </ul>
+								<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<span class="glyphicon glyphicon-text-size toolbar-icon" aria-hidden="true"></span>
+									<span class="caret"></span>
+									<span class="sr-only">Text size</span>
+								</button>
+								<ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupDrop1" id="panel-fontsize">
+									<li><a class="dropdown-item" href="#">10</a></li>
+									<li><a class="dropdown-item" href="#">11</a></li>
+									<li><a class="dropdown-item" href="#">12</a></li>
+									<li><a class="dropdown-item" href="#">14</a></li>
+									<li><a class="dropdown-item" href="#">16</a></li>
+									<li><a class="dropdown-item" href="#">18</a></li>
+									<li><a class="dropdown-item" href="#">20</a></li>
+									<li><a class="dropdown-item" href="#">24</a></li>							      
+								</ul>
 							</div>
 							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="About VizSciFlow Syntax" id="panel-about">
 								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
 							
-  							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="panel-fullscreen">
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Toggle fullscreen" id="panel-fullscreen">
 								<i class="glyphicon glyphicon-resize-full toolbar-icon"></i>
 							</button>
 
@@ -393,108 +392,134 @@
 								</div>
 							</div> -->
 						</div>
-						<h5 id='script-name'></h5>
+						<h5 id='script-name' data-bind="text: sampleViewModel.name"></h5>
 					</div>
-					
 				</div>
-					<div class="panel-body">
-						<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
-							<ul class="nav nav-tabs marginBottom">
-								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
-								<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance Viewer<button class="close closeTab" title="Close" type="button">×</button></a></li>
-								<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
-								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
-								<!-- <button class="close closeTab" type="button">×</button> -->
-								<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History <button class="close closeTab" title="Close" type="button">×</button></a></li>
-								<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser <button class="close closeTab" title="Close" type="button">×</button></a></li>
-								<!-- <li id="liOutputVizTab"><a href="#outputVizTab" data-toggle="tab">Visual Output<button class="close closeTab" title="Close" type="button">×</button></a></li> -->
-								<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button class="close closeTab" title="Close" type="button">×</button></a></li>
-								<li id="liOutput"><a href="#outputtab" data-toggle="tab">Output <button class="close closeTab" title="Close" type="button">×</button></a></li>
-							</ul>
-						<div class="tab-content">
-							<div class="tab-pane fade in active scriptstyle" id="scripttab">
-								<div id="editor" class="editorstyle"></div>
+				<div class="panel-body">
+					<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
+						<ul class="nav nav-tabs marginBottom">
+							<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
+							<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance Viewer<button class="close closeTab" title="Close" type="button">×</button></a></li>
+							<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
+							<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
+							<!-- <button class="close closeTab" type="button">×</button> -->
+							<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History <button class="close closeTab" title="Close" type="button">×</button></a></li>
+							<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser <button class="close closeTab" title="Close" type="button">×</button></a></li>
+							<!-- <li id="liOutputVizTab"><a href="#outputVizTab" data-toggle="tab">Visual Output<button class="close closeTab" title="Close" type="button">×</button></a></li> -->
+							<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button class="close closeTab" title="Close" type="button">×</button></a></li>
+							<li id="liOutput"><a href="#outputtab" data-toggle="tab">Output <button class="close closeTab" title="Close" type="button">×</button></a></li>
+						</ul>
+					<div class="tab-content">
+						<div class="tab-pane fade in active scriptstyle" id="scripttab">
+							<div id="editor" class="editorstyle"></div>
+						</div>
+
+						<div class="tab-pane fade ui-droppable" id="provenancetab" style="position: relative;">	
+							<div class="prov-panel-heading">
+								<select name="provTabView" class="provTabCombo"></select>
 							</div>
 
-							<div class="tab-pane fade ui-droppable" id="provenancetab" style="position: relative;">	
-								<div class="prov-panel-heading">
-									<select name="provTabView" class="provTabCombo"></select>
+							<div id="provViewerBody" style="width: 100%; height: 100%; z-index: 0;">
+								<div id="provenance" style="width: 100%; height: 100%; z-index: 0;"></div>
+								<div id="provDiagramOverview"></div>
+
+								<div id="tblCompareDiv"></div>
+
+								<div id="textCompareMainDiv"></div>
+
+								<div id="pluginViewDiv">
+									<iframe id="pluginHtmlView" class="center" src="" frameborder="0" data-bind="attr: {src: pluginHtmlSrc}" style="display: block" width="100%" height="100%"></iframe>
 								</div>
-
-								<div id="provViewerBody" style="width: 100%; height: 100%; z-index: 0;">
-									<div id="provenance" style="width: 100%; height: 100%; z-index: 0;"></div>
-									<div id="provDiagramOverview"></div>
-
-									<div id="tblCompareDiv"></div>
-
-									<div id="textCompareMainDiv"></div>
-
-									<div id="pluginViewDiv">
-										<iframe id="pluginHtmlView" class="center" src="" frameborder="0" data-bind="attr: {src: pluginHtmlSrc}" style="display: block" width="100%" height="100%"></iframe>
-									</div>
-									<div id="proveLineCharts">
-										<canvas id="canvasLineChart" class="chart"></canvas>
-									</div>
-									<div id="proveBarCharts">
-										<canvas id="canvasBarChart" class="chart"></canvas>
-									</div>
-									<div id="provePieCharts">
-										<canvas id="canvasPieChart" class="chart"></canvas>
-									</div>
-									<div id="proveHeatMap" style="height: 90% !important; width:100% !important;">
-										<!-- <canvas id="canvasHeatMap" class="chart"></canvas> -->
-									</div>
+								<div id="proveLineCharts">
+									<canvas id="canvasLineChart" class="chart"></canvas>
 								</div>
-							</div>
-
-							<!-- visualtab -->
-							<div class="tab-pane fade ui-droppable" id="visualtab" style="position: relative;">								
-								<div style="width: 100%; height: 100%; z-index: 0;" id="visual"></div>
-								<div id="visualDiagramOverview"></div>
-							</div>
-
-
-							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="metatab">
-							</div>
-							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="filterhistorytab">
-								
-							</div>
-							<div class="tab-pane fade in scriptstyle" id="browsertab">
-								<div class="browser-panel-heading">
-									<label class="radio-inline"> <input type="radio" name="browserTabView" value="0" checked="checked"
-											autocomplete="off">&nbsp; Icons</label>
-									<label class="radio-inline"> <input type="radio" name="browserTabView" value="1"
-											autocomplete="off">&nbsp; Preview</label>
+								<div id="proveBarCharts">
+									<canvas id="canvasBarChart" class="chart"></canvas>
+								</div>
+								<div id="provePieCharts">
+									<canvas id="canvasPieChart" class="chart"></canvas>
+								</div>
+								<div id="proveHeatMap" style="height: 90% !important; width:100% !important;">
+									<!-- <canvas id="canvasHeatMap" class="chart"></canvas> -->
 								</div>
 							</div>
-							<!-- <div class="tab-pane fade in scriptstyle" id="outputVizTab" style="overflow-y: scroll;">
+						</div>
 
-							</div> -->
-							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="datasettab">
+						<!-- visualtab -->
+						<div class="tab-pane fade ui-droppable" id="visualtab" style="position: relative;">								
+							<div style="width: 100%; height: 100%; z-index: 0;" id="visual"></div>
+							<div id="visualDiagramOverview"></div>
+						</div>
 
-							</div>
+
+						<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="metatab">
+						</div>
+						<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="filterhistorytab">
 							
-							<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="outputtab">
-								<iframe id="outputItemDetails" class="center" src="" frameborder="0" data-bind="attr:{src: itemSrc}" style="display: block" width="100%" height="100%"></iframe>
+						</div>
+						<div class="tab-pane fade in scriptstyle" id="browsertab">
+							<div class="browser-panel-heading">
+								<label class="radio-inline"> <input type="radio" name="browserTabView" value="0" checked="checked"
+										autocomplete="off">&nbsp; Icons</label>
+								<label class="radio-inline"> <input type="radio" name="browserTabView" value="1"
+										autocomplete="off">&nbsp; Preview</label>
 							</div>
 						</div>
+						<!-- <div class="tab-pane fade in scriptstyle" id="outputVizTab" style="overflow-y: scroll;">
+
+						</div> -->
+						<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="datasettab">
+
 						</div>
-						<div class="row">
-							<div class="span-sm-2 span-xxxl-2 span-4xl-1">
-								<span class="text-secondary ">Arguments:</span>
-							</div>
-							<div class="span-sm-18 span-xxxl-18 span-4xl-19">
-								<textarea rows="1" class="args-area" id="args"></textarea>
-							</div>
+						
+						<div class="tab-pane fade in scriptstyle" style="overflow-y: scroll" id="outputtab">
+							<iframe id="outputItemDetails" class="center" src="" frameborder="0" data-bind="attr:{src: tasksViewModel.itemSrc}" style="display: block" width="100%" height="100%"></iframe>
 						</div>
 					</div>
+					</div>
 				</div>
-				<div class="panel-body" style="padding: 0; margin: 1vh 0 1vh 0;">
-					<button id="runBioWL" class="btn pull-left btn-primary btn-lg"
-						style="margin-right: 5px;" data-bind="enable: shouldRunActivate, click: runBioWL">Run</button>
+			</div>
+			<div id="argumentsPanel" class="panel panel-primary">
+				<div class="panel-heading">
+				</div>
+				<div class="panel-body" style="padding: 1vh; margin: 1vh 0 1vh 0;">
+					<div>
+						<h5>Parameters:</h5>
+						<form role="form" data-bind="foreach: wfArgs" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
+							<div data-bind="foreach: $data.items">
+								<div class="row service-form-group">
+									<label class="span-sm-6" data-bind="text: key"></label>
+									<div class="span-sm-14">
+										<input type="text" class="form-control" id="package" data-bind="value: value" />
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					<hr>
+					<div>
+						<h5>Returns:</h5>
+						<form role="form" data-bind="foreach: wfReturns" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
+							<div data-bind="foreach: $data.items">
+								<div class="row service-form-group">
+									<label class="span-sm-6" data-bind="text: key"></label>
+									<!-- <label class="span-sm-14" data-bind="text: value"></label> -->
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div id="commandsPanel" class="panel panel-primary">
+				<div class="panel-heading">
 					
+				</div>
+				<div class="panel-body" style="padding: 1vh; margin: 1vh 0 1vh 0;">
+					<button id="runBioWL" class="btn pull-left btn-primary btn-lg"
+					style="margin-right: 5px;" data-bind="enable: shouldRunActivate, click: runBioWL">Run</button>
+
 					<button id="runGraph" class="btn pull-left btn-primary btn-lg"
-						style="margin-right: 5px; padding: 10px 4px;" data-bind="visible: handleModeViewModel.shouldGraphBtnShow(), enable: shouldRunActivate, event: {click: runGraph}">Graph</button>
+						style="margin-right: 5px; padding: 10px 4px;" data-bind="enable: shouldRunActivate, event: {click: runGraph}">Graph</button>
 					
 					<div style="margin-top: 8px">
 						<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
@@ -508,78 +533,77 @@
 							id="refresh"></span>
 					</div>
 				</div>
-				<div id="argumentsPanel" class="panel panel-primary">
-				</div>
-				<div id="outputPanel" class="panel panel-primary">
-					<div class="panel-heading">
-						<button class="close closeComponent" title="Close" type="button">×</button>
-						<div class="row">
-							<div class="col-sm-8">
-								<h4 class="pull-left">Results</h4>
-								<button class="btn btn-info pull-right" data-toggle="tooltip" data-placement="top" title="Clear"	data-bind="click: clearResults">
-									<span class="glyphicon glyphicon-remove-sign toolbar-icon">Clear</span>
-								</button>
-							</div>
+			</div>
+			<div id="outputPanel" class="panel panel-primary">
+				<div class="panel-heading">
+					<button class="close closeComponent" title="Close" type="button">×</button>
+					<div class="row">
+						<div class="col-sm-8">
+							<h4 class="pull-left">Results</h4>
+							<button class="btn btn-info pull-right" data-toggle="tooltip" data-placement="top" title="Clear"	data-bind="click: clearResults">
+								<span class="glyphicon glyphicon-remove-sign toolbar-icon">Clear</span>
+							</button>
 						</div>
-					 </div>
-					
-					<div id="exTab2" class="extab2">
-						<ul class="nav nav-tabs">
-							<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
-							<li><a href="#2" data-toggle="tab">Error</a></li>
-							<li><a href="#3" data-toggle="tab">Output</a></li>
-						</ul>
-						<span class="badge badge-pill badge-primary" style="float: left" id="reportid"></span>
-						<span class="badge badge-pill badge-primary" id="execstatus"></span>
-						<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
-						<div class="tab-content extab2-tab-content">
-							<div class="tab-pane fade in active" id="1">
-								<textarea rows="10" class="log-tab" id="output"></textarea>
-								<!-- <br> -->
+					</div>
+					</div>
+				
+				<div id="exTab2" class="extab2">
+					<ul class="nav nav-tabs">
+						<li class="active"><a href="#1" data-toggle="tab">Log</a></li>
+						<li><a href="#2" data-toggle="tab">Error</a></li>
+						<li><a href="#3" data-toggle="tab">Output</a></li>
+					</ul>
+					<span class="badge badge-pill badge-primary" style="float: left" id="reportid"></span>
+					<span class="badge badge-pill badge-primary" id="execstatus"></span>
+					<!-- 				<span class="badge badge-pill badge-danger" style="float: right" id="execerr"></span> -->
+					<div class="tab-content extab2-tab-content">
+						<div class="tab-pane fade in active" id="1">
+							<textarea rows="10" class="log-tab" id="output"></textarea>
+							<!-- <br> -->
+						</div>
+						<div class="tab-pane fade" id="2">
+							<textarea rows="10" class="log-tab" id="error"></textarea>
+							<!-- <br> -->
+						</div>
+						<div class="tab-pane fade" id="3">
+							<div class="browser-panel-heading">
+								<select name="logTabView" class="logTabCombo">
+									<option value="0" checked="checked" autocomplete="off">&nbsp; List</option>
+									<option value="1" autocomplete="off">&nbsp; Preview</option>
+								</select>
 							</div>
-							<div class="tab-pane fade" id="2">
-								<textarea rows="10" class="log-tab" id="error"></textarea>
-								<!-- <br> -->
+							<div id="logListView" data-bind="visible: isListLog">
+								<span id="executable-status"></span>
+								<div>
+									<table class="table table-striped" id="log" style="table-layout: fixed;">
+										<thead>
+											<tr>
+												<th class="report-header" scope="col" width="15%">Task</th>
+												<th class="report-header" scope="col" width="60%" style="text-align:center;">Output</th>
+												<th class="report-header" scope="col" width="15%" style="text-align:center;">Status</th>
+												<th class="report-header" scope="col" width="10%" style="text-align:center;">Time</th>
+												<th class="report-header" scope="col" width="10%" style="text-align:center;">Logs</th>
+											</tr>
+										</thead>
+										<tbody>
+										</tbody>
+									</table>
+								</div>
 							</div>
-							<div class="tab-pane fade" id="3">
-								<div class="browser-panel-heading">
-									<select name="logTabView" class="logTabCombo">
-										<option value="0" checked="checked" autocomplete="off">&nbsp; List</option>
-										<option value="1" autocomplete="off">&nbsp; Preview</option>
-									</select>
-								</div>
-								<div id="logListView" data-bind="visible: isListLog">
-									<span id="executable-status"></span>
-									<div>
-										<table class="table table-striped" id="log" style="table-layout: fixed;">
-											<thead>
-												<tr>
-													<th class="report-header" scope="col" width="15%">Task</th>
-													<th class="report-header" scope="col" width="60%" style="text-align:center;">Output</th>
-													<th class="report-header" scope="col" width="15%" style="text-align:center;">Status</th>
-													<th class="report-header" scope="col" width="10%" style="text-align:center;">Time</th>
-													<th class="report-header" scope="col" width="10%" style="text-align:center;">Logs</th>
-												</tr>
-											</thead>
-											<tbody>
-											</tbody>
-										</table>
-									</div>
-								</div>
-								<div id="logSliderView" class="container-fluid" aria-hidden="true" data-bind="visible: !isListLog()">
-									<div id="logTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="foreach: {data: logData , afterRender: sliderController.bind($data)}">
-										<div style="display: block;" data-bind="event: {click : $parent.openInDetailsView.bind($data)}, attr: {title: name}">
-											<figure style="display: inline-block">
-												<img  width="auto" style="width: auto; height: 50px;" data-bind="attr: {src: imgUrl, alt: name}">
-												<figcaption class="figcaption-clipped" data-bind="text: name"></figcaption>
-											</figure>
-										</div>
+							<div id="logSliderView" class="container-fluid" aria-hidden="true" data-bind="visible: !isListLog()">
+								<div id="logTabCarousel" class="owl-carousel col-sm-12" style=" bottom: 0%; position: relative;" data-bind="foreach: {data: logData , afterRender: sliderController.bind($data)}">
+									<div style="display: block;" data-bind="event: {click : $parent.openInDetailsView.bind($data)}, attr: {title: name}">
+										<figure style="display: inline-block">
+											<img  width="auto" style="width: auto; height: 50px;" data-bind="attr: {src: imgUrl, alt: name}">
+											<figcaption class="figcaption-clipped" data-bind="text: name"></figcaption>
+										</figure>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
+			</div>
 		</div>
 
 		<div class="col-md-3 box-three" style="padding: 2px;">
@@ -1122,7 +1146,7 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button data-bind="click: addSample" class="btn btn-primary">Add</button>
+				<button data-bind="click: add" class="btn btn-primary">Add</button>
 				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 			</div>
 		</div>
@@ -3120,7 +3144,7 @@ function typeInTextarea(el, newText) {
         }
 		var handleModeViewModel = new HandleModeViewModel();
 		// ko.applyBindings(handleModeViewModel, $("#main")[0]);
-      
+		
 		// Browser ViewModel binding
 		var browserViewModel = new BrowserViewModel();
 		var browserItemModalViewModel = new BrowserItemModalViewModel();
@@ -3182,7 +3206,7 @@ function typeInTextarea(el, newText) {
 
 		var taskSharingViewModel = new TaskSharingViewModel();
 		taskSharingViewModel.getUsers();
-        var tasksViewModel = new TasksViewModel();
+        var tasksViewModel = new TasksViewModel(sampleViewModel);
 		tasksViewModel.load();
         
         var samplesViewModel = new SamplesViewModel(sampleViewModel);
@@ -3197,13 +3221,16 @@ function typeInTextarea(el, newText) {
         var metadataViewModel = new MetaDataViewModel();
         
 		ko.applyBindings(datasetAddViewModel, $("#dataSets-addNew-dialog")[0]);
-        ko.applyBindings(tasksViewModel, $('#main')[0]);
+        ko.applyBindings(tasksViewModel, $('#codeeditor')[0]);
+        ko.applyBindings(tasksViewModel, $('#outputPanel')[0]);
+        ko.applyBindings(tasksViewModel, $('#commandsPanel')[0]);
         ko.applyBindings(tasksViewModel, $('#functions')[0]);
 		ko.applyBindings(provpluginsViewModel, $('#provplugins')[0]);
         ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
 		ko.applyBindings(addProvPluginViewModel, $('#addProv')[0]);
         ko.applyBindings(sampleViewModel, $('#addSample')[0]);
+		ko.applyBindings(sampleViewModel, $('#argumentsPanel')[0]);
         ko.applyBindings(editTaskViewModel, $('#edit')[0]);
         ko.applyBindings(metadataViewModel, $('#metadataView')[0]);
 		ko.applyBindings(metadataViewModel, $('#update-metadata-dialog')[0]);

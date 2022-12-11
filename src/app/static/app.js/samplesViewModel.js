@@ -55,8 +55,8 @@ function SamplesViewModel(sampleViewModel) {
         self.sampleViewModel.getCodeEditor().setValue(script, 1);
 
         if (workflowId == 0) {
-            self.sampleViewModel.wfParams([]);
-            self.sampleViewModel.wfReturns([]);
+            self.sampleViewModel.wfParams.removeAll();
+            self.sampleViewModel.wfReturns.removeAll();
             if (!self.sampleViewModel.name())
                 self.sampleViewModel.name("No Name");
             if (!self.sampleViewModel.desc())

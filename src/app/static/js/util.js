@@ -67,19 +67,21 @@ jsonArray2Table = function(table, jsonArr) {
 		var button = $('<input type="button" value="Log..." />');
 		button.attr('id', value['id']);
 		button.click(function() {
-			$('#tasklogs').text("");			
-    		taskId = parseInt(this.getAttribute('id'));
-			ajaxcalls.simple('/runnables', 'GET', { 'tasklogs': taskId }).done(function (data) {
-				data.logs.forEach(element => {
-					logs = $('#tasklogs').text() + element.log + '\r\n';
-					$('#tasklogs').text(logs);
-				});
-				if ($('#tasklogs').text())
-					$('#showTaskLogs').modal('show');
-	
-			}).fail(function (jqXHR) {
-				showXHRText(jqXHR);
-			});
+			taskId = parseInt(this.getAttribute('id'));
+			var oReq = new XMLHttpRequest();
+			oReq.open('GET', '/runnables' + "?" + 'tasklogs=' + taskId, true);
+			oReq.responseType = "arraybuffer";
+
+			oReq.send();
+			//self.itemName(data.data);
+			oReq.onload = function (oEvent) {
+				if (this.status == 200) {
+					var arrayBuffer = oReq.response;
+					var blob = new Blob([arrayBuffer], { type: "text/plain" });
+					itemSrc = URL.createObjectURL(blob);
+					tasksViewModel.setItemSrc(itemSrc);
+				}
+			}
 		});
 		button.appendTo(cell);
 

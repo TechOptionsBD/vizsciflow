@@ -1,4 +1,5 @@
 import logging
+import io
 import os
 import sys
 import json
@@ -21,7 +22,7 @@ regex.DEFAULT_VERSION = regex.VERSION1
 from . import main
 from .views import Samples
 from flask_login import login_required, current_user
-from flask import request, jsonify, current_app, send_from_directory, make_response
+from flask import request, jsonify, current_app, send_from_directory, make_response, send_file
 from werkzeug.utils import secure_filename
 
 from ..managers.usermgr import usermanager
@@ -577,6 +578,11 @@ def get_task_full_status(runnable_id):
 
 def get_task_logs(task_id):
     return runnablemanager.get_task_logs(task_id)
+
+def get_tasklogs_as_filecontent(task_id):
+    logs = get_task_logs(task_id)
+    mime = 'text/plain'
+    return send_file(io.BytesIO(json.dumps(logs).encode()), mimetype=mime, as_attachment=True, attachment_filename=str(task_id))
     
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
@@ -584,7 +590,11 @@ def runnables():
     from ..jobs import stop_script, sync_task_status_with_db, sync_task_status_with_db_for_user
     try:
         if 'tasklogs' in request.args:
-            return jsonify(logs = get_task_logs(int(request.args.get('tasklogs'))))
+            # json text with 'stderr'/'stdout'
+            # return jsonify(logs = get_task_logs(int(request.args.get('tasklogs'))))
+
+            # download as file data
+            return get_tasklogs_as_filecontent(int(request.args.get('tasklogs')))
         if request.args.get('tooltip'):
             return get_task_full_status(int(request.args.get('tooltip')))
         elif request.args.get('id'):

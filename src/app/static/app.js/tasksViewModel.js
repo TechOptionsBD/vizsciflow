@@ -78,6 +78,12 @@ function TasksViewModel(sampleViewModel) {
         Name: "Basic"
     });
 
+    self.setItemSrc = function(src) {
+        self.itemSrc(src);
+        // self.showModal(data, itemSrc);
+        $('.nav-tabs a[href="#outputtab"]').tab('show');
+    }
+
     self.selectCategory = function (category) {
         self.selectedCategory(category);
     }

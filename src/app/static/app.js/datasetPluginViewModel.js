@@ -1,8 +1,9 @@
-function DatasetPluginViewModel(scidatapath, datasetCtrlParam) {
+function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
   var self = this;
   self.scidatamgrURI = scidatapath;
   self.datasetList = ko.observableArray();
   self.datasetCtrl = datasetCtrlParam;
+  self.buildPath = buildPath;
   let datasetList;
 
   const initPlugin = function () {
@@ -105,19 +106,13 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam) {
   };
 
   const onDataItemDoubleClick = function (e, dataset) {
-    let path = dataset.path;
-    let pid = dataset?.dataset?.pid;
-    path = path.replace("Root node", "Data");
-    path = `${self.scidatamgrURI}/api/${pid}${path}`;
+    path = self.buildPath(self.scidatamgrURI, dataset?.dataset?.pid, dataset.path);
     self.copyToEditorDoubleClick(path);
   };
 
   const onDataItemDrag = function (e, dataset) {
-    let path = dataset.path;
-    let pid = dataset?.dataset?.pid;
-    path = pid && path.replace("Root node", "Data");
-    path = pid && `${self.scidatamgrURI}/api/${pid}${path}`;
-    pid && self.copyToEditorDrag(path);
+    path = self.buildPath(self.scidatamgrURI, dataset?.dataset?.pid, dataset.path);
+    self.copyToEditorDrag(path);
   };
 
   const onItemExpand = function (e, dataset) {

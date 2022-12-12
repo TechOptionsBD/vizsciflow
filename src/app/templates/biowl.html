@@ -3254,11 +3254,21 @@ function typeInTextarea(el, newText) {
        	filterViewModel.loadSavedFilters();
        	showFilterHistory();           
 	   
-		datasetViewModel = new DatasetPluginViewModel(scidatapath, "#datasetPlugin");
+
+		function buildSciDataPath(url, pid, path){
+			path = path.replace("Root node", "Data");
+    		return `${url}/api/${pid}${path}`;
+		}
+
+		function buildVizSciFlowPath(url, pid, path){
+			return path;
+		}
+
+		datasetViewModel = new DatasetPluginViewModel(scidatapath, "#datasetPlugin", buildSciDataPath);
 		ko.applyBindings(datasetViewModel, $('#datasetPluginPanel')[0]);
 		datasetViewModel.renderDataset()
 
-		datasetLateLoadViewModel = new DatasetPluginViewModel("", "#datasetLatePlugin");
+		datasetLateLoadViewModel = new DatasetPluginViewModel("", "#datasetLatePlugin", buildVizSciFlowPath);
 		ko.applyBindings(datasetLateLoadViewModel, $('#datasetLateLoadPanel')[0]);
 		datasetLateLoadViewModel.renderDataset()
 

@@ -573,7 +573,7 @@ class DataSource(db.Model):
         datasets = {"data": [], "pageNum": page}
         
         datasources = DataSource.query.filter_by(active = True)
-        print(datasources.count)
+        logging.info(datasources.count())
         # restricted_items = DatasetUtility.access_restricted_of_dataset(my_groups, child_groups, selected_datasets)
         datasets,count,has_more, selected_dataset_ids, filtered_datasets = DataSource.add_item_in_list_view(datasources, 
                                                         count, floor, celling, datasets, has_more, 

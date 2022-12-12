@@ -1,0 +1,27 @@
+{
+    "package": "CoGe",
+    "name": "KSCalc",
+    "internal": "run_kscalc",
+    "org": "",
+    "group": "",
+    "desc": "",
+    "href": "",
+    "params": [
+        {
+            "name": "data",
+            "type": "file",
+            "desc": "gcoords file",
+            "default": ""
+        }
+    ],
+    "returns": [
+        {
+            "name": "db",
+            "type": "file"
+        },
+        {
+            "name": "ks",
+            "type": "file"
+        }
+    ]
+}

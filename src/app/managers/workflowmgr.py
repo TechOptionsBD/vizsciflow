@@ -35,14 +35,11 @@ class WorkflowManager():
         return workflow_list
 
     def get_workflows_as_list(self, access, user, *args):
-        workflows = self.persistance.get_workflows_as_list(access, user.id, *args)
+        accesses = [0, 1, 2] if access == 3 else [access]
         samples = []
-        if access == 0 or access == 3:
-            samples = WorkflowManager.get_workflows_info(workflows, AccessType.PUBLIC, user.username)
-        if access == 1 or access == 3:
-            samples.extend(WorkflowManager.get_workflows_info(workflows, AccessType.SHARED, user.username))
-        if access == 2 or access == 3:
-            samples.extend(WorkflowManager.get_workflows_info(workflows, AccessType.PRIVATE, user.username))
+        for access in accesses:
+            workflows = self.persistance.get_workflows_as_list(access, user.id, *args)
+            samples.extend(WorkflowManager.get_workflows_info(workflows, access, user.username))
         
         return samples
 

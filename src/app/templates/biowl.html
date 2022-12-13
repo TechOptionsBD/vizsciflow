@@ -482,18 +482,18 @@
 			<div id="argumentsPanel" class="panel panel-primary">
 				<div class="panel-heading">
 				</div>
-				<div class="panel-body" style="padding: 1vh; margin: 1vh 0 1vh 0; display: flex;">
-					<div style="width: 50%; padding: 5px;">
+				<div class="panel-body" style="padding: 1vh; margin: 1vh 0 1vh 0; display: flex; ">
+					<div style="width: 80%; padding: 5px; margin-left: 5px;">
 						<h5>Parameters:</h5>
 						<form role="form" data-bind="foreach: wfArgs" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
 							<div data-bind="foreach: $data.items">
 								<div class="row service-form-group">
-									<label class="span-sm-6" data-bind="text: key"></label>
-									<div class="span-sm-14" data-bind="if: $index() == 3">
+									<label class="span-sm-3" data-bind="text: key"></label>
+									<div class="span-sm-16" data-bind="if: $index() == 3">
 										<input type="text" class="form-control" id="package" data-bind="value: value" />
 									</div>
-									<div class="span-sm-14" data-bind="ifnot: $index() == 3">
-										<label class="span-sm-14 bg-secondary text-white" data-bind="text: value"></label>
+									<div class="span-sm-16" data-bind="ifnot: $index() == 3">
+										<label class="span-sm-16" data-bind="text: value"></label>
 									</div>
 								</div>
 							</div>
@@ -501,15 +501,16 @@
 						</form>
 					</div>
 					<hr>
-					<div style="width: 50%; padding: 5px;">
+					<div style="width: 20%; padding: 5px; margin-left: 5px;">
 						<h5>Returns:</h5>
 						<form role="form" data-bind="foreach: wfReturns" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
 							<div data-bind="foreach: $data.items">
 								<div class="row service-form-group">
-									<label class="span-sm-6" data-bind="text: key"></label>
-									<label class="span-sm-14" data-bind="text: value"></label>
+									<label class="span-sm-3" data-bind="text: key"></label>
+									<label class="span-sm-16" data-bind="text: value"></label>
 								</div>
 							</div>
+							<hr data-bind="visible: $index() != ($parent.wfArgs().length-1)">
 						</form>
 					</div>
 				</div>

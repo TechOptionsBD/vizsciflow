@@ -12,6 +12,7 @@ function SampleViewModel() {
     self.wfReturns = ko.observableArray();
     self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
     self.wfArgs = ko.observableArray();
+    self.wfReturnArgs = ko.observableArray();
    
     self.clear = function(){
         self.workflowId(0);
@@ -23,6 +24,18 @@ function SampleViewModel() {
         self.getCodeEditor().session.setValue("", 1);
     }
 
+    self.copy = function(src){
+        self.workflowId(src.workflowId());
+        self.name(src.name());
+        self.desc(src.desc());
+        self.access(src.access());
+        self.userList(src.userList());
+        self.selectedSharingUsers(src.selectedSharingUsers());
+        self.wfParams(src.wfParams());
+        self.wfReturns(src.wfReturns());
+        self.wfArgs(src.wfArgs());
+    }
+
     self.copyFromJson = function(data) {
         self.workflowId(parseInt(data["id"]));
         self.name(data['name']);
@@ -30,6 +43,7 @@ function SampleViewModel() {
         self.wfParams(data['params']);
         self.wfReturns(data['returns']);
         self.copyArgsFromParams(self.wfParams());
+        self.copyReturnArgsFromReturns(self.wfReturns());
     }
     
     self.copyArgsFromParams = function(params){
@@ -41,6 +55,19 @@ function SampleViewModel() {
                     type: param['type'],
                     desc: param['desc'],
                     value: param['default'] === undefined ? "" : param['default']
+                })
+            );
+        });
+    }
+
+    self.copyReturnArgsFromReturns = function(returnParams){
+        self.wfReturnArgs.removeAll();
+        ko.utils.arrayForEach(returnParams, function(returnParam) {
+            self.wfReturnArgs.push(
+                ko.observableDictionary({
+                    name: returnParam['name'],
+                    type: returnParam['type'],
+                    desc: returnParam['desc']
                 })
             );
         });

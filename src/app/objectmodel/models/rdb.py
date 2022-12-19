@@ -1034,6 +1034,8 @@ class Service(db.Model):
     value = db.Column(JSON, nullable = False)
     public = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
+    pipenv = db.Column(db.Text, nullable = True)
+    pippkgs = db.Column(db.Text, nullable = True)
     #accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
     accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",

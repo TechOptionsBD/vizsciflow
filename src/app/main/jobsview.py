@@ -154,7 +154,7 @@ def install(package):
      
 
 #Previous function did not work for pip version greater then 10
-def install(package):
+def install(pipenv, package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 def create_pkg_dir(user_package_dir, create_init = True):
@@ -182,12 +182,16 @@ def provenance():
         elif request.method == "POST" and request.form.get('html'):
             result = {"out": [], "err": []}
             try:
+                pippkgsdb = ''
+                pipenv = request.form.get('pipenv') if request.form.get('pipenv') else ''
                 if request.form.get('pippkgs'):
                     pippkgs = request.form.get('pippkgs')
                     pippkgs = pippkgs.split(",")
+                    pippkgsdb = ''
                     for pkg in pippkgs:
                         try:
-                            install(pkg)
+                            install(pipenv, pkg)
+                            pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
                         except Exception as e:
                             result['err'].append(str(e))
                 # Get the name of the uploaded file
@@ -325,7 +329,7 @@ def check_service_function(request):
                 tree = ast.parse(request.args.get('script'))
                 funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
                 if not any(s.lower() == internal for s in funcDefs):
-                    return json.dumps({'error': "{0} internal name not found in the code.".format(internal)})
+                    return json.dumps({'error': "{0} internal name is not found in the code. Check your code in Python Adapter tab.".format(internal)})
         except json.decoder.JSONDecodeError as e:
             return json.dumps({'error': str(e)})
         except Exception as e:
@@ -382,12 +386,15 @@ def functions():
             elif request.form.get('mapper'):
                 result = {"out": [], "err": []}
                 try:
+                    pippkgsdb = ''
+                    pipenv = request.form.get('pipenv') if request.form.get('pipenv') else ''
                     if request.form.get('pippkgs'):
                         pippkgs = request.form.get('pippkgs')
                         pippkgs = pippkgs.split(",")
                         for pkg in pippkgs:
                             try:
-                                install(pkg)
+                                install(pipenv, pkg)
+                                pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
                             except Exception as e:
                                 result['err'].append(str(e))
                     # Get the name of the uploaded file
@@ -494,7 +501,7 @@ def functions():
                             #func = json.dumps(f, indent=4)
                             if sharedusers:
                                 sharedusers = ast.literal_eval(sharedusers)
-                            modulemanager.add(user_id = current_user.id, value = f, access=access, users=sharedusers)
+                            modulemanager.add(user_id = current_user.id, value = f, access=access, users=sharedusers, pipenv=pipenv, pippkgs=pippkgsdb)
     ## save code to a file
     #                 os.remove(base)
     #                 with open(base, 'w') as f:

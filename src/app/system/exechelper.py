@@ -34,6 +34,16 @@ def func_exec_bash_stdout(app, *args):
     cmd = [str(arg) for arg in args]
     out, err = subprocess.Popen(["/bin/bash", app, *cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     return out.decode('utf-8'), err.decode('utf-8')
+
+def run_script(script, *args):
+    if os.path.exists(script) and not os.access(script, os.X_OK):
+        st = os.stat(script)
+        os.chmod(script, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
+
+    # Mainul: we may need to use subprocess.run here for long running operation
+    cmd = [str(arg) for arg in args]
+    out, err = subprocess.Popen(["/bin/bash", script, *cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    return out.decode('utf-8'), err.decode('utf-8')
     
 def pyvenv_run(toolpath, app, *args):
     script = os.path.join(toolpath, Path(app).stem + '.sh')
@@ -50,15 +60,8 @@ def pyvenv_run(toolpath, app, *args):
                     f.write(" ${0}".format(i + 1))
         st = os.stat(script)
         os.chmod(script, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
-
-    if os.path.exists(script) and not os.access(script, os.X_OK):
-        st = os.stat(script)
-        os.chmod(script, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
-
-    # Mainul: we may need to use subprocess.run here for long running operation
-    cmd = [str(arg) for arg in args]
-    out, err = subprocess.Popen(["/bin/bash", script, *cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-    return out.decode('utf-8'), err.decode('utf-8')
+    
+    return run_script(script, *args)
 
 def func_exec_run(app, *args):
     out, err = func_exec_stdout(app, *args)

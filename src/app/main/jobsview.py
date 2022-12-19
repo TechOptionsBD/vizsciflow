@@ -28,9 +28,9 @@ from werkzeug.utils import secure_filename
 from ..managers.usermgr import usermanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.runmgr import runnablemanager
-from app.objectmodel.common import AccessType, Permission, AccessRights, convert_to_safe_json
+from app.objectmodel.common import *
 from ..managers.modulemgr import modulemanager
-
+from app.system.exechelper import run_script
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -155,7 +155,13 @@ def install(package):
 
 #Previous function did not work for pip version greater then 10
 def install(pipenv, package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    if not pipenv:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    else:
+        if not pipenv in python_venvs:
+            raise ValueError("Python virtual environment {pipvenv} does not exist.")
+        
+        run_script(os.path.join(basedir, "pipinstall.sh"), os.path.join(python_venvs["pipenv"], 'bin/activate'), package)
 
 def create_pkg_dir(user_package_dir, create_init = True):
     if not os.path.isdir(user_package_dir):
@@ -336,7 +342,19 @@ def check_service_function(request):
             return json.dumps({'error': str(e)})
     return json.dumps("")
 
-                          
+def get_datatypes():
+    datatypes = []
+    for t in known_types:
+        datatypes.append(t)
+        datatypes.append(t + "[]")
+    return jsonify(datatypes = datatypes)
+
+def get_pyvenvs():
+    pyvenvs = []
+    for t in python_venvs:
+        pyvenvs.append(t)
+    return jsonify(pyvenvs = pyvenvs)
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -344,6 +362,10 @@ def functions():
 
     try:
         if request.method == "GET":
+            if 'datatypes' in request.args:
+                return get_datatypes()
+            if 'pyenvs' in request.args:
+                return get_pyvenvs()
             if 'check_function' in request.args:
                 return check_service_function(request)
             elif 'codecompletion' in request.args:

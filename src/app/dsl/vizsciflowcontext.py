@@ -11,7 +11,7 @@ from app.managers.modulemgr import modulemanager
 from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit
 from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
 from app.objectmodel.models.rdb import Task
-from app.objectmodel.common import LogType
+from app.objectmodel.common import LogType, python_venvs
 
 class VizSciFlowContext(Context):
     lock = threading.Lock()
@@ -181,7 +181,11 @@ class VizSciFlowContext(Context):
         else:
             import tempfile
             return tempfile.gettempdir()
-
+    
+    @staticmethod
+    def get_pyvenv(venv):
+        return python_venvs[venv]
+                
     @staticmethod
     def exec_in_env(f, app, *args, **kwargs):
         oldcwd = os.getcwd() if 'cwd' in kwargs else None

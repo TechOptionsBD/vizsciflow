@@ -1,5 +1,7 @@
-import inspect
+import os
+import sys
 import json
+import inspect
 from collections import UserDict, UserList
 
 def isiterable(p_object):
@@ -21,6 +23,13 @@ class KnownTypes(UserDict):
         if key.endswith('[]'):
             return self.__contains__(key[:-2])
         return key in self.data
+
+python_venvs = {
+    'system': os.path.dirname(os.path.dirname(sys.executable)),
+    'python2': '/home/.venvpy2',
+    'python3': '/home/.venv3',
+    'pycoqc': '/home/.venvpycoqc'
+}
 
 known_types = KnownTypes({
     'int': int,

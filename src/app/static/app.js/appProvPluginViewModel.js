@@ -13,6 +13,7 @@ function AddProvPluginViewModel(userName) {
 
     self.isFuncExpanded = ko.observable(false);
     self.textToggleFuncArea = ko.observable('More..');
+    self.pippkgsList = ko.observableArray(['python2', 'python3']);
 
     self.toggleFuncArea = function () {  
         if (!self.isFuncExpanded()) {

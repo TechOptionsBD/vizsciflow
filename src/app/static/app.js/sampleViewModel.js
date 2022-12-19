@@ -13,6 +13,7 @@ function SampleViewModel() {
     self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
     self.wfArgs = ko.observableArray();
     self.wfReturnArgs = ko.observableArray();
+    self.TList = ko.observableArray(['int', 'int[]','float','float[]','str','str[]','bool','bool[]','any','any[]']);
    
     self.clear = function(){
         self.workflowId(0);

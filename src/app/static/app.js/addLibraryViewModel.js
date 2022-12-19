@@ -13,6 +13,8 @@ function AddLibraryViewModel(userName) {
 
     self.isFuncExpanded = ko.observable(false);
     self.textToggleFuncArea = ko.observable('More..');
+    self.TList = ko.observableArray(['int', 'int[]','float','float[]','str','str[]','bool','bool[]','any','any[]']);
+    self.pippkgsList = ko.observableArray(['python2', 'python3']);
 
     self.toggleFuncArea = function () {  
         if (!self.isFuncExpanded()) {

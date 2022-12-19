@@ -923,9 +923,17 @@
 										<div data-bind="foreach: $data.items">
 											<div class="row service-form-group">
 												<label class="span-sm-6" data-bind="text: key"></label>
-												<div class="span-sm-14">
+												<div class="span-sm-14" data-bind="ifnot: $index() == 1">
 													<input type="text" class="form-control" id="package"
 														data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+												</div>
+												<div class="span-sm-14" data-bind="if: $index() == 1">
+													<select style="padding: 5px 9px;
+													width: 100%;
+													border-radius: 5px;
+													font-size: 17px;
+													font-weight: 100;"
+													data-bind="options: $parents[1].TList, value: value"></select>
 												</div>
 											</div>
 										</div>
@@ -946,9 +954,16 @@
 										<div data-bind="foreach: $data.items">
 											<div class="row service-form-group">
 												<label class="span-sm-6" data-bind="text: key"></label>
-												<div class="span-sm-14">
+												<div class="span-sm-14" data-bind="ifnot: $index() == 1">
 													<input type="text" class="form-control" id="package"
 														data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+												</div>
+												<div class="span-sm-14" data-bind="if: $index() == 1">
+													<select style="padding: 5px 9px;
+													width: 100%;
+													border-radius: 5px;
+													font-size: 17px;
+													font-weight: 100;" data-bind="options: $parents[1].TList, value: value"></select>
 												</div>
 											</div>
 										</div>
@@ -967,25 +982,32 @@
 			</div>
 			<br><br>
 			<div class="row service-form-group">
-				<div class="span-sm-10">
+				<div class="span-sm-14">
 					<div class="row service-form-group">
 						<label class="span-sm-5" for="pippkgs">pip Install</label>
-						<div class="span-sm-10">
+						<div class="span-sm-14" style="display: flex; column-gap: 10px;">
+							<select style="padding: 5px 9px;
+							width: 100%;
+							border-radius: 5px;
+							font-size: 17px;
+							font-weight: 100;" data-bind="options: pippkgsList"></select>
 							<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
 						</div>
 					</div>
 					<div class="row service-form-group">
-						<label for="" class="span-sm-5">Share with</label>
+						
+						<label class="span-sm-3" for="access">Public</label>
+						<div class="span-sm-2">
+							<input type="checkbox" id="access" data-bind="checked: access">
+						</div>
+
+						<label for="" class="span-sm-4">Share with</label>
 						<div class="span-sm-10">
 							<select id="userSelection" multiple="multiple" class="form-control" data-bind="options: userList, 
 								 optionsText: 'name', 
 								 optionsValue: 'id', 
 								 selectedOptions: selectedSharingUsers">
 							</select>
-						</div>
-						<label class="span-sm-3" for="access">Public</label>
-						<div class="span-sm-2">
-							<input type="checkbox" id="access" data-bind="checked: access">
 						</div>
 					</div>
 				</div>
@@ -1033,7 +1055,14 @@
 				<div class="span-sm-10">
 					<div class="row provenance-form-group">
 						<label class="span-sm-5" for="pippkgs">pip Install</label>
-						<div class="span-sm-10">
+						<div class="span-sm-15" style="display: flex; column-gap: 10px;">
+							<select class="span-sm-14" style="padding: 5px 9px;
+							width: 100%;
+							border-radius: 5px;
+							font-size: 17px;
+							font-weight: 100;" data-bind="options: pippkgsList">
+
+							</select>
 							<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
 						</div>
 					</div>
@@ -1116,9 +1145,16 @@
 									<div data-bind="foreach: $data.items">
 										<div class="row service-form-group">
 											<label class="span-sm-6" data-bind="text: key"></label>
-											<div class="span-sm-14">
+											<div class="span-sm-14" data-bind="ifnot: $index() == 1">
 												<input type="text" class="form-control" id="package"
 													data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+											</div>
+											<div class="span-sm-14" data-bind="if: $index() == 1">
+												<select style="padding: 5px 9px;
+												width: 100%;
+												border-radius: 5px;
+												font-size: 17px;
+												font-weight: 100;" data-bind="options: $parents[1].TList, value: value"></select>
 											</div>
 										</div>
 									</div>
@@ -1139,9 +1175,16 @@
 									<div data-bind="foreach: $data.items">
 										<div class="row service-form-group">
 											<label class="span-sm-6" data-bind="text: key"></label>
-											<div class="span-sm-14">
+											<div class="span-sm-14" data-bind="ifnot: $index() == 1">
 												<input type="text" class="form-control" id="package"
 													data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+											</div>
+											<div class="span-sm-14" data-bind="if: $index() == 1">
+												<select style="padding: 5px 9px;
+												width: 100%;
+												border-radius: 5px;
+												font-size: 17px;
+												font-weight: 100;" data-bind="options: $parents[1].TList, value: value"></select>
 											</div>
 										</div>
 									</div>
@@ -3481,6 +3524,10 @@ function typeInTextarea(el, newText) {
 // ko.applyBindings(gridStackViewModel, $("#saveLayout")[0]);
 
 // gridStackViewModel.savedLayouts.push({layoutName: 'Default', properties : gridStackViewModel.defaultLayout});
+
+// sakil change -------------------
+
+
         
 </script>
 {{ pagedown.include_pagedown() }}

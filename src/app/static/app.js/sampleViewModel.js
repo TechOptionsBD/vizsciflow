@@ -10,10 +10,10 @@ function SampleViewModel() {
     self.selectedSharingUsers = ko.observableArray();
     self.wfParams = ko.observableArray();
     self.wfReturns = ko.observableArray();
-    self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
     self.wfArgs = ko.observableArray();
     self.wfReturnArgs = ko.observableArray();
     self.TList = ko.observableArray(['int', 'int[]','float','float[]','str','str[]','bool','bool[]','any','any[]']);
+    self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
    
     self.clear = function(){
         self.workflowId(0);
@@ -22,6 +22,7 @@ function SampleViewModel() {
         self.wfParams.removeAll();
         self.wfReturns.removeAll();
         self.wfArgs.removeAll();
+        self.wfReturnArgs.removeAll();
         self.getCodeEditor().session.setValue("", 1);
     }
 
@@ -34,15 +35,43 @@ function SampleViewModel() {
         self.selectedSharingUsers(src.selectedSharingUsers());
         self.wfParams(src.wfParams());
         self.wfReturns(src.wfReturns());
-        self.wfArgs(src.wfArgs());
+        self.copyArgsFromParams(self.wfParams);
+        self.copyReturnArgsFromReturns(self.wfReturns);
     }
 
     self.copyFromJson = function(data) {
         self.workflowId(parseInt(data["id"]));
         self.name(data['name']);
         self.desc(data['desc']);
-        self.wfParams(data['params']);
-        self.wfReturns(data['returns']);
+
+        self.wfParams.removeAll();
+        if (Array.isArray(data['params'])){
+            data['params'].forEach(function(param){
+                self.wfParams.push(
+                    ko.observableDictionary({
+                        name: param['name'],
+                        type: param['type'],
+                        desc: param['desc'],
+                        default: param['default'] === undefined ? "" : param['default']
+                    })
+                );
+            });
+        }
+
+        self.wfReturns.removeAll();
+        if (Array.isArray(data['params'])){
+            data['returns'].forEach(function(param){
+                self.wfReturns.push(
+                    ko.observableDictionary({
+                        name: param['name'],
+                        type: param['type'],
+                        desc: param['desc'],
+                        default: param['default'] === undefined ? "" : param['default']
+                    })
+                );
+            });
+        }
+
         self.copyArgsFromParams(self.wfParams());
         self.copyReturnArgsFromReturns(self.wfReturns());
     }

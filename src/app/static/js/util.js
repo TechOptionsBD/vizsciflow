@@ -139,3 +139,15 @@ function activateTab(tab){
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+function isJson(item) {
+	item = typeof item !== "string" ? JSON.stringify(item) : item;
+
+	try {
+		item = JSON.parse(item);
+	} catch (e) {
+		return false;
+	}
+
+	return (typeof item === "object" && item !== null);
+}

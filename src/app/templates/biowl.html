@@ -68,6 +68,9 @@
 
 
 <!-- app js files -->
+<script src="/static/app.js/editTaskViewModel.js"></script>
+<script src="/static/app.js/scriptViewModel.js"></script>
+<script src="/static/app.js/handleModeViewModel.js"></script>
 <script src="/static/app.js/browserViewModel.js"></script>
 <script src="/static/app.js/datasetAddViewModel.js"></script>
 <script src="/static/app.js/datasetviewViewModel.js"></script>
@@ -89,6 +92,7 @@
 <script src="/static/app.js/monitorGraphViewModel.js"></script>
 <script src="/static/app.js/provPluginsViewModel.js"></script>
 <script src="/static/app.js/appProvPluginViewModel.js"></script>
+<script src="/static/app.js/datasetPluginViewModel.js"></script>
 <script src="/static/app.js/datasetPluginViewModel.js"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
@@ -2618,13 +2622,6 @@
             var boxWidth = dlg.width();
             dlg.css({'margin-left' : ((windowWidth - boxWidth )/2), 'margin-top' : ((windowHeight - boxHeight)/2)});
         }
-    	
-		$('#tree').on("dblclick.jstree", function (e) {
-		 	  var tree = $(this).jstree();
-		 	  var node = tree.get_node(event.target);
-		 	  copyDataPathToEditor(node.original);
-		});
-	
 		
     	$('#refresh').hide();
         
@@ -2648,11 +2645,6 @@
     });
 
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
-    
-//     $('#tree').bind('mousewheel', function(e) {
-//     	  $(this).scrollTop($(this).scrollTop() - e.originalEvent.wheelDeltaY);
-//     	  return false;
-//     	});
     
     // Create the View Model.
     
@@ -3052,138 +3044,7 @@ function typeInTextarea(el, newText) {
 	   	    	
 	   	    }
    		});
-	   
-		   
         
-        function isJson(item) {
-            item = typeof item !== "string" ? JSON.stringify(item) : item;
-
-            try {
-                item = JSON.parse(item);
-            } catch (e) {
-                return false;
-            }
-
-            return (typeof item === "object" && item !== null);
-        }
-        
-        
-        function EditTaskViewModel() {
-            var self = this;
-            self.package = ko.observable();
-            self.name = ko.observable();
-            self.internal = ko.observable();
-            self.example = ko.observable();
-            self.example2 = ko.observable();
- 
-            self.setTask = function(task) {
-                self.task = task;
-                self.package(task.package());
-                self.name(task.name());
-                self.internal(task.internal());
-                self.example(task.example());
-                self.example2(task.example2());
-                $('edit').modal('show');
-            }
- 
-            self.editTask = function() {
-                $('#edit').modal('hide');
-                tasksViewModel.edit(self.task, {
-                	package: self.package(),
-                	name: self.name(),
-                    internal: self.internal(),
-                    example: self.example(),
-                    example2: self.example2()
-                });
-            }
-		}
-
-		function ScriptViewModel() {
-			var self = this;
-			self.prevModeScript = ko.observable('')
-
-			self.getPrevModeScript = function(){
-				return self.prevModeScript()
-			}
-			self.setPrevScript = function(){
-				var currentScript = editor.session.getValue()
-				editor.session.setValue("");
-				editor.session.insert(editor.selection.getCursor(), self.prevModeScript());
-				editor.focus();
-				self.prevModeScript(currentScript)
-			}
-		}
-		var scriptViewModel = new ScriptViewModel();
-		
-		function HandleModeViewModel() {
-            var self = this;
-			self.currentMode = ko.observable('wfMode');
-			self.shouldProvElemShow = ko.observable(false);
-			self.shouldGraphBtnShow = ko.observable(false);
-			
-            self.setMode = function(id) {
-				if(self.currentMode() !== id){
-					scriptViewModel.setPrevScript();
-				}
-				if(id == 'wfMode'){
-					self.currentMode('wfMode')
-					self.shouldProvElemShow(false)
-					self.shouldGraphBtnShow(true)
-					$("#provMode").removeClass("active-mode");
-					$("#wfMode").addClass("active-mode");
-					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
-						$("#exTabBiowl ul li:first").addClass('active');	
-					});
-
-					$('#liBrowserTab').show();
-					$('#liOutput').show();
-					$('#liProvenanceTab').hide();
-					
-					$('#liVisualTab').hide();
-					$('#liMetadataTab').hide();
-					$('#liFilterHistoryTab').hide();
-					$('#liDataset').hide();
-
-					$('#provplugins').hide();
-				}
-				else if(id == 'provMode'){
-					self.currentMode('provMode')
-					self.shouldProvElemShow(true)
-					self.shouldGraphBtnShow(false)
-					$("#wfMode").removeClass("active-mode");
-					$("#provMode").addClass("active-mode");
-					$("#exTabBiowl li:first a").tab('show').on('shown.bs.tab', function (param) {
-						$("#exTabBiowl ul li:first").addClass('active');	
-					});
-
-					$('#liProvenanceTab').show();
-					$('#liBrowserTab').hide();
-					$('#liOutput').hide();
-
-					$('#liVisualTab').hide();
-					$('#liMetadataTab').hide();
-					$('#liFilterHistoryTab').hide();
-					$('#liDataset').hide();
-
-					$('#provplugins').show();
-				}
-			}
-			
-			self.getMode = function(){
-				return self.currentMode()
-			}
-        }
-		var handleModeViewModel = new HandleModeViewModel();
-		// ko.applyBindings(handleModeViewModel, $("#main")[0]);
-		
-		// Browser ViewModel binding
-		var browserViewModel = new BrowserViewModel();
-		var browserItemModalViewModel = new BrowserItemModalViewModel();
-
-		ko.applyBindings(browserViewModel, $("#browserView")[0]);
-		ko.applyBindings(browserItemModalViewModel, $("#browserItemModal")[0]);
-
-
 		function loadBrowserData(data) {
 			browserViewModel.loadItems(data);
 			if ($("#browsertab").length == 0) {
@@ -3201,15 +3062,11 @@ function typeInTextarea(el, newText) {
 				$("#browserView").show();
 			}
 		}
-        
-        
-	  
 
-	   var datasetviewViewModel = new DatasetviewViewModel();
-	   ko.applyBindings(datasetviewViewModel, $("#datasetView")[0]);
-
+		// ko.applyBindings(handleModeViewModel, $("#main")[0]);
+		
 	   function showDatasetTab(schema) {
-		loadDatasetviewData(schema);
+			loadDatasetviewData(schema);
 			if ($("#datasetView").parent('div#datasettab').length == 0) {
 				$('#datasettab').append($("#datasetView"));
 				$("#datasetView").show();
@@ -3222,9 +3079,10 @@ function typeInTextarea(el, newText) {
 				createNewBrowserTab("datasettab", "Dataset", "fade in scriptstyle");
 			}
 		}
-
-	  
 	   
+		var scriptViewModel = new ScriptViewModel();
+		var handleModeViewModel = new HandleModeViewModel();
+
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
 		var addProvPluginViewModel = new AddProvPluginViewModel(ace);
@@ -3232,6 +3090,9 @@ function typeInTextarea(el, newText) {
 		var editTaskViewModel = new EditTaskViewModel();
 		var provgraphviewmodel = new provgraphViewModel();
 		var monitorGraphViewModel = new monitorGraphViewModel();
+		var browserViewModel = new BrowserViewModel();
+		var browserItemModalViewModel = new BrowserItemModalViewModel();
+		var datasetviewViewModel = new DatasetviewViewModel();
 		 
 //         var loginViewModel = new LoginViewModel();
 
@@ -3276,6 +3137,10 @@ function typeInTextarea(el, newText) {
        	ko.applyBindings(filterViewModel, $('#searchHistoryPanel')[0]);
        	ko.applyBindings(filterViewModel, $('#filterhistoryView')[0]);
 		ko.applyBindings(filterViewModel, $('#filter-area')[0]);
+		
+		ko.applyBindings(browserViewModel, $("#browserView")[0]);
+		ko.applyBindings(browserItemModalViewModel, $("#browserItemModal")[0]);
+		ko.applyBindings(datasetviewViewModel, $("#datasetView")[0]);
 
        	filterViewModel.loadHistory();
        	filterViewModel.loadSavedFilters();

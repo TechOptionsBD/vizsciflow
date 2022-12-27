@@ -43,7 +43,7 @@ function SampleViewModel() {
         self.workflowId(parseInt(data["id"]));
         self.name(data['name']);
         self.desc(data['desc']);
-
+        self.access(data['access']);
         self.wfParams.removeAll();
         if (Array.isArray(data['params'])){
             data['params'].forEach(function(param){

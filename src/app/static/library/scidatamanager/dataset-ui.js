@@ -395,7 +395,7 @@
             console.log("User stopped dragging");
 
             if (path && !path.includes("load more")) {
-              settings.onItemDrag.call(null, e, { path: `/${path}`, dataset });
+              settings.onItemDrag.call(null, eData.event, { path: `/${path}`, dataset });
               // $(`#card-body-${dataset.id}`).jstree(true).refresh(true);
             }
             // $(`#card-body-${dataset.id}`).jstree(true).refresh()

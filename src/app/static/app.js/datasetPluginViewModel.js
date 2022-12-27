@@ -112,7 +112,16 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
 
   const onDataItemDrag = function (e, dataset) {
     path = self.buildPath(self.scidatamgrURI, dataset?.dataset?.pid, dataset.path);
-    self.copyToEditorDrag(path);
+    var target = e.target;
+    if (target.getAttribute('class') == 'ace_content'){
+      self.copyToEditorDrag(path);
+    }
+    else {
+      koobj = ko.dataFor(target);
+      if (koobj) {
+        koobj.value(path);
+      }
+    }
   };
 
   const onItemExpand = function (e, dataset) {

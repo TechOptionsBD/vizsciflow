@@ -12,9 +12,19 @@ function SampleViewModel() {
     self.wfReturns = ko.observableArray();
     self.wfArgs = ko.observableArray();
     self.wfReturnArgs = ko.observableArray();
-    self.TList = ko.observableArray(['int', 'int[]','float','float[]','str','str[]','bool','bool[]','any','any[]']);
+    self.TList = ko.observableArray();
     self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
    
+    ajaxcalls.simple(self.tasksURI, 'GET', { 'datatypes': '' }).done(function (data) {
+        
+        $(data["datatypes"]).each((index, element)=> {
+            self.TList.push(element);
+        });
+        
+    }).fail(function (jqXHR) {
+        showXHRText(jqXHR);
+    });
+
     self.clear = function(){
         self.workflowId(0);
         self.name("No Name");

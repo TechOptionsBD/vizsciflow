@@ -13,7 +13,17 @@ function AddProvPluginViewModel(userName) {
 
     self.isFuncExpanded = ko.observable(false);
     self.textToggleFuncArea = ko.observable('More..');
-    self.pippkgsList = ko.observableArray(['python2', 'python3']);
+    self.pippkgsList = ko.observableArray();
+    
+    ajaxcalls.simple('/functions', 'GET', { 'pyenvs': '' }).done(function (data) {
+        
+        $(data["pyvenvs"]).each((index, element)=> {
+            self.pippkgsList.push(element);
+        });
+        
+    }).fail(function (jqXHR) {
+        showXHRText(jqXHR);
+    });
 
     self.toggleFuncArea = function () {  
         if (!self.isFuncExpanded()) {

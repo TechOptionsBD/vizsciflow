@@ -13,8 +13,30 @@ function AddLibraryViewModel(userName) {
 
     self.isFuncExpanded = ko.observable(false);
     self.textToggleFuncArea = ko.observable('More..');
-    self.TList = ko.observableArray(['int', 'int[]','float','float[]','str','str[]','bool','bool[]','any','any[]']);
-    self.pippkgsList = ko.observableArray(['python2', 'python3']);
+    self.TList = ko.observableArray();
+    self.pippkgsList = ko.observableArray();
+    
+    ajaxcalls.simple(self.tasksURI, 'GET', { 'pyenvs': '' }).done(function (data) {
+        
+        $(data["pyvenvs"]).each((index, element)=> {
+            self.pippkgsList.push(element);
+        });
+        
+    }).fail(function (jqXHR) {
+        showXHRText(jqXHR);
+    });
+
+    ajaxcalls.simple(self.tasksURI, 'GET', { 'datatypes': '' }).done(function (data) {
+        
+        $(data["datatypes"]).each((index, element)=> {
+            self.TList.push(element);
+        });
+        
+    }).fail(function (jqXHR) {
+        showXHRText(jqXHR);
+    });
+
+    //ko.observableArray(['python2', 'python3']);
 
     self.toggleFuncArea = function () {  
         if (!self.isFuncExpanded()) {
@@ -178,7 +200,8 @@ function AddLibraryViewModel(userName) {
             
             data = Array.isArray(data) ? data : JSON.parse(data);
             data.forEach(element => {
-                self.userList.push({id: parseInt(element[0]), name:  element[1]});
+                e = JSON.parse(element);
+                self.userList.push({id: parseInt(e[0]), name:  e[1]});
             });
 
             self.initiateMultiselectUser()

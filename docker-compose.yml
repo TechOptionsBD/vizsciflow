@@ -28,7 +28,7 @@ services:
     <<: *default-common-vizsciflow
     # command: sh -c "tail -F anything" # debug
     command: >
-      sh -c "/home/.venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
+      sh -c "/home/venvs/.venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
     depends_on:
       - vizsciflowdb      
     ports:
@@ -38,7 +38,7 @@ services:
   vizsciflowcelery:
     <<: *default-common-vizsciflow
     hostname: worker
-    entrypoint: /home/.venv/bin/celery
+    entrypoint: /home/venvs/.venv/bin/celery
     command: -A app.jobs worker --loglevel=info
     depends_on:
       - vizsciflowredis

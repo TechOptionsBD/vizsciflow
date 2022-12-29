@@ -26,9 +26,9 @@ class KnownTypes(UserDict):
 
 python_venvs = {
     'system': os.path.dirname(os.path.dirname(sys.executable)),
-    'python2': '/home/.venvpy2',
-    'python3': '/home/.venv3',
-    'pycoqc': '/home/.venvpycoqc'
+    'python2': '/home/venvs/.venvpy2',
+    'python3': '/home/venvs/.venv3',
+    'pycoqc': '/home/venvs/.venvpycoqc'
 }
 
 known_types = KnownTypes({

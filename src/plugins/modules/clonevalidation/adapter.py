@@ -304,7 +304,7 @@ def run_trainmodel(context, *args, **kwargs):
 # 	arguments = context.parse_args('TrainModel', 'nicad', *args, **kwargs)
 # 	output = context.normalizepath(context.createuniquefile('trainedNetwork'))
 
-# #docker exec annclonevalidation bash -c 'source /home/.venvpy2/bin/activate && python expWith.py'
+# #docker exec annclonevalidation bash -c 'source /home/venvs/.venvpy2/bin/activate && python expWith.py'
 # 	loadmodelpath = path.join(thispath, 'trainmodel.py')
 # 	_, log = context.pyvenv_run(loadmodelpath, "python2train", arguments['data'], output)
 # 	if log or not path.exists(output):

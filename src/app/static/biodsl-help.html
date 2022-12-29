@@ -376,7 +376,7 @@ def demo_service(context, *args, **kwargs):
 	We have provided a Python 2.7 virtual environment for it. Users need to create a .sh executable with the following code and run it using <i>context.pyvenv</i>.
 	<pre><code class="python">
 	#!/bin/bash
-	source /home/.venvpy2/bin/activate
+	source /home/venvs/.venvpy2/bin/activate
 	python2 $1 $2 $3 $4 $5 $6 $7 $8
 	</code>
 	</pre>
@@ -384,7 +384,7 @@ def demo_service(context, *args, **kwargs):
 	<li><strong>Incompatible python library dependency:</strong>For unmaintaned libraries, it may happen that a tool needs a library which is incompatible to other tools of the python environment. Users need to create a .sh executable with the following code and run it using <i>context.pyvenv</i>.
 		<pre><code class="python">
 		#!/bin/bash
-		source /home/.venvpycoqc/bin/activate
+		source /home/venvs/.venvpycoqc/bin/activate
 		python2 $1 $2 $3 $4 $5 $6 $7 $8
 		</code>
 		</pre>

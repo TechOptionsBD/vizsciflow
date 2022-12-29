@@ -1,3 +1,3 @@
 #!/bin/bash
-source /home/.venv/bin/activate
+source /home/venvs/.venv/bin/activate
 fastqe $1

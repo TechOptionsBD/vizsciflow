@@ -58,38 +58,36 @@ WORKDIR /home/vizsciflow
 COPY ./src ./src
 COPY .env .
 
-RUN python -m venv /home/.venv
-RUN /home/.venv/bin/pip install --upgrade pip
-RUN /home/.venv/bin/pip install -r ./src/requirements/requirements.txt
-RUN /home/.venv/bin/pip install wfdsl==0.1.15
+RUN python -m venv /home/venvs/.venv
+RUN /home/venvs/.venv/bin/pip install --upgrade pip
+RUN /home/venvs/.venv/bin/pip install -r ./src/requirements/requirements.txt
+RUN /home/venvs/.venv/bin/pip install wfdsl==0.1.15
 
 # separate venv for pycoQC
-RUN python -m venv /home/.venvpycoqc
-RUN /home/.venvpycoqc/bin/pip install --upgrade pip
-RUN /home/.venvpycoqc/bin/pip install pycoQC
+RUN python -m venv /home/venvs/.venvpycoqc
+RUN /home/venvs/.venvpycoqc/bin/pip install --upgrade pip
+RUN /home/venvs/.venvpycoqc/bin/pip install pycoQC
 
 # separate venv for python 2.7
 RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /home/get-pip.py
 RUN python2 /home/get-pip.py
 RUN python2 -m pip install virtualenv
-RUN python2 -m virtualenv /home/.venvpy2
-RUN /home/.venvpy2/bin/pip install --upgrade pip
-RUN /home/.venvpy2/bin/pip install -r ./src/requirements/requirements2.txt
+RUN python2 -m virtualenv /home/venvs/.venvpy2
+RUN /home/venvs/.venvpy2/bin/pip install --upgrade pip
+RUN /home/venvs/.venvpy2/bin/pip install -r ./src/requirements/requirements2.txt
 
-RUN /home/.venv/bin/pip install gunicorn
-RUN /home/.venv/bin/pip install pysam
+RUN /home/venvs/.venv/bin/pip install gunicorn
+RUN /home/venvs/.venv/bin/pip install pysam
 
 # to debug celery in docker
-#RUN /home/vizsciflow/.venv/bin/pip install debugpy -t /tmp
+#RUN /home/vizsciflow/venvs/.venv/bin/pip install debugpy -t /tmp
 
 ENV FLASK_APP manage.py
 ENV FLASK_CONFIG development
 
 # Give ownership to vizsciflow user
 RUN chown -R vizsciflow:vizsciflow ./
-RUN chown -R vizsciflow:vizsciflow ../.venv
-RUN chown -R vizsciflow:vizsciflow ../.venvpycoqc
-RUN chown -R vizsciflow:vizsciflow ../.venvpy2
+RUN chown -R vizsciflow:vizsciflow ../venvs
 
 USER vizsciflow
 WORKDIR /home/vizsciflow/src

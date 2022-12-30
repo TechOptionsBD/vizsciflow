@@ -97,27 +97,32 @@ def run_biowl_internal(workflow_id, user_id, script, args, provenance = False):
     return run_script(runnable.id, args, provenance)
 
 def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
-    from ..jobs import run_script
-    argsjson = {}
-    if args:
-        if not isinstance(args, dict):
-            try:
-                argsjson = json.loads(args)
-            except:
-                argslist = args.split(',')
-                for a in argslist:
-                    keyval = a.split('=')
-                    argsjson[keyval[0]] = keyval[1]
-        else:
-            argsjson = args
+    try:
+        from ..jobs import run_script
+        argsjson = {}
+        if args:
+            if not isinstance(args, dict):
+                try:
+                    argsjson = json.loads(args)
+                except:
+                    argslist = args.split(',')
+                    for a in argslist:
+                        keyval = a.split('=')
+                        argsjson[keyval[0]] = keyval[1]
+            else:
+                argsjson = args
 
-    workflow = workflowmanager.first(id=workflow_id)
-    runnable = runnablemanager.create_runnable(current_user.id, workflow, script if script else workflow.script, provenance, argsjson)
+        workflow = workflowmanager.first(id=workflow_id)
+        runnable = runnablemanager.create_runnable(current_user.id, workflow, script if script else workflow.script, provenance, argsjson)
 
-    args = ','.join([a["name"] + "=" + f'"{a["value"]}"' for a in argsjson])
-    run_script(runnable.id, args, provenance) if immediate else run_script.delay(runnable.id, args, provenance)
-    
-    return runnable
+        args = ','.join([a["name"] + "=" + f'"{a["value"]}"' for a in argsjson])
+        run_script(runnable.id, args, provenance) if immediate else run_script.delay(runnable.id, args, provenance)
+        
+        return runnable
+    except:
+        if runnable:
+            runnable.update_status(Status.FAILURE)
+        raise
 
 def save_and_run_workflow(script, args, immediate = True, provenance = False):
     workflow = update_workflow(current_user.id, 0, script)

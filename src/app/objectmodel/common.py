@@ -36,7 +36,9 @@ known_types = KnownTypes({
     'float': float,
     'str': str,
     'bool': bool,
-    'any': str})
+    'any': str
+    'file': str,
+    'folder': str})
 
 class obj(object):
     def __init__(self, dict_):

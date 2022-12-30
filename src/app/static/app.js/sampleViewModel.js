@@ -45,8 +45,8 @@ function SampleViewModel() {
         self.selectedSharingUsers(src.selectedSharingUsers());
         self.wfParams(src.wfParams());
         self.wfReturns(src.wfReturns());
-        self.copyArgsFromParams(self.wfParams);
-        self.copyReturnArgsFromReturns(self.wfReturns);
+        self.wfArgs(src.wfArgs());
+        self.wfReturnArgs(src.wfReturnArgs());
     }
 
     self.copyFromJson = function(data) {
@@ -69,26 +69,29 @@ function SampleViewModel() {
         }
 
         self.wfReturns.removeAll();
-        if (Array.isArray(data['params'])){
+        if (Array.isArray(data['returns'])){
             data['returns'].forEach(function(param){
                 self.wfReturns.push(
                     ko.observableDictionary({
                         name: param['name'],
                         type: param['type'],
-                        desc: param['desc'],
-                        default: param['default'] === undefined ? "" : param['default']
+                        desc: param['desc']
                     })
                 );
             });
         }
 
-        self.copyArgsFromParams(self.wfParams());
-        self.copyReturnArgsFromReturns(self.wfReturns());
+        if (Array.isArray(data['params'])){
+            self.copyArgsFromParams(data['params']);
+        }
+        if (Array.isArray(data['returns'])){
+            self.copyReturnArgsFromReturns(data['returns']);
+        }
     }
     
     self.copyArgsFromParams = function(params){
         self.wfArgs.removeAll();
-        ko.utils.arrayForEach(params, function(param) {
+        params.forEach(function(param){
             self.wfArgs.push(
                 ko.observableDictionary({
                     name: param['name'],
@@ -102,7 +105,7 @@ function SampleViewModel() {
 
     self.copyReturnArgsFromReturns = function(returnParams){
         self.wfReturnArgs.removeAll();
-        ko.utils.arrayForEach(returnParams, function(returnParam) {
+        returnParams.forEach(function(returnParam){
             self.wfReturnArgs.push(
                 ko.observableDictionary({
                     name: returnParam['name'],

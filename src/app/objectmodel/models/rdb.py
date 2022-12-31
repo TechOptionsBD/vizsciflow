@@ -929,7 +929,8 @@ class Workflow(db.Model):
             'user': self.user.username,
             'name': self.name,
             'desc': self.desc,
-            'script': self.script
+            'script': self.script,
+            'access': self.public
         }
         json_post.update(Service.get_params_returns_json(self))
         return json_post

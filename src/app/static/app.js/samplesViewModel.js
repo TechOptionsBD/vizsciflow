@@ -39,7 +39,7 @@ function SamplesViewModel(sampleViewModel) {
     }
     
     self.newwf = function() {
-        self.saveCurrentLoadintoEditor(null);
+        self.saveCurrentLoadintoEditor({id: 0});
     }
     
     self.beginAdd = function(saveas) {
@@ -113,7 +113,7 @@ function SamplesViewModel(sampleViewModel) {
         self.clicks++;
         if (self.clicks !== 1) {
             $(".expandedWorkflow").remove();
-            self.loadIntoEditor(item);
+            self.loadIntoEditor(item.id);
             self.clicks = 0
             return;
         }
@@ -144,7 +144,7 @@ function SamplesViewModel(sampleViewModel) {
             return;
         }
         
-         ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item.id}).done(function(data) {
+         ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item}).done(function(data) {
             
             if ($.isEmptyObject(data))
                 return;
@@ -175,27 +175,26 @@ function SamplesViewModel(sampleViewModel) {
         });
     }
     
-    self.saveCurrentLoadintoEditor = function(item) {
+    self.saveCurrentLoadintoEditor = function (item) {
         if (self.saveNeeded()) {
             centerDialog($('#save-needed'));
             $('#save-needed').modal('show')
-                .on('click', '#save-needed-yes', function(e) {
+                .on('click', '#save-needed-yes', function (e) {
                     var updateDlg = tasksViewModel.updateWorkflow(true);
-                 if (updateDlg) {
-                     updateDlg.on('hidden.bs.modal', function() 
-                             { 
-                                     self.loadIntoEditor(item); 
-                                 }.bind(this));
-                 }
-                 else
-                     self.loadIntoEditor(item);
-                 
-               }).on('click', '#save-needed-no', function(e) {
-                   self.loadIntoEditor(item);
-               });
-           }
+                    if (updateDlg) {
+                        updateDlg.on('hidden.bs.modal', function () {
+                            self.loadIntoEditor(item.id);
+                        }.bind(this));
+                    }
+                    else
+                        self.loadIntoEditor(item.id);
+
+                }).on('click', '#save-needed-no', function (e) {
+                    self.loadIntoEditor(item).id;
+                });
+        }
         else {
-            self.loadIntoEditor(item);
+            self.loadIntoEditor(item.id);
         }
     }
     

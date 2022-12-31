@@ -2991,10 +2991,6 @@ function typeInTextarea(el, newText) {
    	    }
    	}*/
 
-   	
-   	if (localStorage[username.concat('_inputVals')] !== undefined)
-   		editor.session.setValue(JSON.parse(localStorage[username.concat('_inputVals')]));
-
     var dynamicWordCompleter = {
      	getCompletions: function(editor, session, pos, prefix, callback) {
  	    $.getJSON('/functions?codecompletion=' + prefix,
@@ -3164,6 +3160,10 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(datasetLateLoadViewModel, $('#datasetLateLoadPanel')[0]);
 		datasetLateLoadViewModel.renderDataset()
 
+	if (localStorage[username.concat('_inputVals_workflowId')] !== undefined && username == localStorage[username.concat('_inputVals_username')]){
+		samplesViewModel.loadIntoEditor(localStorage[username.concat('_inputVals_workflowId')]);
+	}
+
     $(window).on('unload', function() {
         if (refreshId != 0)
             clearInterval(refreshId);
@@ -3217,8 +3217,8 @@ function typeInTextarea(el, newText) {
 	})
 	
 	$(window).on('beforeunload', function(){
-		var script = $.trim(editor.getSession().getValue());
-    	localStorage.setItem(username.concat('_inputVals'), JSON.stringify(script) );
+		localStorage.setItem(username.concat('_inputVals_workflowId'), workflowId);
+		localStorage.setItem(username.concat('_inputVals_username'), username);
 	});
 	
 	// $(window).on('keypress', function(event){

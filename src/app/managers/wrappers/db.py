@@ -144,8 +144,8 @@ class ModuleManager():
          return Service.query.filter_by(**kwargs)
 
     @staticmethod
-    def add(user_id, value, access, users):
-        return Service.add(user_id, value, access, users)
+    def add(user_id, value, access, users, pipenv, pippkgs):
+        return Service.add(user_id, value, access, users, pipenv, pippkgs)
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):

@@ -62,7 +62,7 @@ class ModuleManager():
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
 
-    def add(self, user_id, value, access, users):
-        return self.persistance.add(user_id, value, access, users)
+    def add(self, user_id, value, access, users, pipenv, pippkgs):
+        return self.persistance.add(user_id, value, access, users, pipenv, pippkgs)
 
 modulemanager = ModuleManager()

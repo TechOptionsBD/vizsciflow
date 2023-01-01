@@ -1089,12 +1089,12 @@ class Service(db.Model):
         self.value = value
 
     @staticmethod
-    def add(user_id, value, access, users):
+    def add(user_id, value, access, users, pipenv, pippkgs):
         try:
             service = Service()
             service.user_id = user_id
             service.active = True
-            service.public = True if access == AccessType.PUBLIC else False
+            service.public = (access == AccessType.PUBLIC)
 
             if (access == AccessType.SHARED and users):
                 for user_id in users:
@@ -1105,6 +1105,8 @@ class Service(db.Model):
                     if matchuser:
                         service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
 
+            service.pipenv = pipenv
+            service.pippkgs = pippkgs
             service.update(value)
 
             db.session.add(service)

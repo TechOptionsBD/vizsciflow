@@ -184,11 +184,39 @@
 					<div class="row">
 						<div style="display : block">
 							<h4 class="col-sm-8">Dataset Panel</h4>
+						</div>
+					</div>
+					<div class="panel-primary" style="position: relative;">
+						<div class="datasources-panel-header" style="padding: 0;">
+							<div class="btn-group btn-group-sm">
+								<button id="btnAbout" class="btn btn-primary pull-right" data-toggle="tooltip"
+									data-placement="top" title="About" data-bind="click: about">
+									<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+								</button>
+								<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top"
+									title="Update Plugin Title" data-bind="click: reload">
+									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+								</button>
+								<button id="btnDownload" class="btn btn-primary pull-right" data-toggle="tooltip"
+									data-placement="top" title="Download" data-bind="click: download">
+									<i class="glyphicon glyphicon-download toolbar-icon"></i>
+								</button>
+								<button id="btnBeginFileUpload" class="btn btn-primary pull-right" data-toggle="modal"
+									data-placement="top" title="Upload" data-bind="click: beginFileUpload">
+									<i class="glyphicon glyphicon-upload toolbar-icon"></i>
+								</button>
+								<button id="btnBeginUpdateMetadata" class="btn btn-primary pull-right"
+									data-toggle="modal" data-placement="top" title="Update Metadata"
+									data-bind="click: beginUpdateMetadata">
+									<i class="glyphicon glyphicon-edit toolbar-icon"></i>
+								</button>
+								<button id="btnAddFolder" class="btn btn-primary pull-right" data-toggle="tooltip"
+									data-placement="top" title="Add Folder"
+									data-bind="click: addFolder, clickBubble: false">
+									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
+								</button>
 
-							<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Update Plugin Title"
-								data-bind="click: reload">
-								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
-							</button>
+							</div>
 						</div>
 					</div>
 				</div> 

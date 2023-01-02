@@ -5,6 +5,7 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
   self.datasetCtrl = datasetCtrlParam;
   self.buildPath = buildPath;
   let datasetList;
+  self.selectedNode = null;
 
   const initPlugin = function () {
     // initialize plugin
@@ -58,10 +59,95 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
       });
   };
 
+  self.download = $.debounce(500, function () {
+
+    node = self.selectedNode;
+    if (node === undefined) {
+      return;
+    }
+
+    $.redirect("/datasources", { 'download': node.original.path }, "POST", "_blank");
+  });
+
+
   self.reload = function () {
     $(self.datasetCtrl).empty();
     self.renderDataset();
   };
+
+  self.addFolder = $.debounce(500, function () {
+    node = self.datasetCtrl.datasetlist.getSelectedDataItem();
+
+    if (node === undefined)
+        return;
+    ajaxcalls.simple("/datasources", 'GET', { 'addfolder': node.original.path }).done(function (data) {
+        var newNodePosition = 'inside';
+        var parentNode = node;
+        var newNode = $('#tree').jstree().create_node(parentNode, data, newNodePosition, function () {
+            $("#btnAddFolder").removeClass('active');
+        });
+        $('#tree').jstree("deselect_all");
+        $("#tree").jstree(true).select_node(newNode);
+    });
+});
+
+  self.about = function () {
+    window.open("static/biodsl-help.html#datasources", '_blank');
+  };
+  self.beginFileUpload = function () {
+    centerDialog($('#file-upload-dialog'));
+    self.loadMetadataProperties();
+    ko.cleanNode($("#file-upload-dialog")[0]);
+    ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
+    $('#file-upload-dialog').modal('show');
+  }
+
+  self.beginUpdateMetadata = function () {
+    //centerDialog($('#update-metadata-dialog'));
+    var node = dataSourceViewModel.selectedNode().original;
+    // var node = dataSourceViewModel.selectedNode();
+    if (node === undefined)
+      return;
+
+    metadataViewModel.load(node.path);
+    $('#update-metadata-dialog').modal('show');
+  }
+
+  self.loadMetadataProperties = function () {
+
+    ajaxcalls.simple(metadataViewModel.metadataURI, 'GET', { 'properties': true }).done(function (data) {
+
+      self.visualizers = ko.observableArray();
+      $.each(data['visualizers'], function (key, value) {
+        self.visualizers.push(ko.observable(key + ": " + value))
+      });
+
+      self.mimetypes = ko.observableArray();
+      $.each(data['mimetypes'], function (key, value) {
+        self.mimetypes.push(ko.observable(key + ": " + value))
+      });
+
+    }).fail(function (jqXHR, a, b) {
+      showXHRText(jqXHR);
+    });
+  }
+
+  self.load = function () {
+    ajaxcalls.simple(self.scidatamgrURI, 'GET')
+      .done(function (data) {
+
+        self.datasets([]);
+        $.each(data.datasets, function (i, s) {
+          var dataset = s.schema;
+          dataset.id = s.id;
+          self.datasets.push(dataset);
+        });
+
+      }).fail(function (jqXHR) {
+        showXHRText(jqXHR);
+      });
+  };
+
 
   self.copyToEditorDoubleClick = function (url) {
     // exmpl = `datassss = \'${url}\'`

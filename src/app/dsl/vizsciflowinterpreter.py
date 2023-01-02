@@ -35,22 +35,28 @@ class VizSciFlowInterpreter(Interpreter):
         self.context.copyprops_to_currentthread()
         with app.app_context():
             self.run_multstmt(lambda: self.eval(expr))
-        
-    def dofor(self, expr):
+
+    def doparfor(self, expr):
         '''
-        Execute a for expression.
+        Execute a parallel for expression.
         :param expr:
         '''
-        if len(expr) <= 3:
-            #sequential for
-            super().dofor(expr)
+        taskManager = TaskManager() 
+        for var in self.eval(expr[1]):
+            taskManager.submit_func(self.doforpar_stmt, {expr[0]: var}, expr[2])
+        taskManager.wait()
+        
+    def eval(self, expr):        
+        '''
+        Evaluate an expression
+        :param expr: The expression in AST tree form.
+        '''
+        if expr and isinstance(expr, list) and expr[0] == "PARFOR":
+            return self.doparfor(expr[1])
         else:
-            #parallel for
-            taskManager = TaskManager() 
-            for var in self.eval(expr[1]):
-                taskManager.submit_func(self.doforpar_stmt, {expr[0]: var}, expr[3])
-            taskManager.wait()
-                        
+            return super().eval(expr)
+
+
     def dofunc(self, expr):
         '''
         Execute func expression.

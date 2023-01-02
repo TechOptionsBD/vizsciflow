@@ -178,3 +178,8 @@ def git_access():
         return git_access()
     except:
         logging.error("No local repository. Versioning of workflow will not work.")
+
+def strip_quote(data):
+    while (data.startswith('"') and data.endswith('"')) or (data.startswith("'") and data.endswith("'")):
+        data = data[1:-1]
+    return data

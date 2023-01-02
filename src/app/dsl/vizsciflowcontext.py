@@ -11,7 +11,7 @@ from app.managers.modulemgr import modulemanager
 from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit
 from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
 from app.objectmodel.models.rdb import Task
-from app.objectmodel.common import LogType, python_venvs
+from app.objectmodel.common import LogType, python_venvs, strip_quote
 
 class VizSciFlowContext(Context):
     lock = threading.Lock()
@@ -219,6 +219,7 @@ class VizSciFlowContext(Context):
     
     @staticmethod
     def normalize(data):
+        data = strip_quote(data)
         fs = Utility.fs_by_prefix_or_guess(data)
         return fs.normalize_path(str(data))
     

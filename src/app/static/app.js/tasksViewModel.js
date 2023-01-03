@@ -63,29 +63,10 @@ function TasksViewModel(sampleViewModel) {
         Name: "Public"
     });
 
-    // self.categories = ko.observableArray([
-    //     {
-    //         Id: 0,
-    //         Name: "Basic"
-    //     }, {
-    //         Id: 1,
-    //         Name: "Advanced"
-    //     }
-    // ]);
-
-    self.selectedCategory = ko.observable({
-        Id: 0,
-        Name: "Basic"
-    });
-
     self.setItemSrc = function(src) {
         self.itemSrc(src);
         // self.showModal(data, itemSrc);
         $('.nav-tabs a[href="#outputtab"]').tab('show');
-    }
-
-    self.selectCategory = function (category) {
-        self.selectedCategory(category);
     }
 
     // self.selectServiceAccessType = function (serviceAccessType) {
@@ -97,15 +78,9 @@ function TasksViewModel(sampleViewModel) {
         self.load();
         return true;
     }
-
     self.clearResults = function () {
-        $("#output").val("");
-        $("#error").val("");
-        $("#log tbody").empty();
-        $("#duration").text("0 ms");
-        printExecStatus("");
+        clearResults();
     }
-
     self.updateTask = function (task, newTask) {
         var i = self.tasks.indexOf(task);
         self.tasks()[i].package(newTask.package);

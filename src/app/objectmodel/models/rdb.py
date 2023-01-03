@@ -1190,7 +1190,7 @@ class Service(db.Model):
         return {
             'access': access,
             'service_id':  id,
-            'owner_id': is_owner,
+            'is_owner': is_owner,
             'shared_with':  ServiceAccess.get_by_service_id(id)
         }
 

@@ -131,6 +131,14 @@ function activateTab(tab){
  	$('#reportid').text("Runnable Id: " + reportId.toString());
  }
  
+ function clearResults() {
+	$("#output").val("");
+	$("#error").val("");
+	$("#log tbody").empty();
+	$("#duration").text("0 ms");
+	printExecStatus("");
+}
+
  function escapeHtml(unsafe) {
     return unsafe
         .replace(/&/g, "&amp;")

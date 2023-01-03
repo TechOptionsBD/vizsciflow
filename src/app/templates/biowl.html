@@ -615,13 +615,21 @@
 								<span id="executable-status"></span>
 								<div>
 									<table class="table table-striped" id="log" style="table-layout: fixed;">
+										<colgroup>
+											<col style="width: 10%;" />
+											<col style="width: 56%;" />
+											<col style="width: 12%;" />
+											<col style="width: 12%;" />
+											<col style="width: 10%;" />
+										</colgroup>
+
 										<thead>
 											<tr>
-												<th class="report-header" scope="col" width="15%">Task</th>
-												<th class="report-header" scope="col" width="60%" style="text-align:center;">Output</th>
-												<th class="report-header" scope="col" width="15%" style="text-align:center;">Status</th>
-												<th class="report-header" scope="col" width="10%" style="text-align:center;">Time</th>
-												<th class="report-header" scope="col" width="10%" style="text-align:center;">Logs</th>
+												<th class="report-header" scope="col">Task</th>
+												<th class="report-header" scope="col">Output</th>
+												<th class="report-header" scope="col">Status</th>
+												<th class="report-header" scope="col">Time</th>
+												<th class="report-header" scope="col">Logs</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -867,7 +875,7 @@
 								<span style="font-weight: bold;" data-bind="text: name"></span>
 								
 								<!-- workflow toolbar for owner only -->
-								<span id='workflowDropdown' class='service-toolbar workflow-toolbar' data-bind="visible: isOwner() == true">
+								<span id='workflowDropdown' class='service-toolbar workflow-toolbar' data-bind="visible: isOwner()">
 									<span id="copyProv" title="Provenance" data-bind="visible: handleModeViewModel.shouldProvElemShow(), event: {click: $parent.workflowToolbar} "
 										data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 										Prov.

@@ -45,15 +45,15 @@ function MetaDataViewModel() {
 
         formdata.append('save', self.path());
         formdata.append('filename', self.filename());
-        formdata.append('visualizers', ko.toJSON(self.visualizers));
-        formdata.append('annotations', ko.toJSON(self.annotations));
-        formdata.append('mimetypes', ko.toJSON(self.mimetypes));
-        formdata.append('properties', ko.toJSON(self.properties));
+        // formdata.append('visualizers', ko.toJSON(self.visualizers));
+        // formdata.append('annotations', ko.toJSON(self.annotations));
+        // formdata.append('mimetypes', ko.toJSON(self.mimetypes));
+        // formdata.append('properties', ko.toJSON(self.properties));
 
         ajaxcalls.form(self.metadataURI, 'POST', formdata).done(function(data) {
             self.isMetadataUpdated(true);
             self.newPath(self.path().replace(self.oldFileName(), self.filename()));
-            dataSourceViewModel.load(true);
+            datasetLateLoadViewModel.load(true);
         }).fail(function (jqXHR, a,b) {
                        
         });

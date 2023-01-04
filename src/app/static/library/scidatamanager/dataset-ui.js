@@ -19,6 +19,7 @@
         onItemClosing: $.noop,
         onItemClosed: $.noop,
         onDataItemDoubleClick: $.noop,
+        onSelectionChanged: $.noop,
         currentLoadedData: $.noop,
         selectedDataItem: null,
         apiUrl: null,
@@ -115,7 +116,7 @@
     };
 
     self.addNewDataset = function (data) {
-      if (!data || !data.id) {
+      if (!data) {
         return false;
       }
 
@@ -270,11 +271,15 @@
 
           const parent = data.node.parent;
           selectedNode = data.selected;
-          console.log("changed", selectedNode);
           const selectedNodeLoadInfo = getSelctedNodesStatus(
             dataset.id,
             selectedNode[0]
           );
+          
+          path = selectedNode[0];
+          if (path && !path.includes("load more")) {
+            settings.onSelectionChanged.call(null, e, { path: `/${path}`, data });
+          }
 
           if (
             selectedNode &&

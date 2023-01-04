@@ -570,7 +570,20 @@ def load_metadata(path):
         metadata['properties'] = properties
     
     return metadata
-    
+
+def save_metadata(request):
+    try:
+        path = request.form.get('save')
+        newname = request.form.get('filename')
+        
+        fs = Utility.fs_by_prefix_or_guess(path)
+        if not fs:
+            raise ValueError("path not found")
+        newpath = fs.rename(path, newname)
+        return jsonify(path=newpath)
+    except Exception as e:
+        return make_response(jsonify(err=str(e)), 500)
+#     
 # def save_metadata(request):
 #     path = request.form.get('save')
 #     newname = request.form.get('filename')
@@ -703,7 +716,10 @@ def datasets():
 @main.route('/metadata', methods=['GET', 'POST'])
 @login_required
 def metadata():
-    return json.dumps({})
+    if request.form.get('save'):
+        return save_metadata(request)
+    else:
+        json.dumps({})
 #     if request.args.get('load'):
 #         return json.dumps(load_metadata(request.args.get('load')))
 #     elif request.args.get('properties'):

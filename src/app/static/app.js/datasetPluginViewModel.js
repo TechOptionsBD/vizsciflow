@@ -1,16 +1,16 @@
 function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
   var self = this;
   self.scidatamgrURI = scidatapath;
-  self.datasetList = ko.observableArray();
+  self.dataSourcesURI = '/datasources';
+  self.datasets = ko.observableArray();
   self.datasetCtrl = datasetCtrlParam;
   self.buildPath = buildPath;
-  let datasetList;
-  self.selectedNode = null;
+  self.selectedPath = '';
 
   const initPlugin = function () {
     // initialize plugin
     datasetList = $(self.datasetCtrl).datasetlist({
-      data: self.datasetList(),
+      data: self.datasets(),
       searchBar: true,
       searchBarPlaceholder: "Search dataset in list",
       headerText: "SciDataManager Plugin Header Text",
@@ -19,6 +19,7 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
       getSelectedDataItem: getSelectedDataItem,
       onDataItemDoubleClick: onDataItemDoubleClick,
       onItemDrag: onDataItemDrag,
+      onSelectionChanged: onSelectionDataItemChanged,
       onItemExpand: onItemExpand,
       onItemExpanded: onItemExpanded,
       headerClass: "custom-dataset-header",
@@ -37,7 +38,7 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
   };
 
   self.renderDataset = function () {
-    self.datasetList([]);
+    self.datasets([]);
 
     // fetching api data
     ajaxcalls
@@ -50,7 +51,7 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
       .done(function (dataset) {
         if (dataset === undefined) return;
 
-        self.datasetList(dataset.data);
+        self.datasets(dataset.data);
         initPlugin();
       })
       .fail(function (jqXHR) {
@@ -61,12 +62,10 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
 
   self.download = $.debounce(500, function () {
 
-    node = self.selectedNode;
-    if (node === undefined) {
+    if (!self.selectedPath)
       return;
-    }
 
-    $.redirect("/datasources", { 'download': node.original.path }, "POST", "_blank");
+    $.redirect(self.dataSourcesURI, { 'download': self.selectedPath }, "POST", "_blank");
   });
 
 
@@ -76,18 +75,20 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
   };
 
   self.addFolder = $.debounce(500, function () {
-    node = self.datasetCtrl.datasetlist.getSelectedDataItem();
+    // node = self.datasetCtrl.datasetlist.getSelectedDataItem();
 
-    if (node === undefined)
+    if (!self.selectedPath)
         return;
-    ajaxcalls.simple("/datasources", 'GET', { 'addfolder': node.original.path }).done(function (data) {
-        var newNodePosition = 'inside';
-        var parentNode = node;
-        var newNode = $('#tree').jstree().create_node(parentNode, data, newNodePosition, function () {
-            $("#btnAddFolder").removeClass('active');
-        });
-        $('#tree').jstree("deselect_all");
-        $("#tree").jstree(true).select_node(newNode);
+    ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'addfolder': self.selectedPath}).done(function (data) {
+      datasetList.addNewDataset(data);
+
+        // var newNodePosition = 'inside';
+        // var parentNode = node;
+        // var newNode = $('#tree').jstree().create_node(parentNode, data, newNodePosition, function () {
+        //     $("#btnAddFolder").removeClass('active');
+        // });
+        // $('#tree').jstree("deselect_all");
+        // $("#tree").jstree(true).select_node(newNode);
     });
 });
 
@@ -96,20 +97,48 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
   };
   self.beginFileUpload = function () {
     centerDialog($('#file-upload-dialog'));
-    self.loadMetadataProperties();
+    //self.loadMetadataProperties();
     ko.cleanNode($("#file-upload-dialog")[0]);
-    ko.applyBindings(dataSourceViewModel, $("#file-upload-dialog")[0]);
+    ko.applyBindings(self, $("#file-upload-dialog")[0]);
     $('#file-upload-dialog').modal('show');
   }
 
-  self.beginUpdateMetadata = function () {
-    //centerDialog($('#update-metadata-dialog'));
-    var node = dataSourceViewModel.selectedNode().original;
-    // var node = dataSourceViewModel.selectedNode();
-    if (node === undefined)
-      return;
+  self.upload = function () {
 
-    metadataViewModel.load(node.path);
+    $('#file-upload-dialog').modal('hide');
+
+    var files = $("#upload").get(0).files;
+    var formdata = new FormData();
+    formdata.append('upload', files[0]); //use get('files')[0]
+    if (!self.selectedPath)
+      return;
+    formdata.append('path', self.selectedPath);//you can append it to formdata with a proper parameter name
+    // formdata.append('filename', $("#inputFilename").val());
+    // var visualizer = $("#inputVisualizer").val();
+    // if (visualizer) {
+    //     visualizer = visualizer.split(": ");
+    //     visualizer = {
+    //         [visualizer[0]]: visualizer[1]
+    //     };
+    //     formdata.append('visualizer', JSON.stringify(visualizer));
+    // }
+    // formdata.append('annotations', $("#inputAnnotations")[0].value);
+    // mimetype = $("#inputMimeType").val();
+    // if (mimetype) {
+    //     mimetype = mimetype.split(": ");
+    //     formdata.append('mimetype', JSON.stringify({ [mimetype[0].trim()]: mimetype[1].trim() }));
+    // }
+
+    ajaxcalls.form(self.dataSourcesURI, 'POST', formdata).done(function (data) {
+        // var inputFileName = $("#inputFilename").val();
+        // self.loadNewItem(node, inputFileName);
+    });
+  }
+
+  self.beginUpdateMetadata = function () {
+    if (!self.selectedPath)
+      reuturn;
+    metadataViewModel.load(self.selectedPath);
     $('#update-metadata-dialog').modal('show');
   }
 
@@ -195,6 +224,10 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
     path = self.buildPath(self.scidatamgrURI, dataset?.dataset?.pid, dataset.path);
     self.copyToEditorDoubleClick(path);
   };
+
+  const onSelectionDataItemChanged = function(e, dataset){
+    self.selectedPath = dataset.path ?? '';
+  }
 
   const onDataItemDrag = function (e, dataset) {
     path = self.buildPath(self.scidatamgrURI, dataset?.dataset?.pid, dataset.path);

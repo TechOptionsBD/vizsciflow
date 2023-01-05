@@ -886,7 +886,8 @@ function TasksViewModel(sampleViewModel) {
         params.forEach(function (param){
             exmpl += param.value + ','
         });
-        exmpl = exmpl.substring(0, exmpl.length - 1);
+        if (exmpl.endsWith(','))
+            exmpl = exmpl.substring(0, exmpl.length - 1);
         exmpl += ")";
 
         var pos = editor.selection.getCursor();             

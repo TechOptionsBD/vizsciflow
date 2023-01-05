@@ -119,13 +119,14 @@ function SampleViewModel() {
     self.add = function() {
         $('#addSample').modal('hide');
         
+        if (self.name() === undefined)
+            return;
+            
         var formdata = new FormData();
         formdata.append('sample', self.sampleEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
         
-        formdata.append('id', self.workflowId() === undefined ? 0 : self.workflowId());
+        formdata.append('id', self.workflowId() ?? 0);
 
-        if (self.name() === undefined)
-            return;
         formdata.append('name', self.name());
         
         if (self.desc() !== undefined)

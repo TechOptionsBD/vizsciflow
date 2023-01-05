@@ -238,7 +238,23 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
     else {
       koobj = ko.dataFor(target);
       if (koobj) {
-        koobj.value(path);
+        path = `\'${path}\'`;
+        value = koobj.value() ?? '';
+        value = value.trim();
+        if (value){
+          if (value.startsWith('[') && value.endsWith(']')){ // of array
+            value = value.substring(0, value.length - 1);
+            if (value.trim().length > 1)
+              value += ',';
+            value += path + ']';
+          }
+          else
+            value = path;
+        }
+        else
+          value = path;
+
+        koobj.value(value);
       }
     }
   };

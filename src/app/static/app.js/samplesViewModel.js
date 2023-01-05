@@ -139,6 +139,7 @@ function SamplesViewModel(sampleViewModel) {
     self.loadIntoEditor = function(item) {
         
         if (!item) {
+            workflowId = 0;
             self.sampleViewModel.clear();
             editor.session.setValue("", 1);
             return;

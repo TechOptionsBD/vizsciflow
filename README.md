@@ -8,6 +8,7 @@ Developers can follow the below steps to deploy it in local system.
 3. Install docker if it is not already installed using https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04 or follow these steps below:
 
 apt-get update -y
+
 apt-get upgrade -y
 
 sudo apt-get install -y \

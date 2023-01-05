@@ -5,7 +5,8 @@ Developers can follow the below steps to deploy it in local system.
 
 1. Clone the repository: git clone https://github.com/srlabUsask/vizsciflow.git
 2. cd into the folder: cd vizsciflow
-3. Install docker if it is not already installed using https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04 or follow these steps below:
+3. Run id command in terminal. Use the uid from its output and replace UID in .env file with it.
+4. Install docker if it is not already installed using https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04 or follow these steps below:
 
 apt-get update -y
 
@@ -31,3 +32,4 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 4. Build the docker: sudo docker-compose up -d
 5. Browse localhost:5000
+6. You need to add the modules and initialize the database to get your system running. The instruction will come shortly.

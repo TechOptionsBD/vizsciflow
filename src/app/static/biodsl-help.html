@@ -143,7 +143,7 @@ There is a small toolbar on top of data source panel.
 <h3><a name="services">Services Panel</a></h3>
 <img alt="Services" src="biodsl-services.png" />
 <p>
-The services/tools for the workflows are listed on the right-top corner of the UI. There are 3 different access modes for the service.
+The services/tools/modules for the workflows are listed on the right-top corner of the UI. There are 3 different access modes for the service.
 </p>
 <ol>
 	<li>Public: Accessible by all users.</li>
@@ -151,15 +151,15 @@ The services/tools for the workflows are listed on the right-top corner of the U
 	<li>Private: Accessible only by the logged on user himself.</li>
 </ol>
 
-<!-- <p>There are two operation modes of the services shown by a dropdown list. If basic is selected, some advanced operations for experienced users are hidden from the service list.</p> -->
-
 <h4><a name="addservice">Add New Service</a></h4>
 
 <p>
-Experienced users can extend the capabilities of the system by adding new services to it. Different types of tools can be integrated into VizSciFlow system.
+Experienced users can extend the capabilities of the system by adding new services to it. It is important to decide the input and output of the tool. You may have multiple threads in the tool, but it must have a single synchrounous exit point.
+
+Different types of tools can be integrated into VizSciFlow system.
 
 <ol>
-	<li>Python code: You can wrap python code in the code editor as a tool. If you need a module from Pypi, add the module to <b>pip install</b> textbox.</li>
+	<li>Python code: You can wrap python code in the code editor as a tool. If you need a module from PyPi, add the module to <b>pip install</b> textbox.</li>
 	<li>Python module: You can attach your python module with <b>Add file</b> button. You need to use the module in your adapter code.</li>
 	<li>External standalone tool: You can add the package with <b>Add File</b> and then use it from the adapter. If it is a zip/tar/bz file, it will be extracted where the adapter resides. You need to know the extracted folder to use its executable.</li>
 	<li>External installer: This type of tools can't be installed directly. They need interactive installation or compilation which only administrators can do. More about it in the limitations below.</li>
@@ -168,9 +168,9 @@ Experienced users can extend the capabilities of the system by adding new servic
 To add an external tool, you must know how to call the tool from python. 
 <ul>
 	<li>The location of the tool.</li>
-	<li>The arguments it accepts.</li>
-	<li>The result it returns. The return value is important to use its result in another tool.</li>
-	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and the file must be returned.</li>
+	<li>The arguments it accepts. Some of these arguments might be your (formatted) input parameters.</li>
+	<li>The result it returns. Sometimes, stdout and stderr may be necessary. Your output of the tool will be selected/calculated from these values.</li>
+	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and returned.</li>
 </ul>
 
 
@@ -178,9 +178,10 @@ To add an external tool, you must know how to call the tool from python.
 
 In the service pane, the "+" button opens the dialog for <strong>Service Mapping</strong>. There are two tabs:
 <ul>
-	<li><strong>Code</strong>:It containes the adapter code to connect VizSciFlow DSL with external module or executable. The VizSciFlow scheduler triggers this code during execution.</li>
-	<li><strong>JSON</strong>:It binds the service with VizSciFlow service/module catalog.</li>
+	<li><strong>Code</strong>:It containes the adapter code to connect VizSciFlow DSL with external module or executable. The VizSciFlow scheduler triggers this code during execution of the tool.</li>
+	<li><strong>JSON</strong>:It binds the service parameters with the inputs and outputs of workflow step.</li>
 </ul>
+
 Here is a simple service code which returns the first argument:
 </p>
 <div class="row">
@@ -204,14 +205,18 @@ def demo_service(context, *args, **kwargs):
 <ul>
 	<li><i>gettempdir():</i> path to user's temp directory in normalized and resolved form.</li>
 	<li><i>getpublicdir():</i> path to user's public directory in normalized and resolved form.</li>
+	<li><i>createoutdir(outname = None):</i> Creates a unique output directory.</li>
 	<li><i>getnormdir(__file__):</i> When used in an adapter file, path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
-	<li><i>normalize(path):</i> Normalizes a path from VizSciFlow VFS to physical path.</li>
-	<li><i>denormalize(path):</i> Denormalizes a path from physical path to VizSciFlow VFS.</li>
+	<li><i>normalize(path):</i> Normalizes a path from VizSciFlow VFS to physical path. Your input is usually converted into abstract form automatically.</li>
+	<li><i>denormalize(path):</i> Denormalizes a path from physical path to VizSciFlow VFS. Your abstract path is automatically converted into output in VFS form.</li>
 	<li><i>moveto(src, dest, ignores=[]):</i> moves contents of src directory to dest</li>
 	<li><i>copyto(src, dest, ignores=[]):</i> copies contents of src directory to dest</li>
-	<li><i>exec_run(executable, *args):</i> Runs an executable file. You can also pass values for cwd=path and env=path for current working directory and environment path respectively.</li>
-	<li><i>bash_run(script, *args):</i> Runs an bash script. You can also pass values for cwd=path and env=path if needed.</li>
-	<li><i>pyvenv_run(tooldir, script, *args):</i> Runs an python script. tooldir=os.path.dirname(__file__)</li>
+	<li><i>exec_run(executable, *args):</i> Runs an executable file. You can also pass values for cwd=path and env=path for current working directory and environment path respectively. It returns stdout and stderr.</li>
+	<li><i>bash_run(script, *args):</i> Runs a bash script. You can also pass values for cwd=path and env=path if needed. It returns stdout and stderr.</li>
+	<li><i>bash_run_out_err_exit(script, *args):</i> Runs a bash script and returns stdout, stderr and exit code.</li>
+	<li><i>pyvenv_run(tooldir, script, *args):</i> Runs a python script. tooldir=os.path.dirname(__file__). It returns stdout and stderr.</li>
+	<li><i>parse_args(funcname, package, *args, **kwargs):</i> Use this method to parse the arguments. See src/plugins/modules/blast/adapter.py for examples.</li>
+	<li><i>save_stdout_stderr(out, err):</i> Saves stdout and stderr of a task in the database.</li>
 </ul>
 
 <p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". <strong>&lt;package&gt;.&lt;name&gt;</strong> or (only <strong>&lt;name&gt;</strong> if package is empty) must be unique to the DSL vocabulary.</p>
@@ -248,20 +253,22 @@ If you run this 10 will be printed in log.
 <ol>
 	<li>Download the FastQC tool from the Internet.</li>
 	<li>Add it in "Add Service" dialog using "Choose File...".</li>
-	<li>Write adapter to call its fastqc file. It should look similar to below code:</li>
+	<li>Write an adapter to call this fastqc tool. It should look similar to below code:</li>
 </ol>
 
 <pre><code class="python">
 from os import path
 from pathlib import Path
 
+fastqc = path.join(path.abspath(path.dirname(__file__)), path.join('bin', 'fastqc'))
+
 def demo_service(context, *args, **kwargs):
-	fastqc = path.join(context.getnormdir(__file__), 'FastQC', 'fastqc')
-	context.exec_run(fastqc, args[0], "--outdir=" + context.gettempdir())
-	filestem = Path(args[0]).stem
-	html = path.join(context.gettempdir(), filestem + "_fastqc.html")
-	zip = path.join(context.gettempdir(), filestem + ".zip")
-	return html,zip
+	arguments = context.parse_args('CheckQuality', 'fastqc', *args, **kwargs)
+	outdir = context.createoutdir()
+	cmdargs = [arguments["data"], "--outdir=" + outdir]
+	context.exec_run(fastqc, *cmdargs)
+	outname = Path(arguments["data"]).stem
+	return path.join(outdir, outname + "_fastqc.html"), path.join(outdir, outname + "_fastqc.zip")
 </code>
 </pre>
 
@@ -361,10 +368,14 @@ Here is another adapter for running a python script (fastqe) which is installed 
 
 <pre><code class="python">
 from os import path
+from pathlib import Path
+
 thispath = path.dirname(__file__)
 def demo_service(context, *args, **kwargs):
-	output = context.gettempdir() + '/fastqe_output.html'
-	context.pyvenv_run(thispath, 'fastqe', args[0], "--output=" + output)
+	arguments = context.parse_args('FastQE', 'fastqc', *args, **kwargs)
+	outdir = context.createoutdir()
+	output = path.join(outdir, Path(arguments['data']).stem + "_fastqe.html")
+	context.pyvenv_run(thispath, 'fastqe', arguments['data'] + ' --min --max --output=' + output)
 	return output
 </code>
 </pre>

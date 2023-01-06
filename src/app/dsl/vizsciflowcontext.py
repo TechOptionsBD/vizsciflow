@@ -11,7 +11,7 @@ from app.managers.modulemgr import modulemanager
 from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit
 from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
 from app.objectmodel.models.rdb import Task
-from app.objectmodel.common import LogType, python_venvs, strip_quote
+from app.objectmodel.common import LogType, get_python_venvs, strip_quote
 
 class VizSciFlowContext(Context):
     lock = threading.Lock()
@@ -183,10 +183,6 @@ class VizSciFlowContext(Context):
             return tempfile.gettempdir()
     
     @staticmethod
-    def get_pyvenv(venv):
-        return python_venvs[venv]
-                
-    @staticmethod
     def exec_in_env(f, app, *args, **kwargs):
         oldcwd = os.getcwd() if 'cwd' in kwargs else None
         oldenvpath = os.environ["PATH"] if 'env' in kwargs else None
@@ -213,6 +209,10 @@ class VizSciFlowContext(Context):
     def bash_run_out_err_exit(app, *args, **kwargs):
         return VizSciFlowContext.exec_in_env(func_exec_bash_out_err_exit, app, *args, **kwargs)
     
+    @staticmethod
+    def pyvenv_run_in_env(toolpath, app, *args, **kwargs):
+        return VizSciFlowContext.exec_in_env(pyvenv_run, toolpath, app, *args, **kwargs)
+
     @staticmethod
     def pyvenv_run(toolpath, app, *args):
         return pyvenv_run(toolpath, app, *args)
@@ -254,3 +254,26 @@ class VizSciFlowContext(Context):
         if not id:
             raise ValueError("No valid workflow.")
         return id
+    
+    def get_mypyvenv(self, name = 'None'):
+        from app import app
+
+        venvpath = os.path.join(app.config['VENVS_ROOT_PATH'], "users", self.user_id, name)
+        if not os.path.isdir(venvpath):
+            raise ValueError(f"{name} virtual environment for user {self.user_id} doesn't exist.")
+        return venvpath
+
+    @staticmethod
+    def get_pyvenv(name = None):
+        from app import app
+        if not name:
+            name = '.venv'
+        venvpath = os.path.join(app.config['VENVS_ROOT_PATH'], name)
+        if not os.path.isdir(venvpath):
+            raise ValueError(f"{name} virtual environment doesn't exist.")
+        return venvpath
+
+    # @staticmethod
+    # def get_pyvenv(venv):
+    #     return get_python_venvs[venv]
+                

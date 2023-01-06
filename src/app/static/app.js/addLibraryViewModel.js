@@ -16,27 +16,44 @@ function AddLibraryViewModel(userName) {
     self.TList = ko.observableArray();
     self.pippkgsList = ko.observableArray();
     
-    ajaxcalls.simple(self.tasksURI, 'GET', { 'pyenvs': '' }).done(function (data) {
-        
-        $(data["pyvenvs"]).each((index, element)=> {
-            self.pippkgsList.push(element);
+    self.loadpipenvs = function(){
+        self.pippkgsList.removeAll();
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'pyenvs': '' }).done(function (data) {
+            
+            $(data["pyvenvs"]).each((index, element)=> {
+                self.pippkgsList.push(element);
+            });
+            
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
         });
-        
-    }).fail(function (jqXHR) {
-        showXHRText(jqXHR);
-    });
+    }
 
-    ajaxcalls.simple(self.tasksURI, 'GET', { 'datatypes': '' }).done(function (data) {
-        
-        $(data["datatypes"]).each((index, element)=> {
-            self.TList.push(element);
+    self.loaddatatypes = function(){
+        self.TList.removeAll();
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'datatypes': '' }).done(function (data) {
+            $(data["datatypes"]).each((index, element)=> {
+                self.TList.push(element);
+            });
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
         });
-        
-    }).fail(function (jqXHR) {
-        showXHRText(jqXHR);
-    });
-
+    }
     //ko.observableArray(['python2', 'python3']);
+
+    self.beginAddLibrary = function () {
+        $("#add-library-info").text("");
+        $.getJSON('/functions?demoserviceadd', function (demoservice) {
+            self.getCodeEditor().setValue(demoservice.demoservice.script, 1);
+            self.editService(demoservice.demoservice.mapper)
+            self.getUsers();
+            self.loadpipenvs();
+            self.loaddatatypes();
+
+            centerDialog($('#add'));
+            $('#add').modal('show');
+        })
+    }
 
     self.toggleFuncArea = function () {  
         if (!self.isFuncExpanded()) {

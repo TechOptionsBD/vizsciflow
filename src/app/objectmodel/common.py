@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import inspect
+from pathlib import Path
 from collections import UserDict, UserList
 
 def isiterable(p_object):
@@ -30,6 +31,19 @@ python_venvs = {
     'python3': '/home/venvs/.venv3',
     'pycoqc': '/home/venvs/.venvpycoqc'
 }
+
+def get_python_venvs(user_id = None):
+    from app import app
+    python_venvs = {}
+    venvspath = Path(app.config['VENVS_ROOT_PATH'])
+    for venv in venvspath.iterdir():
+        if venv == 'users' and user_id:
+            uservenvspath = Path(os.path.join(app.config['VENVS_ROOT_PATH'], venv, str(user_id)))
+            for uservenv in uservenvspath.iterdir():
+                python_venvs.update({os.path.join(str(user_id), uservenv.parts[-1]): os.path.join(uservenvspath, uservenv)})
+        else:
+            python_venvs.update({venv.parts[-1]: os.path.join(venvspath, venv)})
+    return python_venvs
 
 known_types = KnownTypes({
     'int': int,

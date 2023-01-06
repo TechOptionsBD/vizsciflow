@@ -164,6 +164,7 @@ def install(pipenv, package):
     if not pipenv:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
     else:
+        python_venvs = get_python_venvs(current_user.id)
         if not pipenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
@@ -357,7 +358,7 @@ def get_datatypes():
 
 def get_pyvenvs():
     pyvenvs = []
-    for t in python_venvs:
+    for t in get_python_venvs().keys():
         pyvenvs.append(t)
     return jsonify(pyvenvs = pyvenvs)
 

@@ -79,6 +79,7 @@
 <script src="/static/app.js/filterViewModel.js"></script>
 <script src="/static/app.js/ajaxCalls.js"></script>
 <script src="/static/app.js/tasksViewModel.js"></script>
+<script src="/static/app.js/sampleViewModel.js"></script>
 <script src="/static/app.js/samplesViewModel.js"></script>
 <script src="/static/app.js/gridStackViewModel.js"></script>
 <script src="/static/app.js/uiComponentsControl.js"></script>
@@ -86,7 +87,6 @@
 <script src="/static/app.js/addLibraryViewModel.js"></script>
 <script src="/static/app.js/aceEditor.js"></script>
 <script src="/static/app.js/detailGraphViewModel.js"></script>
-<script src="/static/app.js/sampleViewModel.js"></script>
 <script src="/static/app.js/controlFlowViewModel.js"></script>
 <script src="/static/app.js/provGraphViewModel.js"></script>
 <script src="/static/app.js/monitorGraphViewModel.js"></script>
@@ -2473,7 +2473,6 @@
 
 <script type="text/javascript">
     var refreshId = 0;
-    var workflowId = 0;
     var reportId = 0;
     var isDirty = false;
     var username = "{{ username }}";
@@ -2990,24 +2989,7 @@ function typeInTextarea(el, newText) {
 
     // configure ace.js for code editor
     var langTools = ace.require("ace/ext/language_tools");
-    var editor = ace.edit("editor");
-    editor.renderer.setShowGutter(false);
-    editor.getSession().setMode("ace/mode/python");
-    editor.setOptions({
-    	highlightSelectedWord: true, 
-    	enableBasicAutocompletion: true,
-    	autoScrollEditorIntoView: true,
-    	fontSize: "11pt"
-    });
-    editor.renderer.setOptions({
-    	showGutter: true, 
-    	displayIndentGuides: true
-    });
-    //editor.setKeyboardHandler("ace/keyboard/vim");
-    //editor.setTheme("ace/theme/idle_fingers");
-    //editor.setTheme("ace/theme/twilight");
-    editor.setTheme("ace/theme/iplastic");
-    editor.setShowPrintMargin(false);
+	var editor = CreateAceEditor("#editor", "ace/mode/python", '100%');
     editor.on("input", function() {
         isDirty = !editor.session.getUndoManager().isClean();
     });
@@ -3117,7 +3099,7 @@ function typeInTextarea(el, newText) {
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
 		var addProvPluginViewModel = new AddProvPluginViewModel(ace);
-        var sampleViewModel = new SampleViewModel();
+        var sampleViewModel = new SampleViewModel(editor);
 		var editTaskViewModel = new EditTaskViewModel();
 		var provgraphviewmodel = new provgraphViewModel();
 		var monitorGraphViewModel = new monitorGraphViewModel();
@@ -3152,7 +3134,7 @@ function typeInTextarea(el, newText) {
         ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
 		ko.applyBindings(addProvPluginViewModel, $('#addProv')[0]);
-        ko.applyBindings(sampleViewModel, $('#addSample')[0]);
+        ko.applyBindings(samplesViewModel.sampleViewModelToAdd, $('#addSample')[0]);
 		ko.applyBindings(sampleViewModel, $('#argumentsPanel')[0]);
         ko.applyBindings(editTaskViewModel, $('#edit')[0]);
         ko.applyBindings(metadataViewModel, $('#metadataView')[0]);
@@ -3252,7 +3234,7 @@ function typeInTextarea(el, newText) {
 	})
 	
 	$(window).on('beforeunload', function(){
-		localStorage.setItem(username.concat('_inputVals_workflowId'), workflowId);
+		localStorage.setItem(username.concat('_inputVals_workflowId'), sampleViewModel.workflowId());
 		localStorage.setItem(username.concat('_inputVals_username'), username);
 	});
 	

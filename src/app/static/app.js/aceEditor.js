@@ -19,7 +19,7 @@ function CreateAceEditor(editorId, mode, height, readonly = false) {
     mapperEditor.renderer.setShowGutter(false);
     mapperEditor.getSession().setValue(mapperArea.val());
     mapperEditor.getSession().setMode(mode);
-    mapperEditor.setOptions({ highlightSelectedWord: true, enableBasicAutocompletion: true, readOnly : readonly });
+    mapperEditor.setOptions({ highlightSelectedWord: true, enableBasicAutocompletion: true, readOnly : readonly, fontSize: "12pt"});
     mapperEditor.renderer.setOptions({ showGutter: true, displayIndentGuides: true });
     //editor.setKeyboardHandler("ace/keyboard/vim");
     //editor.setTheme("ace/theme/idle_fingers");

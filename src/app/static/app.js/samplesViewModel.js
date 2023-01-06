@@ -6,7 +6,8 @@ function SamplesViewModel(sampleViewModel) {
     self.clicks = 0;
     self.timer = null;
     self.items = ko.observableArray();
-    self.sampleViewModel = sampleViewModel;
+    self.sampleViewModel = sampleViewModel; // the editor workflow
+    self.sampleViewModelToAdd = new SampleViewModel(); // the workflow for save/saveas dialog
     self.access = ko.observable("0");
     self.workflowFilter = ko.observable("");
     self.wfList = ko.observableArray();
@@ -44,40 +45,40 @@ function SamplesViewModel(sampleViewModel) {
     
     self.beginAdd = function(saveas) {
         var script = editor.getSession().getValue().trim();
-        if (script.length == 0 && workflowId == 0) { // script empty and not saved yet
+        if (script.length == 0 && self.sampleViewModel.workflowId() == 0) { // script empty and not saved yet
             return false;
         }
 
         if (saveas === undefined)
             saveas = false;
-        saveas = saveas.saveas || workflowId <= 0;
+        saveas = saveas.saveas || self.sampleViewModel.workflowId <= 0;
         
-        self.sampleViewModel.getCodeEditor().setValue(script, 1);
+        self.sampleViewModelToAdd.copy(self.sampleViewModel);
+        self.sampleViewModelToAdd.getCodeEditor().setValue(script, 1);
+        self.sampleViewModelToAdd.loaddatatypes();
 
-        if (workflowId == 0) {
-            self.sampleViewModel.wfParams.removeAll();
-            self.sampleViewModel.wfReturns.removeAll();
-            if (!self.sampleViewModel.name())
-                self.sampleViewModel.name("No Name");
-            if (!self.sampleViewModel.desc())
-                self.sampleViewModel.desc("No description");
-            self.sampleViewModel.getUsers();
-            self.sampleViewModel.workflowId(0);
+        if (self.sampleViewModelToAdd.workflowId() == 0) {
+            self.sampleViewModelToAdd.wfParams.removeAll();
+            self.sampleViewModelToAdd.wfReturns.removeAll();
+            if (!self.sampleViewModelToAdd.name())
+                self.sampleViewModelToAdd.name("No Name");
+            if (!self.sampleViewModelToAdd.desc())
+                self.sampleViewModelToAdd.desc("No description");
         }
         else {
 
-            ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': workflowId}).done(function(data) {
+            ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': self.sampleViewModelToAdd.workflowId()}).done(function(data) {
             
                 if ($.isEmptyObject(data))
                     return;
                 
-                self.sampleViewModel.copyFromJson(data);
+                self.sampleViewModelToAdd.copyFromJson(data);
                 if (saveas) {
-                    self.sampleViewModel.workflowId(0);
+                    self.sampleViewModelToAdd.workflowId(0);
                 }
             });
         }
-        self.sampleViewModel.getUsers();
+        self.sampleViewModelToAdd.getUsers();
 
         $('#addSample').modal('show')
             .on('show.bs.modal', function () {
@@ -102,7 +103,7 @@ function SamplesViewModel(sampleViewModel) {
         var script = $.trim(editor.getSession().getValue());
         if (script)
             script = script.trim();
-       if (!script && !workflowId) // || editor.session.getUndoManager().isClean())
+       if (!script && !self.sampleViewModel.workflowId()) // || editor.session.getUndoManager().isClean())
               return false; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
           
        return isDirty;
@@ -139,7 +140,6 @@ function SamplesViewModel(sampleViewModel) {
     self.loadIntoEditor = function(item) {
         
         if (!item) {
-            workflowId = 0;
             self.sampleViewModel.clear();
             editor.session.setValue("", 1);
             return;
@@ -170,7 +170,7 @@ function SamplesViewModel(sampleViewModel) {
             editor.session.insert(pos, data['script'] + "\r\n");
             editor.focus();
 
-            workflowId = item.id();
+            self.sampleViewModel.workflowId(item.id());
         }).fail(function(jqXHR) {
             showXHRText(jqXHR);
         });

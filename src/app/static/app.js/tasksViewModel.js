@@ -95,14 +95,7 @@ function TasksViewModel(sampleViewModel) {
     }
 
     self.beginAddLibrary = function () {
-        $("#add-library-info").text("");
-        $.getJSON('/functions?demoserviceadd', function (demoservice) {
-            addLibraryViewModel.getCodeEditor().setValue(demoservice.demoservice.script, 1);
-            addLibraryViewModel.editService(demoservice.demoservice.mapper)
-            addLibraryViewModel.getUsers();
-            centerDialog($('#add'));
-            $('#add').modal('show');
-        })
+        addLibraryViewModel.beginAddLibrary();
     }
 
     self.about = function () {
@@ -111,11 +104,11 @@ function TasksViewModel(sampleViewModel) {
 
     self.updateWorkflow = function (save) {
         var script = $.trim(editor.getSession().getValue());
-        if (!script && !workflowId) // || editor.session.getUndoManager().isClean())
+        if (!script && !self.sampleViewModel.workflowId()) // || editor.session.getUndoManager().isClean())
             return; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
 
         // workflow not saved yet
-        if (!workflowId && save) {
+        if (!self.sampleViewModel.workflowId() && save) {
             // Show save dialog if user explicitely clicked save/saveas button
             return self.sampleViewModel.beginAdd({saveas: true});
             // save with default name and private access.
@@ -123,7 +116,7 @@ function TasksViewModel(sampleViewModel) {
 
         var formdata = new FormData();
 
-        formdata.append('workflowId', parseInt(workflowId));
+        formdata.append('workflowId', self.sampleViewModel.workflowId());
         formdata.append('script', script);
 
         ajaxcalls.form(self.tasksURI, 'POST', formdata, false).done(function (data) {
@@ -132,7 +125,7 @@ function TasksViewModel(sampleViewModel) {
                     throw Error(data.err);
                 }
                 else {
-                    workflowId = parseInt(data['workflowId']);
+                    self.sampleViewModel.workflowId(parseInt(data['workflowId']));
                     self.sampleViewModel.name(data['name']);
                     editor.session.getUndoManager().markClean();
                 }
@@ -251,7 +244,7 @@ function TasksViewModel(sampleViewModel) {
     }
 
     self.runProvenanceInternal = function (task) {
-        if (!workflowId) {
+        if (!self.sampleViewModel.workflowId()) {
             $("#error").val("Workflow is not updated or it is not saved. Change the code and run again.");
             return;
         }
@@ -263,7 +256,7 @@ function TasksViewModel(sampleViewModel) {
         $('#refresh').show();
         var formdata = new FormData();
 
-        formdata.append('workflowId', parseInt(workflowId));
+        formdata.append('workflowId', self.sampleViewModel.workflowId());
         formdata.append('args', ko.toJSON(self.sampleViewModel.wfArgs));
         formdata.append('immediate', 'true');
         formdata.append('provenance', 'true');
@@ -710,7 +703,7 @@ function TasksViewModel(sampleViewModel) {
 
         var formdata = new FormData();
 
-        formdata.append('workflowId', parseInt(workflowId));
+        formdata.append('workflowId', self.sampleViewModel.workflowId());
 
         $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
             $('#liProvenanceTab').show();

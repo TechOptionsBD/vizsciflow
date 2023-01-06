@@ -1,4 +1,4 @@
-function SampleViewModel() {
+function SampleViewModel(editor) {
     var self = this;
     self.samplesURI = '/samples';
     self.tasksURI = '/functions';
@@ -13,18 +13,19 @@ function SampleViewModel() {
     self.wfArgs = ko.observableArray();
     self.wfReturnArgs = ko.observableArray();
     self.TList = ko.observableArray();
-    self.sampleEditor = CreateAceEditor("#sample", "ace/mode/python", '40vh');
+    self.sampleEditor = editor ?? CreateAceEditor("#sample", "ace/mode/python", '40vh');
    
-    ajaxcalls.simple(self.tasksURI, 'GET', { 'datatypes': '' }).done(function (data) {
-        
-        $(data["datatypes"]).each((index, element)=> {
-            self.TList.push(element);
+    self.loaddatatypes = function(){
+        self.TList.removeAll();
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'datatypes': '' }).done(function (data) {
+            $(data["datatypes"]).each((index, element)=> {
+                self.TList.push(element);
+            });
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
         });
-        
-    }).fail(function (jqXHR) {
-        showXHRText(jqXHR);
-    });
-
+    }
+   
     self.clear = function(){
         self.workflowId(0);
         self.name("No Name");
@@ -165,7 +166,6 @@ function SampleViewModel() {
                 self.copyFromJson(data);
 
                 // update view
-                workflowId = data.id;
                 editor.session.getUndoManager().markClean();
             }
         });

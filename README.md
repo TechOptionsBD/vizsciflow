@@ -40,7 +40,8 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 12. Download vizsciflow.sql file from this location: https://drive.google.com/drive/folders/1GWFv_NK7MPAqXO2bInA34vGk-_J4BNUI?usp=sharing
 13. Copy vizsciflow.sql file to vizsciflowdb docker: docker cp vizsciflow.sql vizsciflowdb:/
 14. Shell into the vizsciflowdb docker. docker exec -it vizsciflowdb /bin/bash
-15. Restore the database from vizsciflow.sql inside vizsciflowdb shell:  pg_restore -U postgres -d biowl vizsciflow.sql
+15. Restore the database from vizsciflow.sql inside vizsciflowdb shell:  psql -U phenodoop -d biowl<vizsciflow.sql.
+(In case of error in step 15, use: pg_restore -U postgres -d biowl vizsciflow.sql)
 16. Log into the system with username: testuser@usask.ca and password: aaa
 17. Browse or reload localhost:5000
 18. Install "Docker" extension in vscode. "Docker" tab will appear.

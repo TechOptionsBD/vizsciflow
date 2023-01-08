@@ -4,10 +4,19 @@ function AddLibraryViewModel(userName) {
     self.name = ko.observable(userName);
     self.org = ko.observable();
     self.access = ko.observable();
+    self.reqfile = ko.observable();
     self.pippkgs = ko.observable();
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
-     
+    self.NewVenvName = ko.observable('');
+    self.hasNewVenvName = ko.computed(function () { 
+        return self.NewVenvName() !== undefined && self.NewVenvName().trim().length > 0; 
+    });
+    
+    self.NotHasNewVenvName = ko.computed(function () { 
+        return self.NewVenvName() === undefined || self.NewVenvName().trim().length == 0; 
+    });
+
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
 
@@ -16,6 +25,19 @@ function AddLibraryViewModel(userName) {
     self.TList = ko.observableArray();
     self.pippkgsList = ko.observableArray();
     
+    self.addNewVenv = function() {
+        if (self.NewVenvName().trim().length == 0)
+            return;
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'newpyvenvs':  self.NewVenvName()}).done(function (data) {
+            if (!data['err']){
+                self.NewVenvName('');
+                self.loadpipenvs();
+            }
+            
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    }
     self.loadpipenvs = function(){
         self.pippkgsList.removeAll();
         ajaxcalls.simple(self.tasksURI, 'GET', { 'pyenvs': '' }).done(function (data) {
@@ -248,8 +270,13 @@ function AddLibraryViewModel(userName) {
         
         if (self.access() !== undefined)
             formdata.append('publicaccess', self.access());
-        if (self.pippkgs() !== undefined)
+        if (self.pippkgs() !== undefined && self.pippkgs().trim().length > 0)
             formdata.append('pippkgs', self.pippkgs());
+        
+        var reqfiles = $("#reqfile").get(0).files;
+        if (reqfiles.length > 0)
+            formdata.append('reqfile', reqfiles[0]);
+
         if (self.selectedSharingUsers().length > 0) {
             formdata.append('sharedusers', ko.toJSON(self.selectedSharingUsers));
         }

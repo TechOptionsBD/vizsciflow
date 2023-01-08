@@ -1021,21 +1021,39 @@
 			</div>
 			<br><br>
 			<div class="row service-form-group">
-				<div class="span-sm-14">
-					<div class="row service-form-group">
-						<label class="span-sm-5" for="pippkgs">pip Install</label>
-						<div class="span-sm-14" style="display: flex; column-gap: 10px;">
-							<select style="padding: 5px 9px;
-							width: 100%;
-							border-radius: 5px;
-							font-size: 17px;
-							font-weight: 100;" data-bind="options: pippkgsList"></select>
-							<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
+				<div class="span-sm-20">
+					<div class="row service-form-group span-sm-20" style="display: flex; column-gap: 10px; padding: 20px;">
+						<div class="span-sm-20" style="border-right: 1px soild;">
+							<div style="display: flex; column-gap: 10px; padding-bottom: 10px;">
+								<label class="span-sm-5" for="pippkgs">pip Install</label>
+								<div class="span-sm-14" style="display: flex; column-gap: 10px;">
+									<select style="padding: 5px 9px;
+									width: 100%;
+									border-radius: 5px;
+									font-size: 17px;
+									font-weight: 100;" data-bind="enable: NotHasNewVenvName, options: pippkgsList"></select>
+								</div>
+							</div>
+							<div style="display: flex; column-gap: 15%;">
+								<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn" style="padding: 6px 1px; margin-left: 12px;">New venv</button>
+								<input type="text" data-bind='value: NewVenvName' class="form-control" id="newvenvname" style="width: 65%;" >
+							</div>
+						</div>
+						<div class="span-sm-20">
+							<div style="display: flex; column-gap: 10px; padding-bottom: 10px;">
+								<label class="span-sm-5" for="pippkgs">Packages</label>
+								<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
+							</div>
+							<div>
+								<label class="span-sm-5" for="reqfile">Req file </label>
+								<input type="file" class="form-control-file" id="reqfile" style="margin-left: 15px;" data-bind="value: reqfile">
+							</div>
+
 						</div>
 					</div>
-					<div class="row service-form-group">
+					<div class="row service-form-group span-sm-9" style="margin-left: 30px;">
 						
-						<label class="span-sm-3" for="access">Public</label>
+						<label class="span-sm-3" style="margin: 0px 0px 5px;" for="access">Public</label>
 						<div class="span-sm-2">
 							<input type="checkbox" id="access" data-bind="checked: access">
 						</div>

@@ -170,6 +170,16 @@ def install(pipenv, package):
         
         run_script(os.path.join(basedir, "pipinstall.sh"), os.path.join(python_venvs["pipenv"], 'bin/activate'), package)
 
+def install_req_file(pipenv, reqfile):
+    if not pipenv:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", reqfile])
+    else:
+        python_venvs = get_python_venvs(current_user.id)
+        if not pipenv in python_venvs:
+            raise ValueError("Python virtual environment {pipvenv} does not exist.")
+        
+        run_script(os.path.join(basedir, "pipinstallreq.sh"), os.path.join(python_venvs["pipenv"], 'bin/activate'), reqfile)    
+
 def create_pkg_dir(user_package_dir, create_init = True):
     if not os.path.isdir(user_package_dir):
         os.makedirs(user_package_dir)
@@ -358,9 +368,17 @@ def get_datatypes():
 
 def get_pyvenvs():
     pyvenvs = []
-    for t in get_python_venvs().keys():
+    for t in get_python_venvs(current_user.id).keys():
         pyvenvs.append(t)
     return jsonify(pyvenvs = pyvenvs)
+
+def new_pyvenvs(request):
+    from app import app
+    venvname = request.args.get('newpyvenvs')
+    path = os.path.join(app.config['VENVS_ROOT_PATH'], 'users', str(current_user.id), venvname)
+    if not os.path.exists(path):
+        run_script(os.path.join(basedir, "newvenv.sh"), path)
+    return json.dumps("")
 
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
@@ -373,6 +391,8 @@ def functions():
                 return get_datatypes()
             if 'pyenvs' in request.args:
                 return get_pyvenvs()
+            if 'newpyvenvs' in request.args:
+                return new_pyvenvs(request)
             if 'check_function' in request.args:
                 return check_service_function(request)
             elif 'codecompletion' in request.args:
@@ -417,6 +437,13 @@ def functions():
                 try:
                     pippkgsdb = ''
                     pipenv = request.form.get('pipenv') if request.form.get('pipenv') else ''
+                    if len(request.files) > 0 and request.files['reqfile']:
+                        reqfile = request.files['reqfile']
+                        try:
+                            install_req_file(pipenv, reqfile)
+                        except Exception as e:
+                            result['err'].append(str(e))
+
                     if request.form.get('pippkgs'):
                         pippkgs = request.form.get('pippkgs')
                         pippkgs = pippkgs.split(",")
@@ -426,6 +453,7 @@ def functions():
                                 pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
                             except Exception as e:
                                 result['err'].append(str(e))
+
                     # Get the name of the uploaded file
                     file = request.files['library'] if len(request.files) > 0 else None
                     # Check if the file is one of the allowed types/extensions

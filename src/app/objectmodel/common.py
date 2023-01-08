@@ -37,10 +37,11 @@ def get_python_venvs(user_id = None):
     python_venvs = {}
     venvspath = Path(app.config['VENVS_ROOT_PATH'])
     for venv in venvspath.iterdir():
-        if venv == 'users' and user_id:
-            uservenvspath = Path(os.path.join(app.config['VENVS_ROOT_PATH'], venv, str(user_id)))
-            for uservenv in uservenvspath.iterdir():
-                python_venvs.update({os.path.join(str(user_id), uservenv.parts[-1]): os.path.join(uservenvspath, uservenv)})
+        if venv.parts[-1] == 'users':
+            if user_id:
+                uservenvspath = Path(os.path.join(app.config['VENVS_ROOT_PATH'], venv, str(user_id)))
+                for uservenv in uservenvspath.iterdir():
+                    python_venvs.update({os.path.join(str(user_id), uservenv.parts[-1]): os.path.join(uservenvspath, uservenv)})
         else:
             python_venvs.update({venv.parts[-1]: os.path.join(venvspath, venv)})
     return python_venvs

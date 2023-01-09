@@ -3,12 +3,21 @@ function AddLibraryViewModel(userName) {
     self.tasksURI = '/functions';
     self.name = ko.observable(userName);
     self.org = ko.observable();
-    self.access = ko.observable();
+    self.access = ko.observable(true);
     self.reqfile = ko.observable();
     self.pippkgs = ko.observable();
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
+    self.pipvenv = ko.observable('');
     self.NewVenvName = ko.observable('');
+    self.isFuncExpanded = ko.observable(false);
+    self.textToggleFuncArea = ko.observable('More..');
+    self.TList = ko.observableArray();
+    self.pippkgsList = ko.observableArray();
+
+    self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
+    self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
+
     self.hasNewVenvName = ko.computed(function () { 
         return self.NewVenvName() !== undefined && self.NewVenvName().trim().length > 0; 
     });
@@ -17,14 +26,6 @@ function AddLibraryViewModel(userName) {
         return self.NewVenvName() === undefined || self.NewVenvName().trim().length == 0; 
     });
 
-    self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
-    self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
-
-    self.isFuncExpanded = ko.observable(false);
-    self.textToggleFuncArea = ko.observable('More..');
-    self.TList = ko.observableArray();
-    self.pippkgsList = ko.observableArray();
-    
     self.addNewVenv = function() {
         if (self.NewVenvName().trim().length == 0)
             return;
@@ -66,6 +67,12 @@ function AddLibraryViewModel(userName) {
     self.beginAddLibrary = function () {
         $("#add-library-info").text("");
         $.getJSON('/functions?demoserviceadd', function (demoservice) {
+            
+            self.pippkgs("");
+            $("#reqfile").val("");
+            $("#module").val("");
+            self.NewVenvName("");
+
             self.getCodeEditor().setValue(demoservice.demoservice.script, 1);
             self.editService(demoservice.demoservice.mapper)
             self.getUsers();
@@ -270,6 +277,11 @@ function AddLibraryViewModel(userName) {
         
         if (self.access() !== undefined)
             formdata.append('publicaccess', self.access());
+        
+        if (self.pipvenv() !== undefined && self.pipvenv().trim().length > 0)
+        {
+            formdata.append('pipenv', self.pipvenv());
+        }
         if (self.pippkgs() !== undefined && self.pippkgs().trim().length > 0)
             formdata.append('pippkgs', self.pippkgs());
         

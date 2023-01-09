@@ -1025,13 +1025,13 @@
 					<div class="row service-form-group span-sm-20" style="display: flex; column-gap: 10px; padding: 20px;">
 						<div class="span-sm-20" style="border-right: 1px soild;">
 							<div style="display: flex; column-gap: 10px; padding-bottom: 10px;">
-								<label class="span-sm-5" for="pippkgs">pip Install</label>
+								<label class="span-sm-5" for="pippkgsList">pip Install</label>
 								<div class="span-sm-14" style="display: flex; column-gap: 10px;">
 									<select style="padding: 5px 9px;
 									width: 100%;
 									border-radius: 5px;
 									font-size: 17px;
-									font-weight: 100;" data-bind="enable: NotHasNewVenvName, options: pippkgsList"></select>
+									font-weight: 100;" data-bind="enable: NotHasNewVenvName, options: pippkgsList, value: pipvenv" id="pippkgsList"></select>
 								</div>
 							</div>
 							<div style="display: flex; column-gap: 15%;">

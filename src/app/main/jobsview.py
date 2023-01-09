@@ -168,7 +168,7 @@ def install(pipenv, package):
         if not pipenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
-        run_script(os.path.join(basedir, "pipinstall.sh"), os.path.join(python_venvs["pipenv"], 'bin/activate'), package)
+        run_script(os.path.join(basedir, "pipinstall.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), package)
 
 def install_req_file(pipenv, reqfile):
     if not pipenv:
@@ -178,7 +178,7 @@ def install_req_file(pipenv, reqfile):
         if not pipenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
-        run_script(os.path.join(basedir, "pipinstallreq.sh"), os.path.join(python_venvs["pipenv"], 'bin/activate'), reqfile)    
+        run_script(os.path.join(basedir, "pipinstallreq.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), reqfile)
 
 def create_pkg_dir(user_package_dir, create_init = True):
     if not os.path.isdir(user_package_dir):
@@ -438,9 +438,17 @@ def functions():
                     pippkgsdb = ''
                     pipenv = request.form.get('pipenv') if request.form.get('pipenv') else ''
                     if len(request.files) > 0 and request.files['reqfile']:
-                        reqfile = request.files['reqfile']
                         try:
-                            install_req_file(pipenv, reqfile)
+                            filename = secure_filename(request.files['reqfile'].filename)
+                            temppath = os.path.join(tempfile.gettempdir(), filename)
+                            if os.path.exists(temppath):
+                                #create a unique temppath if it already exists
+                                import uuid
+                                temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+                                os.makedirs(temppath)
+                                temppath = os.path.join(temppath, filename)
+                            request.files['reqfile'].save(temppath)
+                            install_req_file(pipenv, temppath)
                         except Exception as e:
                             result['err'].append(str(e))
 

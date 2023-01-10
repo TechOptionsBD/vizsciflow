@@ -49,5 +49,7 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 21. Right click on vizsciflowweb docker and click "Attach Visual Studio Code". A new vscode window will appear and it will take several minutes to complete.
 22. You are now full development mode of vizsciflow inside a docker container. You can copy .vscode/launch.json from outside to .vscode/launch.json inside vizsciflowweb and debug.
 23. This step is for those who don't use vscode IDE. Without vscode step, you can change code and view the effect, but you can't debug. And if you change .env file, you have to down the docker containers and up again like below:
+
 docker-compose down
+
 docker-compose up -d

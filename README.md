@@ -28,7 +28,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 2. Clone the repository: git clone https://github.com/srlabUsask/vizsciflow.git
-3. cd into the folder: cd vizsciflow
+3. cd into the folder: cd vizsciflow and change the basedir to your vizsciflow folder and DATA_DIR to its storage subfolder.
 4. Delete vizsciflow.sql file.
 5. Download vizsciflow.sql file into vizsciflow folder from this location: https://drive.google.com/drive/folders/1GWFv_NK7MPAqXO2bInA34vGk-_J4BNUI?usp=sharing
 6. Delete the src/plugins/modules folder: rm -r ./src/plugins/modules

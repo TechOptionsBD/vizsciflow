@@ -43,12 +43,11 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 15. Restore the database from vizsciflow.sql inside vizsciflowdb shell:  psql -U phenodoop -d biowl < vizsciflow.sql
 16. Log into the system with username: testuser@usask.ca and password: aaa
 17. Browse or reload localhost:5000
-
-Steps 18-21 are only for those who use visual studio code (vscode) IDE.
-18. Install "Docker" extension in vscode. "Docker" tab will appear.
-19. Click the "Docker" tab. You will see all docker images and docker containers.
-20. Right click on vizsciflowweb docker and click "Attach Visual Studio Code". A new vscode window will appear and it will take several minutes to complete.
-21. You are now full development mode of vizsciflow inside a docker container. You can copy .vscode/launch.json from outside to .vscode/launch.json inside vizsciflowweb and debug.
-22. This step is for those who don't use vscode IDE. Without vscode step, you can change code and view the effect, but you can't debug. And if you change .env file, you have to down the docker containers and up again like below:
+18. Steps 18-21 are only for those who use visual studio code (vscode) IDE. 
+19. Install "Docker" extension in vscode. "Docker" tab will appear.
+20. Click the "Docker" tab. You will see all docker images and docker containers.
+21. Right click on vizsciflowweb docker and click "Attach Visual Studio Code". A new vscode window will appear and it will take several minutes to complete.
+22. You are now full development mode of vizsciflow inside a docker container. You can copy .vscode/launch.json from outside to .vscode/launch.json inside vizsciflowweb and debug.
+23. This step is for those who don't use vscode IDE. Without vscode step, you can change code and view the effect, but you can't debug. And if you change .env file, you have to down the docker containers and up again like below:
 docker-compose down
 docker-compose up -d

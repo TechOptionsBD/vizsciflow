@@ -437,6 +437,17 @@ def functions():
                 try:
                     pippkgsdb = ''
                     pipenv = request.form.get('pipenv') if request.form.get('pipenv') else ''
+
+                    if request.form.get('pippkgs'):
+                        pippkgs = request.form.get('pippkgs')
+                        pippkgs = pippkgs.split(",")
+                        for pkg in pippkgs:
+                            try:
+                                install(pipenv, pkg)
+                                pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
+                            except Exception as e:
+                                result['err'].append(str(e))
+
                     if len(request.files) > 0 and request.files['reqfile']:
                         try:
                             filename = secure_filename(request.files['reqfile'].filename)
@@ -451,16 +462,6 @@ def functions():
                             install_req_file(pipenv, temppath)
                         except Exception as e:
                             result['err'].append(str(e))
-
-                    if request.form.get('pippkgs'):
-                        pippkgs = request.form.get('pippkgs')
-                        pippkgs = pippkgs.split(",")
-                        for pkg in pippkgs:
-                            try:
-                                install(pipenv, pkg)
-                                pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
-                            except Exception as e:
-                                result['err'].append(str(e))
 
                     # Get the name of the uploaded file
                     file = request.files['library'] if len(request.files) > 0 else None

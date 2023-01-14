@@ -44,7 +44,7 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 16. Log into the system with username: testuser@usask.ca and password: aaa
 17. Browse or reload localhost:5000
 18. Steps 18-21 are only for those who use visual studio code (vscode) IDE. 
-19. Install "Docker" extension in vscode. "Docker" tab will appear.
+19. Install "Docker" and "Dev Containers" extensions in vscode. "Docker" tab will appear.
 20. Click the "Docker" tab. You will see all docker images and docker containers.
 21. Right click on vizsciflowweb docker and click "Attach Visual Studio Code". A new vscode window will appear and it will take several minutes to complete.
 22. You are now full development mode of vizsciflow inside a docker container. You can copy .vscode/launch.json from outside to .vscode/launch.json inside vizsciflowweb and debug.

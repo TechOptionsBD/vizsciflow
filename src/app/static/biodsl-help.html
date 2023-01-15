@@ -220,11 +220,9 @@ def demo_service(context, *args, **kwargs):
 </ul>
 
 <p>Here is a json mapper of the above service. Give a meaningful name to the service by changing the "Name". <strong>&lt;package&gt;.&lt;name&gt;</strong> or (only <strong>&lt;name&gt;</strong> if package is empty) must be unique to the DSL vocabulary.</p>
-<p><strong>internal</strong> must match the service function name.</p>
 <pre><code class="json">
 	{
 		"name": "DemoService",
-		"internal": "demo_service",
 		"params": [
 			{
 				"name": "data",
@@ -277,7 +275,6 @@ Here is the json mapper of the above service. You need to add one parameter and 
 	{
 		"package":"",
 		"name":"FastQService",
-		"internal":"demo_service",
 		"params":[
 		   {
 			  "name":"data",
@@ -331,7 +328,6 @@ Here is the json mapper of the above service. From JSON mapper tab, you have to 
 	{
 		"package":"",
 		"name":"BookChartV3",
-		"internal":"demo_service",
 		"params":[
 		   {
 			  "name":"data",

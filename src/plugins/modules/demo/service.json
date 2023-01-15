@@ -1,6 +1,5 @@
 {
     "name": "DemoService",
-    "internal": "demo_service",
     "params": [
         {
             "name": "data",

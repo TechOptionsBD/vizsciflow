@@ -134,7 +134,7 @@ function TasksViewModel(sampleViewModel) {
     }
 
     self.runBioWLInternal = function (task) {
-        if (!workflowId) {
+        if (!sampleViewModel.workflowId()) {
             $("#error").val("Workflow is not updated or it is not saved. Change the code and run again.");
             return;
         }
@@ -146,7 +146,7 @@ function TasksViewModel(sampleViewModel) {
         $('#refresh').show();
         var formdata = new FormData();
 
-        formdata.append('workflowId', parseInt(workflowId));
+        formdata.append('workflowId', parseInt(sampleViewModel.workflowId()));
         formdata.append('args', ko.toJSON(self.sampleViewModel.wfArgs));
         formdata.append('immediate', $('#immediate').prop('checked'));
         self.clearResults();

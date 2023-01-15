@@ -477,7 +477,6 @@ def functions():
                     if not os.path.isdir(path):
                         os.makedirs(path)
                     filename = ''
-                    scriptname = ''
                     if file:
                         # Make the filename safe, remove unsupported chars
                         filename = secure_filename(file.filename)
@@ -503,7 +502,9 @@ def functions():
                             script.write(request.form.get('script'))
                     base = os.path.join(path, 'funcdefs.json')
                     with open(base, 'w') as mapper:
-                        mapper.write(request.form.get('mapper'))
+                        json_object = json.loads(request.form.get('mapper'))
+                        json_formatted_str = json.dumps(json_object, indent=2)
+                        mapper.write(json_formatted_str)
                     org = request.form.get('org')
                     # create '.' based module path
                     pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app.config['PLUGIN_DIR'])))
@@ -531,29 +532,18 @@ def functions():
                         for f in libraries:
                             try:
                                 # if internal not given, parse the code and use the first function name as internal (adaptor name) 
-                                if not 'internal' in f:
-                                    if scriptname:
-                                        tree = ast.parse(request.form.get('script'))
+                                internalGiven = 'internal' in f and f['internal'] != ""
+                                if not internalGiven and filename:
+                                    with open(filename, 'r') as r:
+                                        tree = ast.parse(r.read())
                                         funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
                                         if funcDefs:
                                             f['internal'] = funcDefs[0]
-                                            
-                                    if not 'internal' in f and not filename:        
-                                        with open(filename, 'r') as r:
-                                            tree = ast.parse(r.read())
-                                            funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
-                                            if funcDefs:
-                                                f['internal'] = funcDefs[0]
                             except:
                                 pass
-                            if 'internal' in f and f['internal']:
-                                if not 'name' in f:
-                                    f['name'] = f['internal']
-                            elif 'name' in f and f['name']:
-                                if not 'internal' in f:
-                                    f['internal'] = f['name']
-                            if not f['internal'] and not f['name']:
-                                continue
+                            if not 'name' in f or f['name'] == "":
+                                f['name'] = f['internal']
+
                             #f['access'] = access
     #                         if sharedusers:
     #                             users = sharedusers.split(";")

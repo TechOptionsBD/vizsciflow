@@ -938,7 +938,7 @@
 							<div class="span-sm-7">
 								<h3>Function:</h3>
 								<form role="form" data-bind="foreach: service.items">
-									<div class="row service-form-group" data-bind="visible: ($index() < 4 || $parent.isFuncExpanded)">
+									<div class="row service-form-group" data-bind="visible: ($index() < 2 || $parent.isFuncExpanded)">
 										<label class="span-sm-6" data-bind="text: key"></label>
 										<div class="span-sm-14">
 											<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
@@ -3195,8 +3195,15 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(datasetLateLoadViewModel, $('#datasetLateLoadPanel')[0]);
 		datasetLateLoadViewModel.renderDataset()
 
-	if (localStorage[username.concat('_inputVals_workflowId')] !== undefined && username == localStorage[username.concat('_inputVals_username')]){
-		samplesViewModel.loadIntoEditor(localStorage[username.concat('_inputVals_workflowId')]);
+	if (localStorage[username.concat('_inputVals_workflowId')] !== undefined && username === localStorage[username.concat('_inputVals_username')]){
+		let id = localStorage[username.concat('_inputVals_workflowId')];
+		if (!isNaN(id) && !isNaN(parseInt(id))) {
+			samplesViewModel.loadIntoEditor(parseInt(id));
+		}
+	}
+	else {
+		let script = localStorage[username.concat('_inputVals_script')];
+		editor.session.setValue(script, 1);
 	}
 
     $(window).on('unload', function() {
@@ -3252,7 +3259,14 @@ function typeInTextarea(el, newText) {
 	})
 	
 	$(window).on('beforeunload', function(){
-		localStorage.setItem(username.concat('_inputVals_workflowId'), sampleViewModel.workflowId());
+		if (sampleViewModel.workflowId()) {
+			localStorage.removeItem(username.concat('_inputVals_script'));
+			localStorage.setItem(username.concat('_inputVals_workflowId'), sampleViewModel.workflowId());
+		}
+		else {
+			localStorage.removeItem(username.concat('_inputVals_workflowId'));
+			localStorage.setItem(username.concat('_inputVals_script'), editor.getSession().getValue().trim());
+		}
 		localStorage.setItem(username.concat('_inputVals_username'), username);
 	});
 	

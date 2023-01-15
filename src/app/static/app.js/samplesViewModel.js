@@ -44,7 +44,7 @@ function SamplesViewModel(sampleViewModel) {
     }
     
     self.beginAdd = function(saveas) {
-        var script = editor.getSession().getValue().trim();
+        var script = $.trim(editor.getSession().getValue());
         if (script.length == 0 && self.sampleViewModel.workflowId() == 0) { // script empty and not saved yet
             return false;
         }
@@ -101,8 +101,6 @@ function SamplesViewModel(sampleViewModel) {
     
     self.saveNeeded = function() {
         var script = $.trim(editor.getSession().getValue());
-        if (script)
-            script = script.trim();
        if (!script && !self.sampleViewModel.workflowId()) // || editor.session.getUndoManager().isClean())
               return false; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
           
@@ -151,7 +149,7 @@ function SamplesViewModel(sampleViewModel) {
                 return;
             
             self.sampleViewModel.copyFromJson(data);
-            editor.session.setValue(data['script']);
+            editor.session.setValue(data['script'], 1);
             editor.focus();
 
             workflowId = self.sampleViewModel.workflowId();
@@ -191,7 +189,7 @@ function SamplesViewModel(sampleViewModel) {
                         self.loadIntoEditor(item.id);
 
                 }).on('click', '#save-needed-no', function (e) {
-                    self.loadIntoEditor(item).id;
+                    self.loadIntoEditor(item.id);
                 });
         }
         else {

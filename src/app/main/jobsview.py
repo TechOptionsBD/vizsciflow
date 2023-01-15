@@ -163,22 +163,24 @@ def install(package):
 def install(pipenv, package):
     if not pipenv:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        return "", ""
     else:
         python_venvs = get_python_venvs(current_user.id)
         if not pipenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
-        run_script(os.path.join(basedir, "pipinstall.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), package)
+        return run_script(os.path.join(basedir, "pipinstall.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), package)
 
 def install_req_file(pipenv, reqfile):
     if not pipenv:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", reqfile])
+        return "", ""
     else:
         python_venvs = get_python_venvs(current_user.id)
         if not pipenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
-        run_script(os.path.join(basedir, "pipinstallreq.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), reqfile)
+        return run_script(os.path.join(basedir, "pipinstallreq.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), reqfile)
 
 def create_pkg_dir(user_package_dir, create_init = True):
     if not os.path.isdir(user_package_dir):
@@ -443,7 +445,12 @@ def functions():
                         pippkgs = pippkgs.split(",")
                         for pkg in pippkgs:
                             try:
-                                install(pipenv, pkg)
+                                out,err = install(pipenv, pkg)
+                                if out:
+                                    result['out'].append(out)
+                                if err:
+                                    result['err'].append(err)
+                                
                                 pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
                             except Exception as e:
                                 result['err'].append(str(e))
@@ -459,7 +466,11 @@ def functions():
                                 os.makedirs(temppath)
                                 temppath = os.path.join(temppath, filename)
                             request.files['reqfile'].save(temppath)
-                            install_req_file(pipenv, temppath)
+                            out, err = install_req_file(pipenv, temppath)
+                            if out:
+                                result['out'].append(out)
+                            if err:
+                                result['err'].append(err)
                         except Exception as e:
                             result['err'].append(str(e))
 

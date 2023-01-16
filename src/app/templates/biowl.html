@@ -513,38 +513,53 @@
 			<div id="argumentsPanel" class="panel panel-primary">
 				<div class="panel-heading">
 				</div>
-				<div class="panel-body" style="padding: 1vh; margin: 1vh 0 1vh 0; display: flex; ">
-					<div style="width: 70%; padding: 5px; margin-left: 5px;">
+				<div class="panel-body">
+					<div style="padding: 5px; margin-left: 5px;">
 						<h5>Parameters:</h5>
-						<form role="form" data-bind="foreach: wfArgs" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
-							<div data-bind="foreach: $data.items">
-								<div class="row service-form-group">
-									<label class="span-sm-3" data-bind="text: key"></label>
-									<div class="span-sm-16" data-bind="if: $index() == 3">
-										<input type="text" class="form-control" id="package" data-bind="value: value" />
-									</div>
-									<div class="span-sm-16" data-bind="ifnot: $index() == 3">
-										<label class="span-sm-16" data-bind="text: value"></label>
-									</div>
-								</div>
-							</div>
-							<hr data-bind="visible: $index() != ($parent.wfArgs().length-1)">
-						</form>
+						<table class="table">
+							<thead class="thead-dark" data-bind="foreach: wfArgs" style="color: #fff; background-color: #337ab7;">
+								<!-- ko if: $index() === 0 -->
+								<tr data-bind="foreach: $data.items">
+									<th class="header" scope="col" data-bind="text: key"></th>
+								</tr>
+								<!-- /ko -->
+							</thead>
+							<tbody data-bind="foreach: wfArgs">
+								<tr data-bind="foreach: $data.items">
+									<!-- ko if: $index() !== 3 -->													
+									<td>
+										<label data-bind="text: value"></label>
+									</td>
+									<!-- /ko -->
+
+									<!-- ko if: $index() === 3 -->													
+									<td>
+										<input type="text" class="form-control" id="package" data-bind="value: value"/>
+									</td>
+									<!-- /ko -->
+								</tr>				
+							</tbody>
+						</table>
 					</div>
 					<hr>
-					<div style="width: 30%; padding: 5px; margin-left: 5px;">
+					<div style="width: 75%; padding: 5px; margin-left: 5px;">
 						<h5>Returns:</h5>
-						<form role="form" data-bind="foreach: wfReturnArgs" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
-							<div data-bind="foreach: $data.items">
-								<div class="row service-form-group">
-									<label class="span-sm-3" data-bind="text: key"></label>
-									<div class="span-sm-16">
-									<label class="span-sm-16" data-bind="text: value"></label>
-									</div>
-								</div>
-							</div>
-							<hr data-bind="visible: $index() != ($parent.wfReturnArgs().length-1)">
-						</form>
+						<table class="table">
+							<thead class="thead-dark" data-bind="foreach: wfReturnArgs" style="color: #fff; background-color: #337ab7;">
+								<!-- ko if: $index() === 0 -->
+								<tr data-bind="foreach: $data.items">
+									<th class="header" scope="col" data-bind="text: key"></th>
+								</tr>
+								<!-- /ko -->
+							</thead>
+							<tbody data-bind="foreach: wfReturnArgs">
+								<tr data-bind="foreach: $data.items">												
+									<td>
+										<label data-bind="text: value"></label>
+									</td>
+								</tr>				
+							</tbody>
+						</table>
 					</div>
 				</div>
 			</div>

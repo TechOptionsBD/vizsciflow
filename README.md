@@ -1,6 +1,8 @@
 # vizsciflow
 VizSciFlow is a scientific workflow management system. It provides a domain-specific language (DSL) for specifying the workflow model. Developers need Linux or WSL 2 on Windows to setup the development system locally.
 
+** quick install: download the setup.sh file to your home directory (or target directory for vizsciflow) and run: sudo ./setup.sh . You can skip 1-15 below steps. **
+
 1. Install docker if it is not already installed using https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04 or follow these steps below:
 
 apt-get update -y
@@ -28,22 +30,21 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 2. Clone the repository: git clone https://github.com/srlabUsask/vizsciflow.git
-3. cd into the folder: cd vizsciflow and change the basedir to your vizsciflow folder and DATA_DIR to its storage subfolder.
 4. Delete vizsciflow.sql file.
 5. Download vizsciflow.sql file into vizsciflow folder from this location: https://drive.google.com/drive/folders/1GWFv_NK7MPAqXO2bInA34vGk-_J4BNUI?usp=sharing
 6. Delete the src/plugins/modules folder: rm -r ./src/plugins/modules
 7. Download modules.tar.bz2 from this location: https://drive.google.com/drive/folders/1GWFv_NK7MPAqXO2bInA34vGk-_J4BNUI?usp=sharing
 8. Extract modules.tar.bz2 to src/plugins: tar -xf modules.tar.bz2 -C ./src/plugins
-9. Run id command in terminal: id
-10. Use the uid from id command's output and replace UID in .env file with it.
+9. Run id command in terminal: id -u
+10. Set the result to UID in .env file: UID=10611134
 11. Build the docker: sudo docker-compose up -d
 12. Browse localhost:5000. You should see first screen of VizSciFlow.
 13. Copy vizsciflow.sql file to vizsciflowdb docker: docker cp vizsciflow.sql vizsciflowdb:/
 14. Shell into the vizsciflowdb docker. docker exec -it vizsciflowdb /bin/bash
 15. Restore the database from vizsciflow.sql inside vizsciflowdb shell:  psql -U phenodoop -d biowl < vizsciflow.sql
-16. Log into the system with username: testuser@usask.ca and password: aaa
-17. Browse or reload localhost:5000
-18. Steps 18-21 are only for those who use visual studio code (vscode) IDE. 
+16. Browse or reload localhost:5000
+17. Log into the system with username: testuser@usask.ca and password: aaa
+18. Steps 19-21 are only for those who use visual studio code (vscode) IDE. 
 19. Install "Docker" and "Dev Containers" extensions in vscode. "Docker" tab will appear.
 20. Click the "Docker" tab. You will see all docker images and docker containers.
 21. Right click on vizsciflowweb docker and click "Attach Visual Studio Code". A new vscode window will appear and it will take several minutes to complete.

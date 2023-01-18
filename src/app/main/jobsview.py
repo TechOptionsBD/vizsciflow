@@ -115,8 +115,7 @@ def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
         workflow = workflowmanager.first(id=workflow_id)
         runnable = runnablemanager.create_runnable(current_user.id, workflow, script if script else workflow.script, provenance, argsjson)
 
-        # args = ','.join([a["name"] + "=" + f'"{a["value"]}"' for a in argsjson])
-        args = ','.join([a["name"] + "=" + a["value"] for a in argsjson])
+        args = ','.join([a["name"] + "=" + a["value"] for a in argsjson if a["value"]])
         run_script(runnable.id, args, provenance) if immediate else run_script.delay(runnable.id, args, provenance)
         
         return runnable

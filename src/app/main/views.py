@@ -964,7 +964,10 @@ def samples():
             return Samples.add_workflow(current_user.id, int(request.form.get('id')), request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('params'), request.form.get('returns'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
         elif request.args.get('sample_id'):
             workflow = workflowmanager.get_or_404(int(request.args.get('sample_id')))
-            return json.dumps(workflow.to_json() if workflow else {})
+            value = workflow.to_json() if workflow else {}
+            if workflow:
+                value.update({'access': workflow.get_access_for_user(current_user.id)})
+            return json.dumps(value)
         elif request.args.get('revision'):
             workflow = workflowmanager.get_or_404(request.args.get('revision'))
             return json.dumps(workflow.revision_by_commit(request.args.get('hexsha')))

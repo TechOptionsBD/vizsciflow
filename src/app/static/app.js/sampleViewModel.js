@@ -5,7 +5,7 @@ function SampleViewModel(editor) {
     self.workflowId = ko.observable(0);
     self.name = ko.observable("No Name");
     self.desc = ko.observable("No Description");
-    self.access = ko.observable();
+    self.access = ko.observable(0); // public access by default
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
     self.wfParams = ko.observableArray();
@@ -30,20 +30,25 @@ function SampleViewModel(editor) {
         self.workflowId(0);
         self.name("No Name");
         self.desc("No description");
+        self.access(0);
+        self.userList.removeAll();
+        self.selectedSharingUsers.removeAll();
         self.wfParams.removeAll();
         self.wfReturns.removeAll();
         self.wfArgs.removeAll();
         self.wfReturnArgs.removeAll();
-        self.getCodeEditor().session.setValue("", 1);
+        self.sampleEditor.session.setValue("", 1);
     }
-
+    
     self.copy = function(src){
+        self.clear();
+        
         self.workflowId(src.workflowId());
         self.name(src.name());
         self.desc(src.desc());
         self.access(src.access());
         self.userList(src.userList());
-        self.selectedSharingUsers(src.selectedSharingUsers());
+        self.selectedSharingUsers(src.selectedSharingUsers());      
         self.wfParams(src.wfParams());
         self.wfReturns(src.wfReturns());
         self.wfArgs(src.wfArgs());
@@ -54,7 +59,7 @@ function SampleViewModel(editor) {
         self.workflowId(parseInt(data["id"]));
         self.name(data['name']);
         self.desc(data['desc']);
-        self.access(data['access']);
+        self.access(parseInt(data['access']));
         self.wfParams.removeAll();
         if (Array.isArray(data['params'])){
             data['params'].forEach(function(param){
@@ -67,6 +72,7 @@ function SampleViewModel(editor) {
                     })
                 );
             });
+            self.copyArgsFromParams(data['params']);
         }
 
         self.wfReturns.removeAll();
@@ -80,12 +86,6 @@ function SampleViewModel(editor) {
                     })
                 );
             });
-        }
-
-        if (Array.isArray(data['params'])){
-            self.copyArgsFromParams(data['params']);
-        }
-        if (Array.isArray(data['returns'])){
             self.copyReturnArgsFromReturns(data['returns']);
         }
     }
@@ -122,7 +122,7 @@ function SampleViewModel(editor) {
         
         if (self.name() === undefined)
             return;
-            
+        
         var formdata = new FormData();
         formdata.append('sample', self.sampleEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
         
@@ -151,22 +151,22 @@ function SampleViewModel(editor) {
         ajaxcalls.form(self.samplesURI, 'POST', formdata).done(function(data) {
             if (!$.isEmptyObject(data)) {
                 data = JSON.parse(data);
-
-                if (samplesViewModel.access() == data.access || samplesViewModel.access() == 3){
+                access = parseInt(data.access);
+                if (samplesViewModel.access() == access || samplesViewModel.access() == 3){
                     samplesViewModel.items.push({
                         id: ko.observable(data.id),
                         user:ko.observable(data.user),
                         name: ko.observable(data.name),
                         selected: ko.observable(false),
-                        access: ko.observable(data.access),
+                        access: ko.observable(access),
                         isOwner: ko.observable(data.is_owner)
                     });
                 }
 
-                self.copyFromJson(data);
-
-                // update view
-                editor.session.getUndoManager().markClean();
+                if (sampleViewModel) {
+                    sampleViewModel.copyFromJson(data);
+                    sampleViewModel.sampleEditor.session.getUndoManager().markClean();
+                }
             }
         });
     }

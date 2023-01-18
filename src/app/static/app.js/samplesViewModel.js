@@ -8,7 +8,7 @@ function SamplesViewModel(sampleViewModel) {
     self.items = ko.observableArray();
     self.sampleViewModel = sampleViewModel; // the editor workflow
     self.sampleViewModelToAdd = new SampleViewModel(); // the workflow for save/saveas dialog
-    self.access = ko.observable("0");
+    self.access = ko.observable(0);
     self.workflowFilter = ko.observable("");
     self.wfList = ko.observableArray();
     self.selectedWfId1 = ko.observableArray();
@@ -44,14 +44,14 @@ function SamplesViewModel(sampleViewModel) {
     }
     
     self.beginAdd = function(saveas) {
-        var script = $.trim(editor.getSession().getValue());
+        var script = $.trim(self.sampleViewModel.sampleEditor.getSession().getValue());
         if (script.length == 0 && self.sampleViewModel.workflowId() == 0) { // script empty and not saved yet
             return false;
         }
 
         if (saveas === undefined)
             saveas = false;
-        saveas = saveas.saveas || self.sampleViewModel.workflowId <= 0;
+        saveas = saveas.saveas || self.sampleViewModel.workflowId() <= 0;
         
         self.sampleViewModelToAdd.copy(self.sampleViewModel);
         self.sampleViewModelToAdd.getCodeEditor().setValue(script, 1);
@@ -100,8 +100,8 @@ function SamplesViewModel(sampleViewModel) {
     }
     
     self.saveNeeded = function() {
-        var script = $.trim(editor.getSession().getValue());
-       if (!script && !self.sampleViewModel.workflowId()) // || editor.session.getUndoManager().isClean())
+        var script = $.trim(self.sampleViewModel.sampleEditor.getSession().getValue());
+       if (!script && !self.sampleViewModel.workflowId()) // || self.sampleViewModel.sampleEditor.session.getUndoManager().isClean())
               return false; // if script empty and workflowId not set, it means (empty) workflow is not set yet.
           
        return isDirty;
@@ -139,7 +139,7 @@ function SamplesViewModel(sampleViewModel) {
         
         if (!item) {
             self.sampleViewModel.clear();
-            editor.session.setValue("", 1);
+            self.sampleViewModel.sampleEditor.session.setValue("", 1);
             return;
         }
         
@@ -149,11 +149,8 @@ function SamplesViewModel(sampleViewModel) {
                 return;
             
             self.sampleViewModel.copyFromJson(data);
-            editor.session.setValue(data['script'], 1);
-            editor.focus();
-
-            workflowId = self.sampleViewModel.workflowId();
-            
+            self.sampleViewModel.sampleEditor.session.setValue(data['script'], 1);
+            self.sampleViewModel.sampleEditor.focus();
         }).fail(function(jqXHR) {
             showXHRText(jqXHR);
         });
@@ -164,9 +161,9 @@ function SamplesViewModel(sampleViewModel) {
             if ($.isEmptyObject(data))
                 return;
             
-            var pos = editor.selection.getCursor();
-            editor.session.insert(pos, data['script'] + "\r\n");
-            editor.focus();
+            var pos = self.sampleViewModel.sampleEditor.selection.getCursor();
+            self.sampleViewModel.sampleEditor.session.insert(pos, data['script'] + "\r\n");
+            self.sampleViewModel.sampleEditor.focus();
 
             self.sampleViewModel.workflowId(item.id());
         }).fail(function(jqXHR) {
@@ -448,9 +445,9 @@ function SamplesViewModel(sampleViewModel) {
             var content = "workflow = Workflow.Get(id="+ item.id() +")"
                             +"\r\nprint(View.Graph(workflow))"; 
             
-            var pos = editor.selection.getCursor();
-            editor.session.insert(pos, content + "\r\n");
-            editor.focus();
+            var pos = self.sampleViewModel.sampleEditor.selection.getCursor();
+            self.sampleViewModel.sampleEditor.session.insert(pos, content + "\r\n");
+            self.sampleViewModel.sampleEditor.focus();
         }
 
         else if( x === 'showGraph'){

@@ -922,7 +922,17 @@ class Workflow(db.Model):
                     return fd.read().decode('utf-8')
             except:
                 pass
-                                
+
+    def get_access_for_user(self, user_id):
+        if self.public:
+            return 0
+        if self.user_id == user_id:
+            q = WorkflowAccess.query.filter(WorkflowAccess.workflow_id == self.id, WorkflowAccess.user_id != user_id, WorkflowAccess.rights != AccessRights.NotSet)
+            return 1 if  q and q.count() else 2
+        else:
+            q = WorkflowAccess.query.filter(WorkflowAccess.workflow_id == self.id, WorkflowAccess.user_id == user_id, WorkflowAccess.rights != AccessRights.NotSet)
+            return 1 if  q and q.count() else 2
+
     def to_json(self):
         json_post = {
             'id': self.id,
@@ -930,7 +940,7 @@ class Workflow(db.Model):
             'name': self.name,
             'desc': self.desc,
             'script': self.script,
-            'access': self.public
+            'public': self.public
         }
         json_post.update(Service.get_params_returns_json(self))
         return json_post

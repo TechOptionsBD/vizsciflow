@@ -1,5 +1,4 @@
 from pyparsing import *
-from pyparsing import _bslash
 from dsl.grammar import PythonGrammar
 
 class VizSciFlowGrammar(PythonGrammar):

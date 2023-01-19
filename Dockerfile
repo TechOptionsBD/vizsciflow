@@ -54,23 +54,30 @@ RUN groupadd docker
 RUN usermod -aG docker vizsciflow
 #RUN echo "vizsciflow" | setfacl --modify user:vizsciflow:rw /var/run/docker.sock
 
+# separate venv for python 2.7
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /home/get-pip.py
+RUN python2 /home/get-pip.py
+
 WORKDIR /home/vizsciflow
 COPY ./src ./src
 COPY .env .
 
+
+RUN mkdir -p /home/venvs/.venv
+RUN chown -R vizsciflow:vizsciflow /home/venvs
+RUN chown -R vizsciflow:vizsciflow /home/vizsciflow
+
+USER vizsciflow
 RUN python -m venv /home/venvs/.venv
 RUN /home/venvs/.venv/bin/pip install --upgrade pip
 RUN /home/venvs/.venv/bin/pip install -r ./src/requirements/requirements.txt
-RUN /home/venvs/.venv/bin/pip install wfdsl==0.1.15
+RUN /home/venvs/.venv/bin/pip install wfdsl
 
 # separate venv for pycoQC
 RUN python -m venv /home/venvs/.venvpycoqc
 RUN /home/venvs/.venvpycoqc/bin/pip install --upgrade pip
 RUN /home/venvs/.venvpycoqc/bin/pip install pycoQC
 
-# separate venv for python 2.7
-RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /home/get-pip.py
-RUN python2 /home/get-pip.py
 RUN python2 -m pip install virtualenv
 RUN python2 -m virtualenv /home/venvs/.venvpy2
 RUN /home/venvs/.venvpy2/bin/pip install --upgrade pip
@@ -86,8 +93,9 @@ ENV FLASK_APP manage.py
 ENV FLASK_CONFIG development
 
 # Give ownership to vizsciflow user
-RUN chown -R vizsciflow:vizsciflow ./
-RUN chown -R vizsciflow:vizsciflow ../venvs
+#RUN chown vizsciflow:vizsciflow ./src/plugins
+#RUN chmod +rwx -R /home/vizsciflow/
+#RUN chmod +rwx -R ../venvs
 
 USER vizsciflow
 WORKDIR /home/vizsciflow/src

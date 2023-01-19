@@ -8,7 +8,7 @@ import logging
 from flask import current_app, request, url_for
 from flask_login import UserMixin
 
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous.url_safe import URLSafeTimedSerializer as Serializer
 from markdown import markdown
 from sqlalchemy.orm import backref
 from sqlalchemy.sql import exists

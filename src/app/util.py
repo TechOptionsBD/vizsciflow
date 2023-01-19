@@ -1,9 +1,6 @@
 import os
 from os import path
 from flask import g
-
-from app.io.fileop import HadoopFileSystem, GalaxyFileSystem, HttpFileSystem, SciDataFileSystem
-from dsl.fileop import PosixFileSystem
 from app.managers.datamgr import datamanager
 
 class Utility:
@@ -42,6 +39,7 @@ class Utility:
 
     @staticmethod
     def create_fs(ds):
+        from app.io.fileop import HadoopFileSystem, GalaxyFileSystem, HttpFileSystem, SciDataFileSystem, PosixFileSystem
         
         if 'fs' not in g:
             g.fs = {}
@@ -119,6 +117,7 @@ class Utility:
 
         if not ds:
             if path.startswith('http://') or path.startswith('https://'):
+                from app.io.fileop import HttpFileSystem
                 return HttpFileSystem(path)
             else:
                 return Utility.fs_by_typename("posix")

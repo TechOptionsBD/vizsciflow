@@ -1,13 +1,12 @@
 from flask_wtf import Form
 from wtforms import StringField, TextAreaField, BooleanField, SelectField,\
     SubmitField
-from wtforms.validators import Required, Length, Email, Regexp
-from wtforms import ValidationError
+from wtforms.validators import ValidationError, DataRequired, Length, Email, Regexp
 from flask_pagedown.fields import PageDownField
 from ..managers.usermgr import usermanager
 
 class NameForm(Form):
-    name = StringField('What is your name?', validators=[Required()])
+    name = StringField('What is your name?', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 
@@ -19,10 +18,10 @@ class EditProfileForm(Form):
 
 
 class EditProfileAdminForm(Form):
-    email = StringField('Email', validators=[Required(), Length(1, 64),
+    email = StringField('Email', validators=[DataRequired(), Length(1, 64),
                                              Email()])
     username = StringField('Username', validators=[
-        Required(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
+        DataRequired(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
                                           'Usernames must have only letters, '
                                           'numbers, dots or underscores')])
     confirmed = BooleanField('Confirmed')
@@ -50,10 +49,10 @@ class EditProfileAdminForm(Form):
 
 
 class PostForm(Form):
-    body = PageDownField("What's on your mind?", validators=[Required()])
+    body = PageDownField("What's on your mind?", validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 
 class CommentForm(Form):
-    body = StringField('Enter your comment', validators=[Required()])
+    body = StringField('Enter your comment', validators=[DataRequired()])
     submit = SubmitField('Submit')

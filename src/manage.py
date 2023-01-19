@@ -13,15 +13,9 @@ if os.environ.get('FLASK_COVERAGE'):
     COV.start()
 
 from app import app, db
-from flask_script import Manager, Server
-from flask_migrate import Migrate
-
-manager = Manager(app)
-migrate = Migrate(app, db)
+from flask_migrate import upgrade
 
 from app.objectmodel.common import Permission, convert_to_safe_json
-from flask_script import Shell
-from flask_migrate import MigrateCommand
 from flask_login import login_user, logout_user, current_user
 from app.main.views import load_data_sources_biowl
 from app.main.jobsview import run_biowl, get_user_status, get_task_status, get_functions, save_and_run_workflow
@@ -29,6 +23,7 @@ from flask_cors import cross_origin
 
 from app.managers.usermgr import usermanager
 from app.managers.workflowmgr import workflowmanager
+import click
 
 api = Api(app)
 api.decorators=[cors.crossdomain(origin='*')]
@@ -124,7 +119,10 @@ def get_workflows():
     finally:
         logout_user()
 
-@manager.command
+@app.cli.command()
+@click.option('--workflow_id', help='Workflow identifier')
+@click.option('--immediate/--no-immediate', default=True, help='If true, runs workflow immediately.')
+@click.option('--args', default=[], help='Arguments')
 def run_workflow(workflow_id, immediate = True, args = []):
     runnable = run_biowl(workflow_id, None, args, immediate)
     return runnable.id
@@ -163,21 +161,27 @@ def get_status_api():
     status = get_task_status(int(runid)) if runid else get_user_status(current_user.id)
     return status
 
-
+@app.shell_context_processor
 def make_shell_context():
     return dict(app=app, db=db, User=usermanager.get_cls('user'), Follow=usermanager.get_cls('follow'), Role=usermanager.get_cls('role'),
                 Permission=Permission, Post=usermanager.get_cls('post'), Comment=usermanager.get_cls('comment'))
-manager.add_command("shell", Shell(make_context=make_shell_context))
-manager.add_command('db', MigrateCommand)
 
+@app.cli.command()
+def createdb():
+    db.drop_all()
+    db.create_all()
+    db.session.commit()
 
-@manager.command
-def test(coverage=False):
+@app.cli.command()
+@click.option('--coverage/--no-coverage', default=False, help='Run tests under code coverage.')
+@click.argument('test_names', nargs=-1)
+def test(coverage, test_names):
     """Run the unit tests."""
     if coverage and not os.environ.get('FLASK_COVERAGE'):
-        import sys
+        import subprocess
         os.environ['FLASK_COVERAGE'] = '1'
-        os.execvp(sys.executable, [sys.executable] + sys.argv)
+        sys.exit(subprocess.call(sys.argv))
+
     import unittest
     tests = unittest.TestLoader().discover('tests')
     unittest.TextTestRunner(verbosity=2).run(tests)
@@ -192,20 +196,21 @@ def test(coverage=False):
         print('HTML version: file://%s/index.html' % covdir)
         COV.erase()
 
-@manager.command
-def profile(length=25, profile_dir=None):
+@app.cli.command()
+@click.option('--length', default=25,
+              help='Number of functions to include in the profiler report.')
+@click.option('--profile-dir', default=None,
+              help='Directory where profiler data files are saved.')
+def profile(length, profile_dir):
     """Start the application under the code profiler."""
-    from werkzeug.contrib.profiler import ProfilerMiddleware
+    from werkzeug.middleware.profiler import ProfilerMiddleware
     app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[length],
                                       profile_dir=profile_dir)
     app.run()
 
-
-@manager.command
+@app.cli.command()
 def deploy():
     """Run deployment tasks."""
-    from flask_migrate import upgrade
-
     # migrate database to latest revision
     upgrade()
 
@@ -215,13 +220,11 @@ def deploy():
     # create self-follows for all users
     usermanager.add_self_follows()
 
-@manager.command
-def createdb():
-    db.drop_all()
-    db.create_all()
-    db.session.commit()
 
-@manager.command
+@app.cli.command()
+@click.option('--email', help='The email')
+@click.option('--username', help='The username')
+@click.option('--password', help='The password')
 def adduser(email, username, password):
     import logging
     logging.basicConfig(level = logging.INFO)
@@ -250,7 +253,7 @@ def add_user_api():
     finally:
         logout_user()
 
-@manager.command
+@app.cli.command()
 def deploydb():
     from app.managers.modulemgr import modulemanager
     from app.managers.datamgr import datamanager
@@ -309,7 +312,9 @@ def deploydb():
     for workflow in workflows:
         logging.info(workflow.name)
 
-@manager.command
+@app.cli.command()
+@click.option('--path', help='The path')
+@click.option('--addusermodules', default=False, help='If true, user modules are considered.')
 def insertmodules(path, addusermodules):
     from app.managers.modulemgr import modulemanager
     import logging
@@ -326,7 +331,8 @@ def insertmodules(path, addusermodules):
     for module in modules:
         logging.info(module.package + "." + module.name)
 
-@manager.command
+@app.cli.command()
+@click.option('--path', help='The path to the workflows')
 def insertworkflows(path):
     from app.managers.workflowmgr import workflowmanager
     import logging
@@ -344,10 +350,12 @@ def insertworkflows(path):
 
 if __name__ == '__main__':
 ##    written by: Moksedul Islam 
-##    To run vizsciflow in different port as debugger mode. 
-#    manager.add_command("runserver", Server(
+##    To run vizsciflow in different port as debugger mode.
+#    from flask_script import Server
+#
+#    cli.add_command("runserver", Server(
 #    use_debugger = True,
 #    use_reloader = True,
 #    host = '0.0.0.0',
 #    port = 8080) )
-    manager.run()
+    app.run()

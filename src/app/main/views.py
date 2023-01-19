@@ -418,7 +418,7 @@ def get_filecontent(path):
     mime = datamanager.get_mimetype(path)
     if not mime:
         mime = mimetypes.guess_type(path)[0]
-    return send_file(io.BytesIO(image_binary), mimetype=mime, as_attachment=True, attachment_filename=fs.basename(path))
+    return send_file(io.BytesIO(image_binary), mimetype=mime, download_name=fs.basename(path))
 
 def get_filedata(path):
     # construct data source tree

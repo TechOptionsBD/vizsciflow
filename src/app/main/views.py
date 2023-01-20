@@ -407,7 +407,7 @@ def download_biowl(path):
     if not fullpath:
         abort(422)
     mime = mimetypes.guess_type(fullpath)[0]
-    return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
+    return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None)
 
 def get_filecontent(path):
     # construct data source tree
@@ -418,7 +418,7 @@ def get_filecontent(path):
     mime = datamanager.get_mimetype(path)
     if not mime:
         mime = mimetypes.guess_type(path)[0]
-    return send_file(io.BytesIO(image_binary), mimetype=mime, download_name=fs.basename(path))
+    return send_file(io.BytesIO(image_binary), mimetype=mime, as_attachment=True, download_name=fs.basename(path))
 
 def get_filedata(path):
     # construct data source tree
@@ -428,7 +428,7 @@ def get_filedata(path):
         mime = datamanager.get_mimetype(path)
         if not mime:
             mime = mimetypes.guess_type(path)[0]
-        return send_file(io.BytesIO(file_binary), mimetype=mime, as_attachment=True, attachment_filename=os.path.basename(path))
+        return send_file(io.BytesIO(file_binary), mimetype=mime, as_attachment=True, download_name=os.path.basename(path))
 
 def upload_biowl(file, request):
     

@@ -656,7 +656,7 @@ def get_task_logs(task_id):
 def get_tasklogs_as_filecontent(task_id):
     logs = get_task_logs(task_id)
     mime = 'text/plain'
-    return send_file(io.BytesIO(json.dumps(logs).encode()), mimetype=mime, as_attachment=True, attachment_filename=str(task_id))
+    return send_file(io.BytesIO(json.dumps(logs).encode()), mimetype=mime, as_attachment=True, download_name=str(task_id))
     
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required

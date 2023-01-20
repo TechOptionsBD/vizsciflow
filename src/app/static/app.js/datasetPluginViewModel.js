@@ -238,7 +238,7 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
     else {
       let curPos = target.selectionStart;
       currentVal = $(target).val();
-      $(target).val(currentVal.slice(0, curPos) + `'${path}'` + currentVal.slice(curPos));
+      $(target).val(currentVal.slice(0, curPos) + `'${path}'` + currentVal.slice(curPos)).change();
     }
   };
 

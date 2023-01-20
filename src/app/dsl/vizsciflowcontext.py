@@ -68,7 +68,7 @@ class VizSciFlowContext(Context):
 
     @property
     def outdir(self):
-        return self.getprop('outdir')# if self.getprop('outdir') else self.createoutdir()
+        return self.getprop('outdir') if self.getprop('outdir') else self.createoutdir()
     
     @outdir.setter
     def outdir(self, value):
@@ -129,7 +129,7 @@ class VizSciFlowContext(Context):
         return fs.unique_filename(outdir, prefix, extension)
     
     def createoutdir(self, outname = None):
-        if not self.outdir:
+        if not self.getprop('outdir'):
             self.outdir = self.makeuniquedir()
         if outname:
             outdir = os.path.join(self.outdir, outname)
@@ -184,14 +184,11 @@ class VizSciFlowContext(Context):
     
     @staticmethod
     def exec_in_env(f, app, *args, **kwargs):
-        oldcwd = os.getcwd() if 'cwd' in kwargs else None
-        oldenvpath = os.environ["PATH"] if 'env' in kwargs else None
+        oldcwd = os.getcwd() if 'cwd' in kwargs and kwargs['cwd'] != os.getcwd() else None
+        oldenvpath = os.environ["PATH"] if 'env' in kwargs and not kwargs['env'] in os.environ["PATH"] else None
         try:
-            if 'cwd' in kwargs:
-                os.chdir(kwargs['cwd'])
-            if 'env' in kwargs:
-                VizSciFlowContext.addenvpath(kwargs['env'])
-
+            if oldcwd: os.chdir(kwargs['cwd'])
+            if oldenvpath: VizSciFlowContext.addenvpath(kwargs['env'])
             return f(app, *args)
         finally:
             if oldcwd: os.chdir(oldcwd)

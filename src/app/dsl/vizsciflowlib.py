@@ -175,7 +175,12 @@ class Library(LibraryBase):
             arguments, kwargs = Library.normalize_args(context, params, *arguments, **kwargs)
             module_obj = load_module(func.module)
             function = getattr(module_obj, func.internal)
-            result = function(context, *arguments, **kwargs)
+            try:
+                oldcwd = os.getcwd()
+                os.chdir(os.path.dirname(module_obj.__file__))
+                result = function(context, *arguments, **kwargs)
+            finally:
+                os.chdir(oldcwd)
 
             result = Library.add_meta_data(context, result, returns, task)
 

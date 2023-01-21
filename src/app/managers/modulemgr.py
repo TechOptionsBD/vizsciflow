@@ -1,3 +1,4 @@
+import logging
 from app.managers.mgrutil import ManagerUtility
 from app.objectmodel.models.loader import Loader
 
@@ -11,13 +12,40 @@ class ModuleManager():
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
 
-    def insert_modules(self, path, addusermodules = False):
+    def insert_modules(self, path, with_users = False, installpkgs = False):
         from app import app
 
         funclist = Loader.load_funcs_recursive_flat(path)
-        if not addusermodules:
+        if not with_users:
             funclist = [func for func in funclist if not func['module'].startswith(app.config['MODULE_PACKAGE'] + '.users')]
-        return self.persistance.insert_modules(funclist)
+
+        if not installpkgs:
+            return self.persistance.insert_modules(funclist)
+        else:
+            from app.objectmodel.common import pip_install, pipinstall_req_file
+            modules = []
+            for func in funclist:
+                try:
+                    if not "pipenv" in func or not func["pipenv"]: continue
+
+                    if "pippkgs" in func and func["pippkgs"]:
+                        pippkgs = func["pippkgs"].split(",")
+                        for pkg in pippkgs:
+                            try:
+                                pip_install(func["pipenv"], pkg)
+                            except Exception as e:
+                                logging.error(f'Error installing package {pkg}: {str(e)}')
+
+                    if "reqfile" in func and func["reqfile"]:
+                        pipinstall_req_file(func["pipenv"], func["reqfile"])
+                    
+                    module = self.persistance.insert_modules(funclist)
+                    if module:
+                        modules.append(module)
+                except Exception as e:
+                    logging.error(f"Error in inserting module {func['name']}: {str(e)}")
+
+            return modules
 
     def get_module_by_name_package_for_user_access(self, user_id, name, package = None):
         return self.persistance.get_module_by_name_package_for_user_access(user_id, name, package)
@@ -62,7 +90,7 @@ class ModuleManager():
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
 
-    def add(self, user_id, value, access, users, pipenv, pippkgs):
-        return self.persistance.add(user_id, value, access, users, pipenv, pippkgs)
+    def add(self, user_id, value, access, users, pipenv, pippkgs, reqfile):
+        return self.persistance.add(user_id, value, access, users, pipenv, pippkgs, reqfile)
 
 modulemanager = ModuleManager()

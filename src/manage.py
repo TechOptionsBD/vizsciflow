@@ -314,19 +314,19 @@ def deploydb():
 
 @app.cli.command()
 @click.option('--path', help='The path')
-@click.option('--addusermodules', default=False, help='If true, user modules are considered.')
-def insertmodules(path, addusermodules):
+@click.option('--with-users', default=False, help='If true, user modules are considered.')
+@click.option('--install-packages', default=False, help='If true, packages are installed from PiPy.')
+def insertmodules(path, with_users, installpkgs):
     from app.managers.modulemgr import modulemanager
     import logging
     
-    addusermodules = addusermodules == 'True'
     logging.basicConfig(level = logging.INFO)
     logging.info("Inserting modules from directory: {0} ...".format(path))
     if not os.path.exists(path):
         logging.error("Path {0} doesn't exist".format(path))
         raise ValueError("Path {0} doesn't exist".format(path))
     
-    modules = modulemanager.insert_modules(path, addusermodules)
+    modules = modulemanager.insert_modules(path, with_users, installpkgs)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         logging.info(module.package + "." + module.name)

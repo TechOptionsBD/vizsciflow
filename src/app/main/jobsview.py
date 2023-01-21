@@ -156,30 +156,6 @@ def unique_filename(path, prefix, ext):
 def install(package):
     pip.main(['install', package])
 '''
-     
-
-#Previous function did not work for pip version greater then 10
-def install(pipenv, package):
-    if not pipenv:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-        return "", ""
-    else:
-        python_venvs = get_python_venvs(current_user.id)
-        if not pipenv in python_venvs:
-            raise ValueError("Python virtual environment {pipvenv} does not exist.")
-        
-        return run_script(os.path.join(basedir, "pipinstall.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), package)
-
-def install_req_file(pipenv, reqfile):
-    if not pipenv:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", reqfile])
-        return "", ""
-    else:
-        python_venvs = get_python_venvs(current_user.id)
-        if not pipenv in python_venvs:
-            raise ValueError("Python virtual environment {pipvenv} does not exist.")
-        
-        return run_script(os.path.join(basedir, "pipinstallreq.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), reqfile)
 
 def create_pkg_dir(user_package_dir, create_init = True):
     if not os.path.isdir(user_package_dir):
@@ -214,7 +190,7 @@ def provenance():
                     pippkgsdb = ''
                     for pkg in pippkgs:
                         try:
-                            install(pipenv, pkg)
+                            pip_install(pipenv, pkg)
                             pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
                         except Exception as e:
                             result['err'].append(str(e))
@@ -381,6 +357,25 @@ def new_pyvenvs(request):
         run_script(os.path.join(basedir, "newvenv.sh"), path)
     return json.dumps("")
 
+def pip_install_in_venv(pipenv, pippkgs):
+    outs = []
+    errs = []
+    pippkgsdb = ''
+    pippkgs = pippkgs.split(",")
+    for pkg in pippkgs:
+        try:
+            out,err = pip_install(pipenv, pkg)
+            if out:
+                outs.append(out)
+            if errs:
+                errs.append(err)
+            
+            pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
+        except Exception as e:
+            errs.append(str(e))
+            logging.error(f'Error installing package {pkg}: {str(e)}')
+    return pippkgsdb, outs, errs
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -440,20 +435,11 @@ def functions():
                     pipenv = request.form.get('pipenv') if request.form.get('pipenv') else ''
 
                     if request.form.get('pippkgs'):
-                        pippkgs = request.form.get('pippkgs')
-                        pippkgs = pippkgs.split(",")
-                        for pkg in pippkgs:
-                            try:
-                                out,err = install(pipenv, pkg)
-                                if out:
-                                    result['out'].append(out)
-                                if err:
-                                    result['err'].append(err)
-                                
-                                pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
-                            except Exception as e:
-                                result['err'].append(str(e))
-
+                        pippkgsdb, outs, errs = pip_install_in_venv(pipenv, request.form.get('pippkgs'))
+                        result["out"].extend(outs)
+                        result["err"].extend(errs)
+                    
+                    reqfile = ''
                     if len(request.files) > 0 and request.files['reqfile']:
                         try:
                             filename = secure_filename(request.files['reqfile'].filename)
@@ -464,17 +450,20 @@ def functions():
                                 temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
                                 os.makedirs(temppath)
                                 temppath = os.path.join(temppath, filename)
-                            request.files['reqfile'].save(temppath)
-                            out, err = install_req_file(pipenv, temppath)
+                            
+                            reqfile = temppath
+                            request.files['reqfile'].save(reqfile)
+                            out, err = pipinstall_req_file(pipenv, reqfile)
                             if out:
                                 result['out'].append(out)
                             if err:
                                 result['err'].append(err)
                         except Exception as e:
                             result['err'].append(str(e))
+                            logging.error(f'Error installing packages from requirements file {reqfile}: {str(e)}')
 
                     # Get the name of the uploaded file
-                    file = request.files['library'] if len(request.files) > 0 else None
+                    file = request.files['library'] if len(request.files) > 0 and 'library' in request.files else None
                     # Check if the file is one of the allowed types/extensions
                     package = request.form.get('package')
                     #os.chdir(this_path) #set dir of this file to current directory
@@ -536,6 +525,8 @@ def functions():
                         else:
                             access = 2
                             sharedusers = ''
+                    
+                    final_json_data = {}
                     with open(base, 'r') as json_data:
                         data = json.load(json_data)
                         libraries = data["functions"] if "functions" in data else [data]
@@ -567,14 +558,36 @@ def functions():
                             #func = json.dumps(f, indent=4)
                             if sharedusers:
                                 sharedusers = ast.literal_eval(sharedusers)
-                            modulemanager.add(user_id = current_user.id, value = f, access=access, users=sharedusers, pipenv=pipenv, pippkgs=pippkgsdb)
-    ## save code to a file
-    #                 os.remove(base)
-    #                 with open(base, 'w') as f:
-    #                     f.write(json.dumps(data, indent=4))
+                            modulemanager.add(user_id = current_user.id, value = f, access=access, users=sharedusers, pipenv=pipenv, pippkgs=pippkgsdb, reqfile=reqfile)
+                        final_json_data = data
+
+                    ## save code to a file
+                    if final_json_data:
+                        os.remove(base)
+                        with open(base, 'w') as f:
+                            if pippkgsdb or reqfile:
+                                final_json_data["pipenv"] = pipenv
+                                if pippkgsdb:
+                                    final_json_data["pippkgsdb"] = pippkgsdb
+                                if reqfile:
+                                    reqFilePath = pathlib.Path(reqfile)
+                                    temppath = os.path.join(path, reqFilePath.name)
+                                    if os.path.exists(temppath):
+                                        #create a unique temppath if it already exists
+                                        suffix = reqFilePath.suffix
+                                        if suffix:
+                                            suffix = suffix[1]
+                                        temppath = unique_filename(user_package_dir, reqFilePath.stem, reqFilePath.suffix)
+                                    shutil.copy(reqfile, temppath)
+                                    final_json_data["reqfile"] = str(pathlib.Path(temppath).relative_to(path))
+                                    os.remove(reqfile)
+
+                            f.write(json.dumps(final_json_data, indent=2))
+
                     result['out'].append("Library successfully added.")
                 except Exception as e:
                     result['err'].append(str(e))
+                    logging.error(f'Error while integrating new tool: {str(e)}')
                 return json.dumps(result)
             elif request.form.get('provenance'):
                 fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")

@@ -120,6 +120,14 @@ class Loader:
                         "returns": returns,
                         "public": public
                         }
+                    pipenvflag = f.get("pipenv") and (f.get("pippkgs") or f.get("reqfile"))
+                    if pipenvflag:
+                        if f.get("pippkgs") and f["pippkgs"]:
+                            func.update({"pippkgs": f["pippkgs"]})
+                        if f.get("reqfile") and f["reqfile"]:
+                            func.update({"reqfile": f["reqfile"]})
+                        func.update({"pipenv": f["pipenv"]})
+
                     if name.lower() in funcs:
                         funcs[name.lower()].extend([func])
                     else:

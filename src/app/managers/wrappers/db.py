@@ -144,8 +144,8 @@ class ModuleManager():
          return Service.query.filter_by(**kwargs)
 
     @staticmethod
-    def add(user_id, value, access, users, pipenv, pippkgs):
-        return Service.add(user_id, value, access, users, pipenv, pippkgs)
+    def add(user_id, value, access, users, pipenv, pippkgs, reqfile):
+        return Service.add(user_id, value, access, users, pipenv, pippkgs, reqfile)
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):
@@ -194,6 +194,10 @@ class ModuleManager():
     @staticmethod
     def insert_modules(funclist):
         return Service.insert_modules(funclist)
+    
+    @staticmethod
+    def insert_module(func):
+        return Service.insert_module(func)
 
 class WorkflowManager():
     @staticmethod

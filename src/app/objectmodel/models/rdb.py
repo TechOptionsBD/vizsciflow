@@ -1047,11 +1047,39 @@ class Service(db.Model):
     active = db.Column(db.Boolean, default=True)
     pipenv = db.Column(db.Text, nullable = True)
     pippkgs = db.Column(db.Text, nullable = True)
+    reqfile = db.Column(db.Text, nullable = True)
     #accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
     accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     returns = db.relationship('Return', backref='service', lazy='dynamic', cascade="all,delete-orphan")
     tasks = db.relationship('Task', cascade="all,delete-orphan", backref='service', lazy='dynamic')
+
+    @staticmethod
+    def insert_module(f):
+        try:
+            admin = User.query.filter(User.username == "admin").first()
+
+            service = None
+            user_id = f.pop("user_id", None)
+            if not user_id and admin:
+                user_id = admin.id
+            
+            service = Service.get_service_by_name_package(f["name"], f["package"]).first()
+            if service:
+                if service.user_id == user_id or user_id == admin.id:
+                    service.update(f)
+                    logging.info("Module {0} is updated.".format(f["name"]))
+                else:
+                    logging.error("Module {0} already exists.".format(f["name"]))
+            else:
+                service = Service.add(user_id, f, AccessType.PUBLIC, None)
+                logging.info("Module {0} is added.".format(f["name"]))
+
+            db.session.commit()
+            return service
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def insert_modules(funclist):
@@ -1099,7 +1127,7 @@ class Service(db.Model):
         self.value = value
 
     @staticmethod
-    def add(user_id, value, access, users, pipenv, pippkgs):
+    def add(user_id, value, access, users, pipenv, pippkgs, reqfile):
         try:
             service = Service()
             service.user_id = user_id
@@ -1117,6 +1145,7 @@ class Service(db.Model):
 
             service.pipenv = pipenv
             service.pippkgs = pippkgs
+            service.reqfile = reqfile
             service.update(value)
 
             db.session.add(service)

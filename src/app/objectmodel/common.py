@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import inspect
+import logging
 from pathlib import Path
 from collections import UserDict, UserList
 
@@ -198,3 +199,35 @@ def strip_quote(data):
     while (data.startswith('"') and data.endswith('"')) or (data.startswith("'") and data.endswith("'")):
         data = data[1:-1]
     return data
+
+def pip_install(pipenv, package):
+    if not pipenv:
+        import subprocess
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        return "", ""
+    else:
+        from flask_login import current_user
+        from app.system.exechelper import run_script
+
+        python_venvs = get_python_venvs(current_user.id)
+        if not pipenv in python_venvs:
+            raise ValueError("Python virtual environment {pipvenv} does not exist.")
+        
+        thispath = os.path.dirname(__file__)
+        return run_script(os.path.join(thispath, "pipinstall.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), package)
+
+def pipinstall_req_file(pipenv, reqfile):
+    if not pipenv:
+        import subprocess
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", reqfile])
+        return "", ""
+    else:
+        from flask_login import current_user
+        from app.system.exechelper import run_script
+
+        python_venvs = get_python_venvs(current_user.id)
+        if not pipenv in python_venvs:
+            raise ValueError("Python virtual environment {pipvenv} does not exist.")
+        
+        thispath = os.path.dirname(__file__)
+        return run_script(os.path.join(thispath, "pipinstallreq.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), reqfile)

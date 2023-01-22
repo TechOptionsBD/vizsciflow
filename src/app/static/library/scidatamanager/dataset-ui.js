@@ -1,7 +1,7 @@
 (function ($) {
   $.fn.datasetlist = function (options) {
-    const self = this;
-    const settings = $.extend(
+    var self = this;
+    self.settings = $.extend(
       {
         data: [],
         searchBar: false,
@@ -44,7 +44,7 @@
     };
 
     // bind events on datasetItem
-    const evBind = (jqObj, data) => {
+    self.evBind = (jqObj, data) => {
       jqObj.on("click", function (event) {
         if (
           event.target.className === "glyphicon glyphicon-triangle-bottom" ||
@@ -53,64 +53,64 @@
           event.target.className === "btn collapsed"
         ) {
           // const t = $(".glyphicon");
-          setItemExpandIcon(event, data);
-          // settings.onItemClick.call(null, event, data);
-          //   bindItemBodyEvents(data);
+          self.setItemExpandIcon(event, data);
+          // self.settings.onItemClick.call(null, event, data);
+          // self.bindItemBodyEvents(data);
         }
       });
 
       jqObj.on("drag", function (event) {
-        settings.onItemDrag.call(null, event, data);
+        self.settings.onItemDrag.call(null, event, data);
       });
 
       jqObj.on("mousedown", function (event) {
         if (event.which === 3) {
-          settings.onItemRightClick.call(null, event, data);
+          self.settings.onItemRightClick.call(null, event, data);
         }
       });
     };
 
     self.renderList = function () {
-      if (!settings.data.length) {
+      if (!self.settings.data.length) {
         console.log("No data supplied!");
         return false;
       }
-      settings.data.forEach((ele) => {
-        let dataItem = createItem(ele);
+      self.settings.data.forEach((ele) => {
+        let dataItem = self.createItem(ele);
 
-        evBind(dataItem, ele);
+        self.evBind(dataItem, ele);
 
         //appending every dataset item
         self.append(dataItem);
 
-        // bindItemBodyEvents(ele);
+        // self.bindItemBodyEvents(ele);
       });
     };
 
     //callback binding for dataset item body dom events
-    const bindItemBodyEvents = (ele) => {
+    self.bindItemBodyEvents = (ele) => {
       // callback on dataset exapnding
       $(`#data-list-item-body-${ele.id}`).on("show.bs.collapse", function (e) {
-        setItemExpandIcon(ele.id);
-        settings.onItemExpand.call(null, e, ele);
+        self.setItemExpandIcon(ele.id);
+        self.settings.onItemExpand.call(null, e, ele);
       });
 
       // callback on dataset exapnded
       $(`#data-list-item-body-${ele.id}`).on("shown.bs.collapse", function (e) {
-        settings.onItemExpanded.call(null, e, ele);
+        self.settings.onItemExpanded.call(null, e, ele);
       });
 
       // callback on dataset closing
       $(`#data-list-item-body-${ele.id}`).on("hide.bs.collapse", function (e) {
         setItemCollapseIcon(ele.id);
-        settings.onItemClosing.call(null, e, ele);
+        self.settings.onItemClosing.call(null, e, ele);
       });
 
       // callback on dataset closed
       $(`#data-list-item-body-${ele.id}`).on(
         "hidden.bs.collapse",
         function (e) {
-          settings.onItemClosed.call(null, e, ele);
+          self.settings.onItemClosed.call(null, e, ele);
         }
       );
     };
@@ -120,15 +120,15 @@
         return false;
       }
 
-      const element = createItem(data);
+      const element = self.createItem(data);
 
-      evBind(element, data);
+      self.evBind(element, data);
 
       self.append(element);
-      bindItemBodyEvents(data);
+      self.bindItemBodyEvents(data);
     };
 
-    const setItemExpandIcon = (event, data) => {
+    self.setItemExpandIcon = (event, data) => {
       const target = $(`#dataset-item-expand-${data.id}`).find("i");
       if (target && target[0] && target[0].classList) {
         if (target[0].classList[1] === "glyphicon-triangle-bottom") {
@@ -136,7 +136,7 @@
             .removeClass("glyphicon-triangle-bottom")
             .addClass("glyphicon-triangle-top");
 
-          settings.onItemExpand.call(null, event, data);
+            self.settings.onItemExpand.call(null, event, data);
         } else {
           console.log("Cloasing");
           target
@@ -144,7 +144,7 @@
             .addClass("glyphicon-triangle-bottom");
           $(`#card-body-${data.id}`).jstree("destroy");
           // localStorage.removeItem(data.id);
-          settings.onItemClosing.call(null, event, data);
+          self.settings.onItemClosing.call(null, event, data);
         }
       } else {
         return;
@@ -165,15 +165,15 @@
       this.empty("div");
     };
 
-    const createItem = (data) => {
+    self.createItem = (data) => {
       let dataItems;
       if (data.data && data.data.length > 0) {
         // dataItems =createDataItems(data.data);
         dataItems = data.data;
       }
-      const datasetItem = $(
-        `<div class="card mb-1 ${settings.itemClass}" id="dataset-list-item-${data.id}">
-                    <div class="card-header ${settings.itemHeaderClass}">
+      let datasetItem = $(
+        `<div class="card mb-1 ${self.settings.itemClass}" id="dataset-list-item-${data.id}">
+                    <div class="card-header ${self.settings.itemHeaderClass}">
                         <div class='container-fluid'>
                             <div class='row'>
                                 <div class='col-xs-9 col-sm-9 col-md-10 col-lg-10'>
@@ -200,7 +200,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="data-list-item-body-${data.id}" class="expanded-js-tree collapse ${settings.itemBodyClass}" aria-labelledby="headingTwo" data-parent="#accordion" style="max-height:30vh; overflow:scroll;">
+                    <div id="data-list-item-body-${data.id}" class="expanded-js-tree collapse ${self.settings.itemBodyClass}" aria-labelledby="headingTwo" data-parent="#accordion" style="max-height:30vh; overflow:scroll;">
                     <div >
                     <div style="display:flex">
                    <!--- <input  style="display: inline"id="search-data-${data.id}; height: 45vh; overflow: scroll" type="text" class="mt-5 form-control" placeholder="search text" aria-describedby="dataset-list-search">
@@ -222,7 +222,7 @@
     //   dataItems.forEach((item) => {
     //     if (item.id != null) {
     //       const itemDom = $(
-    //         `<li class="list-group-item ${settings.dataItemClass}" id="${item.id}"><i class="glyphicon glyphicon-file"></i>${item.name}</li>`
+    //         `<li class="list-group-item ${self.settings.dataItemClass}" id="${item.id}"><i class="glyphicon glyphicon-file"></i>${item.name}</li>`
     //       );
 
     //       itemDom.click(function (event) {
@@ -236,7 +236,7 @@
 
     //       itemDom.dblclick(function (event) {
     //         event.stopPropagation();
-    //         settings.onDataItemDoubleClick.call(null, event, item);
+    //         self.settings.onDataItemDoubleClick.call(null, event, item);
     //       });
 
     //       parent.append(itemDom);
@@ -255,7 +255,7 @@
           const pathArr = instance.get_path(e.target);
           let path = "";
           pathArr.forEach((p) => (path += `/${p}`));
-          settings.onDataItemDoubleClick(e, {
+          self.settings.onDataItemDoubleClick(e, {
             path,
             dataset,
             selectedNode,
@@ -278,7 +278,7 @@
           
           path = selectedNode[0];
           if (path && !path.includes("load more")) {
-            settings.onSelectionChanged.call(null, e, { path: `/${path}`, data });
+            self.settings.onSelectionChanged.call(null, e, { path: `/${path}`, data });
           }
 
           if (
@@ -298,11 +298,11 @@
             const datasetId = selectedNode[0].split(">")[1];
 
             const loadedNodes = getLoadMoreNodes(
-              settings.apiUrl,
+              self.settings.apiUrl,
               nodeId,
               datasetId,
               selectedNodeLoadInfo.pageNum,
-              settings,
+              self.settings,
               (loadedNodes) => {
                 const { commonApiObj, loadedData } = loadedNodes;
                 appendLoadedChild(
@@ -335,7 +335,7 @@
               type: "GET",
               async: true,
               url: function () {
-                return settings.apiUrl;
+                return self.settings.apiUrl;
               },
               dataFilter: function (data) {
                 const commonApiResObj = getCommonApiResObj(JSON.parse(data));
@@ -350,12 +350,12 @@
                 return getJsTreeApiRequestQueryString(
                   node.id,
                   dataset.id,
-                  settings
+                  self.settings
                 );
               },
               success: function (data) {
                 console.log("success");
-                settings.currentLoadedData(dataset.id, currentNode, data);
+                self.settings.currentLoadedData(dataset.id, currentNode, data);
               },
             },
           },
@@ -363,7 +363,7 @@
           //   show_only_matches: true,
           //   ajax: function (str, callback) {
           //     $.ajax({
-          //       url: settings.apiUrl,
+          //       url: self.settings.apiUrl,
           //       dataType: "json",
           //       contentType: "application/json;",
           //       data: { str: str },
@@ -400,7 +400,7 @@
             console.log("User stopped dragging");
 
             if (path && !path.includes("load more")) {
-              settings.onItemDrag.call(null, eData.event, { path: `/${path}`, dataset });
+              self.settings.onItemDrag.call(null, eData.event, { path: `/${path}`, dataset });
               // $(`#card-body-${dataset.id}`).jstree(true).refresh(true);
             }
             // $(`#card-body-${dataset.id}`).jstree(true).refresh()
@@ -422,13 +422,13 @@
       // });
     };
 
-    const searchDatasetList = (e) => {
+    self.searchDatasetList = (e) => {
       if (!e.target.value) {
         $(`[id^='dataset-list-item-']`).show();
         return;
       }
       const searchString = e.target.value.toLowerCase();
-      settings.data.forEach((ele) => {
+      self.settings.data.forEach((ele) => {
         if (
           ele.title.toLowerCase().indexOf(searchString) == -1 &&
           ele.group.toLowerCase().indexOf(searchString) == -1 &&
@@ -442,12 +442,12 @@
       });
     };
 
-    const appendSearchBar = () => {
-      if (!settings.searchBar) {
+    self.appendSearchBar = () => {
+      if (!self.settings.searchBar) {
         return;
       }
       const searchBar = $(
-        `<input id="dataset-list-search" type="text" class="form-control ${settings.searchBarClass}" placeholder="${settings.searchBarPlaceholder}" aria-describedby="dataset-list-search">`
+        `<input id="dataset-list-search" type="text" class="form-control ${self.settings.searchBarClass}" placeholder="${self.settings.searchBarPlaceholder}" aria-describedby="dataset-list-search">`
       );
 
       searchBar.on("keyup", function (e) {
@@ -457,14 +457,14 @@
       self.append(searchBar);
     };
 
-    appendSearchBar();
+    self.appendSearchBar();
 
-    const setSelectedDataItem = (data) => {
-      settings.selectedDataItem = data;
+    self.setSelectedDataItem = (data) => {
+      self.settings.selectedDataItem = data;
     };
 
     self.getSelectedDataItem = function () {
-      return settings.selectedDataItem;
+      return self.settings.selectedDataItem;
     };
 
     return this;

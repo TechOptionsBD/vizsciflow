@@ -7,9 +7,9 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
   self.buildPath = buildPath;
   self.selectedPath = '';
 
-  const initPlugin = function () {
+  self.initPlugin = function () {
     // initialize plugin
-    datasetList = $(self.datasetCtrl).datasetlist({
+    self.datasetList = $(self.datasetCtrl).datasetlist({
       data: self.datasets(),
       searchBar: true,
       searchBarPlaceholder: "Search dataset in list",
@@ -33,8 +33,8 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
     });
 
     // render list on UI
-    datasetList.renderList();
-    datasetList.getSelectedDataItem();
+    self.datasetList.renderList();
+    self.datasetList.getSelectedDataItem();
   };
 
   self.renderDataset = function () {
@@ -52,11 +52,11 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
         if (dataset === undefined) return;
 
         self.datasets(dataset.data);
-        initPlugin();
+        self.initPlugin();
       })
       .fail(function (jqXHR) {
         showXHRText(jqXHR);
-        initPlugin();
+        self.initPlugin();
       });
   };
 
@@ -80,7 +80,7 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
     if (!self.selectedPath)
         return;
     ajaxcalls.simple(self.dataSourcesURI, 'GET', { 'addfolder': self.selectedPath}).done(function (data) {
-      datasetList.addNewDataset(data);
+      self.datasetList.addNewDataset(data);
 
         // var newNodePosition = 'inside';
         // var parentNode = node;
@@ -243,7 +243,7 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
   };
 
   const onItemExpand = function (e, dataset) {
-    datasetList.lazyLoadDatasetItems(dataset);
+    self.datasetList.lazyLoadDatasetItems(dataset);
   };
 
   const onItemExpanded = function (e, data) {

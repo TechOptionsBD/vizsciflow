@@ -24,9 +24,9 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-#git clone https://github.com/srlabUsask/vizsciflow.git
+git clone https://github.com/srlabUsask/vizsciflow.git
 
-#cd vizsciflow
+cd vizsciflow
 
 rm vizsciflow.sql
 wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1HP70Wbnb927iG3hq3Ta01ErR_C65-8Y2' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1HP70Wbnb927iG3hq3Ta01ErR_C65-8Y2" -O vizsciflow.sql && rm -rf /tmp/cookies.txt

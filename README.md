@@ -1,7 +1,13 @@
 # vizsciflow
 VizSciFlow is a scientific workflow management system. It provides a domain-specific language (DSL) for specifying the workflow model. Developers need Linux or WSL 2 on Windows to setup the development system locally.
 
-** quick install: download the setup.sh file to your home directory (or target directory for vizsciflow) and run: sudo ./setup.sh . You can skip 1-15 below steps. **
+**
+quick install:
+- Clone the repository and cd into it. 
+- If setup.sh file is not executable, make it executable: chmod +x ./setup.sh
+- sudo ./setup.sh
+- Continue from step 15 from the following steps.
+**
 
 1. Install docker if it is not already installed using https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04 or follow these steps below:
 

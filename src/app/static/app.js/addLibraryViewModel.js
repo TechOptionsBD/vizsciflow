@@ -88,6 +88,10 @@ function AddLibraryViewModel(userName) {
 
     self.beginAddPackage = function ()
     {
+        $("#add-library-info").text("");
+        $("#add-library-info").text("");
+        $("#packagemodule").val("");
+        centerDialog($('#addPack'));
         $('#addPack').modal('show');
     }
 
@@ -319,7 +323,33 @@ function AddLibraryViewModel(userName) {
             }
         });
     }
-    
+
     self.getMapperEditor = function() { return self.mapperEditor; }
     self.getCodeEditor = function() { return self.codeEditor; }
+
+    self.addPackage = function(task) {
+        
+        var files = $("#packagemodule").get(0).files;
+        var formdata = new FormData();
+        formdata.append('package', files[0]); //use get('files')[0]
+        
+        ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
+                               
+            $("#output").val(data.out !== undefined ? data.out : "");
+            $("#error").val(data.err !== undefined ? data.err : "");
+            $("#log tbody").empty();
+            
+            if (data.err !== undefined && data.err.length != 0) {
+                printExecStatus("Package cannot be added as a service.");
+                activateTab(2);
+            }
+            else {
+                $('#addPack').modal('hide');
+                if (tasksViewModel !== undefined) {
+                    tasksViewModel.load();
+                }
+                activateTab(1);
+            }
+        });
+    }
 }

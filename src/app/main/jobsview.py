@@ -428,6 +428,42 @@ def functions():
                 runnable = run_biowl(workflowId, None, args, immediate, provenance)
                 return jsonify(runnableId = runnable.id)
 
+            elif len(request.files) > 0 and request.files['package']:
+                filename = secure_filename(request.files['package'].filename)
+                temppath = os.path.join(tempfile.gettempdir(), filename)
+                if os.path.exists(temppath):
+                    #create a unique temppath if it already exists
+                    import uuid
+                    temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+                    os.makedirs(temppath)
+                    temppath = os.path.join(temppath, filename)
+                request.files['package'].save(temppath)
+                
+                user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
+                if not os.path.isdir(user_package_dir):
+                    os.makedirs(user_package_dir)
+                
+                path = unique_filename(user_package_dir, 'mylib', '')
+                if not os.path.isdir(path):
+                    os.makedirs(path)
+
+                if zipfile.is_zipfile(temppath):
+                    with zipfile.ZipFile(temppath,"r") as zip_ref:
+                        zip_ref.extractall(path)
+                elif tarfile.is_tarfile(temppath):
+                    with tarfile.open(temppath,"r") as tar_ref:
+                        tar_ref.extractall(path)
+                else:
+                    #shutil.move(temppath, path)
+                    raise ValueError("Only .zip and .tar are allowed as packages.")
+
+                modules = modulemanager.insert_modules(path, True, True)
+                result = {}
+                if modules:
+                    return json.dumps({"out": f"{modules[0].name} successfully added"})
+                else:
+                    raise ValueError("No module added.")
+
             elif request.form.get('mapper'):
                 result = {"out": [], "err": []}
                 try:

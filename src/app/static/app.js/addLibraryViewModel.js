@@ -84,6 +84,13 @@ function AddLibraryViewModel(userName) {
         })
     }
 
+    //for uploading package
+
+    self.beginAddPackage = function ()
+    {
+        $('#addPack').modal('show');
+    }
+
     self.toggleFuncArea = function () {  
         if (!self.isFuncExpanded()) {
             self.isFuncExpanded(true);

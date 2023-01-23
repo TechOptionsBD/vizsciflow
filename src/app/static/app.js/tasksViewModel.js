@@ -98,6 +98,15 @@ function TasksViewModel(sampleViewModel) {
         addLibraryViewModel.beginAddLibrary();
     }
 
+    //ehtesum------------------------------------------------
+
+    self.beginAddPackage = function()
+    {
+        addLibraryViewModel.beginAddPackage();
+    }
+
+    //ehtesum------------------------------------------------
+
     self.about = function () {
         window.open("static/biodsl-help.html#services", '_blank');
     }

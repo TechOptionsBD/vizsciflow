@@ -312,7 +312,7 @@ function AddLibraryViewModel(userName) {
             
             if (data.err !== undefined && data.err.length != 0) {
                 $("#add-library-info").text(data.err);
-                printExecStatus("Service cannot be added due to error: " + data.err);
+                printExecStatus("Service is not added.");
                 activateTab(2);
             }
             else {
@@ -349,7 +349,7 @@ function AddLibraryViewModel(userName) {
             
             if (data.err !== undefined && data.err.length != 0) {
                 $("add-package-info").text(data.err);
-                printExecStatus("Package cannot be added as a service due to error: " + data.err);
+                printExecStatus("Package is not added as a service.");
                 activateTab(2);
             }
             else {

@@ -312,12 +312,13 @@ function AddLibraryViewModel(userName) {
             
             if (data.err !== undefined && data.err.length != 0) {
                 $("#add-library-info").text(data.err);
-                printExecStatus("Service is not added.");
+                printExecStatus("Module/Service is not added.");
                 activateTab(2);
             }
             else {
                 $('#add').modal('hide');
                 $("#add-library-info").text("");
+                printExecStatus("Module/Service is added.");
                 activateTab(1);
                 if (tasksViewModel !== undefined) {
                     tasksViewModel.load();
@@ -349,10 +350,11 @@ function AddLibraryViewModel(userName) {
             
             if (data.err !== undefined && data.err.length != 0) {
                 $("add-package-info").text(data.err);
-                printExecStatus("Package is not added as a service.");
+                printExecStatus("No service/module added.");
                 activateTab(2);
             }
             else {
+                printExecStatus("Service/module added.");
                 $('#addPackage').modal('hide');
                 $("add-package-info").text("");
                 if (tasksViewModel !== undefined) {

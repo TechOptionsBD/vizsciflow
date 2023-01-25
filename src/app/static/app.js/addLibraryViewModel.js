@@ -92,7 +92,10 @@ function AddLibraryViewModel(userName) {
         $("#add-library-info").text("");
         $("#packagemodule").val("");
         centerDialog($('#addPackage'));
-        $('#addPackage').modal('show');
+        $('#addPackage').modal('show')
+            .on('show.bs.modal', function () {
+                $( "#packagemodule" ).change();
+            });
     }
 
     self.toggleFuncArea = function () {  
@@ -328,12 +331,12 @@ function AddLibraryViewModel(userName) {
 
     self.addPackage = function(task) {
         
-        var files = $("#packagemodule").get(0).files;
-        if (files.length == 0) {
-            $("add-package-info").text("The tool/module must be given in zip/tar format.");
+        if ($("#packagemodule").val() == "") {
+            $("add-package-info").text("A tool/module must be selected in zip/tar format.");
             return;
         }
 
+        var files = $("#packagemodule").get(0).files;
         var formdata = new FormData();
         formdata.append('package', files[0]); //use get('files')[0]
         formdata.append('update', $('#inlineCheckbox1').is(":checked") ? 1 : 0);

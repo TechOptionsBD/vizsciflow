@@ -338,6 +338,16 @@ $(document).ready(function () {
         addLibraryViewModel.serviceReturns([])
     })
 
+    $("#packagemodule").change(function(){
+        if ($('#packagemodule').val() == "") {
+            $('#packageuploadbutton').prop("disabled", true);
+            return false;
+        }
+        else if ($('#packagemodule').val() != "") {
+            $('#packageuploadbutton').prop("disabled", false);
+            return true;
+        }
+    });
     // $("#btnfilterClose").click(function () {  
     //     $("#btnfilterToggle").trigger('click');
     // });

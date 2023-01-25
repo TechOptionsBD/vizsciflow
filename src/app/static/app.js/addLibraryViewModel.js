@@ -273,8 +273,6 @@ function AddLibraryViewModel(userName) {
             return;
         }
 
-        $("#add-library-info").text("");
-
         var serviceFormatted = JSON.parse(JSON.stringify(self.service)) ;
         serviceFormatted.params = self.serviceParams;
         serviceFormatted.returns = self.serviceReturns; 
@@ -309,13 +307,14 @@ function AddLibraryViewModel(userName) {
             $("#error").val(data.err !== undefined ? data.err : "");
             $("#log tbody").empty();
             
-            
             if (data.err !== undefined && data.err.length != 0) {
+                $("#add-library-info").text(data.err);
                 printExecStatus("Service cannot be added due to error: " + data.err);
                 activateTab(2);
             }
             else {
                 $('#add').modal('hide');
+                $("#add-library-info").text("");
                 activateTab(1);
                 if (tasksViewModel !== undefined) {
                     tasksViewModel.load();
@@ -330,6 +329,11 @@ function AddLibraryViewModel(userName) {
     self.addPackage = function(task) {
         
         var files = $("#packagemodule").get(0).files;
+        if (files.length == 0) {
+            $("add-package-info").text("The tool/module must be given in zip/tar format.");
+            return;
+        }
+
         var formdata = new FormData();
         formdata.append('package', files[0]); //use get('files')[0]
         formdata.append('update', $('#inlineCheckbox1').is(":checked") ? 1 : 0);
@@ -347,6 +351,7 @@ function AddLibraryViewModel(userName) {
             }
             else {
                 $('#addPackage').modal('hide');
+                $("add-package-info").text("");
                 if (tasksViewModel !== undefined) {
                     tasksViewModel.load();
                 }

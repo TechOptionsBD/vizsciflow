@@ -35,7 +35,7 @@ class ModuleManager():
                 
                 module = self.persistance.insert_modules(funclist)
                 if module:
-                    modules.append(module)
+                    modules.extend(module)
             except Exception as e:
                 logging.error(f"Error in inserting module {func['name']}: {str(e)}")
 
@@ -83,6 +83,9 @@ class ModuleManager():
     
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
+    
+    def get_by_value_key(self, **kwargs):
+        return self.persistance.get_by_value_key(**kwargs)
 
     def add(self, user_id, value, access, users, pipenv, pippkgs, reqfile):
         return self.persistance.add(user_id, value, access, users, pipenv, pippkgs, reqfile)

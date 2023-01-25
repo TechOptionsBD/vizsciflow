@@ -1102,7 +1102,7 @@
 
 
  <!--begin of - for uploading package--> 
- <div id="addPack" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="overflow-y: auto;">
+ <div id="addPackage" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true" style="overflow-y: auto;">
 	<div class="modal-dialog modal-dialog-centered modal-lg modal-wide" role="document">
 	  <div class="modal-content">
 		<div class="modal-header">
@@ -3211,6 +3211,7 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(provpluginsViewModel, $('#provplugins')[0]);
         ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
+        ko.applyBindings(addLibraryViewModel, $('#addPackage')[0]);
 		ko.applyBindings(addProvPluginViewModel, $('#addProv')[0]);
         ko.applyBindings(samplesViewModel.sampleViewModelToAdd, $('#addSample')[0]);
 		ko.applyBindings(sampleViewModel, $('#argumentsPanel')[0]);

@@ -3,6 +3,7 @@ import io
 import os
 import sys
 import json
+import uuid
 import tarfile
 import tempfile
 import zipfile
@@ -430,37 +431,41 @@ def functions():
 
             elif len(request.files) > 0 and request.files['package']:
                 filename = secure_filename(request.files['package'].filename)
-                temppath = os.path.join(tempfile.gettempdir(), filename)
-                if os.path.exists(temppath):
-                    #create a unique temppath if it already exists
-                    import uuid
-                    temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-                    os.makedirs(temppath)
-                    temppath = os.path.join(temppath, filename)
+                tempdir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+                temppath = os.path.join(tempdir, filename)
+                os.makedirs(tempdir)
                 request.files['package'].save(temppath)
                 
+                if zipfile.is_zipfile(temppath):
+                    with zipfile.ZipFile(temppath,"r") as zip_ref:
+                        zip_ref.extractall(tempdir)
+                elif tarfile.is_tarfile(temppath):
+                    with tarfile.open(temppath,"r") as tar_ref:
+                        tar_ref.extractall(tempdir)
+                else:
+                    #shutil.move(temppath, path)
+                    raise ValueError("Only .zip and .tar are allowed as packages.")
+
+                os.remove(temppath)
+                # check if update can be made
+                update = request.form.get("update") and int(request.form.get("update")) == 1
+                from app.objectmodel.models.loader import Loader
+                funcs = Loader.load_funcs_recursive_flat(tempdir, True)
+                for func in funcs:
+                    module = modulemanager.get_by_value_key(package = func["package"], name = func["name"]).first()
+                    if module:
+                        if not update or module.user_id != current_user.id:
+                            raise ValueError(f"The {func['package']}{'.' if func['package'] else ''}{func['name']} already exists.")
+
                 user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
                 if not os.path.isdir(user_package_dir):
                     os.makedirs(user_package_dir)
                 
                 path = unique_filename(user_package_dir, 'mylib', '')
-                if not os.path.isdir(path):
-                    os.makedirs(path)
-
-                if zipfile.is_zipfile(temppath):
-                    with zipfile.ZipFile(temppath,"r") as zip_ref:
-                        zip_ref.extractall(path)
-                elif tarfile.is_tarfile(temppath):
-                    with tarfile.open(temppath,"r") as tar_ref:
-                        tar_ref.extractall(path)
-                else:
-                    #shutil.move(temppath, path)
-                    raise ValueError("Only .zip and .tar are allowed as packages.")
-
+                shutil.copytree(tempdir, path)
                 modules = modulemanager.insert_modules(path, True, True)
-                result = {}
                 if modules:
-                    return json.dumps({"out": f"{modules[0].name} successfully added"})
+                    return json.dumps({"out": f"{modules[0].name} is successfully added."})
                 else:
                     raise ValueError("No module added.")
 
@@ -482,7 +487,6 @@ def functions():
                             temppath = os.path.join(tempfile.gettempdir(), filename)
                             if os.path.exists(temppath):
                                 #create a unique temppath if it already exists
-                                import uuid
                                 temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
                                 os.makedirs(temppath)
                                 temppath = os.path.join(temppath, filename)
@@ -518,7 +522,6 @@ def functions():
                         temppath = os.path.join(tempfile.gettempdir(), filename)
                         if os.path.exists(temppath):
                             #create a unique temppath if it already exists
-                            import uuid
                             temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
                             os.makedirs(temppath)
                             temppath = os.path.join(temppath, filename)

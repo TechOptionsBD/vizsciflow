@@ -64,7 +64,12 @@ class Loader:
                 libraries = d["functions"] if "functions" in d else d
                 libraries = sorted(libraries, key = lambda k : k['package'].lower()) if isinstance(libraries, list) else [libraries]
 
-                module = str(pathlib.Path(os.path.dirname(os.path.realpath(json_data.name))).relative_to(app.config['ROOT_DIR']))
+                module = os.path.realpath(json_data.name)
+                module_dir = os.path.dirname(module)
+                if os.path.commonpath([app.config['ROOT_DIR']]) == os.path.commonpath([app.config['ROOT_DIR'], module_dir]):
+                    module = str(pathlib.Path(module_dir).relative_to(app.config['ROOT_DIR']))
+                else:
+                    logging.warning("Module path is not a child path of system's modules folder.")
                 module = module.replace('/', '.') + '.adapter'
 
                 for f in libraries:

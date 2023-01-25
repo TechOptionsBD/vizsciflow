@@ -144,6 +144,19 @@ class ModuleManager():
          return Service.query.filter_by(**kwargs)
 
     @staticmethod
+    def get_by_value_key(**kwargs):
+        if not kwargs:
+            return ModuleManager.get(**kwargs)
+            
+        results = None
+        for k,v in kwargs.items():
+            if results:
+                results = results.filter(func.lower(Service.value[f"{k}"].astext).cast(Unicode) == v.lower())
+            else:
+                results = Service.query.filter(func.lower(Service.value[f"{k}"].astext).cast(Unicode) == v.lower())
+        return results
+
+    @staticmethod
     def add(user_id, value, access, users, pipenv, pippkgs, reqfile):
         return Service.add(user_id, value, access, users, pipenv, pippkgs, reqfile)
 

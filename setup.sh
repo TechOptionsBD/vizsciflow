@@ -6,6 +6,7 @@ apt-get upgrade -y
 
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
 
+rm -f /usr/share/keyrings/docker-archive-keyring.gpg
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
 echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -37,6 +38,8 @@ tar -xf modules.tar.bz2 -C ./src/plugins
 
 #sed -i -e "s?/home/vizsciflow/vizsciflow?$(pwd)?" .env
 sed -i -e "s/UID=10611135/UID=$(id -u)/" .env
-docker-compose up -d
+docker-compose down
+docker volume prune
+docker-compose up --build --force-recreate -d
 docker cp vizsciflow.sql vizsciflowdb:/
-docker exec -it vizsciflowdb psql -U phenodoop -d biowl < vizsciflow.sql
+docker exec -i vizsciflowdb psql -U phenodoop -d biowl < vizsciflow.sql

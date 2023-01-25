@@ -299,7 +299,7 @@ def deploydb():
 
     # insert modules
     logging.info("Inserting modules from directory: {0} ...".format(app.config['MODULE_DIR']))
-    modules = modulemanager.insert_modules(app.config['MODULE_DIR'], False)
+    modules = modulemanager.insert_modules(app.config['MODULE_DIR'], False, True)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         package = module.package if module.package else "" # package name is optional
@@ -315,8 +315,8 @@ def deploydb():
 @app.cli.command()
 @click.option('--path', help='The path')
 @click.option('--with-users', default=False, help='If true, user modules are considered.')
-@click.option('--install-packages', default=False, help='If true, packages are installed from PiPy.')
-def insertmodules(path, with_users, installpkgs):
+@click.option('--install-pypi', default=False, help='If true, packages are installed from PiPy.')
+def insertmodules(path, with_users, install_pypi):
     from app.managers.modulemgr import modulemanager
     import logging
     
@@ -326,7 +326,7 @@ def insertmodules(path, with_users, installpkgs):
         logging.error("Path {0} doesn't exist".format(path))
         raise ValueError("Path {0} doesn't exist".format(path))
     
-    modules = modulemanager.insert_modules(path, with_users, installpkgs)
+    modules = modulemanager.insert_modules(path, with_users, install_pypi)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         logging.info(module.package + "." + module.name)

@@ -24,11 +24,15 @@ class Loader:
         ]
 
     @staticmethod
-    def load_funcs_recursive_flat(library_def_file):
+    def load_funcs_recursive_flat(library_def_file, with_users = True):
         funcs = Loader.load_funcs_recursive(library_def_file)
         funclist = []
         for f in funcs.values():
             funclist.extend(f)
+        
+        if not with_users:
+            funclist = [func for func in funclist if not func['module'].startswith(app.config['MODULE_PACKAGE'] + '.users')]
+
         return funclist
 
     @staticmethod

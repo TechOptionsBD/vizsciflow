@@ -12,22 +12,16 @@ class ModuleManager():
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
 
-    def insert_modules(self, path, with_users = False, installpkgs = False):
+    def insert_modules(self, path, with_users = False, install_pypi = False):
         from app import app
 
-        funclist = Loader.load_funcs_recursive_flat(path)
-        if not with_users:
-            funclist = [func for func in funclist if not func['module'].startswith(app.config['MODULE_PACKAGE'] + '.users')]
+        funclist = Loader.load_funcs_recursive_flat(path, with_users)
 
-        if not installpkgs:
-            return self.persistance.insert_modules(funclist)
-        else:
-            from app.objectmodel.common import pip_install, pipinstall_req_file
-            modules = []
-            for func in funclist:
-                try:
-                    if not "pipenv" in func or not func["pipenv"]: continue
-
+        from app.objectmodel.common import pip_install, pipinstall_req_file
+        modules = []
+        for func in funclist:
+            try:
+                if install_pypi and "pipenv" in func and func["pipenv"]:
                     if "pippkgs" in func and func["pippkgs"]:
                         pippkgs = func["pippkgs"].split(",")
                         for pkg in pippkgs:
@@ -38,12 +32,12 @@ class ModuleManager():
 
                     if "reqfile" in func and func["reqfile"]:
                         pipinstall_req_file(func["pipenv"], func["reqfile"])
-                    
-                    module = self.persistance.insert_modules(funclist)
-                    if module:
-                        modules.append(module)
-                except Exception as e:
-                    logging.error(f"Error in inserting module {func['name']}: {str(e)}")
+                
+                module = self.persistance.insert_modules(funclist)
+                if module:
+                    modules.append(module)
+            except Exception as e:
+                logging.error(f"Error in inserting module {func['name']}: {str(e)}")
 
             return modules
 

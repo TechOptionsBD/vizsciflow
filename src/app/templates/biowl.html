@@ -1113,18 +1113,17 @@
 		</div>
 		<div class="modal-body">
 			<form role="form">
-				<div class="span-sm-20">
-					<div class="span-sm-10">
-						<div class="row service-form-group">
-							<label class="span-sm-4" for="module">Package</label>
-							<div class="span-sm-16">
-								<input type="file" class="form-control-file" id="packagemodule">
-							</div>
-						</div>
-					</div>
+				<div class="form-group service-form-group" style="display: flex;justify-content: start;">
+					<label for="module">Package</label>
+					<input type="file" class="form-control-file d-inline" id="packagemodule" style="padding-left: 19px;padding-right: 660px;">
+						
+						<input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
+						<label class="form-check-label" for="inlineCheckbox1" style="padding-left: 13px;">Update own tool</label>
+
 				</div>
-				
 			</form>
+			</div>
+			
 			<br> <br>
 			<div class="modal-footer">
 				<span class="span-sm-10" style = "color: red; margin-left: 4px; text-align: left;" id="add-package-info"></span>

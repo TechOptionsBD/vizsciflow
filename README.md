@@ -4,7 +4,7 @@ VizSciFlow is a scientific workflow management system. It provides a domain-spec
 *******
 quick install:
 - Clone the repository and cd into it. 
-- If setup.sh file is not executable, make it executable: chmod +x ./setup.sh
+- If setup.sh file is not executable (ls -la setup.sh to check), make it executable: chmod +x ./setup.sh
 - sudo ./setup.sh
 - Continue from step 15 of the following steps.
 *******
@@ -53,7 +53,7 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 14. Restore the database from vizsciflow.sql inside vizsciflowdb shell:  psql -U phenodoop -d biowl < vizsciflow.sql
 15. Browse or reload localhost:5000
 16. Log into the system with username: testuser@usask.ca and password: aaa
-17. Steps 18-21 are only for those who use visual studio code (vscode) IDE. 
+17. Steps 18-21 are only for those who want the development environment (e.g. tool development) using visual studio code (vscode) IDE.
 18. Install "Docker" and "Dev Containers" extensions in vscode. "Docker" tab will appear.
 19. Click the "Docker" tab. You will see all docker images and docker containers.
 20. Right click on vizsciflowweb docker and click "Attach Visual Studio Code". A new vscode window will appear and it will take several minutes to complete.

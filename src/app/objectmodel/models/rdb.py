@@ -1126,7 +1126,7 @@ class Service(db.Model):
         self.value = value
 
     @staticmethod
-    def add(user_id, value, access, users, pipenv, pippkgs, reqfile):
+    def add(user_id, value, access, users, pipenv='', pippkgs='', reqfile=''):
         try:
             service = Service()
             service.user_id = user_id

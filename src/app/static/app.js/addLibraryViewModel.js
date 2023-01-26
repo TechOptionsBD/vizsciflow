@@ -92,7 +92,10 @@ function AddLibraryViewModel(userName) {
         $("#add-library-info").text("");
         $("#packagemodule").val("");
         centerDialog($('#addPackage'));
-        $('#addPackage').modal('show');
+        $('#addPackage').modal('show')
+            .on('show.bs.modal', function () {
+                $( "#packagemodule" ).change();
+            });
     }
 
     self.toggleFuncArea = function () {  
@@ -309,12 +312,13 @@ function AddLibraryViewModel(userName) {
             
             if (data.err !== undefined && data.err.length != 0) {
                 $("#add-library-info").text(data.err);
-                printExecStatus("Service cannot be added due to error: " + data.err);
+                printExecStatus("Module/Service is not added.");
                 activateTab(2);
             }
             else {
                 $('#add').modal('hide');
                 $("#add-library-info").text("");
+                printExecStatus("Module/Service is added.");
                 activateTab(1);
                 if (tasksViewModel !== undefined) {
                     tasksViewModel.load();
@@ -328,12 +332,12 @@ function AddLibraryViewModel(userName) {
 
     self.addPackage = function(task) {
         
-        var files = $("#packagemodule").get(0).files;
-        if (files.length == 0) {
-            $("add-package-info").text("The tool/module must be given in zip/tar format.");
+        if ($("#packagemodule").val() == "") {
+            $("add-package-info").text("A tool/module must be selected in zip/tar format.");
             return;
         }
 
+        var files = $("#packagemodule").get(0).files;
         var formdata = new FormData();
         formdata.append('package', files[0]); //use get('files')[0]
         formdata.append('update', $('#inlineCheckbox1').is(":checked") ? 1 : 0);
@@ -346,10 +350,11 @@ function AddLibraryViewModel(userName) {
             
             if (data.err !== undefined && data.err.length != 0) {
                 $("add-package-info").text(data.err);
-                printExecStatus("Package cannot be added as a service due to error: " + data.err);
+                printExecStatus("No service/module added.");
                 activateTab(2);
             }
             else {
+                printExecStatus("Service/module added.");
                 $('#addPackage').modal('hide');
                 $("add-package-info").text("");
                 if (tasksViewModel !== undefined) {

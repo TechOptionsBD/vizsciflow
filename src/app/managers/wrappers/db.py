@@ -205,8 +205,8 @@ class ModuleManager():
         return ServiceAccess.check(serviced_id)
 
     @staticmethod
-    def insert_modules(funclist):
-        return Service.insert_modules(funclist)
+    def insert_modules(funclist, user_id):
+        return Service.insert_modules(funclist, user_id)
     
     @staticmethod
     def insert_module(func):

@@ -463,7 +463,7 @@ def functions():
                 
                 path = unique_filename(user_package_dir, 'mylib', '')
                 shutil.copytree(tempdir, path)
-                modules = modulemanager.insert_modules(path, True, True)
+                modules = modulemanager.insert_modules(path, current_user.id, True, True)
                 if modules:
                     return json.dumps({"out": f"{modules[0].name} is successfully added."})
                 else:

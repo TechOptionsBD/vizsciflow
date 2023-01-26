@@ -1082,13 +1082,12 @@ class Service(db.Model):
             raise
 
     @staticmethod
-    def insert_modules(funclist):
+    def insert_modules(funclist, user_id = None):
         try:
             admin = User.query.filter(User.username == "admin").first()
 
             modules = []
             for f in funclist:
-                user_id = f.pop("user_id", None)
                 if not user_id and admin:
                     user_id = admin.id
                 

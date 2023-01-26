@@ -299,7 +299,7 @@ def deploydb():
 
     # insert modules
     logging.info("Inserting modules from directory: {0} ...".format(app.config['MODULE_DIR']))
-    modules = modulemanager.insert_modules(app.config['MODULE_DIR'], False, True)
+    modules = modulemanager.insert_modules(app.config['MODULE_DIR'], None, False, True)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         package = module.package if module.package else "" # package name is optional
@@ -326,7 +326,7 @@ def insertmodules(path, with_users, install_pypi):
         logging.error("Path {0} doesn't exist".format(path))
         raise ValueError("Path {0} doesn't exist".format(path))
     
-    modules = modulemanager.insert_modules(path, with_users, install_pypi)
+    modules = modulemanager.insert_modules(path, None, with_users, install_pypi)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
         logging.info(module.package + "." + module.name)

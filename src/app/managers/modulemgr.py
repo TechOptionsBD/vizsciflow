@@ -12,9 +12,7 @@ class ModuleManager():
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
 
-    def insert_modules(self, path, with_users = False, install_pypi = False):
-        from app import app
-
+    def insert_modules(self, path, user_id = None, with_users = False, install_pypi = False):
         funclist = Loader.load_funcs_recursive_flat(path, with_users)
 
         from app.objectmodel.common import pip_install, pipinstall_req_file
@@ -33,11 +31,11 @@ class ModuleManager():
                     if "reqfile" in func and func["reqfile"]:
                         pipinstall_req_file(func["pipenv"], func["reqfile"])
                 
-                module = self.persistance.insert_modules(funclist)
+                module = self.persistance.insert_modules(funclist, user_id)
                 if module:
                     modules.extend(module)
             except Exception as e:
-                logging.error(f"Error in inserting module {func['name']}: {str(e)}")
+                logging.error(f"Error in inserting module {func['package']}{'.' if func['package'] else ''}{func['name']}: {str(e)}")
 
             return modules
 

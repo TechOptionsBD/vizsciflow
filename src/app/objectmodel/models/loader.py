@@ -31,6 +31,8 @@ class Loader:
             funclist.extend(f)
         
         if not with_users:
+            from app import app
+
             funclist = [func for func in funclist if not func['module'].startswith(app.config['MODULE_PACKAGE'] + '.users')]
 
         return funclist

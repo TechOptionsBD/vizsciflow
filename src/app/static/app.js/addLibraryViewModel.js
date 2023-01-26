@@ -318,7 +318,7 @@ function AddLibraryViewModel(userName) {
             else {
                 $('#add').modal('hide');
                 $("#add-library-info").text("");
-                printExecStatus("Module/Service is added.");
+                printExecStatus("Module/Service added.");
                 activateTab(1);
                 if (tasksViewModel !== undefined) {
                     tasksViewModel.load();
@@ -333,7 +333,7 @@ function AddLibraryViewModel(userName) {
     self.addPackage = function(task) {
         
         if ($("#packagemodule").val() == "") {
-            $("add-package-info").text("A tool/module must be selected in zip/tar format.");
+            $("#add-package-info").text("A tool/module must be selected in zip/tar format.");
             return;
         }
 
@@ -349,18 +349,18 @@ function AddLibraryViewModel(userName) {
             $("#log tbody").empty();
             
             if (data.err !== undefined && data.err.length != 0) {
-                $("add-package-info").text(data.err);
+                $("#add-package-info").text(data.err);
                 printExecStatus("No service/module added.");
                 activateTab(2);
             }
             else {
                 printExecStatus("Service/module added.");
                 $('#addPackage').modal('hide');
-                $("add-package-info").text("");
+                $("#add-package-info").text("");
+                activateTab(1);
                 if (tasksViewModel !== undefined) {
                     tasksViewModel.load();
                 }
-                activateTab(1);
             }
         });
     }

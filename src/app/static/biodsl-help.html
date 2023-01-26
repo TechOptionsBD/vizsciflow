@@ -41,16 +41,35 @@ for f in GetFiles('/public/MiSeq_SOP'):
 </td>
   </tr>
   <tr>
-  	<td>Parallelization</td>
-  	<td><font color="green">parallel ... with</font></td><td><pre><code class="python">
+  	<td rowspan="2">Parallelization</td>
+  	
+	<td><font color="green">parallel ... with</font></td>
+	
+	<td><pre><code class="python">
 datas = ['/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq']
 parallel:
     fq_html = fastqc.CheckQuality(datas[0])
 with:
     fq_html = fastqc.CheckQuality(datas[1])</code></pre></td>
+
+
   </tr>
   <tr>
-  	<td>Subworkflow</td><td><font color="green">task</font></td><td><pre><code class="python">
+	
+  <td><font color="green">parfor</font></td>
+  
+  <td><pre><code class="python">
+datas = ['/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq']
+parfor data in datas:
+  fq_html = fastqc.CheckQuality(data)
+
+</tr>
+  <tr>
+  	<td rowspan="2">Subworkflow</td>
+	<td><font color="green">task</font></td>
+	<td>
+		Task is similar to functions in General-Purpose Programming Language.
+		<pre><code class="python">
 task AlignSequences(ref, data, data2):
     CheckQuality(data)
     CheckQuality(data2)
@@ -64,8 +83,17 @@ AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1
 </code></pre></td>
   </tr>
   <tr>
-        <td/><td/><td>An anonymous task without name is called at once. Named tasks are called from somewhere else.</td>
-    </tr>
+	<td><font color="green">Workflow</font></td>
+
+  <td>
+	Run a pre-existing workflow with its ID and passing arguments.
+	  <pre>
+<code class="python">
+Workflow(id=&lt;workflow_id&gt;, **kwargs)
+</code>
+	  </pre>
+  </td>
+</tr>
 </table>
 
 
@@ -143,7 +171,7 @@ There is a small toolbar on top of data source panel.
 <h3><a name="services">Services Panel</a></h3>
 <img alt="Services" src="biodsl-services.png" />
 <p>
-The services/tools/modules for the workflows are listed on the right-top corner of the UI. There are 3 different access modes for the service.
+The services/tools/modules for the workflows are listed on the right-top corner of the UI. There are 3 different access modes for the service. If you don't see your tool, click the "All" radio button.
 </p>
 <ol>
 	<li>Public: Accessible by all users.</li>
@@ -160,7 +188,7 @@ Different types of tools can be integrated into VizSciFlow system.
 
 <ol>
 	<li>Python code: You can wrap python code in the code editor as a tool. If you need a module from PyPi, add the module to <b>pip install</b> textbox.</li>
-	<li>Python module: You can attach your python module with <b>Add file</b> button. You need to use the module in your adapter code.</li>
+	<li>Python module: You can attach your python module with <b>Add file</b> button. You need to use the module in your adapter code. If it is a zip/tar/bz file, it will be extracted where the adapter resides.</li>
 	<li>External standalone tool: You can add the package with <b>Add File</b> and then use it from the adapter. If it is a zip/tar/bz file, it will be extracted where the adapter resides. You need to know the extracted folder to use its executable.</li>
 	<li>External installer: This type of tools can't be installed directly. They need interactive installation or compilation which only administrators can do. More about it in the limitations below.</li>
 </ol>
@@ -170,7 +198,7 @@ To add an external tool, you must know how to call the tool from python.
 	<li>The location of the tool.</li>
 	<li>The arguments it accepts. Some of these arguments might be your (formatted) input parameters.</li>
 	<li>The result it returns. Sometimes, stdout and stderr may be necessary. Your output of the tool will be selected/calculated from these values.</li>
-	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and returned.</li>
+	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and returned from adapter.</li>
 </ul>
 
 
@@ -245,6 +273,15 @@ print(DemoService(10))
 </pre>
 If you run this 10 will be printed in log.
 
+<p>
+<h4>pip install:</h4> If you need to install a PyPi package, select a virtual environment for it. If you select the system's virtual environment (.venv), you can use it directly in your adapter in usual way. You can also install a list of packages by giving a requirements file.
+If you select another python environment (e.g. .venvpy2), you have to create a bash script to run your python 2 code. We have example of it below.
+You can also create a separate virtual environment for you. In that case, first type your environment name in the text box beside "New venv". Once you type it, "New venv" button we active. Click it to create the environment. On success, it will appear in virtual environment dropdown.
+</p>
+<h4>Share:</h4> If you check the "Public" box, the tool will be added as public and usable by all. You can also share it with specific users by selecting them from "Share with" dropdown.
+</p>
+
+Select the "All" redio button on Services/Tools panel if you don't find your tool.
 
 <p>We have shown below a complete example of adding FastQC tool to the system.</p>
 

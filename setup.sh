@@ -25,6 +25,11 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
+# configure docker for vscode
+sudo usermod -aG docker $USER
+sudo apt install -y acl
+sudo setfacl --modify user:$USER:rw /var/run/docker.sock
+
 #git clone https://github.com/srlabUsask/vizsciflow.git
 
 #cd vizsciflow

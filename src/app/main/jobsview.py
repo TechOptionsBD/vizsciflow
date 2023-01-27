@@ -344,6 +344,38 @@ def get_datatypes():
         datatypes.append(t + "[]")
     return jsonify(datatypes = datatypes)
 
+def add_module(f, filename, pkgpath, package, org, access, sharedusers, pipenv, pippkgsdb, reqfile):
+    try:
+        # if internal not given, parse the code and use the first function name as internal (adaptor name) 
+        internalGiven = 'internal' in f and f['internal'] != ""
+        if not internalGiven and filename:
+            with open(filename, 'r') as r:
+                tree = ast.parse(r.read())
+                funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
+                if funcDefs:
+                    f['internal'] = funcDefs[0]
+    except:
+        pass
+    if not 'name' in f or f['name'] == "":
+        f['name'] = f['internal']
+
+    #f['access'] = access
+#                         if sharedusers:
+#                             users = sharedusers.split(";")
+#                         else:
+#                             users = []
+    f['module'] = pkgpath
+    if package:
+        f['package'] = package
+    if org:
+        f['org'] = org
+    #func = json.dumps(f, indent=4)
+    if sharedusers:
+        sharedusers = ast.literal_eval(sharedusers)
+    modulemanager.add(user_id = current_user.id, value = dict(f), access=access, users=sharedusers, pipenv=pipenv, pippkgs=pippkgsdb, reqfile=reqfile)
+
+    return f
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -397,7 +429,7 @@ def functions():
                 runnable = run_biowl(workflowId, None, args, immediate, provenance)
                 return jsonify(runnableId = runnable.id)
 
-            elif len(request.files) > 0 and request.files['package']:
+            elif len(request.files) > 0 and 'package' in request.files and request.files['package']:
                 filename = secure_filename(request.files['package'].filename)
                 tempdir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
                 temppath = os.path.join(tempdir, filename)
@@ -449,7 +481,7 @@ def functions():
                         result["err"].extend(errs)
                     
                     reqfile = ''
-                    if len(request.files) > 0 and request.files['reqfile']:
+                    if len(request.files) > 0 and 'reqfile' in request.files and request.files['reqfile']:
                         try:
                             filename = secure_filename(request.files['reqfile'].filename)
                             temppath = os.path.join(tempfile.gettempdir(), filename)
@@ -533,62 +565,25 @@ def functions():
                             access = 2
                             sharedusers = ''
                     
-                    final_json_data = {}
+                    if reqfile:
+                        reqFilePath = pathlib.Path(reqfile)
+                        temppath = os.path.join(path, reqFilePath.name)
+                        if os.path.exists(temppath):
+                            #create a unique temppath if it already exists
+                            suffix = reqFilePath.suffix
+                            if suffix:
+                                suffix = suffix[1]
+                            temppath = unique_filename(user_package_dir, reqFilePath.stem, reqFilePath.suffix)
+                        shutil.copy(reqfile, temppath)
+                        os.remove(reqfile)
+                        reqfile = str(pathlib.Path(temppath).relative_to(path))
+
                     with open(base, 'r') as json_data:
                         data = json.load(json_data)
-                        libraries = data["functions"] if "functions" in data else [data]
-                        for f in libraries:
-                            try:
-                                # if internal not given, parse the code and use the first function name as internal (adaptor name) 
-                                internalGiven = 'internal' in f and f['internal'] != ""
-                                if not internalGiven and filename:
-                                    with open(filename, 'r') as r:
-                                        tree = ast.parse(r.read())
-                                        funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
-                                        if funcDefs:
-                                            f['internal'] = funcDefs[0]
-                            except:
-                                pass
-                            if not 'name' in f or f['name'] == "":
-                                f['name'] = f['internal']
-
-                            #f['access'] = access
-    #                         if sharedusers:
-    #                             users = sharedusers.split(";")
-    #                         else:
-    #                             users = []
-                            f['module'] = pkgpath
-                            if package:
-                                f['package'] = package
-                            if org:
-                                f['org'] = org
-                            #func = json.dumps(f, indent=4)
-                            if sharedusers:
-                                sharedusers = ast.literal_eval(sharedusers)
-                            modulemanager.add(user_id = current_user.id, value = f, access=access, users=sharedusers, pipenv=pipenv, pippkgs=pippkgsdb, reqfile=reqfile)
-                        final_json_data = data
-
-                    ## save code to a file
-                    if final_json_data:
+                        final_json_data = {"functions:": [add_module(f, filename, pkgpath, package, org, access, sharedusers, pipenv, pippkgsdb, reqfile) for f in data["functions"]]} if "functions" in data else add_module(data, filename, pkgpath, package, org, access, sharedusers, pipenv, pippkgsdb, reqfile)
+                        json_data.close()
                         os.remove(base)
                         with open(base, 'w') as f:
-                            if pippkgsdb or reqfile:
-                                final_json_data["pipenv"] = pipenv
-                                if pippkgsdb:
-                                    final_json_data["pippkgsdb"] = pippkgsdb
-                                if reqfile:
-                                    reqFilePath = pathlib.Path(reqfile)
-                                    temppath = os.path.join(path, reqFilePath.name)
-                                    if os.path.exists(temppath):
-                                        #create a unique temppath if it already exists
-                                        suffix = reqFilePath.suffix
-                                        if suffix:
-                                            suffix = suffix[1]
-                                        temppath = unique_filename(user_package_dir, reqFilePath.stem, reqFilePath.suffix)
-                                    shutil.copy(reqfile, temppath)
-                                    final_json_data["reqfile"] = str(pathlib.Path(temppath).relative_to(path))
-                                    os.remove(reqfile)
-
                             f.write(json.dumps(final_json_data, indent=2))
 
                     result['out'].append("Library successfully added.")

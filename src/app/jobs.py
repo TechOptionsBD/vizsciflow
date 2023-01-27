@@ -8,7 +8,6 @@ import json
 import logging
 from pyparsing import ParseException
 from timeit import time
-from datetime import timedelta
 
 from . import celery
 from dsl.parser import WorkflowParser
@@ -66,7 +65,7 @@ def run_script(self, runnable_id, args, provenance):
         runnable.error = "\n".join(context.err)
         runnable.out = "\n".join(context.out)
         runnable.view = json.dumps(context.view if hasattr(context, 'view') else '')
-        runnable.duration = int(timedelta(seconds = (time.perf_counter() - ts) * 1000))
+        runnable.duration = (time.perf_counter() - ts) * 1000
         runnable.update()
         
     return retval

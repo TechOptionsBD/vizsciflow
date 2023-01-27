@@ -2,7 +2,6 @@ import os
 import sys
 import logging
 from timeit import time
-from datetime import timedelta
 
 from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
@@ -195,7 +194,7 @@ class Library(LibraryBase):
             logging.error("Error calling the service {0}:{1}".format(function, str(e)))
             raise
         finally:
-            logging.info(f"Execution time for {package + '.' if package else ''}{function} is {timedelta(seconds=time.perf_counter() - ts)}s")
+            logging.info(f"Execution time for {package + '.' if package else ''}{function} is {time.perf_counter()-ts}s")
 
     @staticmethod
     def StoreArguments(context, task, params, arguments, **kwargs):

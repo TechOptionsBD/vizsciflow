@@ -7,10 +7,11 @@ import os
 import json
 import logging
 from pyparsing import ParseException
+from timeit import time
+from datetime import timedelta
 
 from . import celery
 from dsl.parser import WorkflowParser
-from dsl.wftimer import Timer
 
 from app.objectmodel.common import Status
 from app.managers.runmgr import runnablemanager
@@ -23,6 +24,7 @@ from app.dsl.vizsciflowlib import Library
 def run_script(self, runnable_id, args, provenance):
     from app import app
     
+    ts = time.perf_counter()
     runnable = runnablemanager.first(id=runnable_id)
 
     machine = VizSciFlowInterpreter()
@@ -64,6 +66,7 @@ def run_script(self, runnable_id, args, provenance):
         runnable.error = "\n".join(context.err)
         runnable.out = "\n".join(context.out)
         runnable.view = json.dumps(context.view if hasattr(context, 'view') else '')
+        runnable.duration = int(timedelta(seconds = (time.perf_counter() - ts) * 1000))
         runnable.update()
         
     return retval

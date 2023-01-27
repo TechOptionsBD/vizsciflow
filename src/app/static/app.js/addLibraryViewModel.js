@@ -34,6 +34,9 @@ function AddLibraryViewModel(userName) {
                 self.NewVenvName('');
                 self.loadpipenvs();
             }
+            else {
+                $("#add-library-info").text("Error on creating virtual env: " + data['err']);
+            }
             
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);

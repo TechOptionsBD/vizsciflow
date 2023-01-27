@@ -6,6 +6,8 @@ import logging
 from pathlib import Path
 from collections import UserDict, UserList
 
+thispath = os.path.dirname(__file__)
+
 def isiterable(p_object):
     try:
         if isinstance(p_object, str):
@@ -213,7 +215,6 @@ def pip_install(pipenv, package):
         if not pipenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
-        thispath = os.path.dirname(__file__)
         return run_script(os.path.join(thispath, "pipinstall.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), package)
 
 def pipinstall_req_file(pipenv, reqfile):
@@ -229,5 +230,40 @@ def pipinstall_req_file(pipenv, reqfile):
         if not pipenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
-        thispath = os.path.dirname(__file__)
         return run_script(os.path.join(thispath, "pipinstallreq.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), reqfile)
+
+def get_pyvenvs(user_id):
+    pyvenvs = []
+    for t in get_python_venvs(user_id).keys():
+        pyvenvs.append(t)
+    return pyvenvs
+
+def new_pyvenvs(venvname, user_id):
+    from app import app
+    from app.system.exechelper import run_script
+
+    path = os.path.join(app.config['VENVS_ROOT_PATH'], 'users', str(user_id), venvname)
+    if os.path.exists(path):
+        raise ValueError(f"Python virtual environment {venvname} already exists.")
+    
+    run_script(os.path.join(thispath, "newvenv.sh"), path)
+    return json.dumps("")
+
+def pip_install_in_venv(pipenv, pippkgs):
+    outs = []
+    errs = []
+    pippkgsdb = ''
+    pippkgs = pippkgs.split(",")
+    for pkg in pippkgs:
+        try:
+            out,err = pip_install(pipenv, pkg)
+            if out:
+                outs.append(out)
+            if errs:
+                errs.append(err)
+            
+            pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
+        except Exception as e:
+            errs.append(str(e))
+            logging.error(f'Error installing package {pkg}: {str(e)}')
+    return pippkgsdb, outs, errs

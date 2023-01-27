@@ -416,22 +416,31 @@ def demo_service(context, *args, **kwargs):
 
 <strong>Advanced:</strong>
 <ul>
-<li><strong>Older python environment:</strong>VizSciFlow is developed using Python 3.6+. If a tool is developed using older version of Python (say 2.7), users need a workaround to integrate it.
-	We have provided a Python 2.7 virtual environment for it. Users need to create a .sh executable with the following code and run it using <i>context.pyvenv</i>.
-	<pre><code class="python">
+<li><strong>Older python environment:</strong>VizSciFlow is developed using Python 3.10. If a tool is developed using older version of Python (say 2.7), users need a workaround to integrate it.
+	We have provided a Python 2.7 virtual environment for it. Users need to create a .sh executable with the following code and run it using <i>context.pyvenv_run</i>.
+	/home/venvs/&lt;venvname&gt;>/bin/activate
+
+	<pre><code class="bash">
 	#!/bin/bash
 	source /home/venvs/.venvpy2/bin/activate
-	python2 $1 $2 $3 $4 $5 $6 $7 $8
+	python2 $1 $2 $3 $4 $5 $6 $7 $8 # $1 is a python script/program. $2-$8 are the arguments passed to $1
 	</code>
 	</pre>
 	</li>
-	<li><strong>Incompatible python library dependency:</strong>For unmaintaned libraries, it may happen that a tool needs a library which is incompatible to other tools of the python environment. Users need to create a .sh executable with the following code and run it using <i>context.pyvenv</i>.
-		<pre><code class="python">
+	You will run this code from adapter as below:
+	<pre><code class="python">
+		out, err = context.pyvenv_run(thispath, "python2", blastz, *cmdargs) # python2 is the filename with extension .sh
+	</code></pre>
+	<li><strong>Incompatible python library dependency:</strong>For unmaintaned libraries, it may happen that a tool needs a library which is incompatible to other tools of the python environment. Users need to create a .sh executable with the following code and run it using <i>context.run_pyvenv</i>.
+		<pre><code class="bash">
 		#!/bin/bash
 		source /home/venvs/.venvpycoqc/bin/activate
 		python2 $1 $2 $3 $4 $5 $6 $7 $8
 		</code>
 		</pre>
+	</li>
+	<li>
+		Similarly you can use your own virtual environment creating a shell script activating the environment and calling it from your adapter.
 	</li>
 </ul>
 

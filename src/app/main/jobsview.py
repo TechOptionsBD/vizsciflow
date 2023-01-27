@@ -344,39 +344,6 @@ def get_datatypes():
         datatypes.append(t + "[]")
     return jsonify(datatypes = datatypes)
 
-def get_pyvenvs():
-    pyvenvs = []
-    for t in get_python_venvs(current_user.id).keys():
-        pyvenvs.append(t)
-    return jsonify(pyvenvs = pyvenvs)
-
-def new_pyvenvs(request):
-    from app import app
-    venvname = request.args.get('newpyvenvs')
-    path = os.path.join(app.config['VENVS_ROOT_PATH'], 'users', str(current_user.id), venvname)
-    if not os.path.exists(path):
-        run_script(os.path.join(basedir, "newvenv.sh"), path)
-    return json.dumps("")
-
-def pip_install_in_venv(pipenv, pippkgs):
-    outs = []
-    errs = []
-    pippkgsdb = ''
-    pippkgs = pippkgs.split(",")
-    for pkg in pippkgs:
-        try:
-            out,err = pip_install(pipenv, pkg)
-            if out:
-                outs.append(out)
-            if errs:
-                errs.append(err)
-            
-            pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
-        except Exception as e:
-            errs.append(str(e))
-            logging.error(f'Error installing package {pkg}: {str(e)}')
-    return pippkgsdb, outs, errs
-
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -387,9 +354,10 @@ def functions():
             if 'datatypes' in request.args:
                 return get_datatypes()
             if 'pyenvs' in request.args:
-                return get_pyvenvs()
+                pyvenvs = get_pyvenvs(current_user.id)
+                return jsonify(pyvenvs = pyvenvs)
             if 'newpyvenvs' in request.args:
-                return new_pyvenvs(request)
+                return new_pyvenvs(request.args.get('newpyvenvs'), current_user.id)
             if 'check_function' in request.args:
                 return check_service_function(request)
             elif 'codecompletion' in request.args:

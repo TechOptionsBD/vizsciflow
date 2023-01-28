@@ -1,4 +1,5 @@
 from app.util import Utility
+from dsl.fileop import FolderItem, FilterManager
 
 def raw_print(context, data):
     context.out.append(str(data))
@@ -17,13 +18,13 @@ def raw_write(context, data, content):
     fs = Utility.fs_by_prefix_or_guess(data)
     fs.write(data, content)
 
-def raw_get_files(context, data):
+def raw_get_files(context, data, filter = {"name": "*"}, recursion = 'no'):
     fs = Utility.fs_by_prefix_or_guess(data)
-    return fs.get_files(data)
+    return FolderItem.StrToFolderItem(FilterManager.GetFiles(data, filter, recursion))
 
-def raw_get_folders(context, data):
+def raw_get_folders(context, data, filter = {"name": "*"}, recursion = 'no'):
     fs = Utility.fs_by_prefix_or_guess(data)
-    return fs.get_folders(data)
+    return FolderItem.StrToFolderItem(FilterManager.GetFolders(data, filter, recursion))
 
 def raw_remove(context, data):
     fs = Utility.fs_by_prefix_or_guess(data)

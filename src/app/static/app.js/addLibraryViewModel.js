@@ -91,12 +91,11 @@ function AddLibraryViewModel(userName) {
 
     self.beginAddPackage = function ()
     {
-        $("#add-library-info").text("");
-        $("#add-library-info").text("");
-        $("#packagemodule").val("");
         centerDialog($('#addPackage'));
         $('#addPackage').modal('show')
             .on('show.bs.modal', function () {
+                $("#add-package-info").text("");
+                $("#packagemodule").val("");
                 $( "#packagemodule" ).change();
             });
     }

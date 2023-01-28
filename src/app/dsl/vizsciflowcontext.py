@@ -8,7 +8,7 @@ from dsl.symtab import SymbolTable
 from app.util import Utility
 from app.managers.usermgr import usermanager
 from app.managers.modulemgr import modulemanager
-from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit
+from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit, py_exec_out_err_exit
 from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
 from app.objectmodel.models.rdb import Task
 from app.objectmodel.common import LogType, get_python_venvs, strip_quote
@@ -273,4 +273,7 @@ class VizSciFlowContext(Context):
     # @staticmethod
     # def get_pyvenv(venv):
     #     return get_python_venvs[venv]
-                
+
+    @staticmethod
+    def py_run(app, *args):
+        return py_exec_out_err_exit(app, *args)

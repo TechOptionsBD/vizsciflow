@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Installing docker..."
+
 apt-get update -y
 
 apt-get upgrade -y
@@ -15,10 +17,12 @@ sudo apt-get update -y
 
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
+echo "Starting docker..."
 sudo service docker start
-sudo service docker status
+#sudo service docker status
 
 #docker-compose
+echo "Installing docker-compose..."
 
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
@@ -46,7 +50,7 @@ sudo setfacl --modify user:$USER:rw /var/run/docker.sock
 echo "Recreate the dockers ..."
 sed -i -e "s/UID=10611135/UID=$(id -u)/" .env
 docker-compose down
-docker volume prune
+docker volume prune -f
 docker-compose up --build --force-recreate -d
 
 echo "Update database schema and insert default value from vizsciflow.sql ..."

@@ -15,6 +15,7 @@ sudo apt-get update -y
 
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
+sudo service docker start
 sudo service docker status
 
 #docker-compose
@@ -25,7 +26,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-# configure docker for vscode
+echo "Configuring docker for vscode"
 sudo usermod -aG docker $USER
 sudo apt install -y acl
 sudo setfacl --modify user:$USER:rw /var/run/docker.sock
@@ -34,17 +35,23 @@ sudo setfacl --modify user:$USER:rw /var/run/docker.sock
 
 #cd vizsciflow
 
-rm vizsciflow.sql
-wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1HP70Wbnb927iG3hq3Ta01ErR_C65-8Y2' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1HP70Wbnb927iG3hq3Ta01ErR_C65-8Y2" -O vizsciflow.sql && rm -rf /tmp/cookies.txt
+#rm vizsciflow.sql
+#wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1HP70Wbnb927iG3hq3Ta01ErR_C65-8Y2' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1HP70Wbnb927iG3hq3Ta01ErR_C65-8Y2" -O vizsciflow.sql && rm -rf /tmp/cookies.txt
 
-rm -r ./src/plugins/modules
-wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1nFfYaQJTRPDvENVEf8XV23fJqyXN2P1A' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1nFfYaQJTRPDvENVEf8XV23fJqyXN2P1A" -O modules.tar.bz2 && rm -rf /tmp/cookies.txt
-tar -xf modules.tar.bz2 -C ./src/plugins
+#rm -r ./src/plugins/modules
+#wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1nFfYaQJTRPDvENVEf8XV23fJqyXN2P1A' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1nFfYaQJTRPDvENVEf8XV23fJqyXN2P1A" -O modules.tar.bz2 && rm -rf /tmp/cookies.txt
+#tar -xf modules.tar.bz2 -C ./src/plugins
 
 #sed -i -e "s?/home/vizsciflow/vizsciflow?$(pwd)?" .env
+echo "Recreate the dockers ..."
 sed -i -e "s/UID=10611135/UID=$(id -u)/" .env
 docker-compose down
 docker volume prune
 docker-compose up --build --force-recreate -d
+
+echo "Update database schema and insert default value from vizsciflow.sql ..."
 docker cp vizsciflow.sql vizsciflowdb:/
 docker exec -i vizsciflowdb psql -U phenodoop -d biowl < vizsciflow.sql
+
+echo "Add modules from src/plugins/modules to the database"
+docker exec -i vizsciflowweb sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask insertmodules /home/vizsciflow/plugins/modules --with-users False --install-pypi False)'

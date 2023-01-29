@@ -93,6 +93,23 @@ def pyvenv_run(toolpath, app, *args):
     
     return run_script(script, *args)
 
+def pyvenv_run_venv_args(toolpath, app, *args):
+    script = os.path.join(toolpath, Path(app).stem + '.sh')
+    if not os.path.exists(script):
+        with open(script, 'w') as f:
+            f.write('#!/bin/bash')
+            f.write('\n')
+            f.write('source $1')
+            f.write('\n')
+            f.write('shift')
+            f.write('\n')
+            f.write(f'{app} "$@"')
+            
+        st = os.stat(script)
+        os.chmod(script, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
+    
+    return run_script(script, *args)
+
 def func_exec_run(app, *args):
     out, err = func_exec_stdout(app, *args)
     return out.decode('utf-8'), err.decode('utf-8')

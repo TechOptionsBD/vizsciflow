@@ -8,7 +8,7 @@ from dsl.symtab import SymbolTable
 from app.util import Utility
 from app.managers.usermgr import usermanager
 from app.managers.modulemgr import modulemanager
-from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit, py_exec_out_err_exit
+from app.system.exechelper import func_exec_run, func_exec_bash_stdout, pyvenv_run, func_exec_bash_out_err_exit, py_exec_out_err_exit, pyvenv_run_venv_args
 from app.dsl.argshelper import get_posix_data_args, get_optional_input_from_args, get_input_from_args
 from app.objectmodel.models.rdb import Task
 from app.objectmodel.common import LogType, get_python_venvs, strip_quote
@@ -214,6 +214,14 @@ class VizSciFlowContext(Context):
     def pyvenv_run(toolpath, app, *args):
         return pyvenv_run(toolpath, app, *args)
     
+    def pyvenv_run_at_venv(self, toolpath, app, venv, *args):
+        venvs = get_python_venvs(self.user_id)
+        if not venvs.get('venv'):
+            raise ValueError(f"{venv} virtual environment for user {self.user_id} doesn't exist.")
+
+        args = (os.path.join(venvs[venv], 'bin', 'activate'), args)
+        return pyvenv_run_venv_args(toolpath, app, *args)
+
     @staticmethod
     def normalize(data):
         data = strip_quote(data)
@@ -252,13 +260,13 @@ class VizSciFlowContext(Context):
             raise ValueError("No valid workflow.")
         return id
     
-    def get_mypyvenv(self, name = 'None'):
-        from app import app
+    # def get_mypyvenv(self, name = 'None'):
+    #     from app import app
 
-        venvpath = os.path.join(app.config['VENVS_ROOT_PATH'], "users", self.user_id, name)
-        if not os.path.isdir(venvpath):
-            raise ValueError(f"{name} virtual environment for user {self.user_id} doesn't exist.")
-        return venvpath
+    #     venvpath = os.path.join(app.config['VENVS_ROOT_PATH'], "users", self.user_id, name)
+    #     if not os.path.isdir(venvpath):
+    #         raise ValueError(f"{name} virtual environment for user {self.user_id} doesn't exist.")
+    #     return venvpath
 
     @staticmethod
     def get_pyvenv(name = None):

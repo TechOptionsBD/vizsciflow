@@ -1325,7 +1325,6 @@ function TasksViewModel(sampleViewModel) {
 
     //TODO: need to modify for output tab list view
     self.openInDetailsView = function (data, ele) {
-        var fileType = self.getFileExtension(data.data);
         
         self.currentItemPath('');
 
@@ -1335,157 +1334,174 @@ function TasksViewModel(sampleViewModel) {
             dataSourceViewModel.selectByPath(data.data);
             $('.nav-tabs a[href="#browsertab"]').tab('show');
         }
-        else if (self.imageTypes.includes(fileType)) {
-            // self.showModal(data);
-            var oReq = new XMLHttpRequest();
-            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
-            oReq.responseType = "arraybuffer";
-            self.itemName(data.name);
-            oReq.send();
+        else if ((data.datatype & 4096) != 0){
+			var oReq = new XMLHttpRequest();
+			oReq.open('GET', '/runnables' + "?" + 'datavalue=' + parseInt(data.id), true);
+			oReq.responseType = "arraybuffer";
 
-            oReq.onload = function (oEvent) {
-                if (this.status == 200) {
-                    var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: 'image/' + self.mimeTypeFromImageType(fileType) });
-                    itemSrc = URL.createObjectURL(blob);
-                    self.itemSrc(itemSrc);
-                    // self.showModal(data, itemSrc);
-                    $('.nav-tabs a[href="#outputtab"]').tab('show');
-                }
-            };
-        }
-        else if (self.videoTypes.includes(fileType)) {
-            var oReq = new XMLHttpRequest();
-            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
-            oReq.responseType = "arraybuffer";
-            var videoType = "video/" + fileType;
-            self.itemName(data.name);
-            oReq.send();
-
-            oReq.onload = function (oEvent) {
-                if (this.status == 200) {
-                    var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: videoType });
-                    itemSrc = URL.createObjectURL(blob);
-                    self.itemSrc(itemSrc);
-                    // self.showModal(data, itemSrc);
-                    $('.nav-tabs a[href="#outputtab"]').tab('show');
-                }
-            };
-        }
-        else if (fileType == 'htm' || fileType == 'html') {
-            var oReq = new XMLHttpRequest();
-            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
-            oReq.responseType = "arraybuffer";
-
-            oReq.send();
-            self.itemName(data.data);
-            oReq.onload = function (oEvent) {
-                if (this.status == 200) {
-                    var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: "text/html" });
-                    var reader = new FileReader();
-                    reader.readAsDataURL(blob);
-                    reader.onload = function () {
-                        var base64UrlString = reader.result;
-                        self.itemSrc(base64UrlString);
-                        $('#liOutput').show();
-                        $('.nav-tabs a[href="#outputtab"]').tab('show');
-                    }
-                }
-            };
-        }
-        else if (fileType == 'pdf') {
-            var oReq = new XMLHttpRequest();
-            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
-            oReq.responseType = "arraybuffer";
-
-            oReq.send();
-            self.itemName(data.data);
-            oReq.onload = function (oEvent) {
-                if (this.status == 200) {
-                    var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: "application/pdf" });
-                    itemSrc = URL.createObjectURL(blob);
-                    self.itemSrc(itemSrc);
-                    // self.showModal(data, itemSrc);
-                    $('.nav-tabs a[href="#outputtab"]').tab('show');
-                }
-            };
-        }
-        else if (fileType == 'xml') {
-            var oReq = new XMLHttpRequest();
-            oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
-            oReq.responseType = "arraybuffer";
-
-            oReq.send();
-            self.itemName(data.data);
-            oReq.onload = function (oEvent) {
-                if (this.status == 200) {
-                    var arrayBuffer = oReq.response;
-                    var blob = new Blob([arrayBuffer], { type: "text/plain" });
-                    itemSrc = URL.createObjectURL(blob);
-                    self.itemSrc(itemSrc);
-                    // self.showModal(data, itemSrc);
-                    $('.nav-tabs a[href="#outputtab"]').tab('show');
-                }
-            }
+			oReq.send();
+			//self.itemName(data.data);
+			oReq.onload = function (oEvent) {
+				if (this.status == 200) {
+					var arrayBuffer = oReq.response;
+					var blob = new Blob([arrayBuffer], { type: "text/plain" });
+					itemSrc = URL.createObjectURL(blob);
+					tasksViewModel.setItemSrc(itemSrc);
+				}
+			}
         }
         else {
+            var fileType = self.getFileExtension(data.data);
 
-            $.ajax({
-                url: "/datasources?mimetype=" + data.data //api.elements.target.attr('href') // Use href attribute as URL
-            })
-            .then(function(content) {
-                // Set the tooltip content upon successful retrieval
-                content = JSON.parse(content);
-                if (content.mimetype == 'text/plain'){
-                    
-                    var oReq = new XMLHttpRequest();
-                    oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
-                    oReq.responseType = "arraybuffer";
+            if (self.imageTypes.includes(fileType)) {
+                // self.showModal(data);
+                var oReq = new XMLHttpRequest();
+                oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+                oReq.responseType = "arraybuffer";
+                self.itemName(data.name);
+                oReq.send();
 
-                    oReq.send();
-                    self.itemName(data.data);
-                    oReq.onload = function (oEvent) {
-                        if (this.status == 200) {
-                            var arrayBuffer = oReq.response;
-                            var blob = new Blob([arrayBuffer], { type: "text/plain" });
-                            itemSrc = URL.createObjectURL(blob);
-                            self.itemSrc(itemSrc);
-                            // self.showModal(data, itemSrc);
+                oReq.onload = function (oEvent) {
+                    if (this.status == 200) {
+                        var arrayBuffer = oReq.response;
+                        var blob = new Blob([arrayBuffer], { type: 'image/' + self.mimeTypeFromImageType(fileType) });
+                        itemSrc = URL.createObjectURL(blob);
+                        self.itemSrc(itemSrc);
+                        // self.showModal(data, itemSrc);
+                        $('.nav-tabs a[href="#outputtab"]').tab('show');
+                    }
+                };
+            }
+            else if (self.videoTypes.includes(fileType)) {
+                var oReq = new XMLHttpRequest();
+                oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+                oReq.responseType = "arraybuffer";
+                var videoType = "video/" + fileType;
+                self.itemName(data.name);
+                oReq.send();
+
+                oReq.onload = function (oEvent) {
+                    if (this.status == 200) {
+                        var arrayBuffer = oReq.response;
+                        var blob = new Blob([arrayBuffer], { type: videoType });
+                        itemSrc = URL.createObjectURL(blob);
+                        self.itemSrc(itemSrc);
+                        // self.showModal(data, itemSrc);
+                        $('.nav-tabs a[href="#outputtab"]').tab('show');
+                    }
+                };
+            }
+            else if (fileType == 'htm' || fileType == 'html') {
+                var oReq = new XMLHttpRequest();
+                oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+                oReq.responseType = "arraybuffer";
+
+                oReq.send();
+                self.itemName(data.data);
+                oReq.onload = function (oEvent) {
+                    if (this.status == 200) {
+                        var arrayBuffer = oReq.response;
+                        var blob = new Blob([arrayBuffer], { type: "text/html" });
+                        var reader = new FileReader();
+                        reader.readAsDataURL(blob);
+                        reader.onload = function () {
+                            var base64UrlString = reader.result;
+                            self.itemSrc(base64UrlString);
+                            $('#liOutput').show();
                             $('.nav-tabs a[href="#outputtab"]').tab('show');
                         }
                     }
+                };
+            }
+            else if (fileType == 'pdf') {
+                var oReq = new XMLHttpRequest();
+                oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+                oReq.responseType = "arraybuffer";
+
+                oReq.send();
+                self.itemName(data.data);
+                oReq.onload = function (oEvent) {
+                    if (this.status == 200) {
+                        var arrayBuffer = oReq.response;
+                        var blob = new Blob([arrayBuffer], { type: "application/pdf" });
+                        itemSrc = URL.createObjectURL(blob);
+                        self.itemSrc(itemSrc);
+                        // self.showModal(data, itemSrc);
+                        $('.nav-tabs a[href="#outputtab"]').tab('show');
+                    }
+                };
+            }
+            else if (fileType == 'xml') {
+                var oReq = new XMLHttpRequest();
+                oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+                oReq.responseType = "arraybuffer";
+
+                oReq.send();
+                self.itemName(data.data);
+                oReq.onload = function (oEvent) {
+                    if (this.status == 200) {
+                        var arrayBuffer = oReq.response;
+                        var blob = new Blob([arrayBuffer], { type: "text/plain" });
+                        itemSrc = URL.createObjectURL(blob);
+                        self.itemSrc(itemSrc);
+                        // self.showModal(data, itemSrc);
+                        $('.nav-tabs a[href="#outputtab"]').tab('show');
+                    }
                 }
-                else{
-                    fetch(self.dataSourcesURI + "?" + 'filecontent=' + data.data)
-                    .then(resp => resp.blob())
-                    .then(blob => {
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.style.display = 'none';
-                        a.href = url;
-                        // the filename you want
+            }
+            else {
 
-                        //const getFileName = (fileName) => new URL(fileName).pathname.split("/").pop();
-                        const getFileName = (fileName) => fileName.split('/').pop();
-                        a.download = decodeURIComponent(getFileName(data.data));
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                    })
+                $.ajax({
+                    url: "/datasources?mimetype=" + data.data //api.elements.target.attr('href') // Use href attribute as URL
+                })
+                .then(function(content) {
+                    // Set the tooltip content upon successful retrieval
+                    content = JSON.parse(content);
+                    if (content.mimetype == 'text/plain'){
+                        
+                        var oReq = new XMLHttpRequest();
+                        oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
+                        oReq.responseType = "arraybuffer";
 
-                    self.itemSrc('');
-                }
-                
-            }, function(xhr, status, error) {
-                // Upon failure... set the tooltip content to error
-                //api.set('content.text', status + ': ' + error);
-            });
+                        oReq.send();
+                        self.itemName(data.data);
+                        oReq.onload = function (oEvent) {
+                            if (this.status == 200) {
+                                var arrayBuffer = oReq.response;
+                                var blob = new Blob([arrayBuffer], { type: "text/plain" });
+                                itemSrc = URL.createObjectURL(blob);
+                                self.itemSrc(itemSrc);
+                                // self.showModal(data, itemSrc);
+                                $('.nav-tabs a[href="#outputtab"]').tab('show');
+                            }
+                        }
+                    }
+                    else{
+                        fetch(self.dataSourcesURI + "?" + 'filecontent=' + data.data)
+                        .then(resp => resp.blob())
+                        .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            // the filename you want
 
-            
-            return;
+                            //const getFileName = (fileName) => new URL(fileName).pathname.split("/").pop();
+                            const getFileName = (fileName) => fileName.split('/').pop();
+                            a.download = decodeURIComponent(getFileName(data.data));
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        })
+
+                        self.itemSrc('');
+                    }
+                    
+                }, function(xhr, status, error) {
+                    // Upon failure... set the tooltip content to error
+                    //api.set('content.text', status + ': ' + error);
+                });
+            }
         }
     };
 

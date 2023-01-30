@@ -134,6 +134,11 @@ class DataManager():
     def load_dataset_data_for_plugin(dataset_id, data_id, page_num):
         return DataSource.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
     
+    @staticmethod
+    def get_task_data_value(data_id):
+        dataitem = Data.query.get(data_id)
+        return dataitem.value["value"]
+    
 class ModuleManager():
     @staticmethod
     def first(**kwargs):

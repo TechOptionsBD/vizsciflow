@@ -1628,7 +1628,7 @@ class Task(db.Model):
             datavalue = dataitem.value["value"]
             if int(dataitem.value["type"]) == DataType.FileList or int(dataitem.value["type"]) == DataType.FolderList:
                 datavalue = datavalue.strip('][').split(', ')
-            data.append({ "datatype": dataitem.value["type"], "data": datavalue})
+            data.append({ "id": dataitem.id, "datatype": dataitem.value["type"], "data": datavalue})
             
         log = {
             'id': self.id,

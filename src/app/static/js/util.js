@@ -3,10 +3,10 @@ addLink = function(val){
 		'href': 'javascript:void(0)',
 		'text': val.data
 	}).on('click', function() {
-		if ((parseInt(val.datatype) & 0x02) != 0 || (parseInt(val.datatype) & 0x400) != 0  || (parseInt(val.datatype) & 0x01) != 0 || (parseInt(val.datatype) & 0x800) != 0) {
+		if ((parseInt(val.datatype) & 0x02) != 0 || (parseInt(val.datatype) & 0x400) != 0  || (parseInt(val.datatype) & 0x01) != 0 || (parseInt(val.datatype) & 0x800) != 0 || (parseInt(val.datatype) & 0x1000) != 0 ) {
 			// var w = window.open();
 			// $(w.document.body).text(val['data']);
-			tasksViewModel.openInDetailsView(val)
+			tasksViewModel.openInDetailsView(val);
 		}
 		else {
 			$.redirect('/datasources', { 'download': val.data }, "POST", "_blank");
@@ -36,7 +36,7 @@ jsonArray2Table = function(table, jsonArr) {
 			}
 
 			$.each(datavals, function (key, dataval) {
-				let linkval = { 'data': dataval, 'datatype': val.datatype};
+				let linkval = { 'data': dataval, 'datatype': val.datatype, 'id': val['id']};
 				link = addLink(linkval);
 				if (added)
 					cell.append("<br/><br/>");

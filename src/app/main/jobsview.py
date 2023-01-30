@@ -27,6 +27,7 @@ from flask import request, jsonify, current_app, send_from_directory, make_respo
 from werkzeug.utils import secure_filename
 
 from ..managers.usermgr import usermanager
+from ..managers.datamgr import datamanager
 from ..managers.workflowmgr import workflowmanager
 from ..managers.runmgr import runnablemanager
 from app.objectmodel.common import *
@@ -672,7 +673,12 @@ def get_tasklogs_as_filecontent(task_id):
     logs = get_task_logs(task_id)
     mime = 'text/plain'
     return send_file(io.BytesIO(json.dumps(logs).encode()), mimetype=mime, as_attachment=True, download_name=str(task_id))
-    
+
+def get_datavalue_as_filecontent(data_id):
+    datavalue = datamanager.get_task_data_value(data_id)
+    mime = 'text/plain'
+    return send_file(io.BytesIO(json.dumps(datavalue).encode()), mimetype=mime, as_attachment=True, download_name=str(data_id))
+
 @main.route('/runnables', methods=['GET', 'POST'])
 @login_required
 def runnables():
@@ -684,6 +690,8 @@ def runnables():
 
             # download as file data
             return get_tasklogs_as_filecontent(int(request.args.get('tasklogs')))
+        if 'datavalue' in request.args:
+            return get_datavalue_as_filecontent(int(request.args.get('datavalue')))
         if request.args.get('tooltip'):
             return get_task_full_status(int(request.args.get('tooltip')))
         elif request.args.get('id'):

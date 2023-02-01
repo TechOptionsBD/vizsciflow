@@ -28,13 +28,6 @@ class KnownTypes(UserDict):
             return self.__contains__(key[:-2])
         return key in self.data
 
-python_venvs = {
-    'system': os.path.dirname(os.path.dirname(sys.executable)),
-    'python2': '/home/venvs/.venvpy2',
-    'python3': '/home/venvs/.venv3',
-    'pycoqc': '/home/venvs/.venvpycoqc'
-}
-
 def get_python_venvs(user_id = None):
     from app import app
     python_venvs = {}
@@ -43,8 +36,9 @@ def get_python_venvs(user_id = None):
         if venv.parts[-1] == 'users':
             if user_id:
                 uservenvspath = Path(os.path.join(app.config['VENVS_ROOT_PATH'], venv, str(user_id)))
-                for uservenv in uservenvspath.iterdir():
-                    python_venvs.update({os.path.join(str(user_id), uservenv.parts[-1]): os.path.join(uservenvspath, uservenv)})
+                if uservenvspath.is_dir():
+                    for uservenv in uservenvspath.iterdir():
+                        python_venvs.update({os.path.join(str(user_id), uservenv.parts[-1]): os.path.join(uservenvspath, uservenv)})
         else:
             python_venvs.update({venv.parts[-1]: os.path.join(venvspath, venv)})
     return python_venvs

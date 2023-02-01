@@ -49,7 +49,7 @@ def create_app(config_name):
     mail.init_app(app)
     moment.init_app(app)
     db.init_app(app)
-    migrate.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     pagedown.init_app(app)
     

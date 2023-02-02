@@ -1528,6 +1528,7 @@ class Task(db.Model):
     ended_on = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Text)    
     comment = db.Column(db.Text)
+    duration = db.Column(db.Float, default=0.0)
     
     tasklogs = db.relationship('TaskLog', cascade="all,delete-orphan", backref='task', lazy='dynamic')
     outputs = db.relationship('TaskData', cascade="all,delete-orphan", backref='task', order_by="asc(TaskData.id)", lazy='subquery')
@@ -1635,7 +1636,7 @@ class Task(db.Model):
             'name': self.name,
             'status': self.status,
             'data': data,
-            'duration': (self.ended_on - self.started_on).microseconds
+            'duration': self.duration if self.duration != None else (self.ended_on - self.started_on).seconds
         }
 #         if self.status == Status.SUCCESS and (self.datatype & DataType.FileList) > 0:
 #             log['data'] = log['data'].strip('}{').split(',')
@@ -1758,7 +1759,7 @@ class Runnable(db.Model):
     out = db.Column(db.Text, default='')
     error = db.Column(db.Text, default='')
     view = db.Column(db.Text, default='')
-    duration = db.Column(db.Integer, default = 0)
+    duration = db.Column(db.Float, default = 0.0)
     started_on = db.Column(db.DateTime, default=datetime.utcnow)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
@@ -1812,12 +1813,7 @@ class Runnable(db.Model):
     
         if value == Status.STARTED:
             self.started_on = datetime.utcnow()
-            #self.update_cpu_memory()
     
-        if value == Status.SUCCESS or value == Status.FAILURE or value == Status.REVOKED:
-            self.duration = (datetime.utcnow() - self.started_on).microseconds
-            #self.update_cpu_memory()
-        
         if update:
             self.update()
 
@@ -1831,6 +1827,9 @@ class Runnable(db.Model):
     #     self.value['view'] = value
     #     flag_modified(self, 'value')
 
+    def get_duration(self):
+        return self.duration if self.duration != None else (self.modified_on - self.created_on).seconds
+
     def json(self):
         
         return {
@@ -1840,7 +1839,7 @@ class Runnable(db.Model):
             'status': self.status,
             'out': self.out,
             'err': self.error,
-            'duration': str(self.duration),
+            'duration': self.get_duration(),
             'created_on': str(self.created_on),
             'modified_on': str(self.modified_on),
             'view': self.view
@@ -1855,7 +1854,7 @@ class Runnable(db.Model):
             'name': self.workflow.name,
             'status': self.status,
             'err': error,
-            'duration': self.duration,
+            'duration': self.get_duration(),
             'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '',
             'modified_on': self.modified_on.strftime("%d-%m-%Y %H:%M:%S") if self.modified_on else ''
         }
@@ -1872,7 +1871,7 @@ class Runnable(db.Model):
             'status': self.status,
             'out': self.out,
             'err': self.error,
-            'duration': self.duration,
+            'duration': self.get_duration(),
             'log': log
         }
         

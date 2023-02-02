@@ -65,7 +65,7 @@ def run_script(self, runnable_id, args, provenance):
         runnable.error = "\n".join(context.err)
         runnable.out = "\n".join(context.out)
         runnable.view = json.dumps(context.view if hasattr(context, 'view') else '')
-        runnable.duration = (time.perf_counter() - ts) * 1000
+        runnable.duration = time.perf_counter() - ts
         runnable.update()
         
     return retval

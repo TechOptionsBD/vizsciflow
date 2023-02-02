@@ -59,7 +59,7 @@ jsonArray2Table = function(table, jsonArr) {
         }
         row.append(cell);
         
-		time = parseInt(value['duration'])/1000;
+		time = parseFloat(value['duration']) * 1000;
 		cell = $("<td>" + time.toFixed(1) + " ms" + "</td>");
         row.append(cell);
 

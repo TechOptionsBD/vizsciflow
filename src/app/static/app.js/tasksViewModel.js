@@ -755,7 +755,7 @@ function TasksViewModel(sampleViewModel) {
             $("#log tbody").empty();
             jsonArray2Table($("#log"), data['log']);
             printExecStatus(data['status']);
-            $("#duration").text(parseInt(data.duration)/1000 + ' ms');
+            $("#duration").text((parseFloat(data.duration) * 1000).toFixed(1) + ' ms');
         });
     }
     self.beginEditLibrary = function (task) {

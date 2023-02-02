@@ -190,11 +190,12 @@ class Library(LibraryBase):
             return result
         except Exception as e:
             if task:
-                task.failed(str(e))
+                task.failed(str(e))                
             logging.error("Error calling the service {0}:{1}".format(function, str(e)))
             raise
         finally:
-            logging.info(f"Execution time for {package + '.' if package else ''}{function} is {time.perf_counter()-ts}s")
+            if task:
+                task.duration = time.perf_counter() - ts
 
     @staticmethod
     def StoreArguments(context, task, params, arguments, **kwargs):

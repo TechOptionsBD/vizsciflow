@@ -22,6 +22,12 @@ SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
+-- Remove current schema
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO phenodoop;
+GRANT ALL ON SCHEMA public TO public;
+
 --
 -- TOC entry 242 (class 1259 OID 25351)
 -- Name: comments; Type: TABLE; Schema: public; Owner: phenodoop

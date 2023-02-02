@@ -147,6 +147,7 @@ class AccessType:
     PRIVATE = 2
 
 class Status:
+    NEW = 'NEW'
     PENDING = 'PENDING'
     RECEIVED = 'RECEIVED'
     STARTED = 'STARTED'
@@ -161,6 +162,11 @@ class LogType:
     ERROR = "error",
     STDERR = "stderr",
     STDOUT = "stdout"
+
+class ActivityType:
+    ADDTOOL = "ADDTOOL"
+    ADDTOOLPACKAGE = "ADDTOOLPACKAGE"
+    WORKFLOWSAVE = "WORKFLOWSAVE"
 
 class VizSciFlowList(UserList):
     def first(self):

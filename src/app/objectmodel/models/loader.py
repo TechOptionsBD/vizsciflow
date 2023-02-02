@@ -71,7 +71,7 @@ class Loader:
                 if os.path.commonpath([app.config['ROOT_DIR']]) == os.path.commonpath([app.config['ROOT_DIR'], module_dir]):
                     module = str(pathlib.Path(module_dir).relative_to(app.config['ROOT_DIR']))
                 else:
-                    logging.warning("Module path is not a child path of system's modules folder.")
+                    logging.warning(f"Module path {module_dir} is not a child path of system's modules folder.")
                 module = module.replace('/', '.') + '.adapter'
 
                 for f in libraries:

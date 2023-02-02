@@ -344,3 +344,20 @@ class Manager():
     @staticmethod
     def close():
         pass
+
+class ActivityManager():
+    @staticmethod
+    def first(**kwargs):
+         return Activity.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+         return Activity.query.filter_by(**kwargs)
+
+    @staticmethod
+    def create(user_id, type):
+        return Activity.create(user_id, type)
+    
+    @staticmethod
+    def get_last_modified_n(n, **kwargs):
+        return Activity.query.filter_by(**kwargs).order_by(Activity.modified_on.desc()).limit(n)

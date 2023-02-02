@@ -25,7 +25,7 @@ from app.exceptions import ValidationError
 from app import db
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
-from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access
+from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access, ActivityType
 from .loader import Loader
 
 from collections import namedtuple
@@ -1679,7 +1679,74 @@ class TaskLog(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+
+class ActivityLog(db.Model):
+    __tablename__ = 'activitylogs'
+    id = db.Column(db.Integer, primary_key=True)
+    activity_id = db.Column(db.Integer, db.ForeignKey('activities.id'))
+    time = db.Column(db.DateTime, default=datetime.utcnow)
+    type = db.Column(db.Text, default=LogType.ERROR)
+    log = db.Column(db.Text)
     
+    def to_json(self):
+        return {
+            'time': self.time.strftime("%d-%m-%Y %H:%M:%S"),
+            'type': self.type,
+            'log': self.log
+        }
+        
+class Activity(db.Model):
+    __tablename__ = 'activities'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    type = db.Column(db.String(30), default=ActivityType.ADDTOOL)
+    status = db.Column(db.String(30), default=Status.NEW)
+    created_on = db.Column(db.DateTime, default=datetime.utcnow)
+    modified_on = db.Column(db.DateTime, default=datetime.utcnow)
+
+    logs = db.relationship('ActivityLog', backref='activity', lazy='subquery', cascade="all,delete-orphan") 
+    def add_log(self, log, type =  LogType.INFO):
+        try:
+            tasklog = ActivityLog(type=type, log = log)
+            self.logs.append(tasklog)
+            db.session.commit()
+            return tasklog
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    @staticmethod
+    def create(user_id, type):
+        try:
+            activity = Activity(user_id = user_id, type = type)
+            db.session.add(activity)
+            db.session.commit()
+            return activity
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    def updateTime(self):
+        try:
+            self.modified_on = datetime.utcnow()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    def json(self):
+        return {
+            'id': self.id,
+            'type': self.type,
+            'status': self.status,
+            'modified_on': self.modified_on.strftime("%d-%m-%Y %H:%M:%S")
+        }
+
+    def to_json(self):
+        data = self.json()
+        data.update({'logs': [log.to_json() for log in self.logs]})
+        return data
+
 class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)

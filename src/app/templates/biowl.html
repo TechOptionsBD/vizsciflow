@@ -84,6 +84,7 @@
 <script src="/static/app.js/gridStackViewModel.js"></script>
 <script src="/static/app.js/uiComponentsControl.js"></script>
 <script src="/static/app.js/runnablesViewModel.js"></script>
+<script src="/static/app.js/activitiesViewModel.js"></script>
 <script src="/static/app.js/addLibraryViewModel.js"></script>
 <script src="/static/app.js/aceEditor.js"></script>
 <script src="/static/app.js/detailGraphViewModel.js"></script>
@@ -244,7 +245,7 @@
 				</div>
 			</div>
 
-			<div id="searchHistoryPanel" class="panel panel-primary">
+			<div id="searchHistoryPanel" class="panel panel-primary" style="display: none">
 				<div class="panel-heading">
 					<button class="close closeComponent" title="Close" type="button">×</button>
 					<div class="row">
@@ -337,6 +338,45 @@
 							<span data-bind="text: modified" style="text-align: right"></span>
 						</div>
 						<div style="clear: both" ></div>
+					</div>
+				</div>
+			</div>
+			<div id="activitiesPanel" class="panel panel-primary">
+				<div class="panel-heading">
+					<button class="close closeComponent" title="Close" type="button">×</button>
+					<div class="row">
+						<div>
+							<h4 class="col-sm-6">Activities</h4>
+						</div>
+					</div>
+					<div class="btn-group">
+						<div class="btn-group-sm">
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="About"
+								data-bind="click: about">
+								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Reload" data-bind="click: load">
+								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="panel-body"
+					style="max-height: 200px; width: 100%; overflow-y: scroll;"
+					data-bind="foreach: items">
+					<div class="div-history-item row menu_button" id="activities"
+					data-bind=" css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col-md-10" style="vertical-align: middle; padding-left: 0;" data-bind="event: {dblclick: $parent.loadLog.bind($data)}">
+						<img class="history-item-img" width="16px" height="16px" data-bind="attr:{src: statusImg}" />
+						<label data-bind="text: type" style="margin-top: 2px"></label>
+					</div>
+					
+					<div class="col" style="float: right;padding-right: 5px" data-bind="event: {dblclick: $parent.loadLog.bind($data)}">
+						<span data-bind="text: modified" style="text-align: right"></span>
+					</div>
+					<div style="clear: both" ></div>
 					</div>
 				</div>
 			</div>
@@ -3193,8 +3233,11 @@ function typeInTextarea(el, newText) {
         var samplesViewModel = new SamplesViewModel(sampleViewModel);
         samplesViewModel.load();
         
-        var runnablesViewModel = new RunnablesViewModel();        
+        var runnablesViewModel = new RunnablesViewModel();
         runnablesViewModel.load();
+
+		var activitiesViewModel = new ActivitiesViewModel();
+        activitiesViewModel.load();
 
 		var provpluginsViewModel = new ProvPluginsViewModel();        
         provpluginsViewModel.load();
@@ -3222,6 +3265,7 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(samplesViewModel, $('#wfCompareSelection')[0]);
 
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
+        ko.applyBindings(activitiesViewModel, $('#activitiesPanel')[0]);
     
        	ko.applyBindings(filterViewModel, $('#filter-dialog')[0]);
        	ko.applyBindings(filterViewModel, $('#searchHistoryPanel')[0]);

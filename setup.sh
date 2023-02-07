@@ -59,3 +59,6 @@ docker exec -i vizsciflowdb psql -U phenodoop -d biowl < vizsciflow.sql
 
 echo "Add modules from src/plugins/modules to the database"
 docker exec -i vizsciflowweb sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertmodules --path plugins/modules --with-users False --install-pypi False)'
+
+echo "Add modules from workflows to the database"
+docker exec -i vizsciflowweb sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertworkflows --path workflows)'

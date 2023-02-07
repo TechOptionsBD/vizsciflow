@@ -988,11 +988,11 @@ def samples():
                     workflowmanager.remove(current_user.id, workflow_id)
                     return json.dumps({'return':'deleted'})
             else:
-                shared_Workflow_check = workflowmanager.check(workflow_id) 
-                if shared_Workflow_check:  
-                    return json.dumps({'return':'shared'})
-                else:
+                removable = workflowmanager.can_remove(current_user.id, workflow_id) 
+                if removable:  
                     return json.dumps({'return':'not_shared'})
+                else:
+                    return json.dumps({'return':'shared'})
             return json.dumps({'return':'error'})
         
         access = int(request.args.get('access')) if request.args.get('access') else 0

@@ -72,6 +72,15 @@ class WorkflowManager():
         return self.persistance.insert_workflows(path)
 
     def get_returns_json(self, workflow_id):
-        return self.persistance.get_returns_json(workflow_id)        
+        return self.persistance.get_returns_json(workflow_id)
+    
+    def can_remove(self, user_id, workflow_id):
+        '''
+        Removable only if it is not public and now shared with anybody.
+        '''
+        workflow = self.persistance.first(id = workflow_id)
+        if not workflow:
+            return False
+        return workflow.can_remove(user_id)
 
 workflowmanager = WorkflowManager()

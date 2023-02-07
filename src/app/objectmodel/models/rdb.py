@@ -654,6 +654,12 @@ class Workflow(db.Model):
     params = db.relationship('WorkflowParam', backref='workflow', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     returns = db.relationship('WorkflowReturn', backref='workflow', lazy='dynamic', cascade="all,delete-orphan")
     
+    def can_remove(self, user_id):
+        if self.public or self.user_id != user_id:
+            return False
+        q = WorkflowAccess.query.filter(WorkflowAccess.workflow_id == self.id, WorkflowAccess.user_id != user_id, WorkflowAccess.rights != AccessRights.NotSet)
+        return not q or q.count() == 0
+
     def add_access(self, user_id, rights =  AccessRights.NotSet):
         try:
             wfAccess = WorkflowAccess(rights=rights)

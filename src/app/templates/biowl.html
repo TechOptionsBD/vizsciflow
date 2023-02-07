@@ -441,8 +441,8 @@
 								<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button class="close closeTab" title="Close" type="button">×</button></a></li>
 								<li id="liOutput"><a href="#outputtab" data-toggle="tab">Output <button class="close closeTab" title="Close" type="button">×</button></a></li>
 							</ul>
-							<button id="modalBtn"><<</button>
-						</div>
+						<button id="modalBtn"><<</button>
+					</div>
 					<div class="tab-content">
 						<div class="tab-pane fade in active scriptstyle" id="scripttab" style="z-index: 0;">
 							<div id="editor" class="editorstyle"></div>
@@ -881,18 +881,29 @@
 		  </button>
 		</div>
 		<div class="modal-body">
-			<form role="form">
-				<div class="span-sm-20">
-					<div class="span-sm-10">
-						<div class="row service-form-group">
-							<label class="span-sm-4" for="module">Module</label>
-							<div class="span-sm-16">
-								<input type="file" class="form-control-file" id="module">
-							</div>
+			<form role="form" class="span-sm-12">
+				<div class="span-sm-10">
+					<div class="row service-form-group">
+						<label class="span-sm-4" for="module">Module</label>				
+						<div class="span-sm-16">
+							<input type="file" class="form-control-file" id="module">
 						</div>
 					</div>
-				</div>
+				</div>		
 			</form>
+			<!-- using knockout for data binding and it will call demoservice flask function -->
+			<div class="row">
+				<label class="span-sm-2" for="tooltypes">Select Tool Type</label>
+				<select class="form-select span-sm-2" id="selected_tool_type" name="tooltypes" data-bind="event: { change: getLibrary}">
+					<option value="adapter" selected>Simple Adapter</option>
+					<option value="module">Python3 Module</option>
+					<option value="program">Python3 Program</option>
+					<option value="venvprogram">Python Program in venv</option>
+					<option value="venv2program">Python Program in venv2</option>
+					<option value="shellscript">Shell Script</option>
+					<option value="java">Java Program</option>
+			  	</select>
+			</div>
 			<br> <br>
 			<div id="exTabService" class="controls">
 				<ul class="nav nav-tabs">
@@ -2492,61 +2503,59 @@
 		</div>
 	</div>
 </div>
-<!-- sakil edit -->
+<div id="argumentsPanel" class="panel panel-primary modal-new-add">
+	<div class="panel-heading">
+	</div>
+	<div class="panel-body">
+		<div style="padding: 5px; margin-left: 5px;">
+			<h5>Parameters:</h5>
+			<table class="table">
+				<thead class="thead-dark" data-bind="foreach: wfArgs" style="color: #fff; background-color: #337ab7;">
+					<!-- ko if: $index() === 0 -->
+					<tr data-bind="foreach: $data.items">
+						<th class="header" scope="col" data-bind="text: key"></th>
+					</tr>
+					<!-- /ko -->
+				</thead>
+				<tbody data-bind="foreach: wfArgs">
+					<tr data-bind="foreach: $data.items">
+						<!-- ko if: $index() !== 3 -->													
+						<td>
+							<label data-bind="text: value"></label>
+						</td>
+						<!-- /ko -->
 
-		<div id="argumentsPanel" class="panel panel-primary modal-new-add">
-			<div class="panel-heading">
-			</div>
-			<div class="panel-body">
-				<div style="padding: 5px; margin-left: 5px;">
-					<h5>Parameters:</h5>
-					<table class="table">
-						<thead class="thead-dark" data-bind="foreach: wfArgs" style="color: #fff; background-color: #337ab7;">
-							<!-- ko if: $index() === 0 -->
-							<tr data-bind="foreach: $data.items">
-								<th class="header" scope="col" data-bind="text: key"></th>
-							</tr>
-							<!-- /ko -->
-						</thead>
-						<tbody data-bind="foreach: wfArgs">
-							<tr data-bind="foreach: $data.items">
-								<!-- ko if: $index() !== 3 -->													
-								<td>
-									<label data-bind="text: value"></label>
-								</td>
-								<!-- /ko -->
-
-								<!-- ko if: $index() === 3 -->													
-								<td>
-									<input type="text" class="form-control" id="package" data-bind="value: value"/>
-								</td>
-								<!-- /ko -->
-							</tr>				
-						</tbody>
-					</table>
-				</div>
-				<hr>
-				<div style="width: 75%; padding: 5px; margin-left: 5px;">
-					<h5>Returns:</h5>
-					<table class="table">
-						<thead class="thead-dark" data-bind="foreach: wfReturnArgs" style="color: #fff; background-color: #337ab7;">
-							<!-- ko if: $index() === 0 -->
-							<tr data-bind="foreach: $data.items">
-								<th class="header" scope="col" data-bind="text: key"></th>
-							</tr>
-							<!-- /ko -->
-						</thead>
-						<tbody data-bind="foreach: wfReturnArgs">
-							<tr data-bind="foreach: $data.items">												
-								<td>
-									<label data-bind="text: value"></label>
-								</td>
-							</tr>				
-						</tbody>
-					</table>
-				</div>
-			</div>
+						<!-- ko if: $index() === 3 -->													
+						<td>
+							<input type="text" class="form-control" id="package" data-bind="value: value"/>
+						</td>
+						<!-- /ko -->
+					</tr>				
+				</tbody>
+			</table>
 		</div>
+		<hr>
+		<div style="width: 75%; padding: 5px; margin-left: 5px;">
+			<h5>Returns:</h5>
+			<table class="table">
+				<thead class="thead-dark" data-bind="foreach: wfReturnArgs" style="color: #fff; background-color: #337ab7;">
+					<!-- ko if: $index() === 0 -->
+					<tr data-bind="foreach: $data.items">
+						<th class="header" scope="col" data-bind="text: key"></th>
+					</tr>
+					<!-- /ko -->
+				</thead>
+				<tbody data-bind="foreach: wfReturnArgs">
+					<tr data-bind="foreach: $data.items">												
+						<td>
+							<label data-bind="text: value"></label>
+						</td>
+					</tr>				
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
 
 {% endblock %}
 
@@ -3517,7 +3526,7 @@ function typeInTextarea(el, newText) {
           container.classList.add("show-new-add");
           button.classList.add("show-new-add");
         }
-    });
-    </script>
+    });	        
+</script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}

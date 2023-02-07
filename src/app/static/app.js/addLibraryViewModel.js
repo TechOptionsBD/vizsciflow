@@ -67,10 +67,9 @@ function AddLibraryViewModel(userName) {
     }
     //ko.observableArray(['python2', 'python3']);
 
-    self.beginAddLibrary = function () {
+    self.getLibrary = function(){
         $("#add-library-info").text("");
-        $.getJSON('/functions?demoserviceadd', function (demoservice) {
-            
+        return $.getJSON('/functions?demoserviceadd=' + $("#selected_tool_type").val(), function (demoservice) {
             self.pippkgs("");
             $("#reqfile").val("");
             $("#module").val("");
@@ -81,10 +80,13 @@ function AddLibraryViewModel(userName) {
             self.getUsers();
             self.loadpipenvs();
             self.loaddatatypes();
+        });
+    }
 
-            centerDialog($('#add'));
-            $('#add').modal('show');
-        })
+    self.beginAddLibrary = function () {
+        self.getLibrary();
+        centerDialog($('#add'));
+        $('#add').modal('show');
     }
 
     //for uploading package

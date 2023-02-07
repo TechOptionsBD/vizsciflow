@@ -1134,3 +1134,56 @@ border-radius: 50px;
   height: 100% !important;
   width: 100% !important;
 }
+.modal-new-add {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: all 0.5s ease-in-out;
+  transform: translateX(200%);
+  width: 30%;
+  height: 50%;
+  margin-top: 22%;
+  margin-left: 42%;
+  overflow-y: scroll;
+}
+
+.modal-new-add.show-new-add {
+transform: translateX(0);
+}
+#modalBtn {
+transition: transform 0.5s ease-in-out;
+font-size: 20px;
+  padding: 10px;
+}
+
+#modalBtn.show-new-add {
+transform: rotate(180deg);
+}
+
+@media screen and (max-width: 1980px){
+.modal-new-add{
+  margin-top: 15%;
+    margin-left: 45%;
+}
+}
+@media screen and (max-width:1845px){
+.modal-new-add{
+  margin-top: 18.5%;
+    margin-left: 42%;
+}
+}
+@media screen and (max-width:1500px){
+.modal-new-add{
+  margin-top: 23%;
+    margin-left: 41%;
+}
+}
+@media screen and (max-width:940px){
+.modal-new-add{
+  width: 21%;
+  margin-top: 41%;
+  margin-left: 39%;
+}
+}

@@ -1052,7 +1052,7 @@ def load_plugin_data(dataset_id, data_id, page_num):
     
     """
     try:
-        data =  datamanager.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+        data =  datamanager.load_dataset_data_for_plugin(current_user.id, dataset_id, data_id, page_num)
         return json.dumps(data, default=custom_date_serializer)
     except Exception as e:
         return {'data': [], 'hasMore': False, 'itemCount': 0, 'pageNum': '0'}

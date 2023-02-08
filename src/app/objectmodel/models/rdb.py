@@ -523,7 +523,7 @@ class DataSource(db.Model):
         return data_json
     
     @staticmethod
-    def load_dataset_data_for_plugin(dataset_id, data_id, page=1, no_of_item=10):
+    def load_dataset_data_for_plugin(user_id, dataset_id, data_id, page=1, no_of_item=10):
         try:
             count = 0
             has_more = False
@@ -533,8 +533,18 @@ class DataSource(db.Model):
             floor = (page - 1) * no_of_item
             datasource = DataSource.query.get(dataset_id)
             data_dir = os.path.join(datasource.url, data_id) if data_id != '-1' else datasource.url
+            users_dir = os.path.join(datasource.url, 'users')
 
-            all_data = [f for f in os.listdir(data_dir) if not f.startswith('T_')] 
+            user = User.query.get(user_id) if data_dir == users_dir else None
+            for f in os.listdir(data_dir):
+                if f.startswith('T_'): continue
+                if user and f != user.username: continue
+                if not os.path.exists(os.path.join(data_dir, f)):
+                    try:
+                        os.makedirs(os.path.join(data_dir, f))
+                    except Exception as e:
+                        logging.error(f"Cannot add user folder for error:{str(e)}")
+                all_data.append(f)
 
             root_childrens = []
             for each_data in all_data:

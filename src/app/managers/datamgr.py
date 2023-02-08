@@ -127,8 +127,8 @@ class DataManager():
     def load_listview_datasets(self, user_id, page, no_of_item):
         return self.persistance.load_listview_datasets(user_id, page, no_of_item)
     
-    def load_dataset_data_for_plugin(self, dataset_id, data_id, page_num):
-        return self.persistance.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+    def load_dataset_data_for_plugin(self, user_id, dataset_id, data_id, page_num):
+        return self.persistance.load_dataset_data_for_plugin(user_id, dataset_id, data_id, page_num)
     
     def get_task_data_value(self, data_id):
         return self.persistance.get_task_data_value(data_id)

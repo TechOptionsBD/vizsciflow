@@ -131,8 +131,8 @@ class DataManager():
         return DataSource.load_listview_datasets(user_id, page, no_of_item)
 
     @staticmethod
-    def load_dataset_data_for_plugin(dataset_id, data_id, page_num):
-        return DataSource.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+    def load_dataset_data_for_plugin(user_id, dataset_id, data_id, page_num):
+        return DataSource.load_dataset_data_for_plugin(user_id, dataset_id, data_id, page_num)
     
     @staticmethod
     def get_task_data_value(data_id):

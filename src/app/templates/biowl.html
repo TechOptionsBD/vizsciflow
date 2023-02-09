@@ -881,29 +881,31 @@
 		  </button>
 		</div>
 		<div class="modal-body">
+			<!-- using knockout for data binding and it will call demoservice flask function -->
+		<div class="row" style="padding: 20px; margin: 0;">
+			<label class="span-sm-4" style="padding: 10px;" for="tooltypes">Select Tool Type</label>
+			<select class="form-select span-sm-8 modal-title" style="padding: 10px;" id="selected_tool_type" name="tooltypes" data-bind="event: { change: getLibrary}">
+				<option value="adapter" selected>Simple Adapter</option>
+				<option value="module">Python3 Module</option>
+				<option value="program">Python3 Program</option>
+				<option value="venvprogram">Python Program in venv</option>
+				<option value="venv2program">Python Program in venv2</option>
+				<option value="shellscript">Shell Script</option>
+				<option value="java">Java Program</option>
+		  	</select>
+		</div>
+		<hr>
+		<div class="modal-body">
 			<form role="form" class="span-sm-12">
-				<div class="span-sm-10">
+				<div class="span-sm-10" style="padding: 0;">
 					<div class="row service-form-group">
-						<label class="span-sm-4" for="module">Module</label>				
+						<label class="span-sm-4" style="padding: 0;" for="module">Module</label>				
 						<div class="span-sm-16">
 							<input type="file" class="form-control-file" id="module">
 						</div>
 					</div>
 				</div>		
 			</form>
-			<!-- using knockout for data binding and it will call demoservice flask function -->
-			<div class="row">
-				<label class="span-sm-2" for="tooltypes">Select Tool Type</label>
-				<select class="form-select span-sm-2" id="selected_tool_type" name="tooltypes" data-bind="event: { change: getLibrary}">
-					<option value="adapter" selected>Simple Adapter</option>
-					<option value="module">Python3 Module</option>
-					<option value="program">Python3 Program</option>
-					<option value="venvprogram">Python Program in venv</option>
-					<option value="venv2program">Python Program in venv2</option>
-					<option value="shellscript">Shell Script</option>
-					<option value="java">Java Program</option>
-			  	</select>
-			</div>
 			<br> <br>
 			<div id="exTabService" class="controls">
 				<ul class="nav nav-tabs">

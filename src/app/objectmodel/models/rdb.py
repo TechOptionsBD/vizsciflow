@@ -1622,9 +1622,10 @@ class Task(db.Model):
         return data
     
     def add_output(self, datatype, value, **kwargs):
-        data = Data.get_by_type_value(datatype, value)
-        if not data:
-            data = Data.add(value, datatype, **kwargs)
+        # data = Data.get_by_type_value(datatype, value)
+        # if not data:
+        #     data = Data.add(value, datatype, **kwargs)
+        data = Data.add(value, datatype, **kwargs)
         
         data.allocate_for_user(self.runnable.user_id, AccessRights.Owner)
         DataProperty.add(data.id, "execution {0}".format(self.id), { 'workflow': { 'task_id': self.id, 'job_id': self.runnable_id, 'workflow_id': self.runnable.workflow_id, 'inout': 'out'} })

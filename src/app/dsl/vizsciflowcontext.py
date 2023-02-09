@@ -217,7 +217,7 @@ class VizSciFlowContext(Context):
     def pyvenv_run_at_venv(self, toolpath, app, venv, *args):
         venvs = get_python_venvs(self.user_id)
         if not venvs.get(venv):
-            raise ValueError(f"{venv} virtual environment for user {self.user_id} doesn't exist.")
+            raise ValueError(f"{self.user_id}/{venv} virtual environment doesn't exist.")
 
         args = (os.path.join(venvs[venv], 'bin', 'activate'), *args)
         return pyvenv_run_venv_args(toolpath, app, *args)

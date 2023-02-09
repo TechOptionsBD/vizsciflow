@@ -320,8 +320,10 @@ def code_completion(codecompletion):
         return json.dumps({'functions':  funcs})
     
 def check_service_function(request):
-    if modulemanager.check_function(request.args.get('name'), request.args.get('package')):
-        return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
+    funcname = request.args.get('name')
+    package = request.args.get('package')
+    if modulemanager.check_function(funcname, package):
+        return json.dumps({'error': f'The service {package + "." if package else ""}{funcname} already exists. Please change the package and/or service name.'})
     if 'script' in request.args and request.args.get('script') and 'mapper' in request.args and request.args.get('mapper'):
         try:
             mapper = json.loads(request.args.get('mapper'))

@@ -267,3 +267,9 @@ def pip_install_in_venv(pipenv, pippkgs):
             errs.append(str(e))
             logging.error(f'Error installing package {pkg}: {str(e)}')
     return pippkgsdb, outs, errs
+
+def str_or_empty(value):
+    try:
+        return str(value)
+    except:
+        return ''

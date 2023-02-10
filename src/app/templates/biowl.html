@@ -468,20 +468,23 @@
 				</div>
 				<div class="panel-body">
 					<div id="exTabBiowl" class="panel panel-primary" style="min-height: 400px; margin-bottom: 5px">
-						<ul class="nav nav-tabs marginBottom">
-							<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
-							<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance Viewer<button class="close closeTab" title="Close" type="button">×</button></a></li>
-							<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
-							<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
-							<!-- <button class="close closeTab" type="button">×</button> -->
-							<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History <button class="close closeTab" title="Close" type="button">×</button></a></li>
-							<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser <button class="close closeTab" title="Close" type="button">×</button></a></li>
-							<!-- <li id="liOutputVizTab"><a href="#outputVizTab" data-toggle="tab">Visual Output<button class="close closeTab" title="Close" type="button">×</button></a></li> -->
-							<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button class="close closeTab" title="Close" type="button">×</button></a></li>
-							<li id="liOutput"><a href="#outputtab" data-toggle="tab">Output <button class="close closeTab" title="Close" type="button">×</button></a></li>
-						</ul>
+						<div style="display: flex; justify-content: space-between;">
+							<ul class="nav nav-tabs marginBottom">
+								<li id="liScriptTab" class="active "><a href="#scripttab" class="backgroundRed" data-toggle="tab">Script</a></li>
+								<li id="liProvenanceTab"><a href="#provenancetab" data-toggle="tab">Provenance Viewer<button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<li id="liVisualTab"><a href="#visualtab" data-toggle="tab">Visual <button class="close closeTab" title="Close" type="button">×</button></a></li>								
+								<li id="liMetadataTab"><a href="#metatab" data-toggle="tab">Metadata <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<!-- <button class="close closeTab" type="button">×</button> -->
+								<li id="liFilterHistoryTab"><a href="#filterhistorytab" data-toggle="tab">Filter History <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<li id="liBrowserTab"><a href="#browsertab" data-toggle="tab">Browser <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<!-- <li id="liOutputVizTab"><a href="#outputVizTab" data-toggle="tab">Visual Output<button class="close closeTab" title="Close" type="button">×</button></a></li> -->
+								<li id="liDataset"><a href="#datasettab" data-toggle="tab">Dataset <button class="close closeTab" title="Close" type="button">×</button></a></li>
+								<li id="liOutput"><a href="#outputtab" data-toggle="tab">Output <button class="close closeTab" title="Close" type="button">×</button></a></li>
+							</ul>
+						<button id="modalBtn"><<</button>
+					</div>
 					<div class="tab-content">
-						<div class="tab-pane fade in active scriptstyle" id="scripttab">
+						<div class="tab-pane fade in active scriptstyle" id="scripttab" style="z-index: 0;">
 							<div id="editor" class="editorstyle"></div>
 						</div>
 
@@ -547,59 +550,6 @@
 							<iframe id="outputItemDetails" class="center" src="" frameborder="0" data-bind="attr:{src: tasksViewModel.itemSrc}" style="display: block" width="100%" height="100%"></iframe>
 						</div>
 					</div>
-					</div>
-				</div>
-			</div>
-			<div id="argumentsPanel" class="panel panel-primary">
-				<div class="panel-heading">
-				</div>
-				<div class="panel-body">
-					<div style="padding: 5px; margin-left: 5px;">
-						<h5>Parameters:</h5>
-						<table class="table">
-							<thead class="thead-dark" data-bind="foreach: wfArgs" style="color: #fff; background-color: #337ab7;">
-								<!-- ko if: $index() === 0 -->
-								<tr data-bind="foreach: $data.items">
-									<th class="header" scope="col" data-bind="text: key"></th>
-								</tr>
-								<!-- /ko -->
-							</thead>
-							<tbody data-bind="foreach: wfArgs">
-								<tr data-bind="foreach: $data.items">
-									<!-- ko if: $index() !== 3 -->													
-									<td>
-										<label data-bind="text: value"></label>
-									</td>
-									<!-- /ko -->
-
-									<!-- ko if: $index() === 3 -->													
-									<td>
-										<input type="text" class="form-control" id="package" data-bind="value: value"/>
-									</td>
-									<!-- /ko -->
-								</tr>				
-							</tbody>
-						</table>
-					</div>
-					<hr>
-					<div style="width: 75%; padding: 5px; margin-left: 5px;">
-						<h5>Returns:</h5>
-						<table class="table">
-							<thead class="thead-dark" data-bind="foreach: wfReturnArgs" style="color: #fff; background-color: #337ab7;">
-								<!-- ko if: $index() === 0 -->
-								<tr data-bind="foreach: $data.items">
-									<th class="header" scope="col" data-bind="text: key"></th>
-								</tr>
-								<!-- /ko -->
-							</thead>
-							<tbody data-bind="foreach: wfReturnArgs">
-								<tr data-bind="foreach: $data.items">												
-									<td>
-										<label data-bind="text: value"></label>
-									</td>
-								</tr>				
-							</tbody>
-						</table>
 					</div>
 				</div>
 			</div>
@@ -971,17 +921,30 @@
 		  </button>
 		</div>
 		<div class="modal-body">
-			<form role="form">
-				<div class="span-sm-20">
-					<div class="span-sm-10">
-						<div class="row service-form-group">
-							<label class="span-sm-4" for="module">Module</label>
-							<div class="span-sm-16">
-								<input type="file" class="form-control-file" id="module">
-							</div>
+			<!-- using knockout for data binding and it will call demoservice flask function -->
+			<div class="row" style="padding: 20px; margin: 0;">
+			<label class="span-sm-4" style="padding: 10px;" for="tooltypes">Select Tool Type</label>
+			<select class="form-select span-sm-8 modal-title" style="padding: 10px;" id="selected_tool_type" name="tooltypes" data-bind="event: { change: getLibrary}">
+				<option value="adapter" selected>Simple Adapter</option>
+				<option value="module">Python3 Module</option>
+				<option value="program">Python3 Program</option>
+				<option value="venvprogram">Python Program in venv</option>
+				<option value="venv2program">Python Program in venv2</option>
+				<option value="shellscript">Shell Script</option>
+				<option value="java">Java Program</option>
+		  	</select>
+			</div>
+			<hr>
+			<div class="modal-body">
+			<form role="form" class="span-sm-12">
+				<div class="span-sm-10" style="padding: 0;">
+					<div class="row service-form-group">
+						<label class="span-sm-4" style="padding: 0;" for="module">Module</label>				
+						<div class="span-sm-16">
+							<input type="file" class="form-control-file" id="module">
 						</div>
 					</div>
-				</div>
+				</div>		
 			</form>
 			<br> <br>
 			<div id="exTabService" class="controls">
@@ -1139,6 +1102,7 @@
 	  </div>
 	</div>
   </div>
+</div>
 
 
  <!--begin of - for uploading package--> 
@@ -2582,6 +2546,59 @@
 		</div>
 	</div>
 </div>
+<div id="argumentsPanel" class="panel panel-primary modal-new-add">
+	<div class="panel-heading">
+	</div>
+	<div class="panel-body">
+		<div style="padding: 5px; margin-left: 5px;">
+			<h5>Parameters:</h5>
+			<table class="table">
+				<thead class="thead-dark" data-bind="foreach: wfArgs" style="color: #fff; background-color: #337ab7;">
+					<!-- ko if: $index() === 0 -->
+					<tr data-bind="foreach: $data.items">
+						<th class="header" scope="col" data-bind="text: key"></th>
+					</tr>
+					<!-- /ko -->
+				</thead>
+				<tbody data-bind="foreach: wfArgs">
+					<tr data-bind="foreach: $data.items">
+						<!-- ko if: $index() !== 3 -->													
+						<td>
+							<label data-bind="text: value"></label>
+						</td>
+						<!-- /ko -->
+
+						<!-- ko if: $index() === 3 -->													
+						<td>
+							<input type="text" class="form-control" id="package" data-bind="value: value"/>
+						</td>
+						<!-- /ko -->
+					</tr>				
+				</tbody>
+			</table>
+		</div>
+		<hr>
+		<div style="width: 75%; padding: 5px; margin-left: 5px;">
+			<h5>Returns:</h5>
+			<table class="table">
+				<thead class="thead-dark" data-bind="foreach: wfReturnArgs" style="color: #fff; background-color: #337ab7;">
+					<!-- ko if: $index() === 0 -->
+					<tr data-bind="foreach: $data.items">
+						<th class="header" scope="col" data-bind="text: key"></th>
+					</tr>
+					<!-- /ko -->
+				</thead>
+				<tbody data-bind="foreach: wfReturnArgs">
+					<tr data-bind="foreach: $data.items">												
+						<td>
+							<label data-bind="text: value"></label>
+						</td>
+					</tr>				
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
 
 {% endblock %}
 
@@ -3306,7 +3323,9 @@ function typeInTextarea(el, newText) {
 	}
 	else {
 		let script = localStorage[username.concat('_inputVals_script')];
-		editor.session.setValue(script, 1);
+		if(script){
+			editor.session.setValue(script, 1);
+		}
 	}
 
     $(window).on('unload', function() {
@@ -3544,8 +3563,17 @@ function typeInTextarea(el, newText) {
 
 // sakil change -------------------
 
-
-        
+	document.getElementById("modalBtn").addEventListener("click", function() {
+        var container = document.querySelector(".modal-new-add");
+        var button = document.getElementById("modalBtn");
+        if (container.classList.contains("show-new-add")) {
+          container.classList.remove("show-new-add");
+          button.classList.remove("show-new-add");
+        } else {
+          container.classList.add("show-new-add");
+          button.classList.add("show-new-add");
+        }
+    });	        
 </script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}

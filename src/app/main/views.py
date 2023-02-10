@@ -989,11 +989,11 @@ def samples():
                     workflowmanager.remove(current_user.id, workflow_id)
                     return json.dumps({'return':'deleted'})
             else:
-                shared_Workflow_check = workflowmanager.check(workflow_id) 
-                if shared_Workflow_check:  
-                    return json.dumps({'return':'shared'})
-                else:
+                removable = workflowmanager.can_remove(current_user.id, workflow_id) 
+                if removable:  
                     return json.dumps({'return':'not_shared'})
+                else:
+                    return json.dumps({'return':'shared'})
             return json.dumps({'return':'error'})
         
         access = int(request.args.get('access')) if request.args.get('access') else 0
@@ -1053,7 +1053,7 @@ def load_plugin_data(dataset_id, data_id, page_num):
     
     """
     try:
-        data =  datamanager.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+        data =  datamanager.load_dataset_data_for_plugin(current_user.id, dataset_id, data_id, page_num)
         return json.dumps(data, default=custom_date_serializer)
     except Exception as e:
         return {'data': [], 'hasMore': False, 'itemCount': 0, 'pageNum': '0'}

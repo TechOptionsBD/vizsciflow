@@ -1,7 +1,6 @@
 from app.objectmodel.models.rdb import *
-from app.objectmodel.common import dict2obj
 from dsl.fileop import FolderItem
-from app.objectmodel.common import isiterable
+from app.objectmodel.common import isiterable, str_or_empty, dict2obj
 from sqlalchemy import text
 
 class UserManager():
@@ -91,12 +90,13 @@ class DataManager():
     def add_task_data(triplet, task):
         if isinstance(triplet[1], FolderItem) and isiterable(triplet[1].path):
             for it in triplet[1].path:
-                task.add_output(triplet[0], str(it))
+                task.add_output(triplet[0], it)
         elif (triplet[0] == DataType.File or triplet[0] == DataType.Folder) and isiterable(triplet[1]):
             for it in triplet[1].path:
-                task.add_output(triplet[0], str(it))
+                task.add_output(triplet[0], it)
         else:
-            task.add_output(triplet[0], str(triplet[1]))
+            value = str_or_empty(triplet[1]) if triplet[0] == DataType.Unknown else triplet[1]
+            task.add_output(triplet[0], value)
     
     @staticmethod
     def is_data_item(value):
@@ -131,8 +131,8 @@ class DataManager():
         return DataSource.load_listview_datasets(user_id, page, no_of_item)
 
     @staticmethod
-    def load_dataset_data_for_plugin(dataset_id, data_id, page_num):
-        return DataSource.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+    def load_dataset_data_for_plugin(user_id, dataset_id, data_id, page_num):
+        return DataSource.load_dataset_data_for_plugin(user_id, dataset_id, data_id, page_num)
     
     @staticmethod
     def get_task_data_value(data_id):

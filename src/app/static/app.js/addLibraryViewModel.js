@@ -14,7 +14,7 @@ function AddLibraryViewModel(userName) {
     self.textToggleFuncArea = ko.observable('More..');
     self.TList = ko.observableArray();
     self.pippkgsList = ko.observableArray();
-
+   
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
 
@@ -67,10 +67,9 @@ function AddLibraryViewModel(userName) {
     }
     //ko.observableArray(['python2', 'python3']);
 
-    self.beginAddLibrary = function () {
+    self.getLibrary = function(){
         $("#add-library-info").text("");
-        $.getJSON('/functions?demoserviceadd', function (demoservice) {
-            
+        return $.getJSON('/functions?demoserviceadd=' + $("#selected_tool_type").val(), function (demoservice) {
             self.pippkgs("");
             $("#reqfile").val("");
             $("#module").val("");
@@ -81,10 +80,13 @@ function AddLibraryViewModel(userName) {
             self.getUsers();
             self.loadpipenvs();
             self.loaddatatypes();
+        });
+    }
 
-            centerDialog($('#add'));
-            $('#add').modal('show');
-        })
+    self.beginAddLibrary = function () {
+        self.getLibrary();
+        centerDialog($('#add'));
+        $('#add').modal('show');
     }
 
     //for uploading package
@@ -130,11 +132,13 @@ function AddLibraryViewModel(userName) {
         refData.package && self.service.set('package',refData.package)
         refData.org && self.service.set('org',refData.org)
         refData.group && self.service.set('group',refData.group)
-
+        
+        self.serviceParams([]);
         refData.params.map(param => {
             self.addParam(param)
         })
 
+        self.serviceReturns([]);
         if(Array.isArray(refData.returns)){
             refData.returns.map(item => {
                 self.addServiceReturns(item)
@@ -149,7 +153,7 @@ function AddLibraryViewModel(userName) {
 
     self.serviceReturns = ko.observableArray();
 
-    self.addParam = function (param = null) { 
+    self.addParam = function (param = null) {   
         self.serviceParams.push(
             ko.observableDictionary(
                 {
@@ -185,7 +189,7 @@ function AddLibraryViewModel(userName) {
         self.liveJsonView();
     }
 
-    self.liveJsonView = function () {  
+    self.liveJsonView = function () {                
         var jsonPreview = Object.entries(JSON.parse(JSON.stringify(self.service))).reduce(( obj ,[key,value])=>{
             if(value.length) 
                 obj[key] = value;
@@ -200,7 +204,7 @@ function AddLibraryViewModel(userName) {
             jsonPreview.returns = self.serviceReturns;
         }
 
-        var jsonPrettyText = ko.toJSON(jsonPreview, null, 4);
+        var jsonPrettyText = ko.toJSON(jsonPreview, null, 4);        
         self.mapperEditor.session.setValue(jsonPrettyText);
     };
     

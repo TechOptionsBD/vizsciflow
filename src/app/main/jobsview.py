@@ -287,16 +287,20 @@ def get_users():
     result = usermanager.get_other_users_with_entities(current_user.id, "id", "username")
     return jsonify(result)
 
-def add_demo_service():
+def add_demo_service(moduleName):
     from app import app
+    import os
+    import json
 
     demoservice = {'script':'', 'mapper': ''}
-    base = os.path.join(app.config['MODULE_DIR'], 'demo')
-    with open(os.path.join(base, 'service.py'), 'r') as f:
+    base = os.path.join(app.config['MODULE_DIR'], 'demos', moduleName)
+    if not os.path.isdir(base):
+        base = os.path.join(app.config['MODULE_DIR'], 'demos', 'adapter')
+    with open(os.path.join(base, 'adapter.py'), 'r') as f:
         demoservice['script'] = f.read()
-    with open(os.path.join(base, 'service.json'), 'r') as f:
+    with open(os.path.join(base, 'funcdefs.json'), 'r') as f:
         demoservice['mapper'] = json.load(f)
-    return jsonify(demoservice= demoservice)
+    return jsonify(demoservice=demoservice)
 
 def code_completion(codecompletion):
         keywords = [{"package": "built-in", "name": "if", "example": "if True:", "group":"keywords"}, {"package": "built-in", "name": "for", "example": "for i in range(1, 100):", "group":"keywords"},{"package": "built-in", "name": "parallel", "example": "parallel:\r\nwith:", "group":"keywords"},{"package": "built-in", "name": "task", "example": "task task_name(param1, param2=''):", "group":"keywords"}]
@@ -317,8 +321,10 @@ def code_completion(codecompletion):
         return json.dumps({'functions':  funcs})
     
 def check_service_function(request):
-    if modulemanager.check_function(request.args.get('name'), request.args.get('package')):
-        return json.dumps({'error': 'The service already exists. Please change the package and/or service name.'})
+    funcname = request.args.get('name')
+    package = request.args.get('package')
+    if modulemanager.check_function(funcname, package):
+        return json.dumps({'error': f'The service {package + "." if package else ""}{funcname} already exists. Please change the package and/or service name.'})
     if 'script' in request.args and request.args.get('script') and 'mapper' in request.args and request.args.get('mapper'):
         try:
             mapper = json.loads(request.args.get('mapper'))
@@ -401,7 +407,7 @@ def functions():
             elif request.args.get("service_id"):
                 return delete_service(request.args.get("service_id"))
             elif 'demoserviceadd' in request.args:
-                return add_demo_service()
+                return add_demo_service(request.args.get("demoserviceadd"))
             elif 'tooltip' in request.args:
                 func = modulemanager.get_module_by_name_package_for_user_access(current_user.id, request.args.get('name'), request.args.get('package'))
                 return json.dumps(convert_to_safe_json(func) if func else "")

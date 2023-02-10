@@ -247,6 +247,8 @@ class Library(LibraryBase):
 
             result = Library.denormalize(context, datatype, result)
             return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name, result
+        elif 'any' in datatype:
+            return DataType.Unknown, result, name, result
         elif datatype in known_types.keys():
             return DataType.Value, result, name, result
         else:

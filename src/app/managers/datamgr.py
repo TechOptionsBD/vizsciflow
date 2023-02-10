@@ -1,6 +1,7 @@
+import logging
 from dsl.datatype import DataType
 from app.managers.mgrutil import ManagerUtility
-from app.objectmodel.common import AccessRights, known_types
+from app.objectmodel.common import AccessRights, known_types, str_or_empty
 from pathlib import Path
 
 class DataManager():
@@ -82,12 +83,16 @@ class DataManager():
                         paramType = DataType.FileList
                     elif 'folder[]' in paramType:
                         paramType = DataType.FolderList
+                    elif 'any' in paramType:
+                        paramType = DataType.Unknown
                     elif any(item in known_types.keys() for item in paramType):
                         paramType = DataType.Value
                     else:
-                        raise ValueError("Store Arguments: param type {0} doesn't exist.".format(paramType))
+                        paramType = DataType.Unknown
+                        logging.error(f"Store Arguments: param type {paramType} doesn't exist.")
+                        #raise ValueError("Store Arguments: param type {0} doesn't exist.".format(paramType))
                 
-                task.add_input(user_id, paramType, str(args[i]), AccessRights.Read, name = params[i].name if i < len(params) and params[i].name else "")
+                task.add_input(user_id, paramType, str_or_empty(args[i]), AccessRights.Read, name = params[i].name if i < len(params) and params[i].name else "")
                            
     def SaveMetaData(self, user, rights, category, key, value):
 
@@ -127,8 +132,8 @@ class DataManager():
     def load_listview_datasets(self, user_id, page, no_of_item):
         return self.persistance.load_listview_datasets(user_id, page, no_of_item)
     
-    def load_dataset_data_for_plugin(self, dataset_id, data_id, page_num):
-        return self.persistance.load_dataset_data_for_plugin(dataset_id, data_id, page_num)
+    def load_dataset_data_for_plugin(self, user_id, dataset_id, data_id, page_num):
+        return self.persistance.load_dataset_data_for_plugin(user_id, dataset_id, data_id, page_num)
     
     def get_task_data_value(self, data_id):
         return self.persistance.get_task_data_value(data_id)

@@ -814,12 +814,12 @@
 									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
 								</button>
 								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
-									title="Add Tool" data-bind="click: beginAddLibrary">
+									title="Add Tool" data-bind="click: beginAddLibrary" {% if not username %}disabled{%endif%}>
 									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 								</button>
 								
 								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
-									title="Add Tool Package" data-bind="click: beginAddPackage">
+									title="Add Tool Package" data-bind="click: beginAddPackage" {% if not username %}disabled{%endif%}>
 									<i class="glyphicon glyphicon-briefcase toolbar-icon"></i>
 								</button>
 

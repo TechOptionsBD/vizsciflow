@@ -1,5 +1,4 @@
 import logging
-import os
 
 from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
@@ -51,7 +50,13 @@ def login():
         return usask_login(request.args)
     form = LoginForm()
     if form.validate_on_submit():
-        user = usermanager.get_by_email(form.email.data)
+        user = None
+        try:
+            user = usermanager.get_by_email(form.email.data)
+        except Exception as e:
+            flash(str(e))
+            return redirect(url_for('auth.login'))
+
         if user is None or not user.verify_password(form.password.data):
             flash('Invalid username or password')
             return redirect(url_for('auth.login'))
@@ -71,7 +76,14 @@ def usask_login(args):
     if not username:
         flash('Invalid username or password')
         return redirect(url_for('auth.login'))
-    user = usermanager.get_by_username(username)
+    
+    user = None
+    try:
+        user = usermanager.get_by_username(username)
+    except Exception as e:
+        flash(str(e))
+        return redirect(url_for('auth.login'))
+    
     if not user:
         user = usermanager.create_user(username=username, oid=1)
     login_user(user, remember=False)

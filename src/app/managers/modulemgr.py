@@ -85,7 +85,7 @@ class ModuleManager():
     def get_by_value_key(self, **kwargs):
         return self.persistance.get_by_value_key(**kwargs)
 
-    def add(self, user_id, value, access, users, pipenv, pippkgs, reqfile):
-        return self.persistance.add(user_id, value, access, users, pipenv, pippkgs, reqfile)
+    def add(self, user_id, value, access, users):
+        return self.persistance.add(user_id, value, access, users)
 
 modulemanager = ModuleManager()

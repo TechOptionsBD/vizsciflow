@@ -1061,9 +1061,6 @@ class Service(db.Model):
     value = db.Column(JSON, nullable = False)
     public = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
-    pipenv = db.Column(db.Text, nullable = True)
-    pippkgs = db.Column(db.Text, nullable = True)
-    reqfile = db.Column(db.Text, nullable = True)
     #accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
     accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
@@ -1142,7 +1139,7 @@ class Service(db.Model):
         self.value = value
 
     @staticmethod
-    def add(user_id, value, access, users, pipenv='', pippkgs='', reqfile=''):
+    def add(user_id, value, access, users):
         try:
             service = Service()
             service.user_id = user_id
@@ -1158,9 +1155,6 @@ class Service(db.Model):
                     if matchuser:
                         service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
 
-            service.pipenv = pipenv
-            service.pippkgs = pippkgs
-            service.reqfile = reqfile
             service.update(value)
 
             db.session.add(service)

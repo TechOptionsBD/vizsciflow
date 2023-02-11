@@ -159,3 +159,11 @@ function isJson(item) {
 
 	return (typeof item === "object" && item !== null);
 }
+
+function centerDialog(dlg) {
+	var windowHeight = $(window).height();
+	var windowWidth = $(window).width();
+	var boxHeight = dlg.height();
+	var boxWidth = dlg.width();
+	dlg.css({'margin-left' : ((windowWidth - boxWidth )/2), 'margin-top' : ((windowHeight - boxHeight)/2)});
+}

@@ -162,8 +162,8 @@ class ModuleManager():
         return results
 
     @staticmethod
-    def add(user_id, value, access, users, pipenv, pippkgs, reqfile):
-        return Service.add(user_id, value, access, users, pipenv, pippkgs, reqfile)
+    def add(user_id, value, access, users):
+        return Service.add(user_id, value, access, users)
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):

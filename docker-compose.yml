@@ -18,7 +18,7 @@ x-common-vizsciflow:
     - ./src:/home/vizsciflow/src
     - ./storage:/home/vizsciflow/storage
     - /var/run/docker.sock:/var/run/docker.sock
-    - ./.venvs:/home/venvs:rw
+    - ./.venvs:/home/venvs/users:rw
   networks:
     - vizsciflownetwork
   environment:
@@ -33,7 +33,7 @@ services:
     depends_on:
       - vizsciflowdb      
     ports:
-      - 8000:5000
+      - 5000:5000
     container_name: vizsciflowweb
 
   vizsciflowcelery:

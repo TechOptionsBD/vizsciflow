@@ -172,7 +172,8 @@ function AddLibraryViewModel(userName) {
             ko.observableDictionary(
                 {
                     name: returns.name && typeof(returns.name) !== 'function' ? returns.name : '',
-                    type: returns.type !== undefined ? returns.type : ''
+                    type: returns.type ?? '',
+                    desc: returns.desc ?? ''
                 }
             )
         );

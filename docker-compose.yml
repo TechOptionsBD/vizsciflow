@@ -18,6 +18,7 @@ x-common-vizsciflow:
     - ./src:/home/vizsciflow/src
     - ./storage:/home/vizsciflow/storage
     - /var/run/docker.sock:/var/run/docker.sock
+    - ./.venvs:/home/venvs/users:rw
   networks:
     - vizsciflownetwork
   environment:

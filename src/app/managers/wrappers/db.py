@@ -190,10 +190,6 @@ class ModuleManager():
         return Service.get_full_by_user_json(user_id, access)
 
     @staticmethod
-    def get_modules(**kwargs):
-        return Service.query.filter_by(**kwargs)
-
-    @staticmethod
     def get_access(self, **kwargs):
         return ServiceAccess.get(**kwargs)
 

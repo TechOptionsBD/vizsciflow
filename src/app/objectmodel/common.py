@@ -273,3 +273,36 @@ def str_or_empty(value):
         return str(value)
     except:
         return ''
+
+def pip_activity(activity, pipenv, pippkgs):
+    try:
+        activity.add_log(log="Installing pip packages...")
+
+        _,outs, errs = pip_install_in_venv(pipenv, pippkgs)
+        for out in outs:
+            activity.add_log(log=out)
+
+        for err in errs:
+            activity.add_log(log=err, type = LogType.ERROR)
+
+    except Exception as e:
+        activity.add_log(log=f'Error installing pip packages {pippkgs}: {str(e)}', type=LogType.ERROR)
+        logging.error(f'Error installing pip packages {pippkgs}: {str(e)}')
+    finally:
+        activity.add_log(log="pip installation ended.")
+
+def pip_req_activity(activity, pipenv, temppath):
+    try:
+        activity.add_log(log="pip installation from requirements file ...")
+
+        out, err = pipinstall_req_file(pipenv, temppath)
+        if out:
+            activity.add_log(log=out)
+        if err:
+            activity.add_log(log=err, type = LogType.ERROR)
+
+    except Exception as e:
+        msg = f'Error installing packages from requirements file {temppath}: {str(e)}'
+        activity.add_log(log=msg, type = LogType.ERROR)
+    finally:
+        activity.add_log(log="pip installation ended.")

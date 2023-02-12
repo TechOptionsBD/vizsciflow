@@ -958,7 +958,10 @@ function TasksViewModel(sampleViewModel) {
                     alert("status="+jqXHR.status);
             }); 
         }
-        
+        else if (x === "download") {
+
+            $.redirect(self.tasksURI, { 'download_service': item.serviceID() }, "POST", "_blank");
+        }
         else if (x === "copyProv") {
 			
 			var package = "";

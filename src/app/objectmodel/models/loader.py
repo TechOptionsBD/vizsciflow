@@ -1,5 +1,6 @@
 import logging
 import os
+import ast
 import json
 import pathlib
 from app.objectmodel.common import isiterable
@@ -77,15 +78,27 @@ class Loader:
                 for f in libraries:
                     org = f["org"] if f.get("org") else ""
                     name = f["name"] if f.get("name") else f["internal"]
+                    try:
+                        # if internal not given, parse the code and use the first function name as internal (adaptor name) 
+                        internalGiven = 'internal' in f and f['internal'] != ""
+                        filename = os.path.join(os.path.dirname(library_def_file), 'adapter.py')
+                        if not internalGiven and os.path.exists(filename):
+                            with open(filename, 'r') as r:
+                                tree = ast.parse(r.read())
+                                funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
+                                if funcDefs:
+                                    f["internal"] = funcDefs[0]
+                    except:
+                        pass
+
                     internal = f["internal"] if f.get("internal") else f["name"]
                     package = f["package"] if f.get("package") else ""
                     example = f["example"] if f.get("example") else ""
                     desc = f["desc"] if f.get("desc") else ""
-                    #runmode = f["runmode"] if f.get("runmode") else ""
-                    #level = int(f["level"]) if f.get("level") else 0
                     group = f["group"] if f.get("group") else ""
                     href = f["href"] if f.get("href") else ""
-                    public = bool(f["public"]) if f.get("public") else True
+                    access = int(f["access"]) if f.get("access") else 0
+                    sharedusers = list(f["sharedusers"]) if f.get("sharedusers") else []
 
                     params = []
                     if f.get("params"):
@@ -129,7 +142,9 @@ class Loader:
                         "desc": desc,
                         "group": group,
                         "returns": returns,
-                        "public": public
+                        "access": access,
+                        "sharedusers": sharedusers,
+                        "href": href
                         }
                     pipenvflag = f.get("pipenv") and (f.get("pippkgs") or f.get("reqfile"))
                     if pipenvflag:

@@ -1,4 +1,6 @@
+import ast
 import logging
+
 from app.managers.mgrutil import ManagerUtility
 from app.objectmodel.models.loader import Loader
 
@@ -9,13 +11,18 @@ class ModuleManager():
     def get_by_id(self, id):
         return self.persistance.get(id = id)
 
+    def first(self, **kwargs):
+        return self.persistance.first(**kwargs)
+    
     def get(self, **kwargs):
         return self.persistance.get(**kwargs)
 
-    def insert_modules(self, path, user_id = None, with_users = False, install_pypi = False):
+    def insert_modules(self, activity, path, user_id = None, with_users = False, install_pypi = False):
+        activity.add_log(log=f"Integrating tools ...")
+
         funclist = Loader.load_funcs_recursive_flat(path, with_users)
 
-        from app.objectmodel.common import pip_install, pipinstall_req_file
+        from app.objectmodel.common import pip_activity, pip_req_activity, LogType
         modules = []
         for func in funclist:
             try:
@@ -24,18 +31,23 @@ class ModuleManager():
                         pippkgs = func["pippkgs"].split(",")
                         for pkg in pippkgs:
                             try:
-                                pip_install(func["pipenv"], pkg)
+                                pip_activity(activity, func["pipenv"], pkg)
                             except Exception as e:
                                 logging.error(f'Error installing package {pkg}: {str(e)}')
 
                     if "reqfile" in func and func["reqfile"]:
-                        pipinstall_req_file(func["pipenv"], func["reqfile"])
+                        pip_req_activity(activity, func["pipenv"], func["reqfile"])
                 
-                module = self.persistance.insert_modules(funclist, user_id)
+                module = self.persistance.add(user_id, value = dict(func), access=func['access'], users=func['sharedusers'])
                 if module:
-                    modules.extend(module)
+                    activity.add_log(log=f"Tool add successful.")
+                    modules.append(module)
+                else:
+                    activity.add_log(log=f"Tool add not successful.", type=LogType.ERROR)
             except Exception as e:
-                logging.error(f"Error in inserting module {func['package']}{'.' if func['package'] else ''}{func['name']}: {str(e)}")
+                msg = f"Error in inserting module {func['package']}{'.' if func['package'] else ''}{func['name']}: {str(e)}"
+                logging.error(msg)
+                activity.add_log(log=msg, type=LogType.ERROR)
 
             return modules
 
@@ -61,12 +73,6 @@ class ModuleManager():
     def get_all_by_user_access(self, user_id, access = 2):
         return self.persistance.get_all_by_user_access(user_id, access)
     
-    def get_module(self, **kwargs):
-        return self.get_modules(**kwargs).first()
-
-    def get_modules(self, **kwargs):
-        return self.persistance.get_modules(**kwargs)
-
     def get_access(self, **kwargs):
         return self.persistance.get_access(**kwargs)
     
@@ -78,9 +84,6 @@ class ModuleManager():
 
     def check_access(self, service_id):
         self.persistance.check_access(service_id)
-    
-    def get(self, **kwargs):
-        return self.persistance.get(**kwargs)
     
     def get_by_value_key(self, **kwargs):
         return self.persistance.get_by_value_key(**kwargs)

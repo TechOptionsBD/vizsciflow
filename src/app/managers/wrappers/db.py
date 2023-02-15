@@ -58,6 +58,10 @@ class UserManager():
 class DataManager():
 
     @staticmethod
+    def get_datasources(**kwargs):
+        return DataSource.query.filter_by(**kwargs)
+
+    @staticmethod
     def first(**kwargs):
          return DataSourceAllocation.query.filter_by(**kwargs).first()
 
@@ -87,16 +91,22 @@ class DataManager():
         return data_dict
     
     @staticmethod
+    def add_data_to_task(datatype, value, task):
+        if isinstance(value, FolderItem):
+            value = str(value)
+        task.add_output(datatype, value)
+
+    @staticmethod
     def add_task_data(triplet, task):
         if isinstance(triplet[1], FolderItem) and isiterable(triplet[1].path):
             for it in triplet[1].path:
-                task.add_output(triplet[0], it)
+                DataManager.add_data_to_task(triplet[0], it, task)
         elif (triplet[0] == DataType.File or triplet[0] == DataType.Folder) and isiterable(triplet[1]):
             for it in triplet[1].path:
-                task.add_output(triplet[0], it)
+                DataManager.add_data_to_task(triplet[0], it, task)
         else:
             value = str_or_empty(triplet[1]) if triplet[0] == DataType.Unknown else triplet[1]
-            task.add_output(triplet[0], value)
+            DataManager.add_data_to_task(triplet[0], value, task)
     
     @staticmethod
     def is_data_item(value):
@@ -287,12 +297,12 @@ class RunnableManager():
     def add_return(runnable_id, triplet):
         if isinstance(triplet[1], FolderItem) and isiterable(triplet[1].path):
             for it in triplet[1].path:
-                Runnable.add_return(runnable_id, triplet[0], str(it))
+                Runnable.add_return(runnable_id, triplet[0], str_or_empty(it))
         elif (triplet[0] == DataType.File or triplet[0] == DataType.Folder) and isiterable(triplet[1]):
             for it in triplet[1].path:
-                Runnable.add_return(runnable_id, triplet[0], str(it))
+                Runnable.add_return(runnable_id, triplet[0], str_or_empty(it))
         else:
-            Runnable.add_return(runnable_id, triplet[0], str(triplet[1]))
+            Runnable.add_return(runnable_id, triplet[0], str_or_empty(triplet[1]))
 
 class FilterManager():
     @staticmethod

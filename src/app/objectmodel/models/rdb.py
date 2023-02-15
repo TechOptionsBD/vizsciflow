@@ -524,6 +524,7 @@ class DataSource(db.Model):
     
     @staticmethod
     def load_dataset_data_for_plugin(user_id, dataset_id, data_id, page=1, no_of_item=10):
+        from app.util import Utility
         try:
             count = 0
             has_more = False
@@ -533,18 +534,39 @@ class DataSource(db.Model):
             floor = (page - 1) * no_of_item
             datasource = DataSource.query.get(dataset_id)
             data_dir = os.path.join(datasource.url, data_id) if data_id != '-1' else datasource.url
-            users_dir = os.path.join(datasource.url, 'users')
 
-            user = User.query.get(user_id) if data_dir == users_dir else None
-            for f in os.listdir(data_dir):
-                if f.startswith('T_'): continue
-                if user and f != user.username: continue
-                if not os.path.exists(os.path.join(data_dir, f)):
+            if data_id == "-1":
+                fs = Utility.create_fs(datasource)
+                if datasource.public:
+                    publicdir = fs.join(data_dir, datasource.public)
+                    if fs.isdir(publicdir):
+                        all_data.append(os.path.basename(publicdir))
+
+                if datasource.user:
+                    usersdir = fs.join(data_dir, datasource.user)
                     try:
-                        os.makedirs(os.path.join(data_dir, f))
+                        fs.makedirs(usersdir)
                     except Exception as e:
                         logging.error(f"Cannot add user folder for error:{str(e)}")
-                all_data.append(f)
+                    if fs.isdir(usersdir):
+                        all_data.append(os.path.basename(usersdir))
+
+                if datasource.temp:
+                    publicdir = fs.join(data_dir, datasource.temp)
+                    if fs.isdir(publicdir):
+                        all_data.append(os.path.basename(publicdir))
+            elif data_dir == os.path.join(datasource.url, datasource.user):
+                user = User.query.get(user_id)
+                if not os.path.exists(os.path.join(data_dir, user.username)):
+                    try:
+                        os.makedirs(os.path.join(data_dir, user.username))
+                    except Exception as e:
+                        logging.error(f"Cannot add user folder for error:{str(e)}")
+                all_data.append(user.username)
+            else:
+                for f in os.listdir(data_dir):
+                    if f.startswith('T_'): continue
+                    all_data.append(f)
 
             root_childrens = []
             for each_data in all_data:

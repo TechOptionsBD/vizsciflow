@@ -8,6 +8,12 @@ class DataManager():
     def __init__(self):
         self.persistance = ManagerUtility.Manage('data')
 
+    def get_datasources(self, **kwargs):
+        return self.persistance.get_datasource(**kwargs)
+
+    def get(self, **kwargs):
+        return self.persistance.get(**kwargs)
+
     def get_by_id(self, id):
         return self.persistance.first(id = id)
 

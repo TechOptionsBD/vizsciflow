@@ -74,6 +74,7 @@ def usask_login(args):
     user = usermanager.get_by_username(username)
     if not user:
         user = usermanager.create_user(username=username, oid=1)
+        allocate_storage(user)
     login_user(user, remember=False)
     next_page = args.get('next')
     if not next_page or url_parse(next_page).netloc != '':

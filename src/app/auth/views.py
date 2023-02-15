@@ -89,18 +89,23 @@ def logout():
 
 
 def allocate_storage(user):
-    datasources = datamanager.get(active = True)
+    datasources = datamanager.get_datasources(active = True)
     for ds in datasources:
         try:
             fs = Utility.create_fs(ds)
             if fs:
-                userpath = 'Libraries/' + user.username if ds.type == 'gfs' else '/' + user.username
+                userpath = None
+                if ds.type == 'gfs':
+                    userpath = 'Libraries/' + user.username
+                else:
+                    userpath = os.path.join('/' + ds.user, user.username) if ds.user else '/' + user.username
+                    
                 if not fs.exists(userpath):
                     fs.makedirs(userpath)
                 
-                datamanager.add_allocation(user.id, ds.id, userpath, AccessRights.Owner)
-                if ds.public:
-                    datamanager.add_allocation(user.id, ds.id, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
+                # datamanager.add_allocation(user.id, ds.id, userpath, AccessRights.Owner)
+                # if ds.public:
+                #     datamanager.add_allocation(user.id, ds.id, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
         except Exception as e:
             logging.error('Storage allocation on {0} has failed: {1}'.format(ds.name, str(e)))
             flash('Storage allocation on {0} has failed.'.format(ds.name))
@@ -109,18 +114,23 @@ def allocate_storage(user):
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = usermanager.create_user(email=form.email.data,
-                    username=form.username.data,
-                    password=form.password.data)
-        # try:
-        #     allocate_storage(user)
-        # except:
-        #     pass
-#         token = user.generate_confirmation_token()
-#         send_email(user.email, 'Confirm Your Account',
-#                    'auth/email/confirm', user=user, token=token)
-#         flash('A confirmation email has been sent to you by email.')
-        return redirect(url_for('auth.login'))
+        try:
+            user = usermanager.create_user(email=form.email.data,
+                        username=form.username.data,
+                        password=form.password.data)
+            if user:
+                allocate_storage(user)
+
+    #         token = user.generate_confirmation_token()
+    #         send_email(user.email, 'Confirm Your Account',
+    #                    'auth/email/confirm', user=user, token=token)
+    #         flash('A confirmation email has been sent to you by email.')
+            return redirect(url_for('auth.login'))
+        except Exception as e:
+            flash('Registration error')
+            logging.error(f'Registration error:{str(e)}')
+            return render_template('auth/register.html', form=form)
+
     return render_template('auth/register.html', form=form)
 
 

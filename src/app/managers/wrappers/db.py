@@ -58,6 +58,10 @@ class UserManager():
 class DataManager():
 
     @staticmethod
+    def get_datasources(**kwargs):
+        return DataSource.query.filter_by(**kwargs)
+
+    @staticmethod
     def first(**kwargs):
          return DataSourceAllocation.query.filter_by(**kwargs).first()
 

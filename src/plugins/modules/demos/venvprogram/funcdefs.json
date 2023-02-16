@@ -1,11 +1,8 @@
 {
-  "package": "",
+	"package": "demo",
   "name": "SumInVenv",
   "internal": "demo_service",
-  "org": "",
-  "group": "",
   "desc": "A bash script first sets the python venv and then calls a python program.",
-  "href": "",
   "params": [
     {
       "name": "data",
@@ -19,6 +16,5 @@
       "name": "data",
       "type": "int"
     }
-  ],
-  "pippkgs": "matplotlib"
+  ]
 }

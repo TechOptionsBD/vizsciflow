@@ -8,7 +8,7 @@ def demo_service(context, *args, **kwargs):
     fastqc = path.join(thispath, 'bin', 'fastqc')
     
     # Parse arguments as given in params in json mapper
-    arguments = context.parse_args('CheckQualityEx', '', *args, **kwargs)
+    arguments = context.parse_args('CheckQualityEx', 'demo', *args, **kwargs)
     
     # You can create an output directory using context.createoutdir(). context.outdir creates a default one for you.
     outdir = context.outdir

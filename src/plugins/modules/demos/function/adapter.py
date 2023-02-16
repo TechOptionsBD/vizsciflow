@@ -8,6 +8,6 @@ def sum(numbers):
     return sum
 
 def demo_service(context, *args, **kwargs):
-	arguments = context.parse_args('SumInFunction', '', *args, **kwargs)
+	arguments = context.parse_args('SumInFunction', 'demo', *args, **kwargs)
 	out = sum(arguments["data"])
 	return out

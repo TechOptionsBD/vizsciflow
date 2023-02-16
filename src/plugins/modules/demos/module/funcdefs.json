@@ -1,11 +1,8 @@
 {
-  "package": "",
+	"package": "demo",
   "name": "SumInModule",
   "internal": "demo_service",
-  "org": "",
-  "group": "",
   "desc": "A python module is called by adapter.",
-  "href": "",
   "params": [
     {
       "name": "data",

@@ -1,11 +1,8 @@
 {
-  "package": "",
+	"package": "demo",
   "name": "SumInBashScript",
   "internal": "demo_service",
-  "org": "",
-  "group": "",
   "desc": "A bash script calculates the sum. You can call other program from the bash script.",
-  "href": "",
   "params": [
     {
       "name": "data",

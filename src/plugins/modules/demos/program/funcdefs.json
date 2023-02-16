@@ -1,11 +1,8 @@
 {
-  "package": "",
+	"package": "demo",
   "name": "SumInProgram",
   "internal": "demo_service",
-  "org": "",
-  "group": "",
   "desc": "A python program is called by adapter.",
-  "href": "",
   "params": [
     {
       "name": "data",

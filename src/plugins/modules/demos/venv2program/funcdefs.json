@@ -1,0 +1,24 @@
+{
+  "package": "",
+  "name": "demo_sum10",
+  "internal": "demo_service",
+  "org": "",
+  "group": "",
+  "desc": "",
+  "href": "",
+  "params": [
+    {
+      "name": "data",
+      "type": "int[]",
+      "desc": "",
+      "default": ""
+    }
+  ],
+  "returns": [
+    {
+      "name": "data",
+      "type": "int"
+    }
+  ],
+  "module": "plugins.modules.users.testuser.mylib_41.adapter"
+}

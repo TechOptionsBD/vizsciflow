@@ -69,9 +69,7 @@ function AddLibraryViewModel(userName) {
 
     self.getLibrary = function(){
         $("#add-library-info").text("");
-        return $.getJSON('/functions?demoserviceadd=' + $("#selected_tool_type").val(), function (demoservice) {
-            self.pippkgs("");
-            $("#reqfile").val("");
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'demoserviceadd':  $("#selected_tool_type").val()}).done(function (demoservice) {
             $("#module").val("");
             self.NewVenvName("");
 
@@ -80,6 +78,10 @@ function AddLibraryViewModel(userName) {
             self.getUsers();
             self.loadpipenvs();
             self.loaddatatypes();
+            
+            if (demoservice.demoservice.mapper && 'access' in demoservice.demoservice.mapper) {
+                self.access = demoservice.demoservice.mapper['access'] == 'True'
+            }
         });
     }
 

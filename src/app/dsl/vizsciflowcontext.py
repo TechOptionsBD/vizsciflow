@@ -68,13 +68,26 @@ class VizSciFlowContext(Context):
 
     @property
     def outdir(self):
-        return self.getprop('outdir') if self.getprop('outdir') else self.createoutdir()
+        if not self.getprop('outdir'):
+            self.createoutdir()
+        return self.getprop('outdir')
     
     @outdir.setter
     def outdir(self, value):
         with self.lock:
             self.setprop('outdir', value)
     
+    @property
+    def tempdirs(self):
+        if self.getprop('tempdirs') is None:
+            self.tempdirs = {}
+        return self.getprop('tempdirs')
+    
+    @tempdirs.setter
+    def tempdirs(self, value):
+        with self.lock:
+            self.setprop('tempdirs', value)
+
     def save_stdout_stderr(self, out, err):
         if out:
             Task.query.get(self.task_id).add_log(out, LogType.STDOUT)

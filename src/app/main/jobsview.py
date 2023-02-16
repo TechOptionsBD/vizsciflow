@@ -526,7 +526,7 @@ def functions():
                         mapper["sharedusers"] = []
                     else:
                         if request.form.get('sharedusers'):
-                            mapper["sharedusers"] = request.form.get('sharedusers')
+                            mapper["sharedusers"] = ast.literal_eval(request.form.get('sharedusers'))
                             mapper["access"] = 1
                         else:
                             mapper["access"] = 2

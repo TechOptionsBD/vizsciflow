@@ -738,10 +738,10 @@ class Workflow(db.Model):
     @staticmethod
     def create(**kwargs):
         try:
-            access = int(kwargs.pop('access', 0))
-            users = kwargs.pop('users', None)
-            paramargs = kwargs.pop('params', [])
-            returnsargs = kwargs.pop('returns', [])
+            access = int(kwargs.get('access', 0))
+            users = kwargs.get('users', None)
+            paramargs = kwargs.get('params', [])
+            returnsargs = kwargs.get('returns', [])
 
             wf = Workflow(**kwargs)
             wf.public = (access == AccessType.PUBLIC)
@@ -1095,7 +1095,7 @@ class Service(db.Model):
             admin = User.query.filter(User.username == "admin").first()
 
             service = None
-            user_id = f.pop("user_id", None)
+            user_id = f.get("user_id", None)
             if not user_id and admin:
                 user_id = admin.id
             
@@ -1150,11 +1150,11 @@ class Service(db.Model):
         Return.query.filter(Return.service_id==self.id).delete()
         db.session.commit()
 
-        params = value.pop('params', [])
+        params = value.get('params', [])
         for p in params:
             self.params.append(Param(value = p))
         
-        returns = value.pop('returns', [])
+        returns = value.get('returns', [])
         for p in returns:
             self.returns.append(Return(value = p))
 

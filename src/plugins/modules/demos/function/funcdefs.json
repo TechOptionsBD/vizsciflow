@@ -1,16 +1,16 @@
 {
   "package": "",
-  "name": "demo_sum10",
+  "name": "SumInFunction",
   "internal": "demo_service",
   "org": "",
   "group": "",
-  "desc": "",
+  "desc": "Takes an array of integers as arguments and adapter calls sum python function.",
   "href": "",
   "params": [
     {
       "name": "data",
       "type": "int[]",
-      "desc": "",
+      "desc": "An array of integers.",
       "default": ""
     }
   ],
@@ -19,6 +19,5 @@
       "name": "data",
       "type": "int"
     }
-  ],
-  "module": "plugins.modules.users.testuser.mylib_41.adapter"
+  ]
 }

@@ -1,5 +1,6 @@
 #!/bin/bash
-source /home/venvs/.venv/bin/activate
+source $1
+shift
 #echo "${@: $#}"
 # echo $1
 python "$@"

@@ -1,5 +1,6 @@
 {
-    "name": "DemoService",
+    "name": "Identity",
+    "desc": "Takes an integer argument and returns it.",
     "params": [
         {
             "name": "data",

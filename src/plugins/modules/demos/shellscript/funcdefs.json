@@ -1,10 +1,10 @@
 {
   "package": "",
-  "name": "demo_sum10",
+  "name": "SumInBashScript",
   "internal": "demo_service",
   "org": "",
   "group": "",
-  "desc": "",
+  "desc": "A bash script calculates the sum. You can call other program from the bash script.",
   "href": "",
   "params": [
     {
@@ -19,6 +19,5 @@
       "name": "data",
       "type": "int"
     }
-  ],
-  "module": "plugins.modules.users.testuser.mylib_41.adapter"
+  ]
 }

@@ -1,10 +1,10 @@
 {
   "package": "",
-  "name": "demo_sum10",
+  "name": "SumInVenv",
   "internal": "demo_service",
   "org": "",
   "group": "",
-  "desc": "",
+  "desc": "A bash script first sets the python venv and then calls a python program.",
   "href": "",
   "params": [
     {
@@ -20,6 +20,5 @@
       "type": "int"
     }
   ],
-  "module": "plugins.modules.users.testuser.mylib_41.adapter",
   "pippkgs": "matplotlib"
 }

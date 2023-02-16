@@ -1,10 +1,10 @@
 {
   "package": "",
-  "name": "demo_sum8",
+  "name": "SumInModule",
   "internal": "demo_service",
   "org": "",
   "group": "",
-  "desc": "",
+  "desc": "A python module is called by adapter.",
   "href": "",
   "params": [
     {
@@ -19,6 +19,5 @@
       "name": "data",
       "type": "int"
     }
-  ],
-  "module": "plugins.modules.users.testuser.mylib_41.adapter"
+  ]
 }

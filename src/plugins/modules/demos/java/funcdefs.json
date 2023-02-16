@@ -1,0 +1,23 @@
+{
+	"package": "demo",
+	"name": "CheckQualityEx",
+	"internal": "demo_service",
+	"desc": "Measure the quality of a fastq file using fastqc tool. Adapter calls the fastqc java program.",
+	"params": [
+		{
+			"name": "data",
+			"type": "file",
+			"desc": "The fastq file to check quality for."
+		}
+	],
+	"returns": [
+		{
+			"name": "html",
+			"type": "file"
+		},
+		{
+			"name": "zip",
+			"type": "file"
+		}
+	]
+}

@@ -1,0 +1,23 @@
+{
+  "package": "demo",
+  "name": "SumInFunction",
+  "internal": "demo_service",
+  "org": "",
+  "group": "",
+  "desc": "Takes an array of integers as arguments and adapter calls sum python function.",
+  "href": "",
+  "params": [
+    {
+      "name": "data",
+      "type": "int[]",
+      "desc": "An array of integers.",
+      "default": ""
+    }
+  ],
+  "returns": [
+    {
+      "name": "data",
+      "type": "int"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+	"package": "demo",
+  "name": "SumInModule",
+  "internal": "demo_service",
+  "desc": "A python module is called by adapter.",
+  "params": [
+    {
+      "name": "data",
+      "type": "int[]",
+      "desc": "",
+      "default": ""
+    }
+  ],
+  "returns": [
+    {
+      "name": "data",
+      "type": "int"
+    }
+  ]
+}

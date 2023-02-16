@@ -1,0 +1,20 @@
+{
+	"package": "demo",
+  "name": "SumInBashScript",
+  "internal": "demo_service",
+  "desc": "A bash script calculates the sum. You can call other program from the bash script.",
+  "params": [
+    {
+      "name": "data",
+      "type": "int[]",
+      "desc": "",
+      "default": ""
+    }
+  ],
+  "returns": [
+    {
+      "name": "data",
+      "type": "int"
+    }
+  ]
+}

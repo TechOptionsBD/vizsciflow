@@ -30,6 +30,7 @@ from app.managers.usermgr import usermanager
 from app.managers.workflowmgr import workflowmanager
 from app.managers.datamgr import datamanager
 from app.managers.filtermgr import filtermanager
+from app.managers.activitymgr import activitymanager
 from app.objectmodel.common import Permission, AccessRights, convert_to_safe_json
 from app.userloader import *
 
@@ -1060,3 +1061,12 @@ def load_plugin_data(dataset_id, data_id, page_num):
 @main.route('/api/plugin/dataset/data', methods=['GET'])
 def loadPluginData():
     return load_plugin_data(request.args.get("dataset_id"), request.args.get("data_id"), int(request.args.get("page_num")))
+
+@main.route('/activities', methods=['GET'])
+@login_required
+def loadActivities():
+    if request.args.get("id"):
+        return json.dumps(activitymanager.first(id=int(request.args.get("id"))).to_json())
+    
+    activities = activitymanager.get_last_modified_n(n = 10, user_id = current_user.id)
+    return json.dumps([activity.json() for activity in activities])

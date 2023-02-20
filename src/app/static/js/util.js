@@ -59,7 +59,7 @@ jsonArray2Table = function(table, jsonArr) {
         }
         row.append(cell);
         
-		time = parseInt(value['duration'])/1000;
+		time = parseFloat(value['duration']) * 1000;
 		cell = $("<td>" + time.toFixed(1) + " ms" + "</td>");
         row.append(cell);
 
@@ -158,4 +158,12 @@ function isJson(item) {
 	}
 
 	return (typeof item === "object" && item !== null);
+}
+
+function centerDialog(dlg) {
+	var windowHeight = $(window).height();
+	var windowWidth = $(window).width();
+	var boxHeight = dlg.height();
+	var boxWidth = dlg.width();
+	dlg.css({'margin-left' : ((windowWidth - boxWidth )/2), 'margin-top' : ((windowHeight - boxHeight)/2)});
 }

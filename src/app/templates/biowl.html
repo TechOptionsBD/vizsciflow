@@ -84,6 +84,7 @@
 <script src="/static/app.js/gridStackViewModel.js"></script>
 <script src="/static/app.js/uiComponentsControl.js"></script>
 <script src="/static/app.js/runnablesViewModel.js"></script>
+<script src="/static/app.js/activitiesViewModel.js"></script>
 <script src="/static/app.js/addLibraryViewModel.js"></script>
 <script src="/static/app.js/aceEditor.js"></script>
 <script src="/static/app.js/detailGraphViewModel.js"></script>
@@ -244,7 +245,7 @@
 				</div>
 			</div>
 
-			<div id="searchHistoryPanel" class="panel panel-primary">
+			<div id="searchHistoryPanel" class="panel panel-primary" style="display: none">
 				<div class="panel-heading">
 					<button class="close closeComponent" title="Close" type="button">×</button>
 					<div class="row">
@@ -337,6 +338,45 @@
 							<span data-bind="text: modified" style="text-align: right"></span>
 						</div>
 						<div style="clear: both" ></div>
+					</div>
+				</div>
+			</div>
+			<div id="activitiesPanel" class="panel panel-primary">
+				<div class="panel-heading">
+					<button class="close closeComponent" title="Close" type="button">×</button>
+					<div class="row">
+						<div>
+							<h4 class="col-sm-6">Activities</h4>
+						</div>
+					</div>
+					<div class="btn-group">
+						<div class="btn-group-sm">
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="About"
+								data-bind="click: about">
+								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
+							</button>
+							<button class="btn btn-primary pull-right" data-toggle="tooltip"
+								data-placement="top" title="Reload" data-bind="click: load">
+								<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="panel-body"
+					style="max-height: 200px; width: 100%; overflow-y: scroll;"
+					data-bind="foreach: items">
+					<div class="div-history-item row menu_button" id="activities"
+					data-bind=" css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }">
+					<div class="col-md-10" style="vertical-align: middle; padding-left: 0;" data-bind="event: {dblclick: $parent.loadLog.bind($data)}">
+						<img class="history-item-img" width="16px" height="16px" data-bind="attr:{src: statusImg}" />
+						<label data-bind="text: type" style="margin-top: 2px"></label>
+					</div>
+					
+					<div class="col" style="float: right;padding-right: 5px" data-bind="event: {dblclick: $parent.loadLog.bind($data)}">
+						<span data-bind="text: modified" style="text-align: right"></span>
+					</div>
+					<div style="clear: both" ></div>
 					</div>
 				</div>
 			</div>
@@ -724,12 +764,12 @@
 									<i class="glyphicon glyphicon-refresh toolbar-icon"></i>
 								</button>
 								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
-									title="Add Tool" data-bind="click: beginAddLibrary">
+									title="Add Tool" data-bind="click: beginAddLibrary" {% if not username %}disabled{%endif%}>
 									<i class="glyphicon glyphicon-plus toolbar-icon"></i>
 								</button>
 								
 								<button style="margin-right: 10px;" class="btn btn-primary" data-toggle="tooltip" data-placement="top"
-									title="Add Tool Package" data-bind="click: beginAddPackage">
+									title="Add Tool Package" data-bind="click: beginAddPackage" {% if not username %}disabled{%endif%}>
 									<i class="glyphicon glyphicon-briefcase toolbar-icon"></i>
 								</button>
 
@@ -769,6 +809,7 @@
 										Share
 									</span>
 									<span class="glyphicon glyphicon-trash" id="delete" data-bind="event: {click: $parent.serviceToolbar} "></span>
+									<span class="glyphicon glyphicon-download" id="download" data-bind="event: {click: $parent.serviceToolbar} "></span>
 								</span>
 							
 							</div>
@@ -924,8 +965,20 @@
 								<form role="form" data-bind="foreach: service.items">
 									<div class="row service-form-group" data-bind="visible: ($index() < 2 || $parent.isFuncExpanded)">
 										<label class="span-sm-6" data-bind="text: key"></label>
-										<div class="span-sm-14">
-											<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
+										<div class="span-sm-14" data-bind="ifnot: $index() == 9">
+											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="if: $index() == 7">
+												<select style="padding: 5px 9px;
+												width: 100%;
+												border-radius: 5px;
+												font-size: 17px;
+												font-weight: 100;" data-bind="enable: $parent.NotHasNewVenvName, options: $parent.pippkgsList, value: value, event: {change: $parents.liveJsonView}" id="pippkgsList"></select>
+											</div>
+											<div data-bind="ifnot: $index() == 7">
+												<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
+											</div>
+										</div>
+										<div data-bind="if: $index() == 9">
+											<input type="file" class="form-control-file" id="reqfile" style="margin-left: 15px;" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 										</div>
 									</div>
 								</form>
@@ -1008,35 +1061,13 @@
 				<div class="span-sm-20">
 					<div class="row service-form-group span-sm-20" style="display: flex; column-gap: 10px; padding: 20px;">
 						<div class="span-sm-20" style="border-right: 1px soild;">
-							<div style="display: flex; column-gap: 10px; padding-bottom: 10px;">
-								<label class="span-sm-5" for="pippkgsList">pip Install</label>
-								<div class="span-sm-14" style="display: flex; column-gap: 10px;">
-									<select style="padding: 5px 9px;
-									width: 100%;
-									border-radius: 5px;
-									font-size: 17px;
-									font-weight: 100;" data-bind="enable: NotHasNewVenvName, options: pippkgsList, value: pipvenv" id="pippkgsList"></select>
-								</div>
-							</div>
 							<div style="display: flex; column-gap: 15%;">
 								<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn" style="padding: 6px 1px; margin-left: 12px;">New venv</button>
 								<input type="text" data-bind="textInput: NewVenvName" class="form-control" id="newvenvname" style="width: 65%;" >
 							</div>
 						</div>
-						<div class="span-sm-20">
-							<div style="display: flex; column-gap: 10px; padding-bottom: 10px;">
-								<label class="span-sm-5" for="pippkgs">Packages</label>
-								<input type="text" class="form-control" id="pippkgs" data-bind="value: pippkgs">
-							</div>
-							<div>
-								<label class="span-sm-5" for="reqfile">Req file </label>
-								<input type="file" class="form-control-file" id="reqfile" style="margin-left: 15px;" data-bind="value: reqfile">
-							</div>
-
-						</div>
 					</div>
 					<div class="row service-form-group span-sm-9" style="margin-left: 30px;">
-						
 						<label class="span-sm-3" style="margin: 0px 0px 5px;" for="access">Public</label>
 						<div class="span-sm-2">
 							<input type="checkbox" id="access" data-bind="checked: access">
@@ -2742,14 +2773,6 @@
 	
     $(window).on('load', function() {
     	 
-    	centerDialog = function(dlg) {
-            var windowHeight = $(window).height();
-            var windowWidth = $(window).width();
-            var boxHeight = dlg.height();
-            var boxWidth = dlg.width();
-            dlg.css({'margin-left' : ((windowWidth - boxWidth )/2), 'margin-top' : ((windowHeight - boxHeight)/2)});
-        }
-		
     	$('#refresh').hide();
         
         $('.draggable-samples').each(function() {
@@ -3210,8 +3233,11 @@ function typeInTextarea(el, newText) {
         var samplesViewModel = new SamplesViewModel(sampleViewModel);
         samplesViewModel.load();
         
-        var runnablesViewModel = new RunnablesViewModel();        
+        var runnablesViewModel = new RunnablesViewModel();
         runnablesViewModel.load();
+
+		var activitiesViewModel = new ActivitiesViewModel();
+        activitiesViewModel.load();
 
 		var provpluginsViewModel = new ProvPluginsViewModel();        
         provpluginsViewModel.load();
@@ -3239,6 +3265,7 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(samplesViewModel, $('#wfCompareSelection')[0]);
 
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
+        ko.applyBindings(activitiesViewModel, $('#activitiesPanel')[0]);
     
        	ko.applyBindings(filterViewModel, $('#filter-dialog')[0]);
        	ko.applyBindings(filterViewModel, $('#searchHistoryPanel')[0]);

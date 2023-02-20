@@ -41,8 +41,8 @@ function RunnablesViewModel() {
                             .then(function (content) {
                                 // Set the tooltip content upon successful retrieval
                                 content = JSON.parse(content);
-                                content = "<div class=\'expanded-history\'> <p>Name: " + content.name + "</p><p>Created: " + content.created_on + "<br>Modified: " + content.modified_on + "<br>Duration: " + parseInt(content.duration)/1000 +
-                                    " ms</p><p>Status: " + content.status + (content.err && content.err.length > 0 ? "<br>Error: " + content.err : "") + "</p><p>Double click to show in report.<br>Check to pin job to report.</p></div>";
+                                content = "<div class=\'expanded-history\'> <p>Name: " + content.name + "</p><p>Created: " + content.created_on + "<br>Modified: " + content.modified_on + "<br>Duration: " + parseFloat(content.duration).toFixed(3) +
+                                    " s</p><p>Status: " + content.status + (content.err && content.err.length > 0 ? "<br>Error: " + content.err : "") + "</p><p>Double click to show in report.<br>Check to pin job to report.</p></div>";
 
                                 domItem.parents('.div-history-item').append(content);
 
@@ -79,7 +79,7 @@ function RunnablesViewModel() {
             $("#error").val(data['err']);
             $("#log tbody").empty();
             jsonArray2Table($("#log"), data['log']);
-            $("#duration").html(parseInt(data['duration'])/1000 + ' ms');
+            $("#duration").html(parseFloat(data['duration']).toFixed(3) + ' s');
             printExecStatus(data['status']);
             tasksViewModel.loadLogData(data.log);
         }).fail(function (jqXHR, textStatus) {

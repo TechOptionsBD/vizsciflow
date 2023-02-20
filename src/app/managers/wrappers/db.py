@@ -172,8 +172,8 @@ class ModuleManager():
         return results
 
     @staticmethod
-    def add(user_id, value, access, users, pipenv, pippkgs, reqfile):
-        return Service.add(user_id, value, access, users, pipenv, pippkgs, reqfile)
+    def add(user_id, value, access, users):
+        return Service.add(user_id, value, access, users)
 
     @staticmethod
     def get_module_by_name_package_for_user_access(user_id, name, package):
@@ -198,10 +198,6 @@ class ModuleManager():
     @staticmethod
     def get_all_by_user_access(user_id, access):
         return Service.get_full_by_user_json(user_id, access)
-
-    @staticmethod
-    def get_modules(**kwargs):
-        return Service.query.filter_by(**kwargs)
 
     @staticmethod
     def get_access(self, **kwargs):
@@ -354,3 +350,20 @@ class Manager():
     @staticmethod
     def close():
         pass
+
+class ActivityManager():
+    @staticmethod
+    def first(**kwargs):
+         return Activity.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+         return Activity.query.filter_by(**kwargs)
+
+    @staticmethod
+    def create(user_id, type):
+        return Activity.create(user_id, type)
+    
+    @staticmethod
+    def get_last_modified_n(n, **kwargs):
+        return Activity.query.filter_by(**kwargs).order_by(Activity.modified_on.desc()).limit(n)

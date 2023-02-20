@@ -25,7 +25,7 @@ from app.exceptions import ValidationError
 from app import db
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
-from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access
+from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access, ActivityType
 from .loader import Loader
 
 from collections import namedtuple
@@ -738,10 +738,10 @@ class Workflow(db.Model):
     @staticmethod
     def create(**kwargs):
         try:
-            access = int(kwargs.pop('access', 0))
-            users = kwargs.pop('users', None)
-            paramargs = kwargs.pop('params', [])
-            returnsargs = kwargs.pop('returns', [])
+            access = int(kwargs.get('access', 0))
+            users = kwargs.get('users', None)
+            paramargs = kwargs.get('params', [])
+            returnsargs = kwargs.get('returns', [])
 
             wf = Workflow(**kwargs)
             wf.public = (access == AccessType.PUBLIC)
@@ -1083,9 +1083,6 @@ class Service(db.Model):
     value = db.Column(JSON, nullable = False)
     public = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
-    pipenv = db.Column(db.Text, nullable = True)
-    pippkgs = db.Column(db.Text, nullable = True)
-    reqfile = db.Column(db.Text, nullable = True)
     #accesses = db.relationship('ServiceAccess', backref='service', lazy=True, cascade="all,delete-orphan") #cascade="all,delete-orphan", 
     accesses = db.relationship('ServiceAccess', backref='service', cascade="all,delete-orphan") #cascade="all,delete-orphan",
     params = db.relationship('Param', backref='service', lazy='dynamic', cascade="all,delete-orphan") #cascade="all,delete-orphan",
@@ -1098,7 +1095,7 @@ class Service(db.Model):
             admin = User.query.filter(User.username == "admin").first()
 
             service = None
-            user_id = f.pop("user_id", None)
+            user_id = f.get("user_id", None)
             if not user_id and admin:
                 user_id = admin.id
             
@@ -1153,18 +1150,18 @@ class Service(db.Model):
         Return.query.filter(Return.service_id==self.id).delete()
         db.session.commit()
 
-        params = value.pop('params', [])
+        params = value.get('params', [])
         for p in params:
             self.params.append(Param(value = p))
         
-        returns = value.pop('returns', [])
+        returns = value.get('returns', [])
         for p in returns:
             self.returns.append(Return(value = p))
 
         self.value = value
 
     @staticmethod
-    def add(user_id, value, access, users, pipenv='', pippkgs='', reqfile=''):
+    def add(user_id, value, access, users):
         try:
             service = Service()
             service.user_id = user_id
@@ -1180,9 +1177,6 @@ class Service(db.Model):
                     if matchuser:
                         service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
 
-            service.pipenv = pipenv
-            service.pippkgs = pippkgs
-            service.reqfile = reqfile
             service.update(value)
 
             db.session.add(service)
@@ -1566,6 +1560,7 @@ class Task(db.Model):
     ended_on = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Text)    
     comment = db.Column(db.Text)
+    duration = db.Column(db.Float, default=0.0)
     
     tasklogs = db.relationship('TaskLog', cascade="all,delete-orphan", backref='task', lazy='dynamic')
     outputs = db.relationship('TaskData', cascade="all,delete-orphan", backref='task', order_by="asc(TaskData.id)", lazy='subquery')
@@ -1674,7 +1669,7 @@ class Task(db.Model):
             'name': self.name,
             'status': self.status,
             'data': data,
-            'duration': (self.ended_on - self.started_on).microseconds
+            'duration': self.duration if self.duration != None else (self.ended_on - self.started_on).seconds
         }
 #         if self.status == Status.SUCCESS and (self.datatype & DataType.FileList) > 0:
 #             log['data'] = log['data'].strip('}{').split(',')
@@ -1718,7 +1713,74 @@ class TaskLog(db.Model):
         except SQLAlchemyError:
             db.session.rollback()
             raise
+
+class ActivityLog(db.Model):
+    __tablename__ = 'activitylogs'
+    id = db.Column(db.Integer, primary_key=True)
+    activity_id = db.Column(db.Integer, db.ForeignKey('activities.id'))
+    time = db.Column(db.DateTime, default=datetime.utcnow)
+    type = db.Column(db.Text, default=LogType.ERROR)
+    log = db.Column(db.Text)
     
+    def to_json(self):
+        return {
+            'time': self.time.strftime("%d-%m-%Y %H:%M:%S"),
+            'type': self.type,
+            'log': self.log
+        }
+        
+class Activity(db.Model):
+    __tablename__ = 'activities'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    type = db.Column(db.String(30), default=ActivityType.ADDTOOL)
+    status = db.Column(db.String(30), default=Status.NEW)
+    created_on = db.Column(db.DateTime, default=datetime.utcnow)
+    modified_on = db.Column(db.DateTime, default=datetime.utcnow)
+
+    logs = db.relationship('ActivityLog', backref='activity', lazy='subquery', cascade="all,delete-orphan") 
+    def add_log(self, log, type =  LogType.INFO):
+        try:
+            tasklog = ActivityLog(type=type, log = log)
+            self.logs.append(tasklog)
+            db.session.commit()
+            return tasklog
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    @staticmethod
+    def create(user_id, type):
+        try:
+            activity = Activity(user_id = user_id, type = type)
+            db.session.add(activity)
+            db.session.commit()
+            return activity
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    def updateTime(self):
+        try:
+            self.modified_on = datetime.utcnow()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    
+    def json(self):
+        return {
+            'id': self.id,
+            'type': self.type,
+            'status': self.status,
+            'modified_on': self.modified_on.strftime("%d-%m-%Y %H:%M:%S")
+        }
+
+    def to_json(self):
+        data = self.json()
+        data.update({'logs': [log.to_json() for log in self.logs]})
+        return data
+
 class Runnable(db.Model):
     __tablename__ = 'runnables'
     id = db.Column(db.Integer, primary_key=True)
@@ -1730,7 +1792,7 @@ class Runnable(db.Model):
     out = db.Column(db.Text, default='')
     error = db.Column(db.Text, default='')
     view = db.Column(db.Text, default='')
-    duration = db.Column(db.Integer, default = 0)
+    duration = db.Column(db.Float, default = 0.0)
     started_on = db.Column(db.DateTime, default=datetime.utcnow)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
     modified_on = db.Column(db.DateTime, default=datetime.utcnow)
@@ -1784,12 +1846,7 @@ class Runnable(db.Model):
     
         if value == Status.STARTED:
             self.started_on = datetime.utcnow()
-            #self.update_cpu_memory()
     
-        if value == Status.SUCCESS or value == Status.FAILURE or value == Status.REVOKED:
-            self.duration = (datetime.utcnow() - self.started_on).microseconds
-            #self.update_cpu_memory()
-        
         if update:
             self.update()
 
@@ -1803,6 +1860,9 @@ class Runnable(db.Model):
     #     self.value['view'] = value
     #     flag_modified(self, 'value')
 
+    def get_duration(self):
+        return self.duration if self.duration != None else (self.modified_on - self.created_on).seconds
+
     def json(self):
         
         return {
@@ -1812,7 +1872,7 @@ class Runnable(db.Model):
             'status': self.status,
             'out': self.out,
             'err': self.error,
-            'duration': str(self.duration),
+            'duration': self.get_duration(),
             'created_on': str(self.created_on),
             'modified_on': str(self.modified_on),
             'view': self.view
@@ -1827,7 +1887,7 @@ class Runnable(db.Model):
             'name': self.workflow.name,
             'status': self.status,
             'err': error,
-            'duration': self.duration,
+            'duration': self.get_duration(),
             'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S") if self.created_on else '',
             'modified_on': self.modified_on.strftime("%d-%m-%Y %H:%M:%S") if self.modified_on else ''
         }
@@ -1844,7 +1904,7 @@ class Runnable(db.Model):
             'status': self.status,
             'out': self.out,
             'err': self.error,
-            'duration': self.duration,
+            'duration': self.get_duration(),
             'log': log
         }
         

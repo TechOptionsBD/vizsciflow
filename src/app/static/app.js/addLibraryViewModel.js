@@ -4,11 +4,8 @@ function AddLibraryViewModel(userName) {
     self.name = ko.observable(userName);
     self.org = ko.observable();
     self.access = ko.observable(true);
-    self.reqfile = ko.observable();
-    self.pippkgs = ko.observable();
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
-    self.pipvenv = ko.observable('');
     self.NewVenvName = ko.observable('');
     self.isFuncExpanded = ko.observable(false);
     self.textToggleFuncArea = ko.observable('More..');
@@ -124,6 +121,9 @@ function AddLibraryViewModel(userName) {
             group: '',
             desc: '',
             href: '',
+            pipvenv: '',
+            pippkgs: '',
+            reqfile: '',
             // example: 'data = MyService(data)'
         }
     );
@@ -134,6 +134,9 @@ function AddLibraryViewModel(userName) {
         refData.package && self.service.set('package',refData.package)
         refData.org && self.service.set('org',refData.org)
         refData.group && self.service.set('group',refData.group)
+        refData.pippkgs && self.service.set('pippkgs',refData.pippkgs)
+        refData.reqfile && self.service.set('reqfile',refData.reqfile)
+        refData.pipvenv && self.service.set('pipvenv',refData.pipvenv)
         
         self.serviceParams([]);
         refData.params.map(param => {
@@ -289,26 +292,20 @@ function AddLibraryViewModel(userName) {
         serviceFormatted.params = self.serviceParams;
         serviceFormatted.returns = self.serviceReturns; 
         
-        var files = $("#module").get(0).files;
         var formdata = new FormData();
-        formdata.append('library', files[0]); //use get('files')[0]
+        var files = $("#module").get(0).files;
+        if (files.length > 0)
+            formdata.append('library', files[0]); //use get('files')[0]
         formdata.append('mapper', ko.toJSON(serviceFormatted));//you can append it to formdata with a proper parameter name
         formdata.append('script', self.codeEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
-        
-        if (self.access() !== undefined)
-            formdata.append('publicaccess', self.access());
-        
-        if (self.pipvenv() !== undefined && self.pipvenv().trim().length > 0)
-        {
-            formdata.append('pipenv', self.pipvenv());
-        }
-        if (self.pippkgs() !== undefined && self.pippkgs().trim().length > 0)
-            formdata.append('pippkgs', self.pippkgs());
         
         var reqfiles = $("#reqfile").get(0).files;
         if (reqfiles.length > 0)
             formdata.append('reqfile', reqfiles[0]);
 
+        if (self.access() !== undefined)
+            formdata.append('publicaccess', self.access());
+        
         if (self.selectedSharingUsers().length > 0) {
             formdata.append('sharedusers', ko.toJSON(self.selectedSharingUsers));
         }
@@ -321,7 +318,7 @@ function AddLibraryViewModel(userName) {
             
             if (data.err !== undefined && data.err.length != 0) {
                 $("#add-library-info").text(data.err);
-                printExecStatus("Module/Service is not added.");
+                printExecStatus("Tool/Module/Service is not added.");
                 activateTab(2);
             }
             else {

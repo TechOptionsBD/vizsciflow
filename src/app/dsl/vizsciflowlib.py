@@ -13,7 +13,7 @@ from app.managers.datamgr import datamanager
 from app.managers.modulemgr import modulemanager
 from app.objectmodel.common import isiterable, known_types
 from app.managers.workflowmgr import workflowmanager
-from app.objectmodel.common import dict2obj
+from app.objectmodel.common import dict2obj, LogType
 
 from app.objectmodel.provmod.provobj import *
 registry = {'User':User, 'Workflow':Workflow, 'Module':Module, 'Data':Data, 'Property':Property, 'Run': Run, 'View': View, 'Plugin': Plugin, 'Stat': Stat, 'Monitor': Monitor}
@@ -190,11 +190,12 @@ class Library(LibraryBase):
             return result
         except Exception as e:
             if task:
-                task.failed(str(e))
+                task.failed(str(e))                
             logging.error("Error calling the service {0}:{1}".format(function, str(e)))
             raise
         finally:
-            logging.info(f"Execution time for {package + '.' if package else ''}{function} is {time.perf_counter()-ts}s")
+            if task:
+                task.duration = time.perf_counter() - ts
 
     @staticmethod
     def StoreArguments(context, task, params, arguments, **kwargs):
@@ -205,7 +206,19 @@ class Library(LibraryBase):
         datamanager.StoreArgumentes(context.user_id, task, params, storeArguments)
 
     @staticmethod
-    def get_data_and_type_from_result(context, result, ret):
+    def check_file(result, task):
+        fs = Utility.fs_by_prefix_or_guess(result)
+        if not fs or not fs.isfile(result):
+            task.add_log(log="Tool definition indicates file, tool generates no file.", logtype=LogType.WARNING)
+
+    @staticmethod
+    def check_folder(result, task):
+        fs = Utility.fs_by_prefix_or_guess(result)
+        if not fs or not fs.isfolder(result):
+            task.add_log(log="Tool definition indicates folder, but tool generates no folder.", logtype=LogType.WARNING)
+
+    @staticmethod
+    def get_data_and_type_from_result(context, result, ret, task = None):
         '''
         Prepare the return value for the storage into the db.
         '''
@@ -214,8 +227,24 @@ class Library(LibraryBase):
         if 'file[]' in datatype or 'folder[]' in datatype:
             t = DataType.FileList if 'file[]' in datatype else DataType.FolderList
             result = Library.denormalize(context, datatype, result)
-            return t, [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)], name, result if isiterable(result) else [result]
+            fsitems = [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)]
+            if task:
+                if 'file[]' in datatype:
+                    for file in fsitems:
+                        Library.check_file(file, task)
+
+                if 'folder[]' in datatype:
+                    for folder in fsitems:
+                        Library.check_folder(folder, task)
+
+            return t, fsitems, name, result if isiterable(result) else [result]
         elif 'file' in datatype or 'folder' in datatype:
+            if task:
+                if 'file' in datatype:
+                    Library.check_file(result, task)
+                if 'folder' in datatype:
+                    Library.check_folder(result, task)
+
             result = Library.denormalize(context, datatype, result)
             return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name, result
         elif 'any' in datatype:
@@ -228,25 +257,32 @@ class Library(LibraryBase):
     @staticmethod
     def add_meta_data(context, result, returns, task):
         if not result:
+            if returns:
+                task.add_log(log="Tools didn't return any value.", logtype=LogType.WARNING)
             return None
 
         if not returns:
+            task.add_log(log="Tools returns value though tool definition doesn't specify return value.", logtype=LogType.WARNING)
             return result
         
         if not isiterable(returns) and isinstance(result, tuple):
-            output = Library.get_data_and_type_from_result(context, result[0], returns)
+            task.add_log(log="Tool returns tuple but tool definition indicates single value.", logtype=LogType.WARNING)
+            output = Library.get_data_and_type_from_result(context, result[0], returns, task)
             datamanager.add_task_data(output, task)
             return output[3]
 
         if isiterable(returns) and not isinstance(result, tuple):
-            output = Library.get_data_and_type_from_result(context, result, returns[0])
+            task.add_log(log="Tool returns single value but tool definition indicates tuple.", logtype=LogType.WARNING)
+            output = Library.get_data_and_type_from_result(context, result, returns[0], task)
             datamanager.add_task_data(output, task)
             return output[3]
+
+        task.add_log(log=f"Tool returns {len(result)} values but tool definition indicates {len(returns)} values. Keeping the minimum values.", logtype=LogType.WARNING)
 
         output = []
         mincount = min(len(result), len(returns))
         for i in range(0, mincount):
-            dataAndType = Library.get_data_and_type_from_result(context, result[i], returns[i])
+            dataAndType = Library.get_data_and_type_from_result(context, result[i], returns[i], task)
             datamanager.add_task_data(dataAndType, task)
             output.append(dataAndType[3])
         

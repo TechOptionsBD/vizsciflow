@@ -32,6 +32,7 @@ from ..managers.workflowmgr import workflowmanager
 from ..managers.runmgr import runnablemanager
 from app.objectmodel.common import *
 from ..managers.modulemgr import modulemanager
+from ..managers.activitymgr import activitymanager
 from app.system.exechelper import run_script
 
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -139,12 +140,9 @@ def build_graph(workflow_id):
         return make_response(jsonify(err=str(e)), 500)
 
 def make_fn(path, prefix, ext, suffix):
-    path = os.path.join(path, '{0}'.format(prefix))
-    if suffix:
-        path = '{0}_{1}'.format(path, suffix)
-    if ext:
-        path = '{0}.{1}'.format(path, ext)
-    return path
+    path = os.path.join(path, f"{prefix if prefix else ''}")
+    path += f"_{suffix}"  if suffix else ''
+    return path + f".{ext}" if ext else path
     
 def unique_filename(path, prefix, ext):
     uni_fn = make_fn(path, prefix, ext, '')
@@ -351,37 +349,30 @@ def get_datatypes():
         datatypes.append(t + "[]")
     return jsonify(datatypes = datatypes)
 
-def add_module(f, filename, pkgpath, package, org, access, sharedusers, pipenv, pippkgsdb, reqfile):
-    try:
-        # if internal not given, parse the code and use the first function name as internal (adaptor name) 
-        internalGiven = 'internal' in f and f['internal'] != ""
-        if not internalGiven and filename:
-            with open(filename, 'r') as r:
-                tree = ast.parse(r.read())
-                funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
-                if funcDefs:
-                    f['internal'] = funcDefs[0]
-    except:
-        pass
-    if not 'name' in f or f['name'] == "":
-        f['name'] = f['internal']
+def get_pip_req_activity(activity, path, req):
+    activity.add_log(log="Move requirements file to tool folder ...")
+    filename = secure_filename(req.filename)
+    temppath = os.path.join(path, filename)
+    if os.path.exists(temppath):
+        reqFileName = pathlib.Path(filename)
+        suffix = reqFileName.suffix
+        if suffix:
+            suffix = suffix[1]
+        temppath = unique_filename(os.path.dirname(path), reqFileName.stem, reqFileName.suffix)
+    req.save(temppath)
+    return str(pathlib.Path(temppath).relative_to(path))
 
-    #f['access'] = access
-#                         if sharedusers:
-#                             users = sharedusers.split(";")
-#                         else:
-#                             users = []
-    f['module'] = pkgpath
-    if package:
-        f['package'] = package
-    if org:
-        f['org'] = org
-    #func = json.dumps(f, indent=4)
-    if sharedusers:
-        sharedusers = ast.literal_eval(sharedusers)
-    modulemanager.add(user_id = current_user.id, value = dict(f), access=access, users=sharedusers, pipenv=pipenv, pippkgs=pippkgsdb, reqfile=reqfile)
+def download_service(service_id):
+    from app import app
 
-    return f
+    module = modulemanager.first(id=service_id)
+    modpath = module.value["module"]
+    tooldir = os.path.join(app.config['MODULE_DIR'], (os.path.sep).join(modpath.split('.')[2:-1])) # remove plugins/modules from front and adapter from back
+    
+    temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()), os.path.basename(tooldir))
+    temppath = shutil.make_archive(temppath, 'zip', tooldir)
+    mime = mimetypes.guess_type(temppath)[0]
+    return send_from_directory(os.path.dirname(temppath), os.path.basename(temppath), mimetype=mime, as_attachment = mime is None)
 
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
@@ -418,7 +409,9 @@ def functions():
                 return get_functions(int(request.args.get('access')) if request.args.get('access') else 0)
     
         if request.method == "POST":
-            if request.form.get('workflowId'):
+            if request.form.get("download_service"):
+                return download_service(request.form.get("download_service"))
+            elif request.form.get('workflowId'):
                 workflowId = int(request.form.get('workflowId')) if int(request.form.get('workflowId')) else 0
                 if request.form.get('script'):
                     workflow = update_workflow(current_user.id, workflowId, request.form.get('script'), request.form.get('args'), request.form.get('returns'))
@@ -437,171 +430,140 @@ def functions():
                 return jsonify(runnableId = runnable.id)
 
             elif len(request.files) > 0 and 'package' in request.files and request.files['package']:
-                filename = secure_filename(request.files['package'].filename)
-                tempdir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-                temppath = os.path.join(tempdir, filename)
-                os.makedirs(tempdir)
-                request.files['package'].save(temppath)
-                
-                if zipfile.is_zipfile(temppath):
-                    with zipfile.ZipFile(temppath,"r") as zip_ref:
-                        zip_ref.extractall(tempdir)
-                elif tarfile.is_tarfile(temppath):
-                    with tarfile.open(temppath,"r") as tar_ref:
-                        tar_ref.extractall(tempdir)
-                else:
-                    #shutil.move(temppath, path)
-                    raise ValueError("Only .zip and .tar are allowed as packages.")
+                '''Add package'''
+                activity = None
+                try:
+                    activity = activitymanager.create(current_user.id, ActivityType.ADDTOOLPACKAGE)
+                    activity.status = Status.STARTED
+                    activity.add_log(log="Installing tool(s) from tool package...", type=LogType.INFO)
+                    activity.add_log(log="Saving tool package to temp directory...", type=LogType.INFO)
+                    
+                    filename = secure_filename(request.files['package'].filename)
+                    tempdir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+                    temppath = os.path.join(tempdir, filename)
+                    os.makedirs(tempdir)
+                    request.files['package'].save(temppath)
+                    
+                    activity.add_log(log="Extracting tool package in tools directory...", type=LogType.INFO)
+                    
+                    user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
+                    tempdir = unique_filename(user_package_dir, Path(filename).stem, '')
+                    if not os.path.exists(tempdir):
+                        os.makedirs(tempdir)
 
-                os.remove(temppath)
-                # check if update can be made
-                update = request.form.get("update") and int(request.form.get("update")) == 1
-                from app.objectmodel.models.loader import Loader
-                funcs = Loader.load_funcs_recursive_flat(tempdir, True)
-                for func in funcs:
-                    module = modulemanager.get_by_value_key(package = func["package"], name = func["name"]).first()
-                    if module:
-                        if not update or module.user_id != current_user.id:
-                            raise ValueError(f"The {func['package']}{'.' if func['package'] else ''}{func['name']} already exists.")
+                    if zipfile.is_zipfile(temppath):
+                        with zipfile.ZipFile(temppath,"r") as zip_ref:
+                            zip_ref.extractall(tempdir)
+                    elif tarfile.is_tarfile(temppath):
+                        with tarfile.open(temppath,"r") as tar_ref:
+                            tar_ref.extractall(tempdir)
+                    else:
+                        activity.add_log(log="Only .zip or .tar is allowed as a tool package.", type=LogType.ERROR)
+                        raise ValueError("Only .zip or .tar is allowed as a tool package.")
 
-                user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
-                if not os.path.isdir(user_package_dir):
-                    os.makedirs(user_package_dir)
-                
-                path = unique_filename(user_package_dir, 'mylib', '')
-                shutil.copytree(tempdir, path)
-                modules = modulemanager.insert_modules(path, current_user.id, True, True)
-                if modules:
-                    return json.dumps({"out": f"{modules[0].name} is successfully added."})
-                else:
-                    raise ValueError("No module added.")
+                    activity.add_log(log="Deleting tool .zip or .tar from temp directory...")
+                    os.remove(temppath)
+
+                    # check if update can be made
+                    activity.add_log(log="Checking if tool already exists and we are allowed to update...")
+                    update = request.form.get("update") and int(request.form.get("update")) == 1
+                    from app.objectmodel.models.loader import Loader
+                    funcs = Loader.load_funcs_recursive_flat(tempdir, True)
+                    for func in funcs:
+                        module = modulemanager.get_by_value_key(package = func["package"], name = func["name"]).first()
+                        if module:
+                            if not update or module.user_id != current_user.id:
+                                raise ValueError(f"The {func['package']}{'.' if func['package'] else ''}{func['name']} already exists.")
+                            activity.add_log(log=f"The {func['package']}{'.' if func['package'] else ''}{func['name']} already exists. It will be updated.")
+                        else:
+                            activity.add_log(log=f"The {func['package']}{'.' if func['package'] else ''}{func['name']} does not exists. It will be created.")
+                    
+                    modules = modulemanager.insert_modules(activity, tempdir, current_user.id, True, True)
+                    if not modules:
+                        raise ValueError("No module added.")
+                    
+                    activity.add_log(log="Tool added successfully from tool package.")
+                    activity.status = Status.SUCCESS
+                except Exception as e:
+                    activity.status = Status.FAILURE
+                    activity.add_log(log=f'Error while integrating new tool: {str(e)}', type=LogType.ERROR)
+                    logging.error(f'Error while integrating new tool: {str(e)}')
+                return json.dumps(activity.to_json())
 
             elif request.form.get('mapper'):
-                result = {"out": [], "err": []}
+                activity = None
                 try:
-                    pippkgsdb = ''
-                    pipenv = request.form.get('pipenv') if request.form.get('pipenv') else ''
+                    activity = activitymanager.create(current_user.id, ActivityType.ADDTOOL)
+                    activity.add_log(log="Adding tool from Web UI...")
 
-                    if request.form.get('pippkgs'):
-                        pippkgsdb, outs, errs = pip_install_in_venv(pipenv, request.form.get('pippkgs'))
-                        result["out"].extend(outs)
-                        result["err"].extend(errs)
-                    
-                    reqfile = ''
-                    if len(request.files) > 0 and 'reqfile' in request.files and request.files['reqfile']:
-                        try:
-                            filename = secure_filename(request.files['reqfile'].filename)
-                            temppath = os.path.join(tempfile.gettempdir(), filename)
-                            if os.path.exists(temppath):
-                                #create a unique temppath if it already exists
-                                temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-                                os.makedirs(temppath)
-                                temppath = os.path.join(temppath, filename)
-                            
-                            reqfile = temppath
-                            request.files['reqfile'].save(reqfile)
-                            out, err = pipinstall_req_file(pipenv, reqfile)
-                            if out:
-                                result['out'].append(out)
-                            if err:
-                                result['err'].append(err)
-                        except Exception as e:
-                            result['err'].append(str(e))
-                            logging.error(f'Error installing packages from requirements file {reqfile}: {str(e)}')
-
-                    # Get the name of the uploaded file
-                    file = request.files['library'] if len(request.files) > 0 and 'library' in request.files else None
+                    activity.add_log(log="Creating folder for new tool...")
                     # Check if the file is one of the allowed types/extensions
-                    package = request.form.get('package')
-                    #os.chdir(this_path) #set dir of this file to current directory
                     user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
                     if not os.path.isdir(user_package_dir):
                         os.makedirs(user_package_dir)
                     
-                    pkg_or_default = package if package else 'mylib'
-                    path = unique_filename(user_package_dir, pkg_or_default, '')
+                    path = unique_filename(user_package_dir, 'mylib', '')
                     if not os.path.isdir(path):
                         os.makedirs(path)
-                    filename = ''
-                    if file:
-                        # Make the filename safe, remove unsupported chars
-                        filename = secure_filename(file.filename)
-                        temppath = os.path.join(tempfile.gettempdir(), filename)
-                        if os.path.exists(temppath):
-                            #create a unique temppath if it already exists
-                            temppath = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-                            os.makedirs(temppath)
-                            temppath = os.path.join(temppath, filename)
-                        file.save(temppath)
-                        if zipfile.is_zipfile(temppath):
-                            with zipfile.ZipFile(temppath,"r") as zip_ref:
-                                zip_ref.extractall(path)
-                        elif tarfile.is_tarfile(temppath):
-                            with tarfile.open(temppath,"r") as tar_ref:
-                                tar_ref.extractall(path)
-                        else:
-                            shutil.move(temppath, path)
+
+                    activity.add_log(log="Saving the adapter code...")
                     if request.form.get('script'):
                         filename = os.path.join(path, 'adapter.py')
                         with open(filename, 'a+') as script:
                             script.write(request.form.get('script'))
+
+                    mapper = json.loads(request.form.get('mapper'))
+
+                    if 'reqfile' in mapper and mapper['reqfile'] and len(request.files) > 0 and 'reqfile' in request.files and request.files['reqfile']:
+                        mapper['reqfile'] = get_pip_req_activity(activity, path, request.files['reqfile'])
+                    
+                    if 'reqfile' in mapper and not mapper['reqfile']:
+                        del mapper['reqfile']
+
+#                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
+                    if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
+                        mapper["access"] = 0
+                        mapper["sharedusers"] = []
+                    else:
+                        if request.form.get('sharedusers'):
+                            mapper["sharedusers"] = ast.literal_eval(request.form.get('sharedusers'))
+                            mapper["access"] = 1
+                        else:
+                            mapper["access"] = 2
+                            mapper["sharedusers"] = []
+
+                    activity.add_log(log="Adding module definition to database...")
                     base = os.path.join(path, 'funcdefs.json')
-                    with open(base, 'w') as mapper:
-                        json_object = json.loads(request.form.get('mapper'))
-                        json_formatted_str = json.dumps(json_object, indent=2)
-                        mapper.write(json_formatted_str)
-                    org = request.form.get('org')
-                    # create '.' based module path
-                    pkgpath = str(pathlib.Path(path).relative_to(os.path.dirname(app.config['PLUGIN_DIR'])))
-                    pkgpath = os.path.join(pkgpath, os.path.basename(filename))
-                    pkgpath = pkgpath.replace(os.sep, '.').rstrip('.py')
+                    if not os.path.exists(base):
+                        with open(base, 'w') as mapperfile:
+                            mapperfile.write(json.dumps(mapper, indent=2))
+
                     # create an empty __init__.py to make the directory a module                
                     initpath = os.path.join(path, "__init__.py")
                     if not os.path.exists(initpath):
                         with open(initpath, 'a'):
                             pass
-    #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
-                    if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
-                        access = 0
-                        sharedusers = ''
-                    else:
-                        if request.form.get('sharedusers'):
-                            sharedusers = request.form.get('sharedusers')
-                            access = 1
-                        else:
-                            access = 2
-                            sharedusers = ''
-                    
-                    if reqfile:
-                        reqFilePath = pathlib.Path(reqfile)
-                        temppath = os.path.join(path, reqFilePath.name)
-                        if os.path.exists(temppath):
-                            #create a unique temppath if it already exists
-                            suffix = reqFilePath.suffix
-                            if suffix:
-                                suffix = suffix[1]
-                            temppath = unique_filename(user_package_dir, reqFilePath.stem, reqFilePath.suffix)
-                        shutil.copy(reqfile, temppath)
-                        os.remove(reqfile)
-                        reqfile = str(pathlib.Path(temppath).relative_to(path))
 
-                    with open(base, 'r') as json_data:
-                        data = json.load(json_data)
-                        final_json_data = {"functions:": [add_module(f, filename, pkgpath, package, org, access, sharedusers, pipenv, pippkgsdb, reqfile) for f in data["functions"]]} if "functions" in data else add_module(data, filename, pkgpath, package, org, access, sharedusers, pipenv, pippkgsdb, reqfile)
-                        json_data.close()
-                        os.remove(base)
-                        with open(base, 'w') as f:
-                            f.write(json.dumps(final_json_data, indent=2))
+                    modules = modulemanager.insert_modules(activity, path, current_user.id, True, True)
 
-                    result['out'].append("Library successfully added.")
+                    # correct funcdefs.json file
+                    with open(base, 'w') as mapperfile:
+                        mapperfile.write(json.dumps(modules[0].value, indent=2))
+
+                    activity.add_log(log="Library successfully added.")
+                    activity.status = Status.SUCCESS
                 except Exception as e:
-                    result['err'].append(str(e))
+                    if activity:
+                        activity.add_log(log=str(e), type=LogType.ERROR)
+                        activity.status = Status.FAILURE
                     logging.error(f'Error while integrating new tool: {str(e)}')
-                return json.dumps(result)
+                    raise
+                return json.dumps(activity.to_json())
+
             elif request.form.get('provenance'):
                 fullpath = os.path.join(os.path.dirname(os.path.dirname(basedir)), "workflow.log")
                 mime = mimetypes.guess_type(fullpath)[0]
-                return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None )
+                return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None)
 
     except Exception as e:
         current_app.logger.error(str(e))

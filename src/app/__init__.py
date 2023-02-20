@@ -34,7 +34,7 @@ def create_app(config_name):
     
     CORS(app)
     app.config['CORS_HEADERS'] = 'Content-Type'
-    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+    app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024 * 1024 # 2GB upload limit
     app.config.from_object(config[config_name])
     app.debug = app.config['DEBUG']
 

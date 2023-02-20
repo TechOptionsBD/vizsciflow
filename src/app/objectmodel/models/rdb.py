@@ -1290,10 +1290,10 @@ class Service(db.Model):
             services = Service.query.filter(and_(Service.public == True, Service.active == True))
             samples = [Service.get_full_user_json(s, user_id, 0) for s in services]
         if access == 1 or access == 3:
-            services = Service.query.filter(and_(Service.public != True, Service.active == True)).filter(Service.accesses.any(and_(ServiceAccess.user_id == user_id, Service.user_id != user_id)))
+            services = Service.query.filter(and_(Service.public != True, Service.active == True)).filter(Service.accesses.any(or_(Service.user_id == user_id, and_(ServiceAccess.user_id == user_id, Service.user_id != user_id))))
             samples.extend([Service.get_full_user_json(s, user_id, 1) for s in services])
         if access == 2 or access == 3:
-            services = Service.query.filter(and_(Service.public != True, Service.active == True, Service.user_id == user_id))
+            services = Service.query.filter(Service.public != True, Service.active == True, Service.user_id == user_id).filter(~exists().where(ServiceAccess.user_id != user_id, Service.user_id == user_id, ServiceAccess.service_id == Service.id))
             samples.extend([Service.get_full_user_json(s, user_id, 2) for s in services])
 
         return samples

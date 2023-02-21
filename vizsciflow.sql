@@ -5,7 +5,7 @@
 -- Dumped from database version 13.8
 -- Dumped by pg_dump version 13.8
 
--- Started on 2023-02-12 16:53:07 UTC
+-- Started on 2023-02-21 07:15:07 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -21,6 +21,89 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- TOC entry 273 (class 1259 OID 17178)
+-- Name: activities; Type: TABLE; Schema: public; Owner: phenodoop
+--
+
+CREATE TABLE public.activities (
+    id integer NOT NULL,
+    user_id integer,
+    type character varying(30),
+    status character varying(30),
+    created_on timestamp without time zone,
+    modified_on timestamp without time zone
+);
+
+
+ALTER TABLE public.activities OWNER TO phenodoop;
+
+--
+-- TOC entry 272 (class 1259 OID 17176)
+-- Name: activities_id_seq; Type: SEQUENCE; Schema: public; Owner: phenodoop
+--
+
+CREATE SEQUENCE public.activities_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.activities_id_seq OWNER TO phenodoop;
+
+--
+-- TOC entry 3415 (class 0 OID 0)
+-- Dependencies: 272
+-- Name: activities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
+--
+
+ALTER SEQUENCE public.activities_id_seq OWNED BY public.activities.id;
+
+
+--
+-- TOC entry 275 (class 1259 OID 17191)
+-- Name: activitylogs; Type: TABLE; Schema: public; Owner: phenodoop
+--
+
+CREATE TABLE public.activitylogs (
+    id integer NOT NULL,
+    activity_id integer,
+    "time" timestamp without time zone,
+    type text,
+    log text
+);
+
+
+ALTER TABLE public.activitylogs OWNER TO phenodoop;
+
+--
+-- TOC entry 274 (class 1259 OID 17189)
+-- Name: activitylogs_id_seq; Type: SEQUENCE; Schema: public; Owner: phenodoop
+--
+
+CREATE SEQUENCE public.activitylogs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.activitylogs_id_seq OWNER TO phenodoop;
+
+--
+-- TOC entry 3416 (class 0 OID 0)
+-- Dependencies: 274
+-- Name: activitylogs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
+--
+
+ALTER SEQUENCE public.activitylogs_id_seq OWNED BY public.activitylogs.id;
+
 
 --
 -- TOC entry 271 (class 1259 OID 16970)
@@ -69,7 +152,7 @@ CREATE SEQUENCE public.comments_id_seq
 ALTER TABLE public.comments_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3394 (class 0 OID 0)
+-- TOC entry 3417 (class 0 OID 0)
 -- Dependencies: 241
 -- Name: comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -122,7 +205,7 @@ CREATE SEQUENCE public.data_allocations_id_seq
 ALTER TABLE public.data_allocations_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3395 (class 0 OID 0)
+-- TOC entry 3418 (class 0 OID 0)
 -- Dependencies: 239
 -- Name: data_allocations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -161,7 +244,7 @@ CREATE SEQUENCE public.data_annotations_id_seq
 ALTER TABLE public.data_annotations_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3396 (class 0 OID 0)
+-- TOC entry 3419 (class 0 OID 0)
 -- Dependencies: 233
 -- Name: data_annotations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -186,7 +269,7 @@ CREATE SEQUENCE public.data_id_seq
 ALTER TABLE public.data_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3397 (class 0 OID 0)
+-- TOC entry 3420 (class 0 OID 0)
 -- Dependencies: 212
 -- Name: data_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -225,7 +308,7 @@ CREATE SEQUENCE public.data_mimetypes_id_seq
 ALTER TABLE public.data_mimetypes_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3398 (class 0 OID 0)
+-- TOC entry 3421 (class 0 OID 0)
 -- Dependencies: 237
 -- Name: data_mimetypes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -265,7 +348,7 @@ CREATE SEQUENCE public.data_permissions_id_seq
 ALTER TABLE public.data_permissions_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3399 (class 0 OID 0)
+-- TOC entry 3422 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: data_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -305,7 +388,7 @@ CREATE SEQUENCE public.data_properties_id_seq
 ALTER TABLE public.data_properties_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3400 (class 0 OID 0)
+-- TOC entry 3423 (class 0 OID 0)
 -- Dependencies: 218
 -- Name: data_properties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -344,7 +427,7 @@ CREATE SEQUENCE public.data_visualizers_id_seq
 ALTER TABLE public.data_visualizers_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3401 (class 0 OID 0)
+-- TOC entry 3424 (class 0 OID 0)
 -- Dependencies: 235
 -- Name: data_visualizers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -382,7 +465,7 @@ CREATE SEQUENCE public.datasets_id_seq
 ALTER TABLE public.datasets_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3402 (class 0 OID 0)
+-- TOC entry 3425 (class 0 OID 0)
 -- Dependencies: 204
 -- Name: datasets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -421,7 +504,7 @@ CREATE SEQUENCE public.datasource_allocations_id_seq
 ALTER TABLE public.datasource_allocations_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3403 (class 0 OID 0)
+-- TOC entry 3426 (class 0 OID 0)
 -- Dependencies: 216
 -- Name: datasource_allocations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -468,7 +551,7 @@ CREATE SEQUENCE public.datasources_id_seq
 ALTER TABLE public.datasources_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3404 (class 0 OID 0)
+-- TOC entry 3427 (class 0 OID 0)
 -- Dependencies: 202
 -- Name: datasources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -508,7 +591,7 @@ CREATE SEQUENCE public.filter_history_id_seq
 ALTER TABLE public.filter_history_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3405 (class 0 OID 0)
+-- TOC entry 3428 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: filter_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -549,7 +632,7 @@ CREATE SEQUENCE public.filters_id_seq
 ALTER TABLE public.filters_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3406 (class 0 OID 0)
+-- TOC entry 3429 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: filters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -602,7 +685,7 @@ CREATE SEQUENCE public.indata_id_seq
 ALTER TABLE public.indata_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3407 (class 0 OID 0)
+-- TOC entry 3430 (class 0 OID 0)
 -- Dependencies: 269
 -- Name: indata_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -642,7 +725,7 @@ CREATE SEQUENCE public.mimetypes_id_seq
 ALTER TABLE public.mimetypes_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3408 (class 0 OID 0)
+-- TOC entry 3431 (class 0 OID 0)
 -- Dependencies: 210
 -- Name: mimetypes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -681,7 +764,7 @@ CREATE SEQUENCE public.params_id_seq
 ALTER TABLE public.params_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3409 (class 0 OID 0)
+-- TOC entry 3432 (class 0 OID 0)
 -- Dependencies: 249
 -- Name: params_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -722,7 +805,7 @@ CREATE SEQUENCE public.posts_id_seq
 ALTER TABLE public.posts_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3410 (class 0 OID 0)
+-- TOC entry 3433 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: posts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -761,7 +844,7 @@ CREATE SEQUENCE public.returns_id_seq
 ALTER TABLE public.returns_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3411 (class 0 OID 0)
+-- TOC entry 3434 (class 0 OID 0)
 -- Dependencies: 251
 -- Name: returns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -801,7 +884,7 @@ CREATE SEQUENCE public.roles_id_seq
 ALTER TABLE public.roles_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3412 (class 0 OID 0)
+-- TOC entry 3435 (class 0 OID 0)
 -- Dependencies: 200
 -- Name: roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -840,7 +923,7 @@ CREATE SEQUENCE public.runnableargs_id_seq
 ALTER TABLE public.runnableargs_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3413 (class 0 OID 0)
+-- TOC entry 3436 (class 0 OID 0)
 -- Dependencies: 259
 -- Name: runnableargs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -879,7 +962,7 @@ CREATE SEQUENCE public.runnablereturns_id_seq
 ALTER TABLE public.runnablereturns_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3414 (class 0 OID 0)
+-- TOC entry 3437 (class 0 OID 0)
 -- Dependencies: 261
 -- Name: runnablereturns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -902,7 +985,7 @@ CREATE TABLE public.runnables (
     "out" text,
     error text,
     view text,
-    duration integer,
+    duration double precision,
     started_on timestamp without time zone,
     created_on timestamp without time zone,
     modified_on timestamp without time zone
@@ -928,7 +1011,7 @@ CREATE SEQUENCE public.runnables_id_seq
 ALTER TABLE public.runnables_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3415 (class 0 OID 0)
+-- TOC entry 3438 (class 0 OID 0)
 -- Dependencies: 255
 -- Name: runnables_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -968,7 +1051,7 @@ CREATE SEQUENCE public.serviceaccesses_id_seq
 ALTER TABLE public.serviceaccesses_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3416 (class 0 OID 0)
+-- TOC entry 3439 (class 0 OID 0)
 -- Dependencies: 253
 -- Name: serviceaccesses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1012,7 +1095,7 @@ CREATE SEQUENCE public.services_id_seq
 ALTER TABLE public.services_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3417 (class 0 OID 0)
+-- TOC entry 3440 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1051,7 +1134,7 @@ CREATE SEQUENCE public.taskdata_id_seq
 ALTER TABLE public.taskdata_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3418 (class 0 OID 0)
+-- TOC entry 3441 (class 0 OID 0)
 -- Dependencies: 267
 -- Name: taskdata_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1092,7 +1175,7 @@ CREATE SEQUENCE public.tasklogs_id_seq
 ALTER TABLE public.tasklogs_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3419 (class 0 OID 0)
+-- TOC entry 3442 (class 0 OID 0)
 -- Dependencies: 265
 -- Name: tasklogs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1112,7 +1195,8 @@ CREATE TABLE public.tasks (
     started_on timestamp without time zone,
     ended_on timestamp without time zone,
     status text,
-    comment text
+    comment text,
+    duration double precision
 );
 
 
@@ -1135,7 +1219,7 @@ CREATE SEQUENCE public.tasks_id_seq
 ALTER TABLE public.tasks_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3420 (class 0 OID 0)
+-- TOC entry 3443 (class 0 OID 0)
 -- Dependencies: 263
 -- Name: tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1173,7 +1257,7 @@ CREATE SEQUENCE public.taskstatus_id_seq
 ALTER TABLE public.taskstatus_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3421 (class 0 OID 0)
+-- TOC entry 3444 (class 0 OID 0)
 -- Dependencies: 206
 -- Name: taskstatus_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1222,7 +1306,7 @@ CREATE SEQUENCE public.users_id_seq
 ALTER TABLE public.users_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3422 (class 0 OID 0)
+-- TOC entry 3445 (class 0 OID 0)
 -- Dependencies: 214
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1261,7 +1345,7 @@ CREATE SEQUENCE public.visualizers_id_seq
 ALTER TABLE public.visualizers_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3423 (class 0 OID 0)
+-- TOC entry 3446 (class 0 OID 0)
 -- Dependencies: 208
 -- Name: visualizers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1300,7 +1384,7 @@ CREATE SEQUENCE public.workflow_annotations_id_seq
 ALTER TABLE public.workflow_annotations_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3424 (class 0 OID 0)
+-- TOC entry 3447 (class 0 OID 0)
 -- Dependencies: 257
 -- Name: workflow_annotations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1340,7 +1424,7 @@ CREATE SEQUENCE public.workflowaccesses_id_seq
 ALTER TABLE public.workflowaccesses_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3425 (class 0 OID 0)
+-- TOC entry 3448 (class 0 OID 0)
 -- Dependencies: 243
 -- Name: workflowaccesses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1379,7 +1463,7 @@ CREATE SEQUENCE public.workflowparams_id_seq
 ALTER TABLE public.workflowparams_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3426 (class 0 OID 0)
+-- TOC entry 3449 (class 0 OID 0)
 -- Dependencies: 245
 -- Name: workflowparams_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1418,7 +1502,7 @@ CREATE SEQUENCE public.workflowreturns_id_seq
 ALTER TABLE public.workflowreturns_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3427 (class 0 OID 0)
+-- TOC entry 3450 (class 0 OID 0)
 -- Dependencies: 247
 -- Name: workflowreturns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1464,7 +1548,7 @@ CREATE SEQUENCE public.workflows_id_seq
 ALTER TABLE public.workflows_id_seq OWNER TO phenodoop;
 
 --
--- TOC entry 3428 (class 0 OID 0)
+-- TOC entry 3451 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: workflows_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
 --
@@ -1473,7 +1557,23 @@ ALTER SEQUENCE public.workflows_id_seq OWNED BY public.workflows.id;
 
 
 --
--- TOC entry 3122 (class 2604 OID 16698)
+-- TOC entry 3150 (class 2604 OID 17181)
+-- Name: activities id; Type: DEFAULT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.activities ALTER COLUMN id SET DEFAULT nextval('public.activities_id_seq'::regclass);
+
+
+--
+-- TOC entry 3151 (class 2604 OID 17194)
+-- Name: activitylogs id; Type: DEFAULT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.activitylogs ALTER COLUMN id SET DEFAULT nextval('public.activitylogs_id_seq'::regclass);
+
+
+--
+-- TOC entry 3135 (class 2604 OID 16698)
 -- Name: comments id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1481,7 +1581,7 @@ ALTER TABLE ONLY public.comments ALTER COLUMN id SET DEFAULT nextval('public.com
 
 
 --
--- TOC entry 3108 (class 2604 OID 16453)
+-- TOC entry 3121 (class 2604 OID 16453)
 -- Name: data id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1489,7 +1589,7 @@ ALTER TABLE ONLY public.data ALTER COLUMN id SET DEFAULT nextval('public.data_id
 
 
 --
--- TOC entry 3121 (class 2604 OID 16680)
+-- TOC entry 3134 (class 2604 OID 16680)
 -- Name: data_allocations id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1497,7 +1597,7 @@ ALTER TABLE ONLY public.data_allocations ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3118 (class 2604 OID 16628)
+-- TOC entry 3131 (class 2604 OID 16628)
 -- Name: data_annotations id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1505,7 +1605,7 @@ ALTER TABLE ONLY public.data_annotations ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3120 (class 2604 OID 16662)
+-- TOC entry 3133 (class 2604 OID 16662)
 -- Name: data_mimetypes id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1513,7 +1613,7 @@ ALTER TABLE ONLY public.data_mimetypes ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 3117 (class 2604 OID 16610)
+-- TOC entry 3130 (class 2604 OID 16610)
 -- Name: data_permissions id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1521,7 +1621,7 @@ ALTER TABLE ONLY public.data_permissions ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3111 (class 2604 OID 16498)
+-- TOC entry 3124 (class 2604 OID 16498)
 -- Name: data_properties id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1529,7 +1629,7 @@ ALTER TABLE ONLY public.data_properties ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 3119 (class 2604 OID 16644)
+-- TOC entry 3132 (class 2604 OID 16644)
 -- Name: data_visualizers id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1537,7 +1637,7 @@ ALTER TABLE ONLY public.data_visualizers ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3104 (class 2604 OID 16412)
+-- TOC entry 3117 (class 2604 OID 16412)
 -- Name: datasets id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1545,7 +1645,7 @@ ALTER TABLE ONLY public.datasets ALTER COLUMN id SET DEFAULT nextval('public.dat
 
 
 --
--- TOC entry 3110 (class 2604 OID 16482)
+-- TOC entry 3123 (class 2604 OID 16482)
 -- Name: datasource_allocations id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1553,7 +1653,7 @@ ALTER TABLE ONLY public.datasource_allocations ALTER COLUMN id SET DEFAULT nextv
 
 
 --
--- TOC entry 3103 (class 2604 OID 16401)
+-- TOC entry 3116 (class 2604 OID 16401)
 -- Name: datasources id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1561,7 +1661,7 @@ ALTER TABLE ONLY public.datasources ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 3116 (class 2604 OID 16594)
+-- TOC entry 3129 (class 2604 OID 16594)
 -- Name: filter_history id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1569,7 +1669,7 @@ ALTER TABLE ONLY public.filter_history ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 3115 (class 2604 OID 16578)
+-- TOC entry 3128 (class 2604 OID 16578)
 -- Name: filters id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1577,7 +1677,7 @@ ALTER TABLE ONLY public.filters ALTER COLUMN id SET DEFAULT nextval('public.filt
 
 
 --
--- TOC entry 3136 (class 2604 OID 16944)
+-- TOC entry 3149 (class 2604 OID 16944)
 -- Name: indata id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1585,7 +1685,7 @@ ALTER TABLE ONLY public.indata ALTER COLUMN id SET DEFAULT nextval('public.indat
 
 
 --
--- TOC entry 3107 (class 2604 OID 16442)
+-- TOC entry 3120 (class 2604 OID 16442)
 -- Name: mimetypes id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1593,7 +1693,7 @@ ALTER TABLE ONLY public.mimetypes ALTER COLUMN id SET DEFAULT nextval('public.mi
 
 
 --
--- TOC entry 3126 (class 2604 OID 16770)
+-- TOC entry 3139 (class 2604 OID 16770)
 -- Name: params id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1601,7 +1701,7 @@ ALTER TABLE ONLY public.params ALTER COLUMN id SET DEFAULT nextval('public.param
 
 
 --
--- TOC entry 3112 (class 2604 OID 16529)
+-- TOC entry 3125 (class 2604 OID 16529)
 -- Name: posts id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1609,7 +1709,7 @@ ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_
 
 
 --
--- TOC entry 3127 (class 2604 OID 16786)
+-- TOC entry 3140 (class 2604 OID 16786)
 -- Name: returns id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1617,7 +1717,7 @@ ALTER TABLE ONLY public.returns ALTER COLUMN id SET DEFAULT nextval('public.retu
 
 
 --
--- TOC entry 3102 (class 2604 OID 16390)
+-- TOC entry 3115 (class 2604 OID 16390)
 -- Name: roles id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1625,7 +1725,7 @@ ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_
 
 
 --
--- TOC entry 3131 (class 2604 OID 16857)
+-- TOC entry 3144 (class 2604 OID 16857)
 -- Name: runnableargs id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1633,7 +1733,7 @@ ALTER TABLE ONLY public.runnableargs ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
--- TOC entry 3132 (class 2604 OID 16873)
+-- TOC entry 3145 (class 2604 OID 16873)
 -- Name: runnablereturns id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1641,7 +1741,7 @@ ALTER TABLE ONLY public.runnablereturns ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 3129 (class 2604 OID 16820)
+-- TOC entry 3142 (class 2604 OID 16820)
 -- Name: runnables id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1649,7 +1749,7 @@ ALTER TABLE ONLY public.runnables ALTER COLUMN id SET DEFAULT nextval('public.ru
 
 
 --
--- TOC entry 3128 (class 2604 OID 16802)
+-- TOC entry 3141 (class 2604 OID 16802)
 -- Name: serviceaccesses id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1657,7 +1757,7 @@ ALTER TABLE ONLY public.serviceaccesses ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 3114 (class 2604 OID 16964)
+-- TOC entry 3127 (class 2604 OID 16964)
 -- Name: services id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1665,7 +1765,7 @@ ALTER TABLE ONLY public.services ALTER COLUMN id SET DEFAULT nextval('public.ser
 
 
 --
--- TOC entry 3135 (class 2604 OID 16926)
+-- TOC entry 3148 (class 2604 OID 16926)
 -- Name: taskdata id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1673,7 +1773,7 @@ ALTER TABLE ONLY public.taskdata ALTER COLUMN id SET DEFAULT nextval('public.tas
 
 
 --
--- TOC entry 3134 (class 2604 OID 16910)
+-- TOC entry 3147 (class 2604 OID 16910)
 -- Name: tasklogs id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1681,7 +1781,7 @@ ALTER TABLE ONLY public.tasklogs ALTER COLUMN id SET DEFAULT nextval('public.tas
 
 
 --
--- TOC entry 3133 (class 2604 OID 16889)
+-- TOC entry 3146 (class 2604 OID 16889)
 -- Name: tasks id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1689,7 +1789,7 @@ ALTER TABLE ONLY public.tasks ALTER COLUMN id SET DEFAULT nextval('public.tasks_
 
 
 --
--- TOC entry 3105 (class 2604 OID 16423)
+-- TOC entry 3118 (class 2604 OID 16423)
 -- Name: taskstatus id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1697,7 +1797,7 @@ ALTER TABLE ONLY public.taskstatus ALTER COLUMN id SET DEFAULT nextval('public.t
 
 
 --
--- TOC entry 3109 (class 2604 OID 16464)
+-- TOC entry 3122 (class 2604 OID 16464)
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1705,7 +1805,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 3106 (class 2604 OID 16431)
+-- TOC entry 3119 (class 2604 OID 16431)
 -- Name: visualizers id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1713,7 +1813,7 @@ ALTER TABLE ONLY public.visualizers ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 3130 (class 2604 OID 16841)
+-- TOC entry 3143 (class 2604 OID 16841)
 -- Name: workflow_annotations id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1721,7 +1821,7 @@ ALTER TABLE ONLY public.workflow_annotations ALTER COLUMN id SET DEFAULT nextval
 
 
 --
--- TOC entry 3123 (class 2604 OID 16720)
+-- TOC entry 3136 (class 2604 OID 16720)
 -- Name: workflowaccesses id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1729,7 +1829,7 @@ ALTER TABLE ONLY public.workflowaccesses ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3124 (class 2604 OID 16738)
+-- TOC entry 3137 (class 2604 OID 16738)
 -- Name: workflowparams id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1737,7 +1837,7 @@ ALTER TABLE ONLY public.workflowparams ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- TOC entry 3125 (class 2604 OID 16754)
+-- TOC entry 3138 (class 2604 OID 16754)
 -- Name: workflowreturns id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1745,7 +1845,7 @@ ALTER TABLE ONLY public.workflowreturns ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 3113 (class 2604 OID 16546)
+-- TOC entry 3126 (class 2604 OID 16546)
 -- Name: workflows id; Type: DEFAULT; Schema: public; Owner: phenodoop
 --
 
@@ -1753,7 +1853,25 @@ ALTER TABLE ONLY public.workflows ALTER COLUMN id SET DEFAULT nextval('public.wo
 
 
 --
--- TOC entry 3217 (class 2606 OID 16974)
+-- TOC entry 3234 (class 2606 OID 17183)
+-- Name: activities activities_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.activities
+    ADD CONSTRAINT activities_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3236 (class 2606 OID 17199)
+-- Name: activitylogs activitylogs_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.activitylogs
+    ADD CONSTRAINT activitylogs_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3232 (class 2606 OID 16974)
 -- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1762,7 +1880,7 @@ ALTER TABLE ONLY public.alembic_version
 
 
 --
--- TOC entry 3186 (class 2606 OID 16703)
+-- TOC entry 3201 (class 2606 OID 16703)
 -- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1771,7 +1889,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3184 (class 2606 OID 16682)
+-- TOC entry 3199 (class 2606 OID 16682)
 -- Name: data_allocations data_allocations_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1780,7 +1898,7 @@ ALTER TABLE ONLY public.data_allocations
 
 
 --
--- TOC entry 3178 (class 2606 OID 16633)
+-- TOC entry 3193 (class 2606 OID 16633)
 -- Name: data_annotations data_annotations_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1789,7 +1907,7 @@ ALTER TABLE ONLY public.data_annotations
 
 
 --
--- TOC entry 3182 (class 2606 OID 16664)
+-- TOC entry 3197 (class 2606 OID 16664)
 -- Name: data_mimetypes data_mimetypes_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1798,7 +1916,7 @@ ALTER TABLE ONLY public.data_mimetypes
 
 
 --
--- TOC entry 3176 (class 2606 OID 16612)
+-- TOC entry 3191 (class 2606 OID 16612)
 -- Name: data_permissions data_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1807,7 +1925,7 @@ ALTER TABLE ONLY public.data_permissions
 
 
 --
--- TOC entry 3153 (class 2606 OID 16458)
+-- TOC entry 3168 (class 2606 OID 16458)
 -- Name: data data_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1816,7 +1934,7 @@ ALTER TABLE ONLY public.data
 
 
 --
--- TOC entry 3161 (class 2606 OID 16503)
+-- TOC entry 3176 (class 2606 OID 16503)
 -- Name: data_properties data_properties_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1825,7 +1943,7 @@ ALTER TABLE ONLY public.data_properties
 
 
 --
--- TOC entry 3180 (class 2606 OID 16646)
+-- TOC entry 3195 (class 2606 OID 16646)
 -- Name: data_visualizers data_visualizers_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1834,7 +1952,7 @@ ALTER TABLE ONLY public.data_visualizers
 
 
 --
--- TOC entry 3145 (class 2606 OID 16417)
+-- TOC entry 3160 (class 2606 OID 16417)
 -- Name: datasets datasets_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1843,7 +1961,7 @@ ALTER TABLE ONLY public.datasets
 
 
 --
--- TOC entry 3159 (class 2606 OID 16487)
+-- TOC entry 3174 (class 2606 OID 16487)
 -- Name: datasource_allocations datasource_allocations_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1852,7 +1970,7 @@ ALTER TABLE ONLY public.datasource_allocations
 
 
 --
--- TOC entry 3143 (class 2606 OID 16406)
+-- TOC entry 3158 (class 2606 OID 16406)
 -- Name: datasources datasources_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1861,7 +1979,7 @@ ALTER TABLE ONLY public.datasources
 
 
 --
--- TOC entry 3174 (class 2606 OID 16599)
+-- TOC entry 3189 (class 2606 OID 16599)
 -- Name: filter_history filter_history_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1870,7 +1988,7 @@ ALTER TABLE ONLY public.filter_history
 
 
 --
--- TOC entry 3172 (class 2606 OID 16583)
+-- TOC entry 3187 (class 2606 OID 16583)
 -- Name: filters filters_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1879,7 +1997,7 @@ ALTER TABLE ONLY public.filters
 
 
 --
--- TOC entry 3163 (class 2606 OID 16513)
+-- TOC entry 3178 (class 2606 OID 16513)
 -- Name: follows follows_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1888,7 +2006,7 @@ ALTER TABLE ONLY public.follows
 
 
 --
--- TOC entry 3215 (class 2606 OID 16946)
+-- TOC entry 3230 (class 2606 OID 16946)
 -- Name: indata indata_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1897,7 +2015,7 @@ ALTER TABLE ONLY public.indata
 
 
 --
--- TOC entry 3151 (class 2606 OID 16447)
+-- TOC entry 3166 (class 2606 OID 16447)
 -- Name: mimetypes mimetypes_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1906,7 +2024,7 @@ ALTER TABLE ONLY public.mimetypes
 
 
 --
--- TOC entry 3195 (class 2606 OID 16775)
+-- TOC entry 3210 (class 2606 OID 16775)
 -- Name: params params_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1915,7 +2033,7 @@ ALTER TABLE ONLY public.params
 
 
 --
--- TOC entry 3166 (class 2606 OID 16534)
+-- TOC entry 3181 (class 2606 OID 16534)
 -- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1924,7 +2042,7 @@ ALTER TABLE ONLY public.posts
 
 
 --
--- TOC entry 3197 (class 2606 OID 16791)
+-- TOC entry 3212 (class 2606 OID 16791)
 -- Name: returns returns_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1933,7 +2051,7 @@ ALTER TABLE ONLY public.returns
 
 
 --
--- TOC entry 3139 (class 2606 OID 16394)
+-- TOC entry 3154 (class 2606 OID 16394)
 -- Name: roles roles_name_key; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1942,7 +2060,7 @@ ALTER TABLE ONLY public.roles
 
 
 --
--- TOC entry 3141 (class 2606 OID 16392)
+-- TOC entry 3156 (class 2606 OID 16392)
 -- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1951,7 +2069,7 @@ ALTER TABLE ONLY public.roles
 
 
 --
--- TOC entry 3205 (class 2606 OID 16862)
+-- TOC entry 3220 (class 2606 OID 16862)
 -- Name: runnableargs runnableargs_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1960,7 +2078,7 @@ ALTER TABLE ONLY public.runnableargs
 
 
 --
--- TOC entry 3207 (class 2606 OID 16878)
+-- TOC entry 3222 (class 2606 OID 16878)
 -- Name: runnablereturns runnablereturns_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1969,7 +2087,7 @@ ALTER TABLE ONLY public.runnablereturns
 
 
 --
--- TOC entry 3201 (class 2606 OID 16825)
+-- TOC entry 3216 (class 2606 OID 16825)
 -- Name: runnables runnables_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1978,7 +2096,7 @@ ALTER TABLE ONLY public.runnables
 
 
 --
--- TOC entry 3199 (class 2606 OID 16804)
+-- TOC entry 3214 (class 2606 OID 16804)
 -- Name: serviceaccesses serviceaccesses_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1987,7 +2105,7 @@ ALTER TABLE ONLY public.serviceaccesses
 
 
 --
--- TOC entry 3170 (class 2606 OID 16567)
+-- TOC entry 3185 (class 2606 OID 16567)
 -- Name: services services_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -1996,7 +2114,7 @@ ALTER TABLE ONLY public.services
 
 
 --
--- TOC entry 3213 (class 2606 OID 16928)
+-- TOC entry 3228 (class 2606 OID 16928)
 -- Name: taskdata taskdata_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2005,7 +2123,7 @@ ALTER TABLE ONLY public.taskdata
 
 
 --
--- TOC entry 3211 (class 2606 OID 16915)
+-- TOC entry 3226 (class 2606 OID 16915)
 -- Name: tasklogs tasklogs_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2014,7 +2132,7 @@ ALTER TABLE ONLY public.tasklogs
 
 
 --
--- TOC entry 3209 (class 2606 OID 16894)
+-- TOC entry 3224 (class 2606 OID 16894)
 -- Name: tasks tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2023,7 +2141,7 @@ ALTER TABLE ONLY public.tasks
 
 
 --
--- TOC entry 3147 (class 2606 OID 16425)
+-- TOC entry 3162 (class 2606 OID 16425)
 -- Name: taskstatus taskstatus_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2032,7 +2150,7 @@ ALTER TABLE ONLY public.taskstatus
 
 
 --
--- TOC entry 3157 (class 2606 OID 16469)
+-- TOC entry 3172 (class 2606 OID 16469)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2041,7 +2159,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3149 (class 2606 OID 16436)
+-- TOC entry 3164 (class 2606 OID 16436)
 -- Name: visualizers visualizers_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2050,7 +2168,7 @@ ALTER TABLE ONLY public.visualizers
 
 
 --
--- TOC entry 3203 (class 2606 OID 16846)
+-- TOC entry 3218 (class 2606 OID 16846)
 -- Name: workflow_annotations workflow_annotations_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2059,7 +2177,7 @@ ALTER TABLE ONLY public.workflow_annotations
 
 
 --
--- TOC entry 3189 (class 2606 OID 16722)
+-- TOC entry 3204 (class 2606 OID 16722)
 -- Name: workflowaccesses workflowaccesses_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2068,7 +2186,7 @@ ALTER TABLE ONLY public.workflowaccesses
 
 
 --
--- TOC entry 3191 (class 2606 OID 16743)
+-- TOC entry 3206 (class 2606 OID 16743)
 -- Name: workflowparams workflowparams_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2077,7 +2195,7 @@ ALTER TABLE ONLY public.workflowparams
 
 
 --
--- TOC entry 3193 (class 2606 OID 16759)
+-- TOC entry 3208 (class 2606 OID 16759)
 -- Name: workflowreturns workflowreturns_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2086,7 +2204,7 @@ ALTER TABLE ONLY public.workflowreturns
 
 
 --
--- TOC entry 3168 (class 2606 OID 16551)
+-- TOC entry 3183 (class 2606 OID 16551)
 -- Name: workflows workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2095,7 +2213,7 @@ ALTER TABLE ONLY public.workflows
 
 
 --
--- TOC entry 3187 (class 1259 OID 16714)
+-- TOC entry 3202 (class 1259 OID 16714)
 -- Name: ix_comments_timestamp; Type: INDEX; Schema: public; Owner: phenodoop
 --
 
@@ -2103,7 +2221,7 @@ CREATE INDEX ix_comments_timestamp ON public.comments USING btree ("timestamp");
 
 
 --
--- TOC entry 3164 (class 1259 OID 16540)
+-- TOC entry 3179 (class 1259 OID 16540)
 -- Name: ix_posts_timestamp; Type: INDEX; Schema: public; Owner: phenodoop
 --
 
@@ -2111,7 +2229,7 @@ CREATE INDEX ix_posts_timestamp ON public.posts USING btree ("timestamp");
 
 
 --
--- TOC entry 3137 (class 1259 OID 16395)
+-- TOC entry 3152 (class 1259 OID 16395)
 -- Name: ix_roles_default; Type: INDEX; Schema: public; Owner: phenodoop
 --
 
@@ -2119,7 +2237,7 @@ CREATE INDEX ix_roles_default ON public.roles USING btree ("default");
 
 
 --
--- TOC entry 3154 (class 1259 OID 16475)
+-- TOC entry 3169 (class 1259 OID 16475)
 -- Name: ix_users_email; Type: INDEX; Schema: public; Owner: phenodoop
 --
 
@@ -2127,7 +2245,7 @@ CREATE UNIQUE INDEX ix_users_email ON public.users USING btree (email);
 
 
 --
--- TOC entry 3155 (class 1259 OID 16476)
+-- TOC entry 3170 (class 1259 OID 16476)
 -- Name: ix_users_username; Type: INDEX; Schema: public; Owner: phenodoop
 --
 
@@ -2135,7 +2253,25 @@ CREATE UNIQUE INDEX ix_users_username ON public.users USING btree (username);
 
 
 --
--- TOC entry 3237 (class 2606 OID 16704)
+-- TOC entry 3278 (class 2606 OID 17184)
+-- Name: activities activities_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.activities
+    ADD CONSTRAINT activities_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- TOC entry 3279 (class 2606 OID 17200)
+-- Name: activitylogs activitylogs_activity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.activitylogs
+    ADD CONSTRAINT activitylogs_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.activities(id);
+
+
+--
+-- TOC entry 3256 (class 2606 OID 16704)
 -- Name: comments comments_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2144,7 +2280,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3238 (class 2606 OID 16709)
+-- TOC entry 3257 (class 2606 OID 16709)
 -- Name: comments comments_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2153,7 +2289,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3235 (class 2606 OID 16683)
+-- TOC entry 3254 (class 2606 OID 16683)
 -- Name: data_allocations data_allocations_data_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2162,7 +2298,7 @@ ALTER TABLE ONLY public.data_allocations
 
 
 --
--- TOC entry 3236 (class 2606 OID 16688)
+-- TOC entry 3255 (class 2606 OID 16688)
 -- Name: data_allocations data_allocations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2171,7 +2307,7 @@ ALTER TABLE ONLY public.data_allocations
 
 
 --
--- TOC entry 3230 (class 2606 OID 16634)
+-- TOC entry 3249 (class 2606 OID 16634)
 -- Name: data_annotations data_annotations_data_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2180,7 +2316,7 @@ ALTER TABLE ONLY public.data_annotations
 
 
 --
--- TOC entry 3233 (class 2606 OID 16665)
+-- TOC entry 3252 (class 2606 OID 16665)
 -- Name: data_mimetypes data_mimetypes_data_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2189,7 +2325,7 @@ ALTER TABLE ONLY public.data_mimetypes
 
 
 --
--- TOC entry 3234 (class 2606 OID 16670)
+-- TOC entry 3253 (class 2606 OID 16670)
 -- Name: data_mimetypes data_mimetypes_mimetype_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2198,7 +2334,7 @@ ALTER TABLE ONLY public.data_mimetypes
 
 
 --
--- TOC entry 3229 (class 2606 OID 16618)
+-- TOC entry 3248 (class 2606 OID 16618)
 -- Name: data_permissions data_permissions_data_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2207,7 +2343,7 @@ ALTER TABLE ONLY public.data_permissions
 
 
 --
--- TOC entry 3228 (class 2606 OID 16613)
+-- TOC entry 3247 (class 2606 OID 16613)
 -- Name: data_permissions data_permissions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2216,7 +2352,7 @@ ALTER TABLE ONLY public.data_permissions
 
 
 --
--- TOC entry 3220 (class 2606 OID 16504)
+-- TOC entry 3239 (class 2606 OID 16504)
 -- Name: data_properties data_properties_data_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2225,7 +2361,7 @@ ALTER TABLE ONLY public.data_properties
 
 
 --
--- TOC entry 3231 (class 2606 OID 16647)
+-- TOC entry 3250 (class 2606 OID 16647)
 -- Name: data_visualizers data_visualizers_data_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2234,7 +2370,7 @@ ALTER TABLE ONLY public.data_visualizers
 
 
 --
--- TOC entry 3232 (class 2606 OID 16652)
+-- TOC entry 3251 (class 2606 OID 16652)
 -- Name: data_visualizers data_visualizers_visualizer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2243,7 +2379,7 @@ ALTER TABLE ONLY public.data_visualizers
 
 
 --
--- TOC entry 3219 (class 2606 OID 16488)
+-- TOC entry 3238 (class 2606 OID 16488)
 -- Name: datasource_allocations datasource_allocations_datasource_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2252,7 +2388,7 @@ ALTER TABLE ONLY public.datasource_allocations
 
 
 --
--- TOC entry 3227 (class 2606 OID 16600)
+-- TOC entry 3246 (class 2606 OID 16600)
 -- Name: filter_history filter_history_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2261,7 +2397,7 @@ ALTER TABLE ONLY public.filter_history
 
 
 --
--- TOC entry 3226 (class 2606 OID 16584)
+-- TOC entry 3245 (class 2606 OID 16584)
 -- Name: filters filters_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2270,7 +2406,7 @@ ALTER TABLE ONLY public.filters
 
 
 --
--- TOC entry 3222 (class 2606 OID 16519)
+-- TOC entry 3241 (class 2606 OID 16519)
 -- Name: follows follows_followed_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2279,7 +2415,7 @@ ALTER TABLE ONLY public.follows
 
 
 --
--- TOC entry 3221 (class 2606 OID 16514)
+-- TOC entry 3240 (class 2606 OID 16514)
 -- Name: follows follows_follower_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2288,7 +2424,7 @@ ALTER TABLE ONLY public.follows
 
 
 --
--- TOC entry 3258 (class 2606 OID 16952)
+-- TOC entry 3277 (class 2606 OID 16952)
 -- Name: indata indata_data_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2297,7 +2433,7 @@ ALTER TABLE ONLY public.indata
 
 
 --
--- TOC entry 3257 (class 2606 OID 16947)
+-- TOC entry 3276 (class 2606 OID 16947)
 -- Name: indata indata_task_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2306,7 +2442,7 @@ ALTER TABLE ONLY public.indata
 
 
 --
--- TOC entry 3243 (class 2606 OID 16776)
+-- TOC entry 3262 (class 2606 OID 16776)
 -- Name: params params_service_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2315,7 +2451,7 @@ ALTER TABLE ONLY public.params
 
 
 --
--- TOC entry 3223 (class 2606 OID 16535)
+-- TOC entry 3242 (class 2606 OID 16535)
 -- Name: posts posts_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2324,7 +2460,7 @@ ALTER TABLE ONLY public.posts
 
 
 --
--- TOC entry 3244 (class 2606 OID 16792)
+-- TOC entry 3263 (class 2606 OID 16792)
 -- Name: returns returns_service_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2333,7 +2469,7 @@ ALTER TABLE ONLY public.returns
 
 
 --
--- TOC entry 3250 (class 2606 OID 16863)
+-- TOC entry 3269 (class 2606 OID 16863)
 -- Name: runnableargs runnableargs_runnable_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2342,7 +2478,7 @@ ALTER TABLE ONLY public.runnableargs
 
 
 --
--- TOC entry 3251 (class 2606 OID 16879)
+-- TOC entry 3270 (class 2606 OID 16879)
 -- Name: runnablereturns runnablereturns_runnable_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2351,7 +2487,7 @@ ALTER TABLE ONLY public.runnablereturns
 
 
 --
--- TOC entry 3248 (class 2606 OID 16831)
+-- TOC entry 3267 (class 2606 OID 16831)
 -- Name: runnables runnables_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2360,7 +2496,7 @@ ALTER TABLE ONLY public.runnables
 
 
 --
--- TOC entry 3247 (class 2606 OID 16826)
+-- TOC entry 3266 (class 2606 OID 16826)
 -- Name: runnables runnables_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2369,7 +2505,7 @@ ALTER TABLE ONLY public.runnables
 
 
 --
--- TOC entry 3245 (class 2606 OID 16805)
+-- TOC entry 3264 (class 2606 OID 16805)
 -- Name: serviceaccesses serviceaccesses_service_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2378,7 +2514,7 @@ ALTER TABLE ONLY public.serviceaccesses
 
 
 --
--- TOC entry 3246 (class 2606 OID 16810)
+-- TOC entry 3265 (class 2606 OID 16810)
 -- Name: serviceaccesses serviceaccesses_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2387,7 +2523,7 @@ ALTER TABLE ONLY public.serviceaccesses
 
 
 --
--- TOC entry 3225 (class 2606 OID 16568)
+-- TOC entry 3244 (class 2606 OID 16568)
 -- Name: services services_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2396,7 +2532,7 @@ ALTER TABLE ONLY public.services
 
 
 --
--- TOC entry 3256 (class 2606 OID 16934)
+-- TOC entry 3275 (class 2606 OID 16934)
 -- Name: taskdata taskdata_data_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2405,7 +2541,7 @@ ALTER TABLE ONLY public.taskdata
 
 
 --
--- TOC entry 3255 (class 2606 OID 16929)
+-- TOC entry 3274 (class 2606 OID 16929)
 -- Name: taskdata taskdata_task_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2414,7 +2550,7 @@ ALTER TABLE ONLY public.taskdata
 
 
 --
--- TOC entry 3254 (class 2606 OID 16916)
+-- TOC entry 3273 (class 2606 OID 16916)
 -- Name: tasklogs tasklogs_task_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2423,7 +2559,7 @@ ALTER TABLE ONLY public.tasklogs
 
 
 --
--- TOC entry 3252 (class 2606 OID 16895)
+-- TOC entry 3271 (class 2606 OID 16895)
 -- Name: tasks tasks_runnable_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2432,7 +2568,7 @@ ALTER TABLE ONLY public.tasks
 
 
 --
--- TOC entry 3253 (class 2606 OID 16900)
+-- TOC entry 3272 (class 2606 OID 16900)
 -- Name: tasks tasks_service_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2441,7 +2577,7 @@ ALTER TABLE ONLY public.tasks
 
 
 --
--- TOC entry 3218 (class 2606 OID 16470)
+-- TOC entry 3237 (class 2606 OID 16470)
 -- Name: users users_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2450,7 +2586,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3249 (class 2606 OID 16847)
+-- TOC entry 3268 (class 2606 OID 16847)
 -- Name: workflow_annotations workflow_annotations_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2459,7 +2595,7 @@ ALTER TABLE ONLY public.workflow_annotations
 
 
 --
--- TOC entry 3240 (class 2606 OID 16728)
+-- TOC entry 3259 (class 2606 OID 16728)
 -- Name: workflowaccesses workflowaccesses_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2468,7 +2604,7 @@ ALTER TABLE ONLY public.workflowaccesses
 
 
 --
--- TOC entry 3239 (class 2606 OID 16723)
+-- TOC entry 3258 (class 2606 OID 16723)
 -- Name: workflowaccesses workflowaccesses_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2477,7 +2613,7 @@ ALTER TABLE ONLY public.workflowaccesses
 
 
 --
--- TOC entry 3241 (class 2606 OID 16744)
+-- TOC entry 3260 (class 2606 OID 16744)
 -- Name: workflowparams workflowparams_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2486,7 +2622,7 @@ ALTER TABLE ONLY public.workflowparams
 
 
 --
--- TOC entry 3242 (class 2606 OID 16760)
+-- TOC entry 3261 (class 2606 OID 16760)
 -- Name: workflowreturns workflowreturns_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2495,7 +2631,7 @@ ALTER TABLE ONLY public.workflowreturns
 
 
 --
--- TOC entry 3224 (class 2606 OID 16552)
+-- TOC entry 3243 (class 2606 OID 16552)
 -- Name: workflows workflows_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
 --
 
@@ -2644,3 +2780,9 @@ SELECT pg_catalog.setval('public.users_id_seq', 13, true);
 --
 -- PostgreSQL database dump complete
 --
+
+
+--
+-- PostgreSQL database dump complete
+--
+

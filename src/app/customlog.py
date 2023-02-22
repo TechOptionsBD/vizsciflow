@@ -8,7 +8,7 @@ def configure_logger(logfile):
         os.makedirs(os.path.dirname(logfile), exist_ok=True)
         open(logfile, 'w').close()
 
-    log_format = '%(asctime)s [%(levelname)s] %(message)s'
+    log_format = '%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s'
     logging.basicConfig(format=log_format, level=logging.INFO, filename=logfile)
 
     file_handler = RotatingFileHandler(logfile, maxBytes=1024 * 1024 * 100, backupCount=20)

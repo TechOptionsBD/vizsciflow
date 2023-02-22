@@ -3,8 +3,10 @@ import hashlib
 import os
 import io
 import json
+import copy
 import bleach
 import logging
+
 from flask import current_app, request, url_for
 from flask_login import UserMixin
 
@@ -738,12 +740,13 @@ class Workflow(db.Model):
     @staticmethod
     def create(**kwargs):
         try:
-            access = int(kwargs.get('access', 0))
-            users = kwargs.get('users', None)
-            paramargs = kwargs.get('params', [])
-            returnsargs = kwargs.get('returns', [])
+            copy_kwargs = copy.copy(kwargs)
+            access = int(copy_kwargs.pop('access', 0))
+            users = copy_kwargs.pop('users', None)
+            paramargs = copy_kwargs.pop('params', [])
+            returnsargs = copy_kwargs.pop('returns', [])
 
-            wf = Workflow(**kwargs)
+            wf = Workflow(**copy_kwargs)
             wf.public = (access == AccessType.PUBLIC)
             if users and access == AccessType.SHARED:
                 wf.update_accesses(access, users)

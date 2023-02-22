@@ -38,40 +38,44 @@ from app.system.exechelper import run_script
 basedir = os.path.dirname(os.path.abspath(__file__))
 
 def update_workflow(user_id, workflow_id, script, params, returns):
-    if workflow_id:
-        workflow = workflowmanager.first(id=workflow_id)
-        kwargs = {}
-        if script is not None:
-            kwargs['script'] = script
-        if params is not None:
-            kwargs['params'] = params
-        if returns is not None:
-            kwargs['returns'] = returns
+    try:
+        if workflow_id:
+            workflow = workflowmanager.first(id=workflow_id)
+            kwargs = {}
+            if script is not None:
+                kwargs['script'] = script
+            if params is not None:
+                kwargs['params'] = params
+            if returns is not None:
+                kwargs['returns'] = returns
 
-        if workflow.isEqual(**kwargs):
-            return workflow
-        
-        writeaccess = workflow.temp
-        
-        if not writeaccess:
-            if workflow.public:
-                writeaccess = user_id == workflow.user_id
-                if not writeaccess:
-                    permissions = workflow.user.role.permissions if workflow.user and workflow.user.role else Permission.NOTSET
-                    writeaccess = permissions & Permission.ADMINISTER or permissions & Permission.MODERATE_WORKFLOWS
+            if workflow.isEqual(**kwargs):
+                return workflow
+            
+            writeaccess = workflow.temp
+            
             if not writeaccess:
-                accesses = workflow.accesses#.query.filter(user_id = WorkflowAccess.user_id)
-                for access in accesses:
-                    if access.user_id == user_id and access.rights == AccessRights.Write or access.rights == AccessRights.Owner:
-                        writeaccess = True
-        
-        if writeaccess:
-            workflow.update_script(script)
+                if workflow.public:
+                    writeaccess = user_id == workflow.user_id
+                    if not writeaccess:
+                        permissions = workflow.user.role.permissions if workflow.user and workflow.user.role else Permission.NOTSET
+                        writeaccess = permissions & Permission.ADMINISTER or permissions & Permission.MODERATE_WORKFLOWS
+                if not writeaccess:
+                    accesses = workflow.accesses#.query.filter(user_id = WorkflowAccess.user_id)
+                    for access in accesses:
+                        if access.user_id == user_id and access.rights == AccessRights.Write or access.rights == AccessRights.Owner:
+                            writeaccess = True
+            
+            if writeaccess:
+                workflow.update_script(script)
+            else:
+                workflow = Samples.create_workflow(user_id, 0, workflow.name, workflow.desc, script, params, returns, AccessType.PRIVATE, '', True, workflow.id)
         else:
-            workflow = Samples.create_workflow(user_id, 0, workflow.name, workflow.desc, script, params, returns, AccessType.PRIVATE, '', True, workflow.id)
-    else:
-        workflow = Samples.create_workflow(user_id, 0, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
-    return workflow
+            workflow = Samples.create_workflow(user_id, 0, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
+        return workflow
+    except Exception as e:
+        logging.error(f"Error in updating/creating workflow: {str(e)}")
+        raise
 
 def run_biowl_internal(workflow_id, user_id, script, args, provenance = False):
     from ..jobs import run_script

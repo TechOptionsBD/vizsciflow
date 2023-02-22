@@ -13,7 +13,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 
 from config import config
-
+from . import customlog
 ##----2. Importing Global variables from the enviornment file.----
 basedir = os.path.dirname(os.path.abspath(__file__))
 

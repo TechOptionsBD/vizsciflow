@@ -13,7 +13,8 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 
 from config import config
-from . import customlog
+from .customlog import configure_logger
+
 ##----2. Importing Global variables from the enviornment file.----
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,6 +42,8 @@ def create_app(config_name):
     envfile = os.path.join(os.path.dirname(basedir), '../.env') # now load the secret and system specific settings
     app.config.from_pyfile(envfile, silent=True)
     config[config_name].init_app(app)
+
+    configure_logger(app.config['LOGFILE'])
 
     celery.conf.broker_url = app.config["CELERY_BROKER_URL"]
     celery.conf.result_backend = app.config["CELERY_RESULT_BACKEND"]

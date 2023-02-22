@@ -140,7 +140,7 @@ def build_graph(workflow_id):
         from ..jobs import generate_graph_from_workflow
         return json.dumps(generate_graph_from_workflow(workflow_id))
     except Exception as e:
-        current_app.logger.error(str(e))
+        logging.error(str(e))
         return make_response(jsonify(err=str(e)), 500)
 
 def make_fn(path, prefix, ext, suffix):
@@ -242,7 +242,7 @@ def provenance():
             return PluginManager.instance().get_json_info()
     
     except Exception as e:
-        current_app.logger.error(str(e))
+        logging.error(str(e))
         return make_response(jsonify(err=str(e)), 500)
     
 def share_service(share_service):
@@ -339,7 +339,7 @@ def check_service_function(request):
                 tree = ast.parse(request.args.get('script'))
                 funcDefs = [x.name for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]
                 if not any(s.lower() == internal for s in funcDefs):
-                    return json.dumps({'error': "{0} internal name is not found in the code. Check your code in Python Adapter tab.".format(internal)})
+                    return json.dumps({'error': f"{internal} internal name is not found in the code. Check your code in Python Adapter tab."})
         except json.decoder.JSONDecodeError as e:
             return json.dumps({'error': str(e)})
         except Exception as e:
@@ -570,7 +570,7 @@ def functions():
                 return send_from_directory(os.path.dirname(fullpath), os.path.basename(fullpath), mimetype=mime, as_attachment = mime is None)
 
     except Exception as e:
-        current_app.logger.error(str(e))
+        logging.error(str(e))
         return jsonify(err=str(e))
 
 
@@ -710,7 +710,7 @@ def runnables():
     #     return jsonify(runnables = rs)
         return get_user_status(current_user.id)
     except Exception as e:
-        current_app.logger.error("Unhandled Exception at executables: {0}".format(e))
+        logging.error(f"Unhandled Exception at executables: {str(e)}")
         return make_response(jsonify(err=str(e)), 500)
 
 def get_functions(access):

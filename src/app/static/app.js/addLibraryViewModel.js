@@ -101,6 +101,23 @@ function AddLibraryViewModel(userName) {
             });
     }
 
+    Dropzone.options.myDropzone = {
+        paramName: "file",
+        chunking: true,
+        forceChunking: true,
+        chunkSize: 1000000, // 1 MB
+        maxFilesize: 5000, // 5 GB
+        timeout: 180000, // 3 minutes
+        init: function() {
+            this.on("success", function(file, response) {
+                // Handle successful upload
+            });
+            this.on("error", function(file, message) {
+                // Handle upload error
+            });
+        }
+    };
+
     self.toggleFuncArea = function () {  
         if (!self.isFuncExpanded()) {
             self.isFuncExpanded(true);

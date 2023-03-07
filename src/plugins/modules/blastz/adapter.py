@@ -17,6 +17,9 @@ def demo_service(context, *args, **kwargs):
     # find databse ID of input data
     ids = re.findall(r'\d+', Path(query).stem + Path(db).stem)
 
+    if not ids:
+        raise ValueError("Invalid input files.")
+    
     # run BLASTZ and write result to output file
     output = path.join(context.createoutdir(), "{0}_{1}.CDS-CDS.{2}".format(ids[0], ids[1], 'lastz'))
     cmdargs = ["-A 44 -i", query, "-d", db, "-o", output, '--path='+lastz]

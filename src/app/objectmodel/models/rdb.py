@@ -27,7 +27,7 @@ from app.exceptions import ValidationError
 from app import db
 from dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
-from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access, ActivityType
+from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access, ActivityType, isiterable
 from .loader import Loader
 
 from collections import namedtuple
@@ -1664,7 +1664,10 @@ class Task(db.Model):
             dataitem = Data.query.get(output.data_id)
             datavalue = dataitem.value["value"]
             if int(dataitem.value["type"]) == DataType.FileList or int(dataitem.value["type"]) == DataType.FolderList:
-                datavalue = datavalue.strip('][').split(', ')
+                if isinstance(datavalue, str):
+                    datavalue = datavalue.strip('][').split(', ')
+                elif isiterable(datavalue):
+                    datavalue = list(datavalue)
             data.append({ "id": dataitem.id, "datatype": dataitem.value["type"], "data": datavalue})
             
         log = {
@@ -2505,3 +2508,51 @@ class InData(db.Model):
     @property
     def type(self):
        return self.value.type 
+
+class DataChunk(db.Model):
+    __tablename__ = 'data_chunks'
+    id = db.Column(db.Integer, primary_key=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey('datasets.id'))
+    file_uuid = db.Column(db.Text)
+    path = db.Column(db.Text)
+    chunk = db.Column(db.Integer)
+    total_chunk = db.Column(db.Integer)
+    uploaded_size = db.Column(db.Text)
+    total_size = db.Column(db.Text)
+
+    @staticmethod
+    def add(file_uuid, path, chunk, total_chunk, uploaded_size, total_size):
+        try:
+            if chunk == 0:
+                data_chunk = DataChunk()
+                data_chunk.file_uuid = file_uuid
+                data_chunk.path = path
+                data_chunk.chunk = chunk
+                data_chunk.total_chunk = total_chunk
+                data_chunk.path = path
+                data_chunk.uploaded_size = str(uploaded_size)
+                data_chunk.total_size = str(total_size)
+
+                db.session.add(data_chunk)
+                db.session.commit()
+                return data_chunk
+            else:
+                data_chunk = DataChunk.query.filter(
+                    and_(DataChunk.group_member_id == group_member_id, DataChunk.dataset_id == dataset_id, DataChunk.path == path)).first()
+                if data_chunk:
+                    DataChunk.query.filter_by(id=data_chunk.id).update(dict(chunk=chunk, uploaded_size=uploaded_size))
+                    db.session.commit()
+                    return data_chunk
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    @staticmethod
+    def delete(path):
+        try:
+            data_chunk = DataChunk.query.filter(DataChunk.path == path).first()
+            DataChunk.query.filter_by(id=data_chunk.id).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise

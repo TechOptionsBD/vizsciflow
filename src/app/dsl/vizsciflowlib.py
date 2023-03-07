@@ -5,7 +5,6 @@ from timeit import time
 
 from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
-from dsl.fileop import FolderItem
 from dsl.filemgr import FileManager
 
 from app.managers.runmgr import runnablemanager
@@ -207,14 +206,14 @@ class Library(LibraryBase):
 
     @staticmethod
     def check_file(result, task):
-        fs = Utility.fs_by_prefix_or_guess(result)
-        if not fs or not fs.isfile(result):
+        fs = Utility.fs_by_prefix_or_guess(str(result))
+        if not fs or not fs.isfile(str(result)):
             task.add_log(log="Tool definition indicates file, tool generates no file.", logtype=LogType.WARNING)
 
     @staticmethod
     def check_folder(result, task):
-        fs = Utility.fs_by_prefix_or_guess(result)
-        if not fs or not fs.isfolder(result):
+        fs = Utility.fs_by_prefix_or_guess(str(result))
+        if not fs or not fs.isfolder(str(result)):
             task.add_log(log="Tool definition indicates folder, but tool generates no folder.", logtype=LogType.WARNING)
 
     @staticmethod
@@ -227,7 +226,7 @@ class Library(LibraryBase):
         if 'file[]' in datatype or 'folder[]' in datatype:
             t = DataType.FileList if 'file[]' in datatype else DataType.FolderList
             result = Library.denormalize(context, datatype, result)
-            fsitems = [FolderItem(it) for it in result] if isiterable(result) else [FolderItem(result)]
+            fsitems = list(result) if isiterable(result) else [result]
             if task:
                 if 'file[]' in datatype:
                     for file in fsitems:
@@ -246,7 +245,7 @@ class Library(LibraryBase):
                     Library.check_folder(result, task)
 
             result = Library.denormalize(context, datatype, result)
-            return DataType.File if 'file' in datatype else DataType.Folder, result if isinstance(result, FolderItem) else FolderItem(result), name, result
+            return DataType.File if 'file' in datatype else DataType.Folder, result, name, result
         elif 'any' in datatype:
             return DataType.Unknown, result, name, result
         elif datatype in known_types.keys():

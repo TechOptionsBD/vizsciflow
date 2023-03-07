@@ -97,6 +97,10 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='biowl-span-rules.css')}}">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/basic.min.css"/>
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.js"></script>
 {% endblock %}
 {% block page_content %}
 
@@ -1108,16 +1112,31 @@
 		</div>
 		<div class="modal-body">
 			<form role="form">
-				<div class="form-group service-form-group" style="display: flex;justify-content: start;">
+				<div class="form-group service-form-group dropzone" style="display: flex;justify-content: start;">
 					<label for="module">Package (.zip/.tar)</label>
-					<input type="file" class="form-control-file d-inline" id="packagemodule" style="padding-left: 19px;padding-right: 500px;">
+					<div class="fallback">
+						<input type="file" class="form-control-file d-inline" id="packagemodule" style="padding-left: 19px;padding-right: 500px;">
+					</div>
 					<input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
 					<label class="form-check-label" for="inlineCheckbox1" style="padding-left: 13px;">Update own tool</label>
 				</div>
+				
 			</form>
 			</div>
-			
-			<br> <br>
+
+				<script>
+					Dropzone.options.dropper = {
+						paramName: 'file',
+						chunking: true,
+						forceChunking: true,
+						url: '/functions',
+						maxFilesize: 1025, 
+						chunkSize: 1000000 
+					}
+				</script>
+
+			<br> 
+			<br>
 			<div class="modal-footer">
 				<span class="span-sm-10" style = "color: red; margin-left: 4px; text-align: left;" id="add-package-info"></span>
 				<button data-bind="click: addPackage" class="btn btn-primary" id="packageuploadbutton">Add</button>

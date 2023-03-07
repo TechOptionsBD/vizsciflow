@@ -374,6 +374,56 @@ def download_service(service_id):
     mime = mimetypes.guess_type(temppath)[0]
     return send_from_directory(os.path.dirname(temppath), os.path.basename(temppath), mimetype=mime, as_attachment = mime is None)
 
+@staticmethod 
+def upload_data_file(user_id, request, fullpath): 
+    files = request.files
+    is_exist = False 
+    existed_file = "" 
+    for _, each_file in files.items(): 
+        each_filename = each_file.filename 
+        if os.path.exists(os.path.join(fullpath, each_filename)): 
+            existed_file = "'" + each_filename + "'" if existed_file == "" else existed_file + ", " + "'" + each_filename + "'" 
+            is_exist = True
+    if is_exist: 
+        return {"error_msg": "File already exists", 'error_message': 400}
+
+    all_data=[] 
+    for _, eachFile in files.items(): # Uploading each file in the data directory 
+        saved_path, file_path = fs.save_upload(eachFile, fullpath) 
+        each_data = data.to_json_allocation(fullpath, mime) 
+        all_data.append(each_data) 
+    return all_data
+
+def upload_data(request, fullpath, is_large_file_upload=False): 
+    link_error = False
+    try: # Adding data files in the dataset 
+        if request.form.get('folder_url'): 
+            sub_path = request.form['folder_url'] 
+            fullpath = os.path.join(fullpath, sub_path)
+        if request.form.get('full_path'): 
+            file_path = request.form['full_path'] 
+            file_dir, file_name = os.path.split(file_path) 
+            fullpath = os.path.join(fullpath, file_dir)
+            all_data = [] 
+            if is_large_file_upload and 'dzuuid' in request.form: 
+                all_data = upload_chunk_data(request, fullpath) 
+            else: 
+                all_data = upload_data_file(request, fullpath)
+
+            return all_data
+    except Exception as e: 
+        raise
+        
+def upload_chunk_data(request): 
+    file = request.files['file'] 
+    file_uuid = request.form['dzuuid'] 
+    current_chunk = int(request.form['dzchunkindex']) 
+    total_chunks = int(request.form['dztotalchunkcount']) 
+    offset = int(request.form['dzchunkbyteoffset']) 
+    total_size_file = int(request.form['dztotalfilesize'])
+    
+    datamanager.upload_chunk_data()
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():

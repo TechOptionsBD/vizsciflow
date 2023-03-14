@@ -23,8 +23,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.css" integrity="sha512-/zs32ZEJh+/EO2N1b0PEdoA10JkdC3zJ8L5FTiQu82LR9S/rOQNfQN7U59U9BC12swNeRAz3HSzIL2vpp4fv3w==" crossorigin="anonymous" />
 <link rel="stylesheet" href="/static/library/scidatamanager/styles/style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.css"/>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/basic.min.css"/>
 
 <script src="https://cdn.anychart.com/releases/8.9.0/js/anychart-base.min.js"></script>
 <script src="https://cdn.anychart.com/releases/8.9.0/js/anychart-heatmap.min.js"></script>
@@ -65,7 +63,6 @@
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/ko.observableDictionary.js') }}"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.js"></script>
 <!-- <script src="/static/library/Chart.HeatMap.S.min.js"></script> -->
 <!-- <script src="https://cdn.anychart.com/releases/8.9.0/js/anychart-base.min.js" type="text/javascript"></script> -->
 
@@ -1111,7 +1108,7 @@
 		</div>
 		<div class="modal-body">
 			<form role="form">
-				<div class="form-group service-form-group dropzone" style="display: flex;justify-content: start;">
+				<div class="form-group service-form-group" style="display: flex;justify-content: start;">
 					<label for="module">Package (.zip/.tar)</label>
 					<div class="fallback">
 						<input type="file" class="form-control-file d-inline" id="packagemodule" style="padding-left: 19px;padding-right: 500px;">
@@ -3318,14 +3315,6 @@ function typeInTextarea(el, newText) {
 		}
 	}
 
-	// Dropzone.options.dropper = {
-	// 	paramName: 'file',
-	// 	chunking: true,
-	// 	forceChunking: true,
-	// 	url: '/functions',
-	// 	maxFilesize: 1025, 
-	// 	chunkSize: 1000000 
-	// }
     $(window).on('unload', function() {
         if (refreshId != 0)
             clearInterval(refreshId);

@@ -428,11 +428,43 @@ def upload_chunk_data(request):
     
     datamanager.upload_chunk_data()
 
+def create_lib_dir(activity, uploadedlib):
+    from app import app
+
+    activity.add_log(log="Creating folder for new tool...")
+
+    user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
+    libdir = unique_filename(user_package_dir, 'mylib', '')
+    if not os.path.exists(libdir):
+        os.makedirs(libdir)
+
+    if uploadedlib:
+        activity.add_log(log="Extracting tool package in tools directory...", type=LogType.INFO)
+
+        filename = secure_filename(uploadedlib.filename)
+        tempdir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+        temppath = os.path.join(tempdir, filename)
+        os.makedirs(tempdir)
+        uploadedlib.save(temppath)
+    
+        if zipfile.is_zipfile(temppath):
+            with zipfile.ZipFile(temppath,"r") as zip_ref:
+                zip_ref.extractall(libdir)
+        elif tarfile.is_tarfile(temppath):
+            with tarfile.open(temppath,"r") as tar_ref:
+                tar_ref.extractall(libdir)
+        else:
+            shutil.copyfile(temppath, os.path.join(libdir, filename))
+            # activity.add_log(log="Only .zip or .tar is allowed as a tool package.", type=LogType.ERROR)
+            # raise ValueError("Only .zip or .tar is allowed as a tool package.")
+        
+        activity.add_log(log="Deleting tool .zip or .tar from temp directory...")
+        os.remove(temppath)
+    return libdir
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
-    from app import app
-
     try:
         if request.method == "GET":
             if 'datatypes' in request.args:
@@ -492,37 +524,13 @@ def functions():
                     activity.add_log(log="Installing tool(s) from tool package...", type=LogType.INFO)
                     activity.add_log(log="Saving tool package to temp directory...", type=LogType.INFO)
                     
-                    filename = secure_filename(request.files['package'].filename)
-                    tempdir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-                    temppath = os.path.join(tempdir, filename)
-                    os.makedirs(tempdir)
-                    request.files['package'].save(temppath)
-                    
-                    activity.add_log(log="Extracting tool package in tools directory...", type=LogType.INFO)
-                    
-                    user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
-                    tempdir = unique_filename(user_package_dir, Path(filename).stem, '')
-                    if not os.path.exists(tempdir):
-                        os.makedirs(tempdir)
-
-                    if zipfile.is_zipfile(temppath):
-                        with zipfile.ZipFile(temppath,"r") as zip_ref:
-                            zip_ref.extractall(tempdir)
-                    elif tarfile.is_tarfile(temppath):
-                        with tarfile.open(temppath,"r") as tar_ref:
-                            tar_ref.extractall(tempdir)
-                    else:
-                        activity.add_log(log="Only .zip or .tar is allowed as a tool package.", type=LogType.ERROR)
-                        raise ValueError("Only .zip or .tar is allowed as a tool package.")
-
-                    activity.add_log(log="Deleting tool .zip or .tar from temp directory...")
-                    os.remove(temppath)
+                    libdir = create_lib_dir(activity, request.files['package'])
 
                     # check if update can be made
                     activity.add_log(log="Checking if tool already exists and we are allowed to update...")
                     update = request.form.get("update") and int(request.form.get("update")) == 1
                     from app.objectmodel.models.loader import Loader
-                    funcs = Loader.load_funcs_recursive_flat(tempdir, True)
+                    funcs = Loader.load_funcs_recursive_flat(libdir, True)
                     for func in funcs:
                         module = modulemanager.get_by_value_key(package = func["package"], name = func["name"]).first()
                         if module:
@@ -532,7 +540,7 @@ def functions():
                         else:
                             activity.add_log(log=f"The {func['package']}{'.' if func['package'] else ''}{func['name']} does not exists. It will be created.")
                     
-                    modules = modulemanager.insert_modules(activity, tempdir, current_user.id, True, True)
+                    modules = modulemanager.insert_modules(activity, libdir, current_user.id, True, True)
                     if not modules:
                         raise ValueError("No module added.")
                     
@@ -550,29 +558,21 @@ def functions():
                     activity = activitymanager.create(current_user.id, ActivityType.ADDTOOL)
                     activity.add_log(log="Adding tool from Web UI...")
 
-                    activity.add_log(log="Creating folder for new tool...")
-                    # Check if the file is one of the allowed types/extensions
-                    user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
-                    if not os.path.isdir(user_package_dir):
-                        os.makedirs(user_package_dir)
-                    
-                    path = unique_filename(user_package_dir, 'mylib', '')
-                    if not os.path.isdir(path):
-                        os.makedirs(path)
+                    libdir = create_lib_dir(activity, request.files['library'] if 'library' in request.files else None)
 
                     activity.add_log(log="Saving the adapter code...")
                     if request.form.get('script'):
-                        filename = os.path.join(path, 'adapter.py')
+                        filename = os.path.join(libdir, 'adapter.py')
                         with open(filename, 'a+') as script:
                             script.write(request.form.get('script'))
 
                     mapper = json.loads(request.form.get('mapper'))
 
-                    if 'reqfile' in mapper and mapper['reqfile'] and len(request.files) > 0 and 'reqfile' in request.files and request.files['reqfile']:
-                        mapper['reqfile'] = get_pip_req_activity(activity, path, request.files['reqfile'])
-                    
-                    if 'reqfile' in mapper and not mapper['reqfile']:
-                        del mapper['reqfile']
+                    if 'reqfile' in mapper:
+                        if mapper['reqfile'] and len(request.files) > 0 and 'reqfile' in request.files and request.files['reqfile']:
+                            mapper['reqfile'] = get_pip_req_activity(activity, libdir, request.files['reqfile'])
+                        else:
+                            del mapper['reqfile']
 
 #                access = 1 if request.form.get('access') and request.form.get('access').lower() == 'true'  else 2
                     if request.form.get('publicaccess') and request.form.get('publicaccess').lower() == 'true':
@@ -587,19 +587,21 @@ def functions():
                             mapper["sharedusers"] = []
 
                     activity.add_log(log="Adding module definition to database...")
-                    base = os.path.join(path, 'funcdefs.json')
+                    base = os.path.join(libdir, 'funcdefs.json')
                     if not os.path.exists(base):
                         with open(base, 'w') as mapperfile:
                             mapperfile.write(json.dumps(mapper, indent=2))
 
                     # create an empty __init__.py to make the directory a module                
-                    initpath = os.path.join(path, "__init__.py")
+                    initpath = os.path.join(libdir, "__init__.py")
                     if not os.path.exists(initpath):
                         with open(initpath, 'a'):
                             pass
 
-                    modules = modulemanager.insert_modules(activity, path, current_user.id, True, True)
-
+                    modules = modulemanager.insert_modules(activity, libdir, current_user.id, True, True)
+                    if not modules:
+                        raise ValueError("No module added.")
+                    
                     # correct funcdefs.json file
                     with open(base, 'w') as mapperfile:
                         mapperfile.write(json.dumps(modules[0].value, indent=2))

@@ -25,6 +25,7 @@ class ModuleManager():
         from app.objectmodel.common import pip_activity, pip_req_activity, LogType
         modules = []
         for func in funclist:
+            pkgfuncname = f"{func['package']}{'.' if func['package'] else ''}{func['name']}"
             try:
                 if install_pypi and "pipenv" in func and func["pipenv"]:
                     if "pippkgs" in func and func["pippkgs"]:
@@ -40,16 +41,16 @@ class ModuleManager():
                 
                 module = self.persistance.add(user_id, value = dict(func), access=func['access'], users=func['sharedusers'])
                 if module:
-                    activity.add_log(log=f"Tool add successful.")
+                    activity.add_log(log=f"Integration of {pkgfuncname} tool is successful.")
                     modules.append(module)
                 else:
-                    activity.add_log(log=f"Tool add not successful.", type=LogType.ERROR)
+                    activity.add_log(log=f"Integration of {pkgfuncname} tool is not successful.")
             except Exception as e:
-                msg = f"Error in inserting module {func['package']}{'.' if func['package'] else ''}{func['name']}: {str(e)}"
+                msg = f"Error in integrating module {pkgfuncname}: {str(e)}"
                 logging.error(msg)
                 activity.add_log(log=msg, type=LogType.ERROR)
 
-            return modules
+        return modules
 
     def get_module_by_name_package_for_user_access(self, user_id, name, package = None):
         return self.persistance.get_module_by_name_package_for_user_access(user_id, name, package)

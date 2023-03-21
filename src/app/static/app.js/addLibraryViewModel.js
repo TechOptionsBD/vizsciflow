@@ -62,7 +62,7 @@ function AddLibraryViewModel(userName) {
             showXHRText(jqXHR);
         });
     }
-    //ko.observableArray(['python2', 'python3']);
+    self.loaddatatypes();
 
     self.getLibrary = function(){
         $("#add-library-info").text("");
@@ -70,11 +70,10 @@ function AddLibraryViewModel(userName) {
             $("#module").val("");
             self.NewVenvName("");
 
-            self.getCodeEditor().setValue(demoservice.demoservice.script, 1);
-            self.editService(demoservice.demoservice.mapper)
             self.getUsers();
             self.loadpipenvs();
-            self.loaddatatypes();
+            self.getCodeEditor().setValue(demoservice.demoservice.script, 1);
+            self.editService(demoservice.demoservice.mapper)
             
             if (demoservice.demoservice.mapper && 'access' in demoservice.demoservice.mapper) {
                 self.access = demoservice.demoservice.mapper['access'] == 'True'

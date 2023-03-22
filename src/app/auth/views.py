@@ -1,3 +1,4 @@
+import os
 import logging
 
 from flask import render_template, redirect, request, url_for, flash
@@ -120,8 +121,8 @@ def allocate_storage(user):
                 # if ds.public:
                 #     datamanager.add_allocation(user.id, ds.id, 'Libraries/' + ds.public if ds.type == 'gfs' else ds.public, AccessRights.Read)
         except Exception as e:
-            logging.error('Storage allocation on {0} has failed: {1}'.format(ds.name, str(e)))
-            flash('Storage allocation on {0} has failed.'.format(ds.name))
+            logging.error(f'Storage allocation on {ds.name} has failed: {str(e)}')
+            flash(f'Storage allocation on {ds.name} has failed.')
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():

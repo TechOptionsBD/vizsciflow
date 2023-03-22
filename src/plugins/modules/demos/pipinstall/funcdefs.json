@@ -1,0 +1,23 @@
+{
+    "package":"demo",
+    "name":"ChartTest",
+    "pippkgs":"matplotlib",
+    "params":[
+       {
+          "name":"data",
+          "type":"int[]",
+          "desc":"The X-axis values."
+       },
+       {
+          "name":"data2",
+          "type":"int[]",
+          "desc":"The Y-axis values."
+       }
+    ],
+    "returns":[
+       {
+          "name":"data",
+          "type":"file"
+       }
+    ]
+ }

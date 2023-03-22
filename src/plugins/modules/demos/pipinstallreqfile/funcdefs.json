@@ -1,0 +1,22 @@
+{
+    "package":"demo",
+    "name":"ChartTest2",
+    "params":[
+       {
+          "name":"data",
+          "type":"int[]",
+          "desc":"The X-axis values."
+       },
+       {
+          "name":"data2",
+          "type":"int[]",
+          "desc":"The Y-axis values."
+       }
+    ],
+    "returns":[
+       {
+          "name":"data",
+          "type":"file"
+       }
+    ]
+ }

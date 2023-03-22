@@ -1,8 +1,8 @@
-def demo_sum(numbers):
-    sum = 0
+def sum(numbers):
+    result = 0
     for i in range(len(numbers)):
-        sum = sum + numbers[i]
-    return sum
+        result = result + numbers[i]
+    return result
 
 if __name__ == "__main__":
     import argparse
@@ -11,7 +11,7 @@ if __name__ == "__main__":
         parser = argparse.ArgumentParser()
         parser.add_argument('numbers', nargs='+', type=int)
         args = parser.parse_args()
-        sum = demo_sum(args.numbers)
+        sum = sum(args.numbers)
         sys.stdout.write(str(sum))
         sys.stdout.flush()
     except Exception as e:

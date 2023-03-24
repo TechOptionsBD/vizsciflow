@@ -29,7 +29,7 @@ function AddLibraryViewModel(userName) {
         ajaxcalls.simple(self.tasksURI, 'GET', { 'newpyvenvs':  self.NewVenvName()}).done(function (data) {
             if (!data['err']){
                 self.NewVenvName('');
-                self.loadpipenvs();
+                self.loadpipvenvs();
             }
             else {
                 $("#add-library-info").text("Error on creating virtual env: " + data['err']);
@@ -39,7 +39,7 @@ function AddLibraryViewModel(userName) {
             showXHRText(jqXHR);
         });
     }
-    self.loadpipenvs = function(){
+    self.loadpipvenvs = function(){
         self.pippkgsList.removeAll();
         ajaxcalls.simple(self.tasksURI, 'GET', { 'pyenvs': '' }).done(function (data) {
             
@@ -71,7 +71,7 @@ function AddLibraryViewModel(userName) {
             self.NewVenvName("");
 
             self.getUsers();
-            self.loadpipenvs();
+            self.loadpipvenvs();
             self.getCodeEditor().setValue(demoservice.demoservice.script, 1);
             self.editService(demoservice.demoservice.mapper)
             

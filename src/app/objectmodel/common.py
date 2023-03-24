@@ -202,8 +202,8 @@ def strip_quote(data):
         data = data[1:-1]
     return data
 
-def pip_install(pipenv, package):
-    if not pipenv:
+def pip_install(pipvenv, package):
+    if not pipvenv:
         import subprocess
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
         return "", ""
@@ -212,13 +212,13 @@ def pip_install(pipenv, package):
         from app.system.exechelper import run_script
 
         python_venvs = get_python_venvs(current_user.id)
-        if not pipenv in python_venvs:
+        if not pipvenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
-        return run_script(os.path.join(thispath, "pipinstall.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), package)
+        return run_script(os.path.join(thispath, "pipinstall.sh"), os.path.join(python_venvs[pipvenv], 'bin/activate'), package)
 
-def pipinstall_req_file(pipenv, reqfile):
-    if not pipenv:
+def pipinstall_req_file(pipvenv, reqfile):
+    if not pipvenv:
         import subprocess
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", reqfile])
         return "", ""
@@ -227,10 +227,10 @@ def pipinstall_req_file(pipenv, reqfile):
         from app.system.exechelper import run_script
 
         python_venvs = get_python_venvs(current_user.id)
-        if not pipenv in python_venvs:
+        if not pipvenv in python_venvs:
             raise ValueError("Python virtual environment {pipvenv} does not exist.")
         
-        return run_script(os.path.join(thispath, "pipinstallreq.sh"), os.path.join(python_venvs[pipenv], 'bin/activate'), reqfile)
+        return run_script(os.path.join(thispath, "pipinstallreq.sh"), os.path.join(python_venvs[pipvenv], 'bin/activate'), reqfile)
 
 def get_pyvenvs(user_id):
     pyvenvs = []
@@ -249,14 +249,14 @@ def new_pyvenvs(venvname, user_id):
     run_script(os.path.join(thispath, "newvenv.sh"), path)
     return json.dumps("")
 
-def pip_install_in_venv(pipenv, pippkgs):
+def pip_install_in_venv(pipvenv, pippkgs):
     outs = []
     errs = []
     pippkgsdb = ''
     pippkgs = pippkgs.split(",")
     for pkg in pippkgs:
         try:
-            out,err = pip_install(pipenv, pkg)
+            out,err = pip_install(pipvenv, pkg)
             if out:
                 outs.append(out)
             if errs:
@@ -274,11 +274,11 @@ def str_or_empty(value):
     except:
         return ''
 
-def pip_activity(activity, pipenv, pippkgs):
+def pip_activity(activity, pipvenv, pippkgs):
     try:
         activity.add_log(log="Installing pip packages...")
 
-        _,outs, errs = pip_install_in_venv(pipenv, pippkgs)
+        _,outs, errs = pip_install_in_venv(pipvenv, pippkgs)
         for out in outs:
             activity.add_log(log=out)
 
@@ -291,11 +291,11 @@ def pip_activity(activity, pipenv, pippkgs):
     finally:
         activity.add_log(log="pip installation ended.")
 
-def pip_req_activity(activity, pipenv, temppath):
+def pip_req_activity(activity, pipvenv, temppath):
     try:
         activity.add_log(log="pip installation from requirements file ...")
 
-        out, err = pipinstall_req_file(pipenv, temppath)
+        out, err = pipinstall_req_file(pipvenv, temppath)
         if out:
             activity.add_log(log=out)
         if err:

@@ -1,6 +1,5 @@
-import ast
+import os
 import logging
-
 from app.managers.mgrutil import ManagerUtility
 from app.objectmodel.models.loader import Loader
 
@@ -27,17 +26,19 @@ class ModuleManager():
         for func in funclist:
             pkgfuncname = f"{func['package']}{'.' if func['package'] else ''}{func['name']}"
             try:
-                if install_pypi and "pipenv" in func and func["pipenv"]:
+                if install_pypi and "pipvenv" in func and func["pipvenv"]:
                     if "pippkgs" in func and func["pippkgs"]:
                         pippkgs = func["pippkgs"].split(",")
                         for pkg in pippkgs:
                             try:
-                                pip_activity(activity, func["pipenv"], pkg)
+                                pip_activity(activity, func["pipvenv"], pkg)
                             except Exception as e:
                                 logging.error(f'Error installing package {pkg}: {str(e)}')
 
                     if "reqfile" in func and func["reqfile"]:
-                        pip_req_activity(activity, func["pipenv"], func["reqfile"])
+                        from app import app
+                        reqfile = func["reqfile"] if os.path.isabs(func["reqfile"]) else os.path.join(app.config['ROOT_DIR'], func["reqfile"])
+                        pip_req_activity(activity, func["pipvenv"], reqfile)
                 
                 module = self.persistance.add(user_id, value = dict(func), access=func['access'], users=func['sharedusers'])
                 if module:

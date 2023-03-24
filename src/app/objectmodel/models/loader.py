@@ -146,13 +146,13 @@ class Loader:
                         "sharedusers": sharedusers,
                         "href": href
                         }
-                    pipenvflag = f.get("pipenv") and (f.get("pippkgs") or f.get("reqfile"))
-                    if pipenvflag:
+                    pipvenvflag = f.get("pipvenv") and (f.get("pippkgs") or f.get("reqfile"))
+                    if pipvenvflag:
                         if f.get("pippkgs") and f["pippkgs"]:
                             func.update({"pippkgs": f["pippkgs"]})
                         if f.get("reqfile") and f["reqfile"]:
-                            func.update({"reqfile": f["reqfile"]})
-                        func.update({"pipenv": f["pipenv"]})
+                            func.update({"reqfile": f["reqfile"] if os.path.isabs(f["reqfile"] ) else str(pathlib.Path(os.path.join(module_dir, f["reqfile"])).relative_to(app.config['ROOT_DIR']))})
+                        func.update({"pipvenv": f["pipvenv"]})
 
                     if name.lower() in funcs:
                         funcs[name.lower()].extend([func])

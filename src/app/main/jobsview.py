@@ -187,14 +187,14 @@ def provenance():
             result = {"out": [], "err": []}
             try:
                 pippkgsdb = ''
-                pipenv = request.form.get('pipenv') if request.form.get('pipenv') else ''
+                pipvenv = request.form.get('pipvenv') if request.form.get('pipvenv') else ''
                 if request.form.get('pippkgs'):
                     pippkgs = request.form.get('pippkgs')
                     pippkgs = pippkgs.split(",")
                     pippkgsdb = ''
                     for pkg in pippkgs:
                         try:
-                            pip_install(pipenv, pkg)
+                            pip_install(pipvenv, pkg)
                             pippkgsdb = pippkgsdb + ',' + pkg if pippkgsdb else pkg
                         except Exception as e:
                             result['err'].append(str(e))

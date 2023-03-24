@@ -18,9 +18,11 @@ function SamplesViewModel(sampleViewModel) {
     self.selectedWfVersionId2 = ko.observableArray();
     self.filteredWorkflows = ko.computed(function(){
     return this.items().filter(function(item){
-        if(!self.workflowFilter() || item.name().toLowerCase().indexOf(self.workflowFilter().toLowerCase()) !== -1)
+        let filterValue = self.workflowFilter().toLowerCase();
+        if(!self.workflowFilter() || item.name().toLowerCase().indexOf(filterValue) !== -1 || item.id().toString().indexOf(filterValue) !== -1 || item.desc().toLowerCase().indexOf(filterValue) !== -1)
             return item;
-        });
+        }
+        );
     },this);
      
    self.about = function() {
@@ -209,7 +211,8 @@ function SamplesViewModel(sampleViewModel) {
                     name: ko.observable(s.name),
                     selected: ko.observable(false),
                     access: ko.observable(s.access),
-                    isOwner: ko.observable(s.is_owner)
+                    isOwner: ko.observable(s.is_owner),
+                    desc: ko.observable(s.desc)
                 });
             });
             

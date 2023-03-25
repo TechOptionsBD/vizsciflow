@@ -850,18 +850,7 @@ class Samples():
         #return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
 
     @staticmethod
-    def create_workflow(user, id, name, desc, script, params, returns, publicaccess, users, temp, derived = 0):
-        access = 9
-        if publicaccess is not None and publicaccess == 'true':
-            access = 0
-            users = False 
-        else:
-            if users:
-                access = 1
-            else:
-                access = 2
-                users = False
-        
+    def create_workflow(user, id, name, desc, script, params, returns, access, users, temp, derived = 0):        
         if id:
             workflow = workflowmanager.first(id = id)
             if workflow:
@@ -962,7 +951,7 @@ def workflow_rev_compare(request):
 def samples():
     try:
         if request.form.get('sample'):
-            return Samples.add_workflow(current_user.id, int(request.form.get('id')), request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('params'), request.form.get('returns'), request.form.get('publicaccess') if request.form.get('publicaccess') else False, request.form.get('sharedusers'), False)
+            return Samples.add_workflow(current_user.id, int(request.form.get('id')), request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('params'), request.form.get('returns'), int(request.form.get('access')), request.form.get('sharedusers'), False)
         elif request.args.get('sample_id'):
             workflow = workflowmanager.get_or_404(int(request.args.get('sample_id')))
             value = workflow.to_json() if workflow else {}

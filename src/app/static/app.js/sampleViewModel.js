@@ -134,10 +134,16 @@ function SampleViewModel(editor) {
             formdata.append('desc', self.desc());
         
         if (self.access()) {
-            formdata.append('publicaccess', self.access());
+            formdata.append('access', 0);
         }
         else{
-            formdata.append('sharedusers', self.selectedSharingUsers());
+            if (self.selectedSharingUsers()) {
+                formdata.append('access', 1);
+                formdata.append('sharedusers', self.selectedSharingUsers());
+            }
+            else {
+                formdata.append('access', 2);
+            }
         }
 
         if(self.wfParams() !== null){

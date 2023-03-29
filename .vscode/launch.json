@@ -40,6 +40,17 @@
             ]
         },
         {
+            "name": "Python: insertmodules",
+            "type": "python",
+            "request": "launch",
+            "module": "flask",
+            "cwd": "src/",
+            "console": "integratedTerminal",
+            "args": [
+                "--app", "manage", "insertmodules", "--path", "plugins/modules/common", "--with-users", "False", "--install-pypi", "False"
+            ]
+        },
+        {
             "name": "Python: Flask",
             "type": "python",
             "request": "launch",

@@ -18,13 +18,15 @@ def raw_write(context, data, content):
     fs = Utility.fs_by_prefix_or_guess(data)
     fs.write(data, content)
 
-def raw_get_files(context, data, filter = {"name": "*"}, recursion = 'no'):
-    fs = Utility.fs_by_prefix_or_guess(data)
-    return FolderItem.StrToFolderItem(FilterManager.GetFiles(data, filter, recursion))
+def raw_get_files(context, *args, **kwargs):
+    arguments = context.parse_args('GetFiles', 'io', *args, **kwargs)
+    fs = Utility.fs_by_prefix_or_guess(arguments["data"])
+    return fs.get_files(arguments["data"], arguments["pattern"], arguments["recursive"])
 
-def raw_get_folders(context, data, filter = {"name": "*"}, recursion = 'no'):
-    fs = Utility.fs_by_prefix_or_guess(data)
-    return FolderItem.StrToFolderItem(FilterManager.GetFolders(data, filter, recursion))
+def raw_get_folders(context, *args, **kwargs):
+    arguments = context.parse_args('GetFolders', 'io', *args, **kwargs)
+    fs = Utility.fs_by_prefix_or_guess(arguments["data"])
+    return fs.get_folders(arguments["data"], arguments["pattern"], arguments["recursive"])
 
 def raw_remove(context, data):
     fs = Utility.fs_by_prefix_or_guess(data)

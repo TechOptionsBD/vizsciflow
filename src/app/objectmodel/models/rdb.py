@@ -1151,7 +1151,6 @@ class Service(db.Model):
 
         Param.query.filter(Param.service_id==self.id).delete()
         Return.query.filter(Return.service_id==self.id).delete()
-        db.session.commit()
 
         params = value.get('params', [])
         for p in params:
@@ -1166,8 +1165,23 @@ class Service(db.Model):
     @staticmethod
     def add(user_id, value, access, users):
         try:
-            service = Service()
-            service.user_id = user_id
+            pkgfuncname = f"{value['package']}{'.' if value['package'] else ''}{value['name']}"
+
+            service = Service.get_service_by_name_package(value["name"], value["package"] if "package" in value else None).first()
+            if service:
+                if service.user_id != user_id:
+                    admin = User.query.filter(User.username == "admin").first()
+                    if admin.id != user_id:
+                        msg = f"Module {pkgfuncname} already exists."
+                        logging.error(msg)
+                        raise ValueError(msg)
+                service.value = value
+            else:
+                service = Service()
+                service.user_id = user_id
+                service.value = value
+                db.session.add(service)
+
             service.active = True
             service.public = (access == AccessType.PUBLIC)
 
@@ -1180,9 +1194,9 @@ class Service(db.Model):
                     if matchuser:
                         service.accesses.append(ServiceAccess(user_id = matchuser.id, rights = 0x01))
 
+            db.session.flush()
             service.update(value)
 
-            db.session.add(service)
             db.session.commit()
             return service
         except SQLAlchemyError:

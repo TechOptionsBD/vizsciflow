@@ -335,10 +335,10 @@ def insertmodules(path, with_users, install_pypi):
     
     user = usermanager.first(username='admin')
     activity = activitymanager.create(user.id, ActivityType.ADDTOOLPACKAGE)
-    modules = modulemanager.insert_modules(activity, path, None, with_users, install_pypi)
+    modules = modulemanager.insert_modules(activity, path, user.id, with_users, install_pypi)
     logging.info("{0} module(s) added:".format(len(modules)))
     for module in modules:
-        logging.info(module.package + "." + module.name)
+        logging.info(f"{module.package}{'.' if module.package else ''}{module.name}")
 
 @app.cli.command()
 @click.option('--path', help='The path to the workflows')

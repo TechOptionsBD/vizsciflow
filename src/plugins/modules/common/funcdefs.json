@@ -44,7 +44,7 @@
            "returns":
             {
                "name": "data",
-               "type": "int[]"
+               "type": "any"
             },
            "desc": "Generates a range of numbers.",
            "params":[  
@@ -107,18 +107,27 @@
            "name":"GetFiles",
            "internal":"raw_get_files",
            "desc": "Gets the names of files in a directory.",
-           "params":[  
+           "params":[
             {  
                "name":"data",
                "type":"folder"
-            }            
+            },
+            {  
+               "name":"pattern",
+               "type":"str",
+               "default": "''"
+            },
+            {  
+               "name":"recursive",
+               "type":"bool",
+               "default": "False"
+            }
             ],           
             "returns":
                {
                   "name": "data",
                   "type": "file[]"
-               },
-           "example": "files = GetFiles(data)"
+               }
        },
        {
            "org": "SRLAB",
@@ -127,18 +136,27 @@
            "name":"GetFolders",
            "internal":"raw_get_folders",
            "desc": "Gets the names of folders in a directory.",
-           "params":[  
+           "params":[
             {  
                "name":"data",
                "type":"folder"
-            }            
+            },
+            {  
+               "name":"pattern",
+               "type":"str",
+               "default": "''"
+            },
+            {  
+               "name":"recursive",
+               "type":"bool",
+               "default": "False"
+            }
             ],           
            "returns":
             {
                "name": "data",
                "type": "folder[]"
-            },
-           "example": "folders = GetFolders(data)"
+            }
        },
        {
            "org": "SRLAB",

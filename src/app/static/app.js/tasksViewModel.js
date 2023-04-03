@@ -961,11 +961,11 @@ function TasksViewModel(sampleViewModel) {
 
                 if(data == 'shared'){
                     if (confirm("This is a shared service. You still want to delete "+item.name()+"()?"))
-                        areYouSure();
+                        deleteService();
                 }
                 else if (data == 'not_shared'){
                     if (confirm("Do you want to delete "+item.name()+"()?"))
-                	    areYouSure();
+                        deleteService();
                 }        			
         		else if (data == 'error')
         			alert("ERROR");

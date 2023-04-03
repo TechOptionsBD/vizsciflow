@@ -193,8 +193,20 @@ class ModuleManager():
 
     @staticmethod
     def remove(user_id, module_id):
-        return Service.remove(user_id, module_id)
+        user = User.query.get(user_id)
+        service =  Service.query.get(module_id)
+        if user.id != service.user_id and not user.is_admin():
+            raise ValueError("User doesn't have permission to delete this module.")
+        return service.remove()
 
+    @staticmethod
+    def toggle_publish(user_id, module_id):
+        user = User.query.get(user_id)
+        service =  Service.query.get(module_id)
+        if user.id != service.user_id and not user.is_admin():
+            raise ValueError("User doesn't have permission to change publish attribute.")
+        return service.toggle_publish()
+    
     @staticmethod
     def get_all_by_user_access(user_id, access):
         return Service.get_full_by_user_json(user_id, access)

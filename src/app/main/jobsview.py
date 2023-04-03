@@ -270,12 +270,16 @@ def share_service(share_service):
         else:
             return json.dumps({'return':'private'})
         
-        
-def delete_service(service_id):
-    if 'confirm' in request.args:
-        if request.args.get("confirm") == "true":
-            modulemanager.remove(current_user.id, service_id)       
-            return json.dumps({'return':'deleted'})
+def toggle_publish_service(request):
+    service_id = request.args.get("service_id")
+    modulemanager.toggle_publish(current_user.id, service_id)
+    return json.dumps({'return':'publish toggled'})
+    
+def delete_service(request):
+    service_id = request.args.get("service_id")
+    if request.args.get("delete") == "true":
+        modulemanager.remove(current_user.id, service_id)       
+        return json.dumps({'return':'deleted'})
     else:
         shared_service_check = modulemanager.check_access(service_id) 
         if shared_service_check:  
@@ -480,8 +484,10 @@ def functions():
                 return code_completion(request.args.get('codecompletion'))
             elif 'share_service' in request.args:
                 return share_service(json.loads(request.args.get("share_service")))
-            elif request.args.get("service_id"):
-                return delete_service(request.args.get("service_id"))
+            elif request.args.get("delete"):
+                return delete_service(request)
+            elif request.args.get("toggleactive"):
+                return toggle_publish_service(request)
             elif 'demoserviceadd' in request.args:
                 return add_demo_service(request.args.get("demoserviceadd"))
             elif 'tooltip' in request.args:

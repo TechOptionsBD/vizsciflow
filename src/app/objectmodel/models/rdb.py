@@ -131,6 +131,10 @@ class User(UserMixin, db.Model):
                                 cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
+    def is_admin(self):
+        role = Role.query.get(self.id)
+        return role.permissions == 0xff
+    
     @staticmethod
     def generate_fake(count=100):
         from sqlalchemy.exc import IntegrityError
@@ -1216,15 +1220,22 @@ class Service(db.Model):
         except SQLAlchemyError:
             db.session.rollback
     
-    def remove(current_user_id, service_id):
+    def toggle_publish(self):
         try:
-            #Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id)).delete()
-            db.session.delete(Service.query.filter(and_(Service.id == service_id, Service.user_id == current_user_id)).first())
+            self.active = not self.active
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
             raise
-    
+
+    def remove(self):
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
     def to_json_info(self):
         json_post = {
             'id': self.id,
@@ -1244,6 +1255,7 @@ class Service(db.Model):
         service = Service.get_first_service_by_name_package(name, package)
         if service and service.value:
             value = service.value
+            value.update({'active': service.active})
             value.update(Service.get_params_returns_json(service))
             return value
 
@@ -1295,10 +1307,11 @@ class Service(db.Model):
 
     @staticmethod
     def get_full_user_json(service, user_id, access):
-        json = service.value
-        json.update(Service.get_params_returns_json(service))
-        json.update(Service.get_access_json(service.id, access, service.user_id == user_id))
-        return json
+        jsonval = service.value
+        jsonval.update({'active': service.active})
+        jsonval.update(Service.get_params_returns_json(service))
+        jsonval.update(Service.get_access_json(service.id, access, service.user_id == user_id))
+        return jsonval
 
     @staticmethod
     def get_full_by_user_json(user_id, access):

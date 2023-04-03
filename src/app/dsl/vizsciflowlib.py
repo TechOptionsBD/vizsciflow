@@ -163,6 +163,13 @@ class Library(LibraryBase):
                     return provcls
             
             func = modulemanager.get_module_by_name_package(function, package)
+            if not func.active:
+                if func.user_id == context.user_id:
+                    logging.info(f"You are running unpublish function {pkgfuncname}")
+                else:
+                    pkgfuncname = f"{func.package}{'.' if func.package else ''}{func.name}"
+                    raise ValueError(f"{pkgfuncname} is not published")
+                
             if func.package == 'system' and func.name.lower() == 'workflow':
                 workflow = workflowmanager.first(id=context.workflow_id(*arguments, **kwargs))
                 params = [dict2obj(param.value) for param in workflow.params if workflow.params]

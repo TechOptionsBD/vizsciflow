@@ -805,6 +805,7 @@ function TasksViewModel(sampleViewModel) {
                     access: ko.observable(f.access),
                     isOwner: ko.observable(f.is_owner),
                     serviceID: ko.observable(f.service_id),
+                    active: ko.observable(f.active),
 
                     // internal: ko.observable(f.internal),
                     returns: ko.observable(f.returns),
@@ -906,24 +907,20 @@ function TasksViewModel(sampleViewModel) {
     self.serviceToolbar = function (item, event) {
 	    event.stopPropagation();
 
-        function areYouSure(confirmation){
-            if(confirmation == true){
-                ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'confirm':'true' }).done(function (data){
-                    if (data === undefined)
-                            return;
-                    
-                    if (data.return == 'deleted'){
-                        serviceDeleted();
-                    }
-                    else if (data.return == 'error')
-                        alert("ERROR");
-                    
-                }).fail(function (jqXHR) {
-                    alert("status="+jqXHR.status);
-                });  
-            }
-            else
-                return;
+        function deleteService(){
+            ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'delete':true}).done(function (data){
+                if (data === undefined)
+                        return;
+                
+                if (data.return == 'deleted'){
+                    serviceDeleted();
+                }
+                else if (data.return == 'error')
+                    alert("ERROR");
+                
+            }).fail(function (jqXHR) {
+                alert("status="+jqXHR.status);
+            });
         }
  
 	    function serviceDeleted(){
@@ -936,27 +933,46 @@ function TasksViewModel(sampleViewModel) {
         }
 	
 	    var x = $(event.target).attr('id');
-	    if (x === "delete") {
-	    	ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID() }).done(function (data) {
+        if (x === 'active'){
+            ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'toggleactive': true }).done(function (data) {
+        		if (data === undefined)
+                    return;    
+
+                if (data == 'error') {
+        			alert(data);
+                }
+                else
+                {
+                    $(event.target).removeClass(item.active() ? 'glyphicon-remove' : 'glyphicon-ok');
+                    item.active(!item.active());
+                    $(event.target).addClass(item.active() ? 'glyphicon-remove' : 'glyphicon-ok');
+                }
+        		                                
+            }).fail(function (jqXHR) {
+                alert("status="+jqXHR.status);
+            });
+        }
+	    else if (x === "delete") {
+	    	ajaxcalls.simple('/functions', 'GET', { 'service_id': item.serviceID(), 'delete': false }).done(function (data) {
         		if (data === undefined)
                         return;    
 
                 data = data.return;
 
                 if(data == 'shared'){
-                    confirmation = confirm("This is a shared service. You still want to delete "+item.name()+"()?");
-                    areYouSure(confirmation);
+                    if (confirm("This is a shared service. You still want to delete "+item.name()+"()?"))
+                        areYouSure();
                 }
                 else if (data == 'not_shared'){
-                    confirmation = confirm("Do you want to delete "+item.name()+"()?");
-                	areYouSure(confirmation);
+                    if (confirm("Do you want to delete "+item.name()+"()?"))
+                	    areYouSure();
                 }        			
         		else if (data == 'error')
         			alert("ERROR");
         		                                
             }).fail(function (jqXHR) {
                     alert("status="+jqXHR.status);
-            }); 
+            });
         }
         else if (x === "download") {
 

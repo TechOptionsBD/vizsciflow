@@ -72,6 +72,9 @@ class ModuleManager():
     def remove(self, user_id, module_id):
         return self.persistance.remove(user_id, module_id)
     
+    def toggle_publish(self, user_id, module_id):
+        return self.persistance.toggle_publish(user_id, module_id)
+    
     def get_all_by_user_access(self, user_id, access = 2):
         return self.persistance.get_all_by_user_access(user_id, access)
     

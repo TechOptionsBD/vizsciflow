@@ -791,7 +791,7 @@ function TasksViewModel(sampleViewModel) {
 
             self.tasks([]);
             $.each(data.functions, function (i, f) {
-                self.tasks.push({
+                let task = {
                     package: ko.observable(f.package),
                     name: ko.observable(f.name),
                     //internal: ko.observable(f.internal),
@@ -812,7 +812,11 @@ function TasksViewModel(sampleViewModel) {
                     params: ko.observable(f.params),                    
                     returnData: ko.observable(f.returnData),
                     sharedWith: ko.observableArray(f.sharedWith? JSON.parse(f.sharedWith): [])                    
+                };
+                task.publishclass = ko.pureComputed(function () { 
+                    return task.active() ? 'glyphicon glyphicon-eye-close' : 'glyphicon glyphicon-eye-open';
                 });
+                self.tasks.push(task);
             });
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
@@ -941,11 +945,8 @@ function TasksViewModel(sampleViewModel) {
                 if (data == 'error') {
         			alert(data);
                 }
-                else
-                {
-                    $(event.target).removeClass(item.active() ? 'glyphicon-remove' : 'glyphicon-ok');
+                else {
                     item.active(!item.active());
-                    $(event.target).addClass(item.active() ? 'glyphicon-remove' : 'glyphicon-ok');
                 }
         		                                
             }).fail(function (jqXHR) {

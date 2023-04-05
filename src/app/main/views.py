@@ -474,7 +474,11 @@ def upload_biowl(file, request):
     #                 DataMimeType.add(data_alloc.id, dbmimetype.id)
     
     return saved_path
-    
+
+@app.context_processor
+def inject_debug():
+    return dict(debug=app.debug)
+   
 @main.route('/biowl', methods=['GET', 'POST'])
 @main.route('/', methods = ['GET', 'POST'])
 #@login_required

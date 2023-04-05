@@ -565,7 +565,7 @@
 						style="margin-right: 5px; padding: 10px 4px;" data-bind="enable: shouldRunActivate, event: {click: runGraph}">Graph</button>
 					
 					<div style="margin-top: 8px">
-						<label class="label-checkbox checkbox-font" style="vertical-align: middle"><input type="checkbox"
+						<label class="label-checkbox checkbox-font" {%  if debug %} style="display: block" {% else %} style="display: none" {% endif %}><input type="checkbox"
 							id="immediate"> <span class="label-immediate">Immediate</span>
 						</label> 
 						<span

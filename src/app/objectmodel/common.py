@@ -238,7 +238,7 @@ def get_pyvenvs(user_id):
         pyvenvs.append(t)
     return pyvenvs
 
-def new_pyvenvs(venvname, user_id):
+def new_pyvenvs(venvname, pyversion, user_id):
     from app import app
     from app.system.exechelper import run_script
 
@@ -246,7 +246,8 @@ def new_pyvenvs(venvname, user_id):
     if os.path.exists(path):
         raise ValueError(f"Python virtual environment {venvname} already exists.")
     
-    run_script(os.path.join(thispath, "newvenv.sh"), path)
+    run_script(os.path.join(thispath, pyversion + ".sh"), path)
+
     return json.dumps("")
 
 def pip_install_in_venv(pipvenv, pippkgs):

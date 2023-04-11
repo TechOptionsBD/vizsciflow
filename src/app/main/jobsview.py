@@ -477,7 +477,7 @@ def functions():
                 pyvenvs = get_pyvenvs(current_user.id)
                 return jsonify(pyvenvs = pyvenvs)
             if 'newpyvenvs' in request.args:
-                return new_pyvenvs(request.args.get('newpyvenvs'), current_user.id)
+                return new_pyvenvs(request.args.get('newpyvenvs'), request.args.get('pyversion'), current_user.id)
             if 'check_function' in request.args:
                 return check_service_function(request)
             elif 'codecompletion' in request.args:

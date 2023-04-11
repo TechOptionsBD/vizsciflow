@@ -11,6 +11,7 @@ function AddLibraryViewModel(userName) {
     self.textToggleFuncArea = ko.observable('More..');
     self.TList = ko.observableArray();
     self.pippkgsList = ko.observableArray();
+    self.radioSelectedOptionValue = ko.observable(''); 
    
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
@@ -26,7 +27,7 @@ function AddLibraryViewModel(userName) {
     self.addNewVenv = function() {
         if (self.NewVenvName().trim().length == 0)
             return;
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'newpyvenvs':  self.NewVenvName()}).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'newpyvenvs':  self.NewVenvName(), 'pyversion' : self.radioSelectedOptionValue()}).done(function (data) {
             if (!data['err']){
                 self.NewVenvName('');
                 self.loadpipvenvs();

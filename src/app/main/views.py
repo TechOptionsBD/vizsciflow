@@ -63,7 +63,7 @@ def user(username):
     user = usermanager.get_by_username(username)
     page = request.args.get('page', 1, type=int)
     pagination = user.posts.paginate(
-        page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
+        page=page, per_page=current_app.config['PHENOPROC_POSTS_PER_PAGE'],
         error_out=False)
     posts = pagination.items
     return render_template('user.html', user=user, posts=posts,

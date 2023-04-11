@@ -22,10 +22,11 @@ def demo_service(context, *args, **kwargs):
     
     # run BLASTZ and write result to output file
     output = path.join(context.createoutdir(), "{0}_{1}.CDS-CDS.{2}".format(ids[0], ids[1], 'lastz'))
-    cmdargs = ["-A 44 -i", query, "-d", db, "-o", output, '--path='+lastz]
+    cmdargs = ["-A", "44", "-i", query, "-d", db, "-o", output, '--path='+lastz]
     
-    _, err = context.pyvenv_run(thispath, "python2", blastz, *cmdargs)
-    
+    out, err = context.pyvenv_run_at_venv(thispath, "python2", '.venvpy2', blastz, *cmdargs)
+    context.save_stdout_stderr(out, err)
+
     stripped_path = fs.strip_root(output)
     
     if not fs.exists(output):

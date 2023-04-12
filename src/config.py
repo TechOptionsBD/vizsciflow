@@ -26,9 +26,9 @@ class Config:
     MAIL_USERNAME = ''
     MAIL_PASSWORD = ''
     BIOWL = os.path.join(ROOT_DIR, 'app/dsl/')
-    MAIL_SUBJECT_PREFIX = '[Phenoproc]'
-    MAIL_SENDER = 'Phenoproc Admin <phenoproc@gmail.com>'
-    ADMIN = os.environ.get('PHENOPROC_ADMIN')         
+    MAIL_SUBJECT_PREFIX = '[VizSciFlow]'
+    MAIL_SENDER = 'VizSciFlow Admin <admin@vizsciflow.usask.ca>'
+    ADMIN = 'admin@vizsciflow.usask.ca'       
     PHENOPROC_POSTS_PER_PAGE = 20
     PHENOPROC_FOLLOWERS_PER_PAGE = 50
     PHENOPROC_COMMENTS_PER_PAGE = 30

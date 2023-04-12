@@ -486,7 +486,7 @@ class UserItem(NodeItem, UserMixin):
         graph().push(user)
         
         role = None
-        if user.email == current_app.config['PHENOPROC_ADMIN']:
+        if user.email == current_app.config['ADMIN']:
             role = RoleItem.get(permissions=0xff).first()
             role.users.add(user)
         if role is None:

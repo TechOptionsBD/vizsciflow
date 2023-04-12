@@ -401,7 +401,7 @@ class ElasticUser(ElasticNode, UserMixin):
     def Create(**kwargs):
         user = ElasticUser(**kwargs)
         if user.role_id is None:
-            if user.email == current_app.config['PHENOPROC_ADMIN']:
+            if user.email == current_app.config['ADMIN']:
                 roles = ElasticRole.get(permissions=0xff)
                 user.role_id = roles[0].id
             else:

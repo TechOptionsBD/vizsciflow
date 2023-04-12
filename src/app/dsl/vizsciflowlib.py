@@ -220,7 +220,7 @@ class Library(LibraryBase):
     @staticmethod
     def check_folder(result, task):
         fs = Utility.fs_by_prefix_or_guess(str(result))
-        if not fs or not fs.isfolder(str(result)):
+        if not fs or not fs.isdir(str(result)):
             task.add_log(log="Tool definition indicates folder, but tool generates no folder.", logtype=LogType.WARNING)
 
     @staticmethod

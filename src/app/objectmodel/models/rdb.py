@@ -2536,3 +2536,48 @@ class InData(db.Model):
     def type(self):
        return self.value.type
 
+class DataChunk(db.Model):
+    __tablename__ = 'data_chunks'
+    id = db.Column(db.Integer, primary_key=True)
+    file_uuid = db.Column(db.Text)
+    path = db.Column(db.Text)
+    chunk = db.Column(db.Integer)
+    total_chunk = db.Column(db.Integer)
+    uploaded_size = db.Column(db.Text)
+    total_size = db.Column(db.Text)
+
+    @staticmethod
+    def add(file_uuid, path, chunk, total_chunk, uploaded_size, total_size):
+        try:
+            if chunk == 0:
+                data_chunk = DataChunk()
+                data_chunk.file_uuid = file_uuid
+                data_chunk.path = path
+                data_chunk.chunk = chunk
+                data_chunk.total_chunk = total_chunk
+                data_chunk.uploaded_size = str(uploaded_size)
+                data_chunk.total_size = str(total_size)
+
+                db.session.add(data_chunk)
+                db.session.commit()
+                return data_chunk
+            else:
+                data_chunk = DataChunk.query.filter(DataChunk.file_uuid == file_uuid).first()
+                if data_chunk:
+                    DataChunk.query.filter_by(id=data_chunk.id).update(dict(chunk=chunk, uploaded_size=uploaded_size))
+                    db.session.commit()
+                    return data_chunk
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    @staticmethod
+    def delete(path):
+        try:
+            data_chunk = DataChunk.query.filter(DataChunk.path == path).first()
+            DataChunk.query.filter_by(id=data_chunk.id).delete()
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+

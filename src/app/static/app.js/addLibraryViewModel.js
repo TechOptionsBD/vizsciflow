@@ -101,6 +101,24 @@ function AddLibraryViewModel(userName) {
             });
     }
 
+    Dropzone.options.myDropzone = {
+        paramName: "file",
+        chunking: true,
+        forceChunking: true,
+        chunkSize: 1000000, // 1 MB
+        maxFilesize: 5000, // 5 GB
+        timeout: 180000, // 3 minutes
+        autoProcessQueue: false,
+        init: function() {
+            this.on("success", function(file, response) {
+                // Handle successful upload
+            });
+            this.on("error", function(file, message) {
+                // Handle upload error
+            });
+        }
+    };
+
     self.toggleFuncArea = function () {  
         if (!self.isFuncExpanded()) {
             self.isFuncExpanded(true);
@@ -342,6 +360,8 @@ function AddLibraryViewModel(userName) {
             $("#add-package-info").text("A tool/module must be selected in zip/tar format.");
             return;
         }
+
+        //myDropzone.processQueue();
 
         var files = $("#packagemodule").get(0).files;
         var formdata = new FormData();

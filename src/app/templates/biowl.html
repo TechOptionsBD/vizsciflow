@@ -1063,19 +1063,20 @@
 			<br><br>
 			<div class="row service-form-group">
 				<div class="span-sm-20">
-					<div class="row service-form-group span-sm-20" style="display: flex; column-gap: 10px; padding: 20px;">
-						<div class="span-sm-20" style="border-right: 1px soild;">
-							<div style="display: flex; column-gap: 15%;">
+					<div class="row service-form-group span-sm-20" style="display: flex; margin-left: 0px;">
+						<div class="span-sm-20" style="border-right: 1px soild; padding: 8px;
+						background-color: #f0f4f5;">
+							<div style="display: flex; column-gap: 5%; width: 70%;">
 								<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn btn-success" style="padding: 6px 6px; font-weight: bold; margin-left: 12px;">New venv</button>
-								<div style="display: flex; column-gap: 10%;">
-									<label style="display: flex"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv'" />Python 3</label>
-									<label style="display: flex"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv2" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv2'" />Python 2.7</label>
+								<div style="display: flex; margin-top: 6px;">
+									<label style="display: flex; width: 100px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv'" /><span style="margin-top: 5px;">Python 3</span></label>
+									<label style="display: flex;  width: 110px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv2" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv2'" /><span style="margin-top: 5px;">Python 2.7</span></label>
 								</div>
-								<input type="text" data-bind="textInput: NewVenvName" class="form-control" id="newvenvname" style="width: 65%;" >
+								<input type="text" data-bind="textInput: NewVenvName" class="form-control" id="newvenvname" style="width: 65%; margin-top: 5px;" >
 							</div>
 						</div>
 					</div>
-					<div class="row service-form-group span-sm-9" style="margin-left: 30px;">
+					<div class="row service-form-group span-sm-9" style="margin-left: 20px;">
 						<label class="span-sm-3" style="margin: 0px 0px 5px;" for="access">Public</label>
 						<div class="span-sm-2">
 							<input type="checkbox" id="access" data-bind="checked: access">

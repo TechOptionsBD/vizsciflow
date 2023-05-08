@@ -23,8 +23,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.css" integrity="sha512-/zs32ZEJh+/EO2N1b0PEdoA10JkdC3zJ8L5FTiQu82LR9S/rOQNfQN7U59U9BC12swNeRAz3HSzIL2vpp4fv3w==" crossorigin="anonymous" />
 <link rel="stylesheet" href="/static/library/scidatamanager/styles/style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.css"/>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/basic.min.css"/>
 
 <script src="https://cdn.anychart.com/releases/8.9.0/js/anychart-base.min.js"></script>
 <script src="https://cdn.anychart.com/releases/8.9.0/js/anychart-heatmap.min.js"></script>
@@ -65,9 +63,14 @@
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/ko.observableDictionary.js') }}"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.js"></script>
 <!-- <script src="/static/library/Chart.HeatMap.S.min.js"></script> -->
 <!-- <script src="https://cdn.anychart.com/releases/8.9.0/js/anychart-base.min.js" type="text/javascript"></script> -->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.6/min/dropzone.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.6/min/basic.min.css"/>
+<script type="application/javascript"
+	src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.6/min/dropzone.min.js">
+</script>
 
 
 <!-- app js files -->
@@ -944,16 +947,37 @@
 			</div>
 			<hr>
 			<div class="modal-body">
-			<form role="form" class="span-sm-12">
-				<div class="span-sm-10" style="padding: 0;">
-					<div class="row service-form-group">
-						<label class="span-sm-4" style="padding: 0;" for="module">Module</label>				
-						<div class="span-sm-16">
-							<input type="file" class="form-control-file" id="module">
-						</div>
-					</div>
-				</div>		
-			</form>
+				<label class="span-sm-4" style="padding: 0;" for="droppermodule">Module</label>
+				<br>
+				<hr>			
+				<form method="POST" action='/uploadmodule' class="dropzone dz-clickable" id="droppermodule" enctype="multipart/form-data">
+				</form>
+
+			<script type="application/javascript">
+				function initmodule() {
+					Dropzone.options.droppermodule = {
+						paramName: 'file',
+						chunking: true,
+						forceChunking: true,
+						url: '/uploadmodule',
+						maxFilesize: 1025, 
+						chunkSize: 1000000,
+						timeout: 180000, // 3 minutes
+						autoProcessQueue: true,
+						dictRemoveFile: "Remove",
+						acceptedFiles: ".zip, .tar",
+						init: function() {
+						this.on("success", function(file, response) {
+							addLibraryViewModel.droppermoduleId = response.droppermoduleId;
+							// Handle successful upload
+						});
+						this.on("error", function(file, message) {
+							// Handle upload error
+						});
+					}
+					}
+				}
+			</script>
 			<br> <br>
 			<div id="exTabService" class="controls">
 				<ul class="nav nav-tabs">
@@ -1118,31 +1142,63 @@
 			<span aria-hidden="true">&times;</span>
 		  </button>
 		</div>
-		<div class="modal-body">
-			<form role="form">
-				<div class="form-group service-form-group dropzone dz-clickable" style="display: flex;justify-content: start;">
-					<label for="module">Package (.zip/.tar)</label>
-					<div class="fallback">
-						<input type="file" class="form-control-file d-inline" id="packagemodule" style="padding-left: 19px;padding-right: 500px;">
-					</div>
-					<input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
-					<label class="form-check-label" for="inlineCheckbox1" style="padding-left: 13px;">Update own tool</label>
-				</div>
-
-			</form>
-			</div>
-			
-			<br>
-			<br>
-			<div class="modal-footer">
-				<span class="span-sm-10" style = "color: red; margin-left: 4px; text-align: left;" id="add-package-info"></span>
-				<button data-bind="click: addPackage" class="btn btn-primary" id="packageuploadbutton">Add</button>
-				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
-			</div>
-					
-				</div>
-			</div>
+		<div style="display: flex; justify-content: space-between; margin: 10px;">
+		<label for="module">Package (.zip/.tar)</label>
+		<div>
+			<input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
+			<label class="form-check-label" for="inlineCheckbox1" style="padding-left: 13px;">Update own tool</label>
 		</div>
+		</div>
+
+		<form method="POST" action='/upload' class="dropzone dz-clickable" id="dropper" enctype="multipart/form-data">
+  		</form>
+
+		  <br>
+		  <br>
+		  <div class="modal-footer">
+			  <span class="span-sm-10" style = "color: red; margin-left: 4px; text-align: left;" id="add-package-info"></span>
+			  <button data-bind="click: addPackage" class="btn btn-primary" id="packageuploadbutton">Add</button>
+			  <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
+		  </div>
+
+		  <script type="application/javascript">
+			function init() {
+				Dropzone.options.dropper = {
+					paramName: 'file',
+					chunking: true,
+					forceChunking: true,
+					url: '/upload',
+					maxFilesize: 1025, 
+					chunkSize: 1000000,
+					timeout: 180000, // 3 minutes
+					autoProcessQueue: true,
+					acceptedFiles: ".zip, .tar",
+					init: function() {
+						this.on("success", function(file, response) {
+							addLibraryViewModel.moduleId = response.moduleId;
+							// Handle successful upload
+						});
+
+						this.on("error", function(file, message) {
+							// Handle upload error
+						});
+
+						// TODO: sakil will complete it after backend done
+
+						// this.on("complete", function(file) {
+						// 	this.removeFile(file);
+						// });
+
+						// this.on("queuecomplete", function () {
+						// 	this.removeAllFiles();
+						// });
+					}
+				}
+			}
+		</script>
+		
+		<br>
+		<br>
 	
 	  </div>
 	</div>
@@ -3572,7 +3628,10 @@ function typeInTextarea(el, newText) {
           container.classList.add("show-new-add");
           button.classList.add("show-new-add");
         }
-    });	        
+    });
+	
+	init();
+	initmodule();
 </script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}

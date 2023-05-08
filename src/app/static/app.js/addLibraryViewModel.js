@@ -12,6 +12,8 @@ function AddLibraryViewModel(userName) {
     self.TList = ko.observableArray();
     self.pippkgsList = ko.observableArray();
     self.radioSelectedOptionValue = ko.observable(''); 
+    self.moduleId = null;
+    self.droppermoduleId = null;
    
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
@@ -99,27 +101,10 @@ function AddLibraryViewModel(userName) {
                 $("#packagemodule").val("");
                 $( "#packagemodule" ).change();
             });
-    }
-
-    Dropzone.options.myDropzone = {
-        paramName: "file",
-        chunking: true,
-        forceChunking: true,
-        chunkSize: 1000000, // 1 MB
-        maxFilesize: 5000, // 5 GB
-        timeout: 180000, // 3 minutes
-        autoProcessQueue: false,
-        init: function() {
-            this.on("success", function(file, response) {
-                // Handle successful upload
-            });
-            this.on("error", function(file, message) {
-                // Handle upload error
-            });
         }
-    };
 
-    self.toggleFuncArea = function () {  
+
+    self.toggleFuncArea = function () {
         if (!self.isFuncExpanded()) {
             self.isFuncExpanded(true);
             self.textToggleFuncArea('Less');
@@ -311,7 +296,10 @@ function AddLibraryViewModel(userName) {
         serviceFormatted.returns = self.serviceReturns; 
         
         var formdata = new FormData();
-        var files = $("#module").get(0).files;
+        var files = $("#droppermodule").get(0).files;
+        if(self.droppermoduleId){
+            formdata.append("droppermoduleId", self.droppermoduleId);
+        }
         if (files.length > 0)
             formdata.append('library', files[0]); //use get('files')[0]
         formdata.append('mapper', ko.toJSON(serviceFormatted));//you can append it to formdata with a proper parameter name
@@ -363,10 +351,11 @@ function AddLibraryViewModel(userName) {
 
         //myDropzone.processQueue();
 
-        var files = $("#packagemodule").get(0).files;
         var formdata = new FormData();
-        formdata.append('package', files[0]); //use get('files')[0]
         formdata.append('update', $('#inlineCheckbox1').is(":checked") ? 1 : 0);
+        if(self.moduleId){
+            formdata.append("moduleId", self.moduleId);
+        }
         
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                                

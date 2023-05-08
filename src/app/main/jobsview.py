@@ -25,6 +25,27 @@ from .views import Samples
 from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response, send_file
 from werkzeug.utils import secure_filename
+from pathlib import Path
+from threading import Lock
+from collections import defaultdict
+import shutil
+import argparse
+import uuid
+
+storage_path: Path = Path(__file__).parent / "storage"
+chunk_path: Path = Path(__file__).parent / "chunk"
+
+allow_downloads = False
+dropzone_cdn = "https://cdnjs.cloudflare.com/ajax/libs/dropzone"
+dropzone_version = "5.7.6"
+dropzone_timeout = "120000"
+dropzone_max_file_size = "100000"
+dropzone_chunk_size = "1000000"
+dropzone_parallel_chunks = "true"
+dropzone_force_chunking = "true"
+
+lock = Lock()
+chucks = defaultdict(list)
 
 from ..managers.usermgr import usermanager
 from ..managers.datamgr import datamanager
@@ -34,6 +55,10 @@ from app.objectmodel.common import *
 from ..managers.modulemgr import modulemanager
 from ..managers.activitymgr import activitymanager
 from app.system.exechelper import run_script
+
+import logging
+import os
+from config import config
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
@@ -431,6 +456,117 @@ def upload_chunk_data(request):
     total_size_file = int(request.form['dztotalfilesize'])
     
     datamanager.upload_chunk_data()
+
+@main.route('/uploadmodule', methods=['GET', 'POST'])
+@login_required
+def uploadmodule():
+
+    # TODO :  MHn will currect it.
+
+    # from bottle import route, run, request, HTTPError
+    #from bottle import run, request, HTTPError
+
+    file = request.files.get("file")
+    # if not file:
+    #     raise HTTPError(status=400, body="No file provided")
+
+    dz_uuid = request.form.get("dzuuid")
+    # if not dz_uuid:
+    #     # Assume this file has not been chunked
+    #     with open(storage_path / f"{uuid.uuid4()}_{secure_filename(file.filename)}", "wb") as f:
+    #         file.save(f)
+    #     return "File Saved"
+
+    # # Chunked download
+    # try:
+    #     current_chunk = int(request.forms["dzchunkindex"])
+    #     total_chunks = int(request.forms["dztotalchunkcount"])
+    # except KeyError as err:
+    #     raise HTTPError(status=400, body=f"Not all required fields supplied, missing {err}")
+    # except ValueError:
+    #     raise HTTPError(status=400, body=f"Values provided were not in expected format")
+
+    # save_dir = chunk_path / dz_uuid
+
+    # if not save_dir.exists():
+    #     save_dir.mkdir(exist_ok=True, parents=True)
+
+    # # Save the individual chunk
+    # with open(save_dir / str(request.forms["dzchunkindex"]), "wb") as f:
+    #     file.save(f)
+
+    # # See if we have all the chunks downloaded
+    # with lock:
+    #     chucks[dz_uuid].append(current_chunk)
+    #     completed = len(chucks[dz_uuid]) == total_chunks
+
+    # # Concat all the files into the final file when all are downloaded
+    # if completed:
+    #     with open(storage_path / f"{dz_uuid}_{secure_filename(file.filename)}", "wb") as f:
+    #         for file_number in range(total_chunks):
+    #             f.write((save_dir / str(file_number)).read_bytes())
+    #     print(f"{file.filename} has been uploaded")
+    #     shutil.rmtree(save_dir)
+
+    # return "Chunk upload successful"
+
+    return json.dumps({"droppermoduleId:": dz_uuid})
+
+
+@main.route('/upload', methods=['GET', 'POST'])
+@login_required
+def upload():
+
+    # TODO :  MHn will currect it.
+    
+    # from bottle import route, run, request, HTTPError
+    #from bottle import run, request, HTTPError
+
+    file = request.files.get("file")
+    # if not file:
+    #     raise HTTPError(status=400, body="No file provided")
+
+    dz_uuid = request.form.get("dzuuid")
+    # if not dz_uuid:
+    #     # Assume this file has not been chunked
+    #     with open(storage_path / f"{uuid.uuid4()}_{secure_filename(file.filename)}", "wb") as f:
+    #         file.save(f)
+    #     return "File Saved"
+
+    # # Chunked download
+    # try:
+    #     current_chunk = int(request.forms["dzchunkindex"])
+    #     total_chunks = int(request.forms["dztotalchunkcount"])
+    # except KeyError as err:
+    #     raise HTTPError(status=400, body=f"Not all required fields supplied, missing {err}")
+    # except ValueError:
+    #     raise HTTPError(status=400, body=f"Values provided were not in expected format")
+
+    # save_dir = chunk_path / dz_uuid
+
+    # if not save_dir.exists():
+    #     save_dir.mkdir(exist_ok=True, parents=True)
+
+    # # Save the individual chunk
+    # with open(save_dir / str(request.forms["dzchunkindex"]), "wb") as f:
+    #     file.save(f)
+
+    # # See if we have all the chunks downloaded
+    # with lock:
+    #     chucks[dz_uuid].append(current_chunk)
+    #     completed = len(chucks[dz_uuid]) == total_chunks
+
+    # # Concat all the files into the final file when all are downloaded
+    # if completed:
+    #     with open(storage_path / f"{dz_uuid}_{secure_filename(file.filename)}", "wb") as f:
+    #         for file_number in range(total_chunks):
+    #             f.write((save_dir / str(file_number)).read_bytes())
+    #     print(f"{file.filename} has been uploaded")
+    #     shutil.rmtree(save_dir)
+
+    # return "Chunk upload successful"
+
+    return json.dumps({"moduleId:": dz_uuid})
 
 def create_lib_dir(activity, uploadedlib):
     from app import app

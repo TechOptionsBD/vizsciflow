@@ -1,310 +1,300 @@
 {
-	"functions": [
-       {
-           "org": "Python",
-           "package": "Python",
-           "group": "system",
-           "name":"print",
-           "internal":"raw_print",
-           "desc": "Prints one or more things.",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"any"
-            }            
-            ],
-            "example": "print(data)"
-       },
-       {
-           "org": "Python",
-           "package": "Python",
-           "group": "system",
-           "name":"len",
-           "internal":"raw_len",
-           "desc": "Gets length of a list or str.",
-           "returns": 
-              {
-                 "name": "data",
-                 "type": "int"
-              },
-           "example": "len(data)",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"str|list"
-            }            
-            ]
-       },
-       {
-           "org": "Python",
-           "package": "Python",
-           "group": "system",
-           "name":"range",
-           "internal":"raw_range",
-           "returns":
+   "functions": [
+      {
+         "org": "Python",
+         "package": "Python",
+         "group": "system",
+         "name": "print",
+         "internal": "raw_print",
+         "desc": "Prints one or more things.",
+         "params": [
             {
                "name": "data",
                "type": "any"
-            },
-           "desc": "Generates a range of numbers.",
-           "params":[  
-            {  
-               "name":"start",
-               "type":"int",
-               "default": 1
-            },
-            {  
-               "name":"end",
-               "type":"int",
-               "default": 10
             }
-            ],
-           "example": "range(1, 10)"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"Read",
-           "internal":"raw_read",
-           "desc": "Reads a file as bytes.",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"file"
-            }            
-            ],           
-            "returns":
-               {
-                  "name": "data",
-                  "type": "byte[]"
-               },
-           "example": "data = Read(data)"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"Write",
-           "internal":"raw_write",
-           "desc": "Writes text data to a file.",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"file"
-            },
-            {  
-               "name":"content",
-               "type":"any"
-            }              
-            ],           
-           "example": "Write(data, 'Text to write')"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"GetFiles",
-           "internal":"raw_get_files",
-           "desc": "Gets the names of files in a directory.",
-           "params":[
-            {  
-               "name":"data",
-               "type":"folder"
-            },
-            {  
-               "name":"pattern",
-               "type":"str",
-               "default": "''"
-            },
-            {  
-               "name":"recursive",
-               "type":"bool",
-               "default": "False"
-            }
-            ],           
-            "returns":
-               {
-                  "name": "data",
-                  "type": "file[]"
-               }
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"GetFolders",
-           "internal":"raw_get_folders",
-           "desc": "Gets the names of folders in a directory.",
-           "params":[
-            {  
-               "name":"data",
-               "type":"folder"
-            },
-            {  
-               "name":"pattern",
-               "type":"str",
-               "default": "''"
-            },
-            {  
-               "name":"recursive",
-               "type":"bool",
-               "default": "False"
-            }
-            ],           
-           "returns":
+         ],
+         "example": "print(data)"
+      },
+      {
+         "org": "Python",
+         "package": "Python",
+         "group": "system",
+         "name": "len",
+         "internal": "raw_len",
+         "desc": "Gets length of a list or str.",
+         "returns": {
+            "name": "data",
+            "type": "int"
+         },
+         "example": "len(data)",
+         "params": [
             {
                "name": "data",
-               "type": "folder[]"
+               "type": "str|list"
             }
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"Remove",
-           "internal":"raw_remove",
-           "desc": "Removes a file or directory.",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"file|folder"
-            }            
-            ],           
-           "example": "Remove(data)"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"CreateFolder",
-           "internal":"raw_makedirs",
-           "desc": "Creates a directory.",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"folder"
-            }            
-            ],
-            "returns":
-               {
-                  "name": "data",
-                  "type": "folder"
-               },
-           "example": "folder = CreateFolder(data)"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"isfile",
-           "internal":"raw_isfile",
-           "desc": "Returns true if a specified path is a file; false if it's a directory.",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"file|folder"
-            }            
-            ],
-            "returns":
-               {
-                  "name": "data",
-                  "type": "bool"
-               },
-           "example": "isfile(data)"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"basename",
-           "internal":"raw_basename",
-           "desc": "Truncates the path and returns only the filename.",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"file|folder"
-            }            
-            ],
-            "returns":
-               {
-                  "name": "data",
-                  "type": "str"
-               },
-           "example": "data = basename(data)"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "system",
-           "name":"dirname",
-           "internal":"raw_dirname",
-           "desc": "Truncates the file name and returns only the directory name.",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"file|folder"
-            }            
-            ],           
-            "returns":
-               {
-                  "name": "data",
-                  "type": "folder"
-               },
-           "example": "dirname(data)"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "Convert",
-           "name":"GetDataType",
-           "internal":"raw_getdatatype",
-           "desc": "Gets the datatype of a file",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"file"
-            }            
-            ],
-            "returns": [
-               {
-                  "name": "data",
-                  "type": "str"
-               }
-            ],
-           "example": "datatype = GetDataType(data)"
-       },
-       {
-           "org": "SRLAB",
-           "package": "io",
-           "group": "text",
-           "name":"Extract",
-           "internal":"raw_extract",
-           "desc": "Extract text from a file",
-           "params":[  
-            {  
-               "name":"data",
-               "type":"file"
+         ]
+      },
+      {
+         "org": "Python",
+         "package": "Python",
+         "group": "system",
+         "name": "range",
+         "internal": "raw_range",
+         "returns": {
+            "name": "data",
+            "type": "any"
+         },
+         "desc": "Generates a range of numbers.",
+         "params": [
+            {
+               "name": "start",
+               "type": "int",
+               "default": 1
             },
-            {  
-               "name":"lines",
-               "type":"int",
+            {
+               "name": "end",
+               "type": "int",
+               "default": 10
+            }
+         ],
+         "example": "range(1, 10)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "Read",
+         "internal": "raw_read",
+         "desc": "Reads a file as bytes.",
+         "params": [
+            {
+               "name": "data",
+               "type": "file"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "byte[]"
+         },
+         "example": "data = Read(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "Write",
+         "internal": "raw_write",
+         "desc": "Writes text data to a file.",
+         "params": [
+            {
+               "name": "data",
+               "type": "file"
+            },
+            {
+               "name": "content",
+               "type": "any"
+            }
+         ],
+         "example": "Write(data, 'Text to write')"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "GetFiles",
+         "internal": "raw_get_files",
+         "desc": "Gets the names of files in a directory.",
+         "params": [
+            {
+               "name": "data",
+               "type": "folder"
+            },
+            {
+               "name": "pattern",
+               "type": "str",
+               "default": "''"
+            },
+            {
+               "name": "recursive",
+               "type": "bool",
+               "default": "False"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "file[]"
+         }
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "GetFolders",
+         "internal": "raw_get_folders",
+         "desc": "Gets the names of folders in a directory.",
+         "params": [
+            {
+               "name": "data",
+               "type": "folder"
+            },
+            {
+               "name": "pattern",
+               "type": "str",
+               "default": "''"
+            },
+            {
+               "name": "recursive",
+               "type": "bool",
+               "default": "False"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "folder[]"
+         }
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "Remove",
+         "internal": "raw_remove",
+         "desc": "Removes a file or directory.",
+         "params": [
+            {
+               "name": "data",
+               "type": "file|folder"
+            }
+         ],
+         "example": "Remove(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "CreateFolder",
+         "internal": "raw_makedirs",
+         "desc": "Creates a directory.",
+         "params": [
+            {
+               "name": "data",
+               "type": "folder"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "folder"
+         },
+         "example": "folder = CreateFolder(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "isfile",
+         "internal": "raw_isfile",
+         "desc": "Returns true if a specified path is a file; false if it's a directory.",
+         "params": [
+            {
+               "name": "data",
+               "type": "file|folder"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "bool"
+         },
+         "example": "isfile(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "basename",
+         "internal": "raw_basename",
+         "desc": "Truncates the path and returns only the filename.",
+         "params": [
+            {
+               "name": "data",
+               "type": "file|folder"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "str"
+         },
+         "example": "data = basename(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "system",
+         "name": "dirname",
+         "internal": "raw_dirname",
+         "desc": "Truncates the file name and returns only the directory name.",
+         "params": [
+            {
+               "name": "data",
+               "type": "file|folder"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "folder"
+         },
+         "example": "dirname(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "Convert",
+         "name": "GetDataType",
+         "internal": "raw_getdatatype",
+         "desc": "Gets the datatype of a file",
+         "params": [
+            {
+               "name": "data",
+               "type": "file"
+            }
+         ],
+         "returns": [
+            {
+               "name": "data",
+               "type": "str"
+            }
+         ],
+         "example": "datatype = GetDataType(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "io",
+         "group": "text",
+         "name": "Extract",
+         "internal": "raw_extract",
+         "desc": "Extract text from a file",
+         "params": [
+            {
+               "name": "data",
+               "type": "file"
+            },
+            {
+               "name": "lines",
+               "type": "int",
                "default": 0
             },
-            {  
-               "name":"start",
-               "type":"int",
+            {
+               "name": "start",
+               "type": "int",
                "default": 0
-            } 
-            ],
-            "returns":
-               {
-                  "name": "data",
-                  "type": "file"
-               },
-           "example": "data = io.Extract(data)"
-       },
-       {
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "file"
+         },
+         "example": "data = io.Extract(data)"
+      },
+      {
          "package": "",
          "name": "JoinPath",
          "internal": "raw_joinpath",
@@ -313,23 +303,80 @@
          "desc": "",
          "href": "",
          "params": [
-           {
-             "name": "data",
-             "type": "file",
-             "desc": ""
-           },
-           {
-             "name": "data2",
-             "type": "file",
-             "desc": ""
-           }
+            {
+               "name": "data",
+               "type": "file",
+               "desc": ""
+            },
+            {
+               "name": "data2",
+               "type": "file",
+               "desc": ""
+            }
          ],
          "returns": [
-           {
-             "name": "data",
-             "type": "file"
-           }
+            {
+               "name": "data",
+               "type": "file"
+            }
          ]
-       }
-	]
+      },
+      {
+         "org": "SRLAB",
+         "package": "dsl",
+         "group": "system",
+         "name": "int",
+         "internal": "raw_int",
+         "desc": "Converts a value to integer.",
+         "params": [
+            {
+               "name": "data",
+               "type": "any"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "int"
+         },
+         "example": "dsl.int(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "dsl",
+         "group": "system",
+         "name": "str",
+         "internal": "raw_str",
+         "desc": "Converts a value to string.",
+         "params": [
+            {
+               "name": "data",
+               "type": "any"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "str"
+         },
+         "example": "dsl.str(data)"
+      },
+      {
+         "org": "SRLAB",
+         "package": "dsl",
+         "group": "system",
+         "name": "float",
+         "internal": "raw_float",
+         "desc": "Converts a value to float.",
+         "params": [
+            {
+               "name": "data",
+               "type": "any"
+            }
+         ],
+         "returns": {
+            "name": "data",
+            "type": "float"
+         },
+         "example": "dsl.float(data)"
+      }
+   ]
 }

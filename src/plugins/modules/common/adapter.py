@@ -48,7 +48,15 @@ def raw_getdatatype(context, data):
     fs = Utility.fs_by_prefix_or_guess(data)
     return fs.getdatatype(data)
 
-@staticmethod
+def raw_int(context, *args, **kwargs):
+    return int(args[0])
+
+def raw_str(context, *args, **kwargs):
+    return str(args[0])
+
+def raw_float(context, *args, **kwargs):
+    return float(args[0])
+
 def raw_extract(context, *args, **kwargs):
     import os
     import uuid

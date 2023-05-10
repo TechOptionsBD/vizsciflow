@@ -7,6 +7,8 @@ function AddLibraryViewModel(userName) {
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
     self.NewVenvName = ko.observable('');
+    self.NewDockerImageName = ko.observable('');
+    self.NewDockerContainerName = ko.observable('');
     self.isFuncExpanded = ko.observable(false);
     self.textToggleFuncArea = ko.observable('More..');
     self.TList = ko.observableArray();
@@ -26,6 +28,21 @@ function AddLibraryViewModel(userName) {
         return self.NewVenvName() === undefined || self.NewVenvName().trim().length == 0; 
     });
 
+    self.hasDockerContainerName = ko.computed(function () { 
+        return ((self.NewDockerImageName() !== undefined && self.NewDockerContainerName() !== undefined) && (self.NewDockerImageName().trim().length > 0 && self.NewDockerContainerName().trim().length > 0)); 
+    });
+    
+    self.NotHasDockerContainerName = ko.computed(function () { 
+        return self.NewDockerImageName() === undefined || self.NewDockerContainerName() === undefined || self.NewDockerImageName().trim().length == 0 || self.NewDockerContainerName().trim().length == 0; 
+    });
+    self.hasDockerContainerNameActive = ko.computed(function () { 
+        return self.NewDockerImageName() !== undefined && self.NewDockerImageName().trim().length > 0;
+    });
+    
+    self.NotHasDockerContainerNameActive = ko.computed(function () { 
+        return self.NewDockerImageName() === undefined || self.NewDockerImageName().trim().length == 0; 
+    });
+
     self.addNewVenv = function() {
         if (self.NewVenvName().trim().length == 0)
             return;
@@ -42,6 +59,26 @@ function AddLibraryViewModel(userName) {
             showXHRText(jqXHR);
         });
     }
+
+    self.addNewDockerContainer = function() {
+        // if (self.NewDockerImageName().trim().length == 0 && self.NewDockerContainerName().trim().length == 0)
+        //     return;
+        // ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.NewDockerImageName(), 'newdockercontainername' : self.NewDockerContainerName()}).done(function (data) {
+        //     if (!data['err']){
+        //         self.NewDockerImageName('');
+        //         self.newdockercontainername('');
+        //     }
+        //     else {
+        //         $("#add-library-info").text("Error on creating docker: " + data['err']);
+        //     }
+            
+        // }).fail(function (jqXHR) {
+        //     showXHRText(jqXHR);
+        // });
+        alert('done');
+        console.log('done');
+    }
+
     self.loadpipvenvs = function(){
         self.pippkgsList.removeAll();
         ajaxcalls.simple(self.tasksURI, 'GET', { 'pyenvs': '' }).done(function (data) {

@@ -74,7 +74,6 @@
 
 
 <!-- app js files -->
-<script src="/static/app.js/editTaskViewModel.js"></script>
 <script src="/static/app.js/scriptViewModel.js"></script>
 <script src="/static/app.js/handleModeViewModel.js"></script>
 <script src="/static/app.js/browserViewModel.js"></script>
@@ -1959,40 +1958,6 @@
         </div>
     </div>
 </div> -->
-
-<div id="edit" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true" style="background: #fff">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">Ã—</button>
-        <h3 id="editDialogLabel">Edit Task</h3>
-    </div>
-    <div class="modal-body">
-        <form class="form-horizontal">
-            <div class="control-group">
-                <label class="control-label" for="inputTask">Task</label>
-                <div class="controls">
-                    <input data-bind="value: module" type="text" id="inputTask" placeholder="Module" style="width: 150px;">
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="inputDescription">Name</label>
-                <div class="controls">
-                    <input data-bind="value: name" type="text" id="inputDescription" placeholder="Name" style="width: 300px;">
-                </div>
-            </div>
-            <div class="control-group">
-                <div class="controls">
-                    <label class="checkbox">
-                        <input type="checkbox"> Done
-                    </label>
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button data-bind="click:editTask" class="btn btn-primary">Update Task</button>
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-    </div>
-</div>
 		
 <!-- <div id="metadataView" class="container-fluid" aria-hidden="true"> -->
 <!-- 	<h4>Metadata information</h4> -->
@@ -3325,7 +3290,6 @@ function typeInTextarea(el, newText) {
 		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
 		var addProvPluginViewModel = new AddProvPluginViewModel(ace);
         var sampleViewModel = new SampleViewModel(editor);
-		var editTaskViewModel = new EditTaskViewModel();
 		var provgraphviewmodel = new provgraphViewModel();
 		var monitorGraphViewModel = new monitorGraphViewModel();
 		var browserViewModel = new BrowserViewModel();
@@ -3365,7 +3329,6 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(addProvPluginViewModel, $('#addProv')[0]);
         ko.applyBindings(samplesViewModel.sampleViewModelToAdd, $('#addSample')[0]);
 		ko.applyBindings(sampleViewModel, $('#argumentsPanel')[0]);
-        ko.applyBindings(editTaskViewModel, $('#edit')[0]);
         ko.applyBindings(metadataViewModel, $('#metadataView')[0]);
 		ko.applyBindings(metadataViewModel, $('#update-metadata-dialog')[0]);
 		// ko.applyBindings(tasksViewModel, $("#executeSection")[0]);

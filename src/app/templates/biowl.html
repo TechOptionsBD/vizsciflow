@@ -996,19 +996,32 @@
 								<form role="form" data-bind="foreach: service.items">
 									<div class="row service-form-group" data-bind="visible: ($index() < 2 || $parent.isFuncExpanded)">
 										<label class="span-sm-6" data-bind="text: key"></label>
-										<div class="span-sm-14" data-bind="ifnot: $index() == 9">
-											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="if: $index() == 7">
+										<div class="span-sm-14" data-bind="ifnot: $index() == 10">
+											<!-- ko if: $index() == 8 -->
+											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="">
 												<select style="padding: 5px 9px;
 												width: 100%;
 												border-radius: 5px;
 												font-size: 17px;
 												font-weight: 100;" data-bind="enable: $parent.NotHasNewVenvName, options: $parent.pippkgsList, value: value, event: {change: $parents.liveJsonView}" id="pippkgsList"></select>
 											</div>
-											<div data-bind="ifnot: $index() == 7">
+											<!-- /ko -->
+											<!-- ko if: $index() == 9 -->
+											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="">
+												<select style="padding: 5px 9px;
+												width: 100%;
+												border-radius: 5px;
+												font-size: 17px;
+												font-weight: 100;" data-bind="enable: $parent.NotHasDockerContainerName, options: $parent.containersList, value: value, event: {change: $parents.liveJsonView}" id="containersList"></select>
+											</div>
+											<!-- /ko -->
+											<!-- ko ifnot: $index() == 8  -->
+											<div data-bind="ifnot: $index() == 9">
 												<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 											</div>
+											<!-- /ko -->
 										</div>
-										<div data-bind="if: $index() == 9">
+										<div data-bind="if: $index() == 10">
 											<input type="file" class="form-control-file" id="reqfile" style="margin-left: 15px;" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 										</div>
 									</div>
@@ -1115,9 +1128,9 @@
 								<div class="span-sm-14">
 									<input type="text" data-bind="textInput: NewDockerImageName" name="docker" list="dockerimageName" class="form-control" style="width: 100%; margin-top: 5px;"/>
 									<datalist id="dockerimageName">
-									  <option value="Pen">Pen</option>
-									  <option value="Pencil">Pencil</option>
-									  <option value="Paper">Paper</option>
+									  <option value="python">python</option>
+									  <option value="celery">celery</option>
+									  <option value="flask">flask</option>
 									</datalist>
 								</div>
 

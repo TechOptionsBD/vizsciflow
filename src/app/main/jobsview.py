@@ -612,8 +612,17 @@ def functions():
             if 'pyenvs' in request.args:
                 pyvenvs = get_pyvenvs(current_user.id)
                 return jsonify(pyvenvs = pyvenvs)
+            
+            if 'pycontainers' in request.args:
+                pycontainers = get_pycontainers(current_user.id)
+                return jsonify(pycontainers = pycontainers)
+
             if 'newpyvenvs' in request.args:
                 return new_pyvenvs(request.args.get('newpyvenvs'), request.args.get('pyversion'), current_user.id)
+            
+            if 'newdockerimagename' in request.args:
+                return new_dockerenvs(request.args.get('newdockerimagename'), request.args.get('newdockercontainername'), current_user.id)
+            
             if 'check_function' in request.args:
                 return check_service_function(request)
             elif 'codecompletion' in request.args:

@@ -13,6 +13,7 @@ function AddLibraryViewModel(userName) {
     self.textToggleFuncArea = ko.observable('More..');
     self.TList = ko.observableArray();
     self.pippkgsList = ko.observableArray();
+    self.containersList = ko.observableArray();
     self.radioSelectedOptionValue = ko.observable(''); 
     self.moduleId = null;
     self.droppermoduleId = null;
@@ -61,20 +62,21 @@ function AddLibraryViewModel(userName) {
     }
 
     self.addNewDockerContainer = function() {
-        // if (self.NewDockerImageName().trim().length == 0 && self.NewDockerContainerName().trim().length == 0)
-        //     return;
-        // ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.NewDockerImageName(), 'newdockercontainername' : self.NewDockerContainerName()}).done(function (data) {
-        //     if (!data['err']){
-        //         self.NewDockerImageName('');
-        //         self.newdockercontainername('');
-        //     }
-        //     else {
-        //         $("#add-library-info").text("Error on creating docker: " + data['err']);
-        //     }
+        if (self.NewDockerImageName().trim().length == 0 && self.NewDockerContainerName().trim().length == 0)
+            return;
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.NewDockerImageName(), 'newdockercontainername' : self.NewDockerContainerName()}).done(function (data) {
+            if (!data['err']){
+                self.NewDockerImageName('');
+                self.newdockercontainername('');
+                self.loadcontainers();
+            }
+            else {
+                $("#add-library-info").text("Error on creating docker: " + data['err']);
+            }
             
-        // }).fail(function (jqXHR) {
-        //     showXHRText(jqXHR);
-        // });
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
         alert('done');
         console.log('done');
     }
@@ -85,6 +87,19 @@ function AddLibraryViewModel(userName) {
             
             $(data["pyvenvs"]).each((index, element)=> {
                 self.pippkgsList.push(element);
+            });
+            
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    }
+
+    self.loadcontainers = function(){
+        self.containersList.removeAll();
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'pycontainers': '' }).done(function (data) {
+            
+            $(data["pycontainers"]).each((index, element)=> {
+                self.containersList.push(element);
             });
             
         }).fail(function (jqXHR) {
@@ -112,6 +127,7 @@ function AddLibraryViewModel(userName) {
 
             self.getUsers();
             self.loadpipvenvs();
+            self.loadcontainers();
             self.getCodeEditor().setValue(demoservice.demoservice.script, 1);
             self.editService(demoservice.demoservice.mapper)
             
@@ -161,8 +177,9 @@ function AddLibraryViewModel(userName) {
             group: '',
             desc: '',
             href: '',
-            pipvenv: '',
             pippkgs: '',
+            pipvenv: '',
+            container: '',
             reqfile: '',
             // example: 'data = MyService(data)'
         }
@@ -177,6 +194,7 @@ function AddLibraryViewModel(userName) {
         refData.pippkgs && self.service.set('pippkgs',refData.pippkgs)
         refData.reqfile && self.service.set('reqfile',refData.reqfile)
         refData.pipvenv && self.service.set('pipvenv',refData.pipvenv)
+        refData.container && self.service.set('container',refData.container)
         
         self.serviceParams([]);
         refData.params.map(param => {

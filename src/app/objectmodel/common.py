@@ -238,6 +238,10 @@ def get_pyvenvs(user_id):
         pyvenvs.append(t)
     return pyvenvs
 
+def get_pycontainers(user_id):
+    pycontainers = ['backend', 'frontend', 'celery']
+    return pycontainers
+
 def new_pyvenvs(venvname, pyversion, user_id):
     from app import app
     from app.system.exechelper import run_script
@@ -249,6 +253,9 @@ def new_pyvenvs(venvname, pyversion, user_id):
     run_script(os.path.join(thispath, pyversion + ".sh"), path)
 
     return json.dumps("")
+
+def new_dockerenvs(imagename, containername, user_id):
+    return json.dumps({"imagename": imagename,"containername": containername, "user_id":user_id})
 
 def pip_install_in_venv(pipvenv, pippkgs):
     outs = []

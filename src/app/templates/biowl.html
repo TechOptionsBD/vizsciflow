@@ -91,6 +91,7 @@
 <script src="/static/app.js/runnablesViewModel.js"></script>
 <script src="/static/app.js/activitiesViewModel.js"></script>
 <script src="/static/app.js/addLibraryViewModel.js"></script>
+<script src="/static/app.js/pagingVM.js"></script>
 <script src="/static/app.js/aceEditor.js"></script>
 <script src="/static/app.js/detailGraphViewModel.js"></script>
 <script src="/static/app.js/controlFlowViewModel.js"></script>
@@ -345,7 +346,43 @@
 						<div style="clear: both" ></div>
 					</div>
 				</div>
+				<div class="container-fluid" id="pagination">
+					  <div class="row">
+						<div class="col-lg-12">
+						  <table class="table table-striped table-bordered">
+							<tbody data-bind="foreach:PagaData">
+							  <tr data-bind="text:$data.name"></tr>
+							</tbody>
+						  </table>
+				  
+						  <!-- ko with:Paging()-->
+						  <ul data-bind="visible: NeedPaging" class="flip pull-left pagination pagination-sm">
+							<li data-bind="css: { disabled: !FirstPageActive() }">
+							  <a data-bind="click: GoToFirst">First</a>
+							</li>
+							<li data-bind="css: { disabled: !PreviousPageActive() }">
+							  <a data-bind="click: GoToPrevious">Previous</a>
+							</li>
+				  
+							<!-- ko foreach: GetPages() -->
+							<li data-bind="css: { active: $parent.CurrentPage() === $data }">
+							  <a data-bind="click: $parent.GoToPage, text: $data"></a>
+							</li>
+							<!-- /ko -->
+				  
+							<li data-bind="css: { disabled: !NextPageActive() }">
+							  <a data-bind="click: GoToNext">Next</a>
+							</li>
+							<li data-bind="css: { disabled: !LastPageActive() }">
+							  <a data-bind="click: GoToLast">Last</a>
+							</li>
+						  </ul>
+						  <!-- /ko -->
+						</div>
+					  </div>
+				</div>
 			</div>
+
 			<div id="activitiesPanel" class="panel panel-primary">
 				<div class="panel-heading">
 					<button class="close closeComponent" title="Close" type="button">×</button>
@@ -3288,6 +3325,7 @@ function typeInTextarea(el, newText) {
 
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
+		var pagingVM = new mainViewModel();
 		var addProvPluginViewModel = new AddProvPluginViewModel(ace);
         var sampleViewModel = new SampleViewModel(editor);
 		var provgraphviewmodel = new provgraphViewModel();
@@ -3326,6 +3364,9 @@ function typeInTextarea(el, newText) {
         ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
         ko.applyBindings(addLibraryViewModel, $('#addPackage')[0]);
+
+        ko.applyBindings(pagingVM, $('#pagination')[0]);
+
 		ko.applyBindings(addProvPluginViewModel, $('#addProv')[0]);
         ko.applyBindings(samplesViewModel.sampleViewModelToAdd, $('#addSample')[0]);
 		ko.applyBindings(sampleViewModel, $('#argumentsPanel')[0]);

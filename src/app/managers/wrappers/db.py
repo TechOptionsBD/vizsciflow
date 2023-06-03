@@ -1,7 +1,8 @@
 from app.objectmodel.models.rdb import *
-from dsl.fileop import FolderItem
+from dsl.fileop import FolderItem, PosixFileSystem
 from app.objectmodel.common import isiterable, str_or_empty, dict2obj
 from sqlalchemy import text
+from werkzeug.utils import secure_filename
 
 class UserManager():
     @staticmethod
@@ -109,39 +110,26 @@ class DataManager():
             DataManager.add_data_to_task(triplet[0], value, task)
 
     @staticmethod
-    def upload_chunk_data(user_id, current_chunk, total_chunks, offset, total_size_file, fullpath):
-        dataset_id = request.form["dataset_id"]
-        file = request.files['file']
-        file_uuid = request.form['dzuuid']
-        # current_chunk = int(request.form['dzchunkindex'])
-        # total_chunks = int(request.form['dztotalchunkcount'])
-        # offset = int(request.form['dzchunkbyteoffset'])
-        # total_size_file = int(request.form['dztotalfilesize'])
+    def upload_chunk_data(user_id, file, file_uuid, current_chunk, total_chunks, offset, total_size_file, folder):
         all_data=[]
 
-        filepath = os.path.join(fullpath, file.filename)
-        group_member_id = GroupMember.query.filter_by(group_id = group_id, user_id = user_id).first().id
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(folder, filename)
+        if os.path.exists(filepath): # and current_chunk == 0
+            data_chunk = DataChunk.query.filter_by(path = filepath).first()
+            if not data_chunk:
+                raise ValueError("No chunk saved into the database.")
 
-        # if os.path.exists(os.path.join(fullpath, file.filename)): # and current_chunk == 0
-        #     try:
-        #         data_chunk = DataChunk.query.filter_by(group_member_id=group_member_id, dataset_id = dataset_id, path = filepath).first()
-        #         if not data_chunk:
-        #             raise ValueError("No chunk saved into the database.")
+            if current_chunk < int(data_chunk.chunk):
+                return [{'fileuuid': file_uuid,
+                    'path': data_chunk.path,
+                    'chunk': int(data_chunk.chunk)+1,
+                    'totalchunks':data_chunk.total_chunk,
+                    'uploadedsize': data_chunk.uploaded_size,
+                    'totalsize':data_chunk.total_size}]
 
-        #         if current_chunk < int(data_chunk.chunk):
-        #             return [{'File UUID': file_uuid,
-        #                 'File Path': data_chunk.path,
-        #                 'Chunk Number': int(data_chunk.chunk)+1,
-        #                 'Total Number of Chunk':data_chunk.total_chunk,
-        #                 'Size of Uploaded File': data_chunk.uploaded_size,
-        #                 'Total Size of file':data_chunk.total_size}]
-        #     except:
-        #         return {'error_msg': file.filename +' already exists', 
-        #                 'error_message': 400}
-
-        saved_path, file_path = fs.save_upload(file,fullpath,offset)
-        if current_chunk == 0:
-            fs.set_permission_to_user_and_group(file_path)
+        fs = PosixFileSystem('/')
+        filepath = fs.save_upload(file, filepath, offset)
 
         if current_chunk < (total_chunks - 1):
         #     # Log entry for uploaiding each of the data files 
@@ -150,44 +138,24 @@ class DataManager():
         #         os.path.join(MiscellaneousUtility.get_repo_dir(), RepositoryPaths.get_group_log_file(group_id)),
         #         log_info)
             
-            each_data={'File UUID': file_uuid,
-                    'File Path': os.path.join(fullpath, file.filename),
-                    'Chunk Number':current_chunk+1,
-                    'Total Number of Chunk':total_chunks,
-                    'Size of Uploaded File': os.path.getsize(filepath),
-                    'Total Size of file':total_size_file}
+            each_data={'fileuuid': file_uuid,
+                    'path': filepath,
+                    'chunk':current_chunk+1,
+                    'totalchunks':total_chunks,
+                    'uploadedsize': os.path.getsize(filepath),
+                    'totalsize':total_size_file}
             all_data.append(each_data)
 
-            DataChunk.add(group_member_id, dataset_id, file_uuid, each_data['File Path'], current_chunk, total_chunks, each_data['Size of Uploaded File'], total_size_file)
+            DataChunk.add(user_id, file_uuid, filepath, current_chunk, total_chunks, each_data['Size of Uploaded File'], total_size_file)
 
         else:
             # This was the last chunk, the file should be complete and the size we expect
             if os.path.getsize(filepath) != total_size_file:
-                return {'error_msg':'Size mismatch', 
-                        'error_message': 500},{}
+                raise ValueError(f'Size mismatch found {os.path.getsize(filepath)}B, expected: {total_size_file}B')
             else:
-                if not fs.isfile(saved_path):
-                    return saved_path
-                ds = PathUtility.datasource_by_prefix_or_default(saved_path)
-                if not ds:
-                    return {'error_msg':'Datasource Not Found', 
-                            'error_message': 500},{}
-
-                # Log entry for uploaiding each of the data files 
-                # log_info = Logging.create_log_message(LogType.INFO,'Datafile '+ file.filename + ' is uploaded by '+ current_user.name +' at '+ dataset_name +' Dataset with version '+ version_name)
-                # Logging.write_log_message(
-                #     os.path.join(MiscellaneousUtility.get_repo_dir(), RepositoryPaths.get_group_log_file(group_id)),
-                #     log_info)
-                
-                eachdata_mimetype_id = DataManagerUtility.mimetype_id_by_request_or_default(file.mimetype, file.filename.split('.')[-1])
-                if saved_path.startswith(os.path.sep):
-                    saved_path = saved_path[1:]
-                data = Data.add(ds.id, saved_path, dataset_id)
-                # DataPermission.add(user_id, data.id, AccessRights.Owner)
-                DataMimeType.add(data.id,eachdata_mimetype_id,dataset_id)
-                fullpath, mime = DataManagerUtility.get_mimetype(saved_path, eachdata_mimetype_id)
-                all_data.append(data.to_json_allocation(fullpath, mime))
-                DataChunk.delete(group_member_id, dataset_id, fullpath)
+                if not fs.isfile(filepath):
+                    return filepath
+                DataChunk.delete(filepath)
                 
         return all_data
     

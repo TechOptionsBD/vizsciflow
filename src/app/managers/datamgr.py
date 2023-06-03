@@ -144,7 +144,7 @@ class DataManager():
     def get_task_data_value(self, data_id):
         return self.persistance.get_task_data_value(data_id)
 
-    def upload_chunk_data(self, user_id, dataset_id, file_uuid, current_chunk, total_chunks, offset, total_size_file, fullpath):
-        return self.persistance.upload_chunk_data(user_id, current_chunk, total_chunk, offset, total_size_file)
+    def upload_chunk_data(self, user_id, file, file_uuid, current_chunk, total_chunks, offset, total_size_file, folder):
+        return self.persistance.upload_chunk_data(user_id, file, file_uuid, current_chunk, total_chunks, offset, total_size_file, folder)
 
 datamanager = DataManager()

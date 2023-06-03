@@ -2539,6 +2539,7 @@ class InData(db.Model):
 class DataChunk(db.Model):
     __tablename__ = 'data_chunks'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=True)
     file_uuid = db.Column(db.Text)
     path = db.Column(db.Text)
     chunk = db.Column(db.Integer)

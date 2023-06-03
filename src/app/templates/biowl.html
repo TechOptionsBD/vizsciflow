@@ -1004,11 +1004,12 @@
 						acceptedFiles: ".zip, .tar",
 						init: function() {
 						this.on("success", function(file, response) {
-							addLibraryViewModel.droppermoduleId = response.droppermoduleId;
+							addLibraryViewModel.modulepath = response.path;
 							// Handle successful upload
 						});
 						this.on("error", function(file, message) {
 							// Handle upload error
+							addLibraryViewModel.modulepath = "";
 						});
 					}
 					}
@@ -1248,12 +1249,13 @@
 					acceptedFiles: ".zip, .tar",
 					init: function() {
 						this.on("success", function(file, response) {
-							addLibraryViewModel.moduleId = response.moduleId;
+							addLibraryViewModel.modulepath = response.path;
 							// Handle successful upload
 						});
 
 						this.on("error", function(file, message) {
 							// Handle upload error
+							addLibraryViewModel.modulepath = "";
 						});
 
 						// TODO: sakil will complete it after backend done

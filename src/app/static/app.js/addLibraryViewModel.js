@@ -15,8 +15,7 @@ function AddLibraryViewModel(userName) {
     self.pippkgsList = ko.observableArray();
     self.containersList = ko.observableArray();
     self.radioSelectedOptionValue = ko.observable(''); 
-    self.moduleId = null;
-    self.droppermoduleId = null;
+    self.modulepath = "";
    
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
@@ -351,12 +350,9 @@ function AddLibraryViewModel(userName) {
         serviceFormatted.returns = self.serviceReturns; 
         
         var formdata = new FormData();
-        var files = $("#droppermodule").get(0).files;
-        if(self.droppermoduleId){
-            formdata.append("droppermoduleId", self.droppermoduleId);
+        if(self.modulepath){
+            formdata.append("library", self.modulepath);
         }
-        if (files.length > 0)
-            formdata.append('library', files[0]); //use get('files')[0]
         formdata.append('mapper', ko.toJSON(serviceFormatted));//you can append it to formdata with a proper parameter name
         formdata.append('script', self.codeEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
         
@@ -398,8 +394,8 @@ function AddLibraryViewModel(userName) {
     self.getCodeEditor = function() { return self.codeEditor; }
 
     self.addPackage = function(task) {
-        
-        if ($("#packagemodule").val() == "") {
+
+        if(!self.modulepath){
             $("#add-package-info").text("A tool/module must be selected in zip/tar format.");
             return;
         }
@@ -407,10 +403,8 @@ function AddLibraryViewModel(userName) {
         //myDropzone.processQueue();
 
         var formdata = new FormData();
+        formdata.append("package", self.modulepath);
         formdata.append('update', $('#inlineCheckbox1').is(":checked") ? 1 : 0);
-        if(self.moduleId){
-            formdata.append("moduleId", self.moduleId);
-        }
         
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                                

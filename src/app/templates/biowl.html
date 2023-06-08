@@ -1006,6 +1006,11 @@
 								// Handle upload error
 								addLibraryViewModel.modulepath = "";
 							});
+							this.on("addedfile", function(file){
+								if(this.files.length > 1){
+									this.removeFile(this.files[0]);
+								}
+							});
 						}
 					}
 				}
@@ -1253,6 +1258,11 @@
 						this.on("error", function(file, message) {
 							// Handle upload error
 							addLibraryViewModel.modulepath = "";
+						});
+						this.on("addedfile", function(file){
+							if(this.files.length > 1){
+								this.removeFile(this.files[0]);
+							}
 						});
 					}
 				}

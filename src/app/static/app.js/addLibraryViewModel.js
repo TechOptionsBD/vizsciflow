@@ -139,7 +139,12 @@ function AddLibraryViewModel(userName) {
     self.beginAddLibrary = function () {
         self.getLibrary();
         centerDialog($('#add'));
-        $('#add').modal('show');
+        $('#add').modal('show')
+            .on('show.bs.modal', function () {
+                if(dropperModule.files.length > 0){
+                    dropperModule.removeAllFiles();
+                }
+            });
     }
 
     //for uploading package
@@ -152,6 +157,11 @@ function AddLibraryViewModel(userName) {
                 $("#add-package-info").text("");
                 $("#packagemodule").val("");
                 $( "#packagemodule" ).change();
+
+                if(dropperPackage.files.length > 0){
+                    dropperPackage.removeAllFiles();
+                }
+
             });
         }
 
@@ -399,8 +409,6 @@ function AddLibraryViewModel(userName) {
             $("#add-package-info").text("A tool/module must be selected in zip/tar format.");
             return;
         }
-
-        //myDropzone.processQueue();
 
         var formdata = new FormData();
         formdata.append("package", self.modulepath);

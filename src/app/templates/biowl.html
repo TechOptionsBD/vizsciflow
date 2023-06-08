@@ -979,42 +979,9 @@
 				<label class="span-sm-4" style="padding: 0;" for="droppermodule">Module</label>
 				<br>
 				<hr>			
-				<form method="POST" action='/uploadmodule' class="dropzone dz-clickable" id="droppermodule" enctype="multipart/form-data">
+				<form method="POST" class="dropzone dz-clickable" id="droppermodule" enctype="multipart/form-data">
 				</form>
 
-			<script type="application/javascript">
-				function initmodule() {
-					Dropzone.options.droppermodule = {
-						paramName: 'file',
-						chunking: true,
-						forceChunking: true,
-						retryChunks: true,
-						url: '/uploadmodule',
-						maxFilesize: 1025, // megabytes
-						parallelChunkUploads: false,
-						chunkSize: 2000000, // bytes
-						timeout: 300000, // 5 minutes
-						autoProcessQueue: true,
-						dictRemoveFile: "Remove",
-						acceptedFiles: ".zip, .tar",
-						initmodule: function() {
-							this.on("success", function(file, response) {
-								addLibraryViewModel.modulepath = response.path;
-								// Handle successful upload
-							});
-							this.on("error", function(file, message) {
-								// Handle upload error
-								addLibraryViewModel.modulepath = "";
-							});
-							this.on("addedfile", function(file){
-								if(this.files.length > 1){
-									this.removeFile(this.files[0]);
-								}
-							});
-						}
-					}
-				}
-			</script>
 			<br> <br>
 			<div id="exTabService" class="controls">
 				<ul class="nav nav-tabs">
@@ -1224,7 +1191,7 @@
 		</div>
 		</div>
 
-		<form method="POST" action='/upload' class="dropzone dz-clickable" id="dropper" enctype="multipart/form-data">
+		<form method="POST" class="dropzone dz-clickable" id="dropper" enctype="multipart/form-data">
   		</form>
 
 		  <br>
@@ -1234,41 +1201,6 @@
 			  <button data-bind="click: addPackage" class="btn btn-primary" id="packageuploadbutton">Add</button>
 			  <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		  </div>
-
-		  <script type="application/javascript">
-			function init() {
-				Dropzone.options.dropper = {
-					paramName: 'file',
-					chunking: true,
-					forceChunking: true,
-					retryChunks: true,
-					url: '/upload',
-					maxFilesize: 1025, // megabytes
-					parallelChunkUploads: false,
-					chunkSize: 2000000, // bytes
-					timeout: 300000, // 5 minutes
-					autoProcessQueue: true,
-					acceptedFiles: ".zip, .tar",
-					init: function() {
-						this.on("success", function(file, response) {
-							addLibraryViewModel.modulepath = response.path;
-							// Handle successful upload
-						});
-
-						this.on("error", function(file, message) {
-							// Handle upload error
-							addLibraryViewModel.modulepath = "";
-						});
-						this.on("addedfile", function(file){
-							if(this.files.length > 1){
-								this.removeFile(this.files[0]);
-							}
-						});
-					}
-				}
-			}
-		</script>
-		
 		<br>
 		<br>
 	
@@ -2880,7 +2812,40 @@
 			}, 200);
 
 	}
-	
+	Dropzone.autoDiscover = false;
+	var dropperOptions = {
+			paramName: 'file',
+			chunking: true,
+			forceChunking: true,
+			retryChunks: true,
+			url: '/upload',
+			maxFilesize: 1025, // megabytes
+			parallelChunkUploads: false,
+			chunkSize: 2000000, // bytes
+			timeout: 300000, // 5 minutes
+			autoProcessQueue: true,
+			acceptedFiles: ".zip, .tar",
+			init: function() {
+				this.on("success", function(file, response) {
+					addLibraryViewModel.modulepath = file.xhr.responseText;
+					// Handle successful upload
+				});
+
+				this.on("error", function(file, message) {
+					// Handle upload error
+					addLibraryViewModel.modulepath = "";
+				});
+				this.on("addedfile", function(file){
+					while(this.files.length > 1){
+						this.removeFile(this.files[0]);
+					}
+				});
+			}
+		}
+
+		
+	var dropperPackage = new Dropzone("#dropper", dropperOptions);
+	var dropperModule = new Dropzone("#droppermodule", dropperOptions);
     $(window).on('load', function() {
     	 
     	$('#refresh').hide();
@@ -2899,9 +2864,6 @@
                 });
             });
         });
-		
-        
-        
     });
 
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
@@ -3665,9 +3627,6 @@ function typeInTextarea(el, newText) {
           button.classList.add("show-new-add");
         }
     });
-	
-	init();
-	initmodule();
 </script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}

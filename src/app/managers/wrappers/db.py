@@ -111,52 +111,41 @@ class DataManager():
 
     @staticmethod
     def upload_chunk_data(user_id, file, file_uuid, current_chunk, total_chunks, offset, total_size_file, folder):
-        all_data=[]
-
         filename = secure_filename(file.filename)
         filepath = os.path.join(folder, filename)
         if os.path.exists(filepath): # and current_chunk == 0
             data_chunk = DataChunk.query.filter_by(path = filepath).first()
             if not data_chunk:
-                raise ValueError("No chunk saved into the database.")
+                raise ValueError("The file exists, but no chunk saved into the database for this file.")
 
             if current_chunk < int(data_chunk.chunk):
-                return [{'fileuuid': file_uuid,
+                return {'fileuuid': file_uuid,
                     'path': data_chunk.path,
                     'chunk': int(data_chunk.chunk)+1,
                     'totalchunks':data_chunk.total_chunk,
                     'uploadedsize': data_chunk.uploaded_size,
-                    'totalsize':data_chunk.total_size}]
+                    'totalsize':data_chunk.total_size}
 
         fs = PosixFileSystem('/')
         filepath = fs.save_upload(file, folder, offset)[1]
-        if current_chunk < (total_chunks - 1):
-        #     # Log entry for uploaiding each of the data files 
-        #     log_info = Logging.create_log_message(LogType.INFO, 'Chunk '+ str(current_chunk + 1) + ' of ' + str(total_chunks) + ' for Datafile ' + file.filename + ' is uploaded by '+ current_user.name +' at '+ dataset_name +' Dataset with version '+ version_name)
-        #     Logging.write_log_message(
-        #         os.path.join(MiscellaneousUtility.get_repo_dir(), RepositoryPaths.get_group_log_file(group_id)),
-        #         log_info)
-            
-            each_data={'fileuuid': file_uuid,
+        filesize = os.path.getsize(filepath)
+        each_data={'fileuuid': file_uuid,
                     'path': filepath,
                     'chunk':current_chunk+1,
                     'totalchunks':total_chunks,
-                    'uploadedsize': os.path.getsize(filepath),
+                    'uploadedsize': filesize,
                     'totalsize':total_size_file}
-            all_data.append(each_data)
 
-            DataChunk.add(user_id, file_uuid, filepath, current_chunk, total_chunks, each_data['uploadedsize'], total_size_file)
-
+        if current_chunk < (total_chunks - 1):
+            DataChunk.add(user_id, file_uuid, filepath, current_chunk, total_chunks, filesize, total_size_file)
         else:
             # This was the last chunk, the file should be complete and the size we expect
             if os.path.getsize(filepath) != total_size_file:
                 raise ValueError(f'Size mismatch found {os.path.getsize(filepath)}B, expected: {total_size_file}B')
             else:
-                if not fs.isfile(filepath):
-                    return filepath
                 DataChunk.delete(filepath)
                 
-        return all_data
+        return each_data
     
     @staticmethod
     def is_data_item(value):

@@ -24,26 +24,10 @@ from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response, send_file
 from werkzeug.utils import secure_filename
 from pathlib import Path
-from threading import Lock
 from collections import defaultdict
 import shutil
 import argparse
 import uuid
-
-storage_path: Path = Path(__file__).parent / "storage"
-chunk_path: Path = Path(__file__).parent / "chunk"
-
-allow_downloads = False
-dropzone_cdn = "https://cdnjs.cloudflare.com/ajax/libs/dropzone"
-dropzone_version = "5.7.6"
-dropzone_timeout = "120000"
-dropzone_max_file_size = "100000"
-dropzone_chunk_size = "1000000"
-dropzone_parallel_chunks = "true"
-dropzone_force_chunking = "true"
-
-lock = Lock()
-chunks  = defaultdict(list)
 
 from ..managers.usermgr import usermanager
 from ..managers.datamgr import datamanager
@@ -424,61 +408,29 @@ def upload_data_file(user_id, request, fullpath):
         each_data = data.to_json_allocation(fullpath, mime) 
         all_data.append(each_data) 
     return all_data
-
-def upload_data(request, fullpath, is_large_file_upload=False): 
-    link_error = False
-    try: # Adding data files in the dataset 
-        if request.form.get('folder_url'): 
-            sub_path = request.form['folder_url'] 
-            fullpath = os.path.join(fullpath, sub_path)
-        if request.form.get('full_path'): 
-            file_path = request.form['full_path'] 
-            file_dir, file_name = os.path.split(file_path) 
-            fullpath = os.path.join(fullpath, file_dir)
-            all_data = [] 
-            if is_large_file_upload and 'dzuuid' in request.form: 
-                all_data = upload_chunk_data(request, fullpath) 
-            else: 
-                all_data = upload_data_file(request, fullpath)
-
-            return all_data
-    except Exception as e: 
-        raise
-        
+      
 def upload_chunk_data(request):
-    file = request.files['file'] 
-    file_uuid = request.form['dzuuid'] 
-    current_chunk = int(request.form['dzchunkindex']) 
-    total_chunks = int(request.form['dztotalchunkcount']) 
-    offset = int(request.form['dzchunkbyteoffset']) 
-    total_filesize = int(request.form['dztotalfilesize'])
-    
-    folder = os.path.join(tempfile.gettempdir(), file_uuid)
-    return datamanager.upload_chunk_data(current_user.id, file, file_uuid, current_chunk, total_chunks, offset, total_filesize, folder)
-
-@main.route('/uploadmodule', methods=['GET', 'POST'])
-@login_required
-def uploadmodule():
     try:
         if not request.files.get("file"):
             raise ValueError("No file found for chunk upload.")
 
-        return upload_chunk_data(request)
-    
+        file = request.files['file'] 
+        file_uuid = request.form['dzuuid'] 
+        current_chunk = int(request.form['dzchunkindex']) 
+        total_chunks = int(request.form['dztotalchunkcount']) 
+        offset = int(request.form['dzchunkbyteoffset']) 
+        total_filesize = int(request.form['dztotalfilesize'])
+        
+        folder = os.path.join(tempfile.gettempdir(), file_uuid)
+        chunkinfo = datamanager.upload_chunk_data(current_user.id, file, file_uuid, current_chunk, total_chunks, offset, total_filesize, folder)
+        return chunkinfo['path'], 200
     except Exception as e:
         return str(e), 400
 
 @main.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
-    try:
-        if not request.files.get("file"):
-            raise ValueError("No file found for chunk upload.")
-
-        return upload_chunk_data(request)
-    
-    except Exception as e:
-        return str(e), 400
+    return upload_chunk_data(request)
 
 def create_lib_dir(activity, path):
     from app import app

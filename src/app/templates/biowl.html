@@ -88,7 +88,6 @@
 <script src="/static/app.js/samplesViewModel.js"></script>
 <script src="/static/app.js/gridStackViewModel.js"></script>
 <script src="/static/app.js/uiComponentsControl.js"></script>
-<script src="/static/app.js/pagingVM.js"></script>
 <script src="/static/app.js/runnablesViewModel.js"></script>
 <script src="/static/app.js/activitiesViewModel.js"></script>
 <script src="/static/app.js/addLibraryViewModel.js"></script>
@@ -989,23 +988,25 @@
 						paramName: 'file',
 						chunking: true,
 						forceChunking: true,
+						retryChunks: true,
 						url: '/uploadmodule',
-						maxFilesize: 1025, 
-						chunkSize: 1000000,
-						timeout: 180000, // 3 minutes
+						maxFilesize: 1025, // megabytes
+						parallelChunkUploads: false,
+						chunkSize: 2000000, // bytes
+						timeout: 300000, // 5 minutes
 						autoProcessQueue: true,
 						dictRemoveFile: "Remove",
 						acceptedFiles: ".zip, .tar",
-						init: function() {
-						this.on("success", function(file, response) {
-							addLibraryViewModel.modulepath = response.path;
-							// Handle successful upload
-						});
-						this.on("error", function(file, message) {
-							// Handle upload error
-							addLibraryViewModel.modulepath = "";
-						});
-					}
+						initmodule: function() {
+							this.on("success", function(file, response) {
+								addLibraryViewModel.modulepath = response.path;
+								// Handle successful upload
+							});
+							this.on("error", function(file, message) {
+								// Handle upload error
+								addLibraryViewModel.modulepath = "";
+							});
+						}
 					}
 				}
 			</script>
@@ -1235,10 +1236,12 @@
 					paramName: 'file',
 					chunking: true,
 					forceChunking: true,
+					retryChunks: true,
 					url: '/upload',
-					maxFilesize: 1025, 
-					chunkSize: 1000000,
-					timeout: 180000, // 3 minutes
+					maxFilesize: 1025, // megabytes
+					parallelChunkUploads: false,
+					chunkSize: 2000000, // bytes
+					timeout: 300000, // 5 minutes
 					autoProcessQueue: true,
 					acceptedFiles: ".zip, .tar",
 					init: function() {
@@ -1251,16 +1254,6 @@
 							// Handle upload error
 							addLibraryViewModel.modulepath = "";
 						});
-
-						// TODO: sakil will complete it after backend done
-
-						// this.on("complete", function(file) {
-						// 	this.removeFile(file);
-						// });
-
-						// this.on("queuecomplete", function () {
-						// 	this.removeAllFiles();
-						// });
 					}
 				}
 			}
@@ -3321,7 +3314,6 @@ function typeInTextarea(el, newText) {
 
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
-		// var pagingVM = new mainViewModel();
 		var addProvPluginViewModel = new AddProvPluginViewModel(ace);
         var sampleViewModel = new SampleViewModel(editor);
 		var provgraphviewmodel = new provgraphViewModel();
@@ -3360,9 +3352,6 @@ function typeInTextarea(el, newText) {
         ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
         ko.applyBindings(addLibraryViewModel, $('#addPackage')[0]);
-
-        // ko.applyBindings(pagingVM, $('#pagination')[0]);
-
 		ko.applyBindings(addProvPluginViewModel, $('#addProv')[0]);
         ko.applyBindings(samplesViewModel.sampleViewModelToAdd, $('#addSample')[0]);
 		ko.applyBindings(sampleViewModel, $('#argumentsPanel')[0]);

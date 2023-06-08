@@ -2548,10 +2548,11 @@ class DataChunk(db.Model):
     total_size = db.Column(db.Text)
 
     @staticmethod
-    def add(file_uuid, path, chunk, total_chunk, uploaded_size, total_size):
+    def add(user_id, file_uuid, path, chunk, total_chunk, uploaded_size, total_size):
         try:
             if chunk == 0:
                 data_chunk = DataChunk()
+                data_chunk.user_id = user_id
                 data_chunk.file_uuid = file_uuid
                 data_chunk.path = path
                 data_chunk.chunk = chunk

@@ -129,8 +129,7 @@ class DataManager():
                     'totalsize':data_chunk.total_size}]
 
         fs = PosixFileSystem('/')
-        filepath = fs.save_upload(file, filepath, offset)
-
+        filepath = fs.save_upload(file, folder, offset)[1]
         if current_chunk < (total_chunks - 1):
         #     # Log entry for uploaiding each of the data files 
         #     log_info = Logging.create_log_message(LogType.INFO, 'Chunk '+ str(current_chunk + 1) + ' of ' + str(total_chunks) + ' for Datafile ' + file.filename + ' is uploaded by '+ current_user.name +' at '+ dataset_name +' Dataset with version '+ version_name)
@@ -146,7 +145,7 @@ class DataManager():
                     'totalsize':total_size_file}
             all_data.append(each_data)
 
-            DataChunk.add(user_id, file_uuid, filepath, current_chunk, total_chunks, each_data['Size of Uploaded File'], total_size_file)
+            DataChunk.add(user_id, file_uuid, filepath, current_chunk, total_chunks, each_data['uploadedsize'], total_size_file)
 
         else:
             # This was the last chunk, the file should be complete and the size we expect

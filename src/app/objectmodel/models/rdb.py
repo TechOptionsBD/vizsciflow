@@ -611,7 +611,6 @@ class DataSource(db.Model):
         datasets = {"data": [], "pageNum": page}
         
         datasources = DataSource.query.filter_by(active = True)
-        logging.info(datasources.count())
         # restricted_items = DatasetUtility.access_restricted_of_dataset(my_groups, child_groups, selected_datasets)
         datasets,count,has_more, selected_dataset_ids, filtered_datasets = DataSource.add_item_in_list_view(datasources, 
                                                         count, floor, celling, datasets, has_more, 
@@ -2539,7 +2538,7 @@ class InData(db.Model):
 class DataChunk(db.Model):
     __tablename__ = 'data_chunks'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     file_uuid = db.Column(db.Text)
     path = db.Column(db.Text)
     chunk = db.Column(db.Integer)
@@ -2583,3 +2582,33 @@ class DataChunk(db.Model):
             db.session.rollback()
             raise
 
+class DockerImages(db.Model):
+    __tablename__ = 'dockerimages'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    nametag = db.Column(db.Text, nullable=False)
+    def to_json(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'nametag': self.nametag
+        }
+    
+class DockerContainers(db.Model):
+    __tablename__ = 'dockercontainers'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    image_id = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.Text, nullable=False)
+    args = db.Column(db.Text, nullable=False)
+    commands = db.Column(db.Text, nullable=False)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'image_id': self.image_id,
+            'name': self.name,
+            'args': self.args,
+            'commands': self.commands
+        }

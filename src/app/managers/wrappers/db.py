@@ -345,6 +345,14 @@ class RunnableManager():
         return Task.get_logs(task_id)
     
     @staticmethod
+    def get_dockercontainers(**kwargs):
+        return DockerContainers.query.filter_by(**kwargs)
+
+    @staticmethod
+    def get_dockerimages(**kwargs):
+        return DockerImages.query.filter_by(**kwargs)
+    
+    @staticmethod
     def add_return(runnable_id, triplet):
         if isinstance(triplet[1], FolderItem) and isiterable(triplet[1].path):
             for it in triplet[1].path:

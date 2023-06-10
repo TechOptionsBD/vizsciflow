@@ -6,14 +6,15 @@ function AddLibraryViewModel(userName) {
     self.access = ko.observable(true);
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
-    self.NewVenvName = ko.observable('');
-    self.NewDockerImageName = ko.observable('');
-    self.NewDockerContainerName = ko.observable('');
+    self.newVenvName = ko.observable('');
+    self.newDockerImageName = ko.observable('');
+    self.newDockerContainerName = ko.observable('');
     self.isFuncExpanded = ko.observable(false);
     self.textToggleFuncArea = ko.observable('More..');
     self.TList = ko.observableArray();
     self.pippkgsList = ko.observableArray();
     self.containersList = ko.observableArray();
+    self.imagesList = ko.observableArray();
     self.radioSelectedOptionValue = ko.observable(''); 
     self.modulepath = "";
    
@@ -21,34 +22,34 @@ function AddLibraryViewModel(userName) {
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
 
     self.hasNewVenvName = ko.computed(function () { 
-        return self.NewVenvName() !== undefined && self.NewVenvName().trim().length > 0; 
+        return self.newVenvName() !== undefined && self.newVenvName().trim().length > 0; 
     });
     
     self.NotHasNewVenvName = ko.computed(function () { 
-        return self.NewVenvName() === undefined || self.NewVenvName().trim().length == 0; 
+        return self.newVenvName() === undefined || self.newVenvName().trim().length == 0; 
     });
 
     self.hasDockerContainerName = ko.computed(function () { 
-        return ((self.NewDockerImageName() !== undefined && self.NewDockerContainerName() !== undefined) && (self.NewDockerImageName().trim().length > 0 && self.NewDockerContainerName().trim().length > 0)); 
+        return ((self.newDockerImageName() !== undefined && self.newDockerContainerName() !== undefined) && (self.newDockerImageName().trim().length > 0 && self.newDockerContainerName().trim().length > 0)); 
     });
     
     self.NotHasDockerContainerName = ko.computed(function () { 
-        return self.NewDockerImageName() === undefined || self.NewDockerContainerName() === undefined || self.NewDockerImageName().trim().length == 0 || self.NewDockerContainerName().trim().length == 0; 
+        return self.newDockerImageName() === undefined || self.newDockerContainerName() === undefined || self.newDockerImageName().trim().length == 0 || self.newDockerContainerName().trim().length == 0; 
     });
     self.hasDockerContainerNameActive = ko.computed(function () { 
-        return self.NewDockerImageName() !== undefined && self.NewDockerImageName().trim().length > 0;
+        return self.newDockerImageName() !== undefined && self.newDockerImageName().trim().length > 0;
     });
     
     self.NotHasDockerContainerNameActive = ko.computed(function () { 
-        return self.NewDockerImageName() === undefined || self.NewDockerImageName().trim().length == 0; 
+        return self.newDockerImageName() === undefined || self.newDockerImageName().trim().length == 0; 
     });
 
     self.addNewVenv = function() {
-        if (self.NewVenvName().trim().length == 0)
+        if (self.newVenvName().trim().length == 0)
             return;
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'newpyvenvs':  self.NewVenvName(), 'pyversion' : self.radioSelectedOptionValue()}).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'newpyvenvs':  self.newVenvName(), 'pyversion' : self.radioSelectedOptionValue()}).done(function (data) {
             if (!data['err']){
-                self.NewVenvName('');
+                self.newVenvName('');
                 self.loadpipvenvs();
             }
             else {
@@ -61,11 +62,11 @@ function AddLibraryViewModel(userName) {
     }
 
     self.addNewDockerContainer = function() {
-        if (self.NewDockerImageName().trim().length == 0 && self.NewDockerContainerName().trim().length == 0)
+        if (self.newDockerImageName().trim().length == 0 && self.newDockerContainerName().trim().length == 0)
             return;
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.NewDockerImageName(), 'newdockercontainername' : self.NewDockerContainerName()}).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.newDockerImageName(), 'newdockercontainername' : self.newDockerContainerName()}).done(function (data) {
             if (!data['err']){
-                self.NewDockerImageName('');
+                self.newDockerImageName('');
                 self.newdockercontainername('');
                 self.loadcontainers();
             }
@@ -95,10 +96,23 @@ function AddLibraryViewModel(userName) {
 
     self.loadcontainers = function(){
         self.containersList.removeAll();
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'pycontainers': '' }).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'dockercontainers': '' }).done(function (data) {
             
-            $(data["pycontainers"]).each((index, element)=> {
+            $(data["dockercontainers"]).each((index, element)=> {
                 self.containersList.push(element);
+            });
+            
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    }
+
+    self.loadimages = function(){
+        self.imagesList.removeAll();
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'dockerimages': '' }).done(function (data) {
+            
+            $(data["dockerimages"]).each((index, element)=> {
+                self.imagesList.push(element);
             });
             
         }).fail(function (jqXHR) {
@@ -117,12 +131,14 @@ function AddLibraryViewModel(userName) {
         });
     }
     self.loaddatatypes();
+    self.loadcontainers();
+    self.loadimages();
 
     self.getLibrary = function(){
         $("#add-library-info").text("");
         ajaxcalls.simple(self.tasksURI, 'GET', { 'demoserviceadd':  $("#selected_tool_type").val()}).done(function (demoservice) {
             $("#module").val("");
-            self.NewVenvName("");
+            self.newVenvName("");
 
             self.getUsers();
             self.loadpipvenvs();

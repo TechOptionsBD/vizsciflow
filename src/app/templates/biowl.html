@@ -1116,7 +1116,7 @@
 									<label style="display: flex; width: 100px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv'" /><span style="margin-top: 5px;">Python 3</span></label>
 									<label style="display: flex;  width: 110px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv2" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv2'" /><span style="margin-top: 5px;">Python 2.7</span></label>
 								</div>
-								<input type="text" data-bind="textInput: NewVenvName" class="form-control" id="newvenvname" style="width: 65%; margin-top: 5px;" >
+								<input type="text" data-bind="textInput: newVenvName" class="form-control" id="newvenvname" style="width: 65%; margin-top: 5px;" >
 							</div>
 						</div>
 					</div>
@@ -1130,7 +1130,7 @@
 							<div style="display: flex; column-gap: 1%; width: 100%;">
 								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Image Name</label>
 								<div class="span-sm-14">
-									<input type="text" data-bind="textInput: NewDockerImageName" name="docker" list="dockerimageName" class="form-control" style="width: 100%; margin-top: 5px;"/>
+									<input type="text" data-bind="textInput: newDockerImageName" name="docker" list="dockerimageName" class="form-control" style="width: 100%; margin-top: 5px;"/>
 									<datalist id="dockerimageName">
 									  <option value="python">python</option>
 									  <option value="celery">celery</option>
@@ -1139,7 +1139,7 @@
 								</div>
 
 								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 12px; margin-top: 5px;">Container Name</label>
-								<input type="text" data-bind="enable:hasDockerContainerNameActive, textInput: NewDockerContainerName" class="form-control" id="newdockercontainername" style="width: 65%; margin-top: 5px;" >
+								<input type="text" data-bind="enable:hasDockerContainerNameActive, textInput: newDockerContainerName" class="form-control" id="newdockercontainername" style="width: 65%; margin-top: 5px;" >
 								<button title="Docker Container Name" data-bind='enable: hasDockerContainerName, click: addNewDockerContainer' class="btn btn-primary" style="padding: 6px 6px; font-weight: bold; margin-top: 2px; margin-left: 12px;">Create</button>
 							</div>
 						</div>

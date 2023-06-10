@@ -492,6 +492,14 @@ def create_lib_dir_files(activity, uploadedlib):
         os.remove(temppath)
     return libdir
 
+def get_dockercontainers(user_id):
+    containers = runnablemanager.get_dockercontainers(user_id=user_id)
+    return [container.to_json() for container in containers]
+
+def get_dockerimages(user_id):
+    images = runnablemanager.get_dockerimages(user_id=user_id)
+    return [image.to_json() for image in images]
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -503,10 +511,14 @@ def functions():
                 pyvenvs = get_pyvenvs(current_user.id)
                 return jsonify(pyvenvs = pyvenvs)
             
-            if 'pycontainers' in request.args:
-                pycontainers = get_pycontainers(current_user.id)
-                return jsonify(pycontainers = pycontainers)
+            if 'dockercontainers' in request.args:
+                dockercontainers = get_dockercontainers(current_user.id)
+                return jsonify(dockercontainers = dockercontainers)
 
+            if 'dockerimages' in request.args:
+                dockerimages = get_dockerimages(current_user.id)
+                return jsonify(dockerimages = dockerimages)
+            
             if 'newpyvenvs' in request.args:
                 return new_pyvenvs(request.args.get('newpyvenvs'), request.args.get('pyversion'), current_user.id)
             

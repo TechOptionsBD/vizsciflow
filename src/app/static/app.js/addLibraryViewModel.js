@@ -15,8 +15,11 @@ function AddLibraryViewModel(userName) {
     self.pippkgsList = ko.observableArray();
     self.containersList = ko.observableArray();
     self.imagesList = ko.observableArray();
-    self.radioSelectedOptionValue = ko.observable(''); 
+    self.radioSelectedOptionValue = ko.observable('newvenv'); 
     self.modulepath = "";
+    self.submittedData = ko.observableArray([]);
+    self.submittedData = self.containersList;
+
    
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
@@ -68,7 +71,6 @@ function AddLibraryViewModel(userName) {
             if (!data['err']){
                 self.newDockerImageName('');
                 self.newdockercontainername('');
-                self.loadcontainers();
             }
             else {
                 $("#add-library-info").text("Error on creating docker: " + data['err']);
@@ -99,7 +101,7 @@ function AddLibraryViewModel(userName) {
         ajaxcalls.simple(self.tasksURI, 'GET', { 'dockercontainers': '' }).done(function (data) {
             
             $(data["dockercontainers"]).each((index, element)=> {
-                self.containersList.push(element);
+                self.containersList.push(element.name);
             });
             
         }).fail(function (jqXHR) {
@@ -112,7 +114,7 @@ function AddLibraryViewModel(userName) {
         ajaxcalls.simple(self.tasksURI, 'GET', { 'dockerimages': '' }).done(function (data) {
             
             $(data["dockerimages"]).each((index, element)=> {
-                self.imagesList.push(element);
+                self.imagesList.push(element.nametag);
             });
             
         }).fail(function (jqXHR) {
@@ -133,6 +135,31 @@ function AddLibraryViewModel(userName) {
     self.loaddatatypes();
     self.loadcontainers();
     self.loadimages();
+
+    self.submitData = function() {
+      var inputData = self.newDockerContainerName();
+      if (inputData !== '') {
+        if (!self.submittedData().includes(inputData)) {
+        //   self.submittedData.push(inputData);
+        } else {
+          alert('Data is already added.');
+        }
+      }
+  
+      // Clear the input box
+    //   self.newDockerContainerName('');
+    };
+  
+    self.checkTypingData = function() {
+      debounceLogData(self.newDockerContainerName());
+    };
+  
+    var typingTimer;
+    function debounceLogData(data) {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(function() {
+      }, 300); // Delay of 300 milliseconds (adjust as needed)
+    }
 
     self.getLibrary = function(){
         $("#add-library-info").text("");
@@ -204,9 +231,7 @@ function AddLibraryViewModel(userName) {
             href: '',
             pippkgs: '',
             pipvenv: '',
-            container: '',
             reqfile: '',
-            // example: 'data = MyService(data)'
         }
     );
 
@@ -219,7 +244,6 @@ function AddLibraryViewModel(userName) {
         refData.pippkgs && self.service.set('pippkgs',refData.pippkgs)
         refData.reqfile && self.service.set('reqfile',refData.reqfile)
         refData.pipvenv && self.service.set('pipvenv',refData.pipvenv)
-        refData.container && self.service.set('container',refData.container)
         
         self.serviceParams([]);
         refData.params.map(param => {

@@ -1000,7 +1000,7 @@
 								<form role="form" data-bind="foreach: service.items">
 									<div class="row service-form-group" data-bind="visible: ($index() < 2 || $parent.isFuncExpanded)">
 										<label class="span-sm-6" data-bind="text: key"></label>
-										<div class="span-sm-14" data-bind="ifnot: $index() == 10">
+										<div class="span-sm-14" data-bind="ifnot: $index() == 9">
 											<!-- ko if: $index() == 8 -->
 											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="">
 												<select style="padding: 5px 9px;
@@ -1010,22 +1010,13 @@
 												font-weight: 100;" data-bind="enable: $parent.NotHasNewVenvName, options: $parent.pippkgsList, value: value, event: {change: $parents.liveJsonView}" id="pippkgsList"></select>
 											</div>
 											<!-- /ko -->
-											<!-- ko if: $index() == 9 -->
-											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="">
-												<select style="padding: 5px 9px;
-												width: 100%;
-												border-radius: 5px;
-												font-size: 17px;
-												font-weight: 100;" data-bind="enable: $parent.NotHasDockerContainerName, options: $parent.containersList, value: value, event: {change: $parents.liveJsonView}" id="containersList"></select>
-											</div>
-											<!-- /ko -->
-											<!-- ko ifnot: $index() == 8  -->
-											<div data-bind="ifnot: $index() == 9">
+																						
+											<div data-bind="ifnot: $index() == 8">
 												<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 											</div>
-											<!-- /ko -->
+											
 										</div>
-										<div data-bind="if: $index() == 10">
+										<div data-bind="if: $index() == 9">
 											<input type="file" class="form-control-file" id="reqfile" style="margin-left: 15px;" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 										</div>
 									</div>
@@ -1110,13 +1101,17 @@
 					<div class="row service-form-group span-sm-20" style="display: flex; margin-left: 0px;">
 						<div class="span-sm-20" style="border-right: 1px soild; padding: 8px;
 						background-color: #f0f4f5;">
-							<div style="display: flex; column-gap: 5%; width: 70%;">
-								<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn btn-success" style="padding: 6px 6px; font-weight: bold; margin-left: 12px;">New venv</button>
+						<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 12px; margin-top: 5px; text-decoration: underline;">Python virtual environment</label>
+							<div style="display: flex; column-gap: 5%; width: 95%; margin-left: 4%;">
+								
 								<div style="display: flex; margin-top: 6px;">
 									<label style="display: flex; width: 100px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv'" /><span style="margin-top: 5px;">Python 3</span></label>
 									<label style="display: flex;  width: 110px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv2" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv2'" /><span style="margin-top: 5px;">Python 2.7</span></label>
 								</div>
+
 								<input type="text" data-bind="textInput: newVenvName" class="form-control" id="newvenvname" style="width: 65%; margin-top: 5px;" >
+
+								<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn btn-success" style="padding: 6px 6px; font-weight: bold; margin-left: 12px;">Create</button>
 							</div>
 						</div>
 					</div>
@@ -1131,15 +1126,18 @@
 								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Image Name</label>
 								<div class="span-sm-14">
 									<input type="text" data-bind="textInput: newDockerImageName" name="docker" list="dockerimageName" class="form-control" style="width: 100%; margin-top: 5px;"/>
-									<datalist id="dockerimageName">
-									  <option value="python">python</option>
-									  <option value="celery">celery</option>
-									  <option value="flask">flask</option>
+									<datalist id="dockerimageName" data-bind="foreach: imagesList">
+										<option data-bind="text: $data"></option>
+									</datalist>
+								</div>
+								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Container Name</label>
+								<div class="span-sm-14">
+									<input type="text" data-bind="textInput: newDockerContainerName, event: { keyup: submitData }, enable:hasDockerContainerNameActive" name="docker" list="dockerContainerName" class="form-control" style="width: 100%; margin-top: 5px;"/>
+									<datalist id="dockerContainerName" data-bind="foreach: containersList">
+										<option data-bind="text: $data"></option>
 									</datalist>
 								</div>
 
-								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 12px; margin-top: 5px;">Container Name</label>
-								<input type="text" data-bind="enable:hasDockerContainerNameActive, textInput: newDockerContainerName" class="form-control" id="newdockercontainername" style="width: 65%; margin-top: 5px;" >
 								<button title="Docker Container Name" data-bind='enable: hasDockerContainerName, click: addNewDockerContainer' class="btn btn-primary" style="padding: 6px 6px; font-weight: bold; margin-top: 2px; margin-left: 12px;">Create</button>
 							</div>
 						</div>

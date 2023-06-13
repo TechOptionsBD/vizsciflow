@@ -6,50 +6,53 @@ function AddLibraryViewModel(userName) {
     self.access = ko.observable(true);
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
-    self.NewVenvName = ko.observable('');
-    self.NewDockerImageName = ko.observable('');
-    self.NewDockerContainerName = ko.observable('');
+    self.newVenvName = ko.observable('');
+    self.newDockerImageName = ko.observable('');
+    self.newDockerContainerName = ko.observable('');
     self.isFuncExpanded = ko.observable(false);
     self.textToggleFuncArea = ko.observable('More..');
     self.TList = ko.observableArray();
     self.pippkgsList = ko.observableArray();
     self.containersList = ko.observableArray();
-    self.radioSelectedOptionValue = ko.observable(''); 
-    self.moduleId = null;
-    self.droppermoduleId = null;
+    self.imagesList = ko.observableArray();
+    self.radioSelectedOptionValue = ko.observable('newvenv'); 
+    self.modulepath = "";
+    self.submittedData = ko.observableArray([]);
+    self.submittedData = self.containersList;
+
    
     self.mapperEditor = CreateAceEditor("#mapper", "ace/mode/json", 430, true);
     self.codeEditor = CreateAceEditor("#servicescript", "ace/mode/python", 350);
 
     self.hasNewVenvName = ko.computed(function () { 
-        return self.NewVenvName() !== undefined && self.NewVenvName().trim().length > 0; 
+        return self.newVenvName() !== undefined && self.newVenvName().trim().length > 0; 
     });
     
     self.NotHasNewVenvName = ko.computed(function () { 
-        return self.NewVenvName() === undefined || self.NewVenvName().trim().length == 0; 
+        return self.newVenvName() === undefined || self.newVenvName().trim().length == 0; 
     });
 
     self.hasDockerContainerName = ko.computed(function () { 
-        return ((self.NewDockerImageName() !== undefined && self.NewDockerContainerName() !== undefined) && (self.NewDockerImageName().trim().length > 0 && self.NewDockerContainerName().trim().length > 0)); 
+        return ((self.newDockerImageName() !== undefined && self.newDockerContainerName() !== undefined) && (self.newDockerImageName().trim().length > 0 && self.newDockerContainerName().trim().length > 0)); 
     });
     
     self.NotHasDockerContainerName = ko.computed(function () { 
-        return self.NewDockerImageName() === undefined || self.NewDockerContainerName() === undefined || self.NewDockerImageName().trim().length == 0 || self.NewDockerContainerName().trim().length == 0; 
+        return self.newDockerImageName() === undefined || self.newDockerContainerName() === undefined || self.newDockerImageName().trim().length == 0 || self.newDockerContainerName().trim().length == 0; 
     });
     self.hasDockerContainerNameActive = ko.computed(function () { 
-        return self.NewDockerImageName() !== undefined && self.NewDockerImageName().trim().length > 0;
+        return self.newDockerImageName() !== undefined && self.newDockerImageName().trim().length > 0;
     });
     
     self.NotHasDockerContainerNameActive = ko.computed(function () { 
-        return self.NewDockerImageName() === undefined || self.NewDockerImageName().trim().length == 0; 
+        return self.newDockerImageName() === undefined || self.newDockerImageName().trim().length == 0; 
     });
 
     self.addNewVenv = function() {
-        if (self.NewVenvName().trim().length == 0)
+        if (self.newVenvName().trim().length == 0)
             return;
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'newpyvenvs':  self.NewVenvName(), 'pyversion' : self.radioSelectedOptionValue()}).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'newpyvenvs':  self.newVenvName(), 'pyversion' : self.radioSelectedOptionValue()}).done(function (data) {
             if (!data['err']){
-                self.NewVenvName('');
+                self.newVenvName('');
                 self.loadpipvenvs();
             }
             else {
@@ -62,13 +65,12 @@ function AddLibraryViewModel(userName) {
     }
 
     self.addNewDockerContainer = function() {
-        if (self.NewDockerImageName().trim().length == 0 && self.NewDockerContainerName().trim().length == 0)
+        if (self.newDockerImageName().trim().length == 0 && self.newDockerContainerName().trim().length == 0)
             return;
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.NewDockerImageName(), 'newdockercontainername' : self.NewDockerContainerName()}).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.newDockerImageName(), 'newdockercontainername' : self.newDockerContainerName()}).done(function (data) {
             if (!data['err']){
-                self.NewDockerImageName('');
+                self.newDockerImageName('');
                 self.newdockercontainername('');
-                self.loadcontainers();
             }
             else {
                 $("#add-library-info").text("Error on creating docker: " + data['err']);
@@ -77,8 +79,6 @@ function AddLibraryViewModel(userName) {
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });
-        alert('done');
-        console.log('done');
     }
 
     self.loadpipvenvs = function(){
@@ -96,10 +96,23 @@ function AddLibraryViewModel(userName) {
 
     self.loadcontainers = function(){
         self.containersList.removeAll();
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'pycontainers': '' }).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'dockercontainers': '' }).done(function (data) {
             
-            $(data["pycontainers"]).each((index, element)=> {
-                self.containersList.push(element);
+            $(data["dockercontainers"]).each((index, element)=> {
+                self.containersList.push(element.name);
+            });
+            
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    }
+
+    self.loadimages = function(){
+        self.imagesList.removeAll();
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'dockerimages': '' }).done(function (data) {
+            
+            $(data["dockerimages"]).each((index, element)=> {
+                self.imagesList.push(element.name);
             });
             
         }).fail(function (jqXHR) {
@@ -118,12 +131,47 @@ function AddLibraryViewModel(userName) {
         });
     }
     self.loaddatatypes();
+    self.loadcontainers();
+    self.loadimages();
+
+    self.submitData = function() {
+      var inputData = self.newDockerContainerName();
+      if (inputData !== '') {
+        if (!self.submittedData().includes(inputData)) {
+        //   self.submittedData.push(inputData);
+        } else {
+        //   alert('Data is already added.');
+        }
+      }
+  
+      // Clear the input box
+    //   self.newDockerContainerName('');
+    };
+  
+    self.checkTypingData = function() {
+      debounceLogData(self.newDockerContainerName());
+    };
+  
+    var typingTimer;
+    function debounceLogData(data) {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(function() {
+      }, 300); // Delay of 300 milliseconds (adjust as needed)
+    }
+
+    self.inputColor = ko.computed(function () {
+        return self.submittedData().indexOf(self.newDockerContainerName()) !== -1 ? 'red' : '';
+    });
+
+    self.isButtonEnabled = ko.computed(function () {
+        return self.submittedData().indexOf(self.newDockerContainerName()) === -1 && self.newDockerContainerName().length > 0;
+    });
 
     self.getLibrary = function(){
         $("#add-library-info").text("");
         ajaxcalls.simple(self.tasksURI, 'GET', { 'demoserviceadd':  $("#selected_tool_type").val()}).done(function (demoservice) {
             $("#module").val("");
-            self.NewVenvName("");
+            self.newVenvName("");
 
             self.getUsers();
             self.loadpipvenvs();
@@ -140,7 +188,12 @@ function AddLibraryViewModel(userName) {
     self.beginAddLibrary = function () {
         self.getLibrary();
         centerDialog($('#add'));
-        $('#add').modal('show');
+        $('#add').modal('show')
+            .on('show.bs.modal', function () {
+                if(dropperModule.files.length > 0){
+                    dropperModule.removeAllFiles();
+                }
+            });
     }
 
     //for uploading package
@@ -153,6 +206,11 @@ function AddLibraryViewModel(userName) {
                 $("#add-package-info").text("");
                 $("#packagemodule").val("");
                 $( "#packagemodule" ).change();
+
+                if(dropperPackage.files.length > 0){
+                    dropperPackage.removeAllFiles();
+                }
+
             });
         }
 
@@ -179,9 +237,7 @@ function AddLibraryViewModel(userName) {
             href: '',
             pippkgs: '',
             pipvenv: '',
-            container: '',
             reqfile: '',
-            // example: 'data = MyService(data)'
         }
     );
 
@@ -194,7 +250,6 @@ function AddLibraryViewModel(userName) {
         refData.pippkgs && self.service.set('pippkgs',refData.pippkgs)
         refData.reqfile && self.service.set('reqfile',refData.reqfile)
         refData.pipvenv && self.service.set('pipvenv',refData.pipvenv)
-        refData.container && self.service.set('container',refData.container)
         
         self.serviceParams([]);
         refData.params.map(param => {
@@ -351,12 +406,9 @@ function AddLibraryViewModel(userName) {
         serviceFormatted.returns = self.serviceReturns; 
         
         var formdata = new FormData();
-        var files = $("#droppermodule").get(0).files;
-        if(self.droppermoduleId){
-            formdata.append("droppermoduleId", self.droppermoduleId);
+        if(self.modulepath){
+            formdata.append("library", self.modulepath);
         }
-        if (files.length > 0)
-            formdata.append('library', files[0]); //use get('files')[0]
         formdata.append('mapper', ko.toJSON(serviceFormatted));//you can append it to formdata with a proper parameter name
         formdata.append('script', self.codeEditor.getSession().getValue());//you can append it to formdata with a proper parameter name
         
@@ -398,19 +450,15 @@ function AddLibraryViewModel(userName) {
     self.getCodeEditor = function() { return self.codeEditor; }
 
     self.addPackage = function(task) {
-        
-        if ($("#packagemodule").val() == "") {
+
+        if(!self.modulepath){
             $("#add-package-info").text("A tool/module must be selected in zip/tar format.");
             return;
         }
 
-        //myDropzone.processQueue();
-
         var formdata = new FormData();
+        formdata.append("package", self.modulepath);
         formdata.append('update', $('#inlineCheckbox1').is(":checked") ? 1 : 0);
-        if(self.moduleId){
-            formdata.append("moduleId", self.moduleId);
-        }
         
         ajaxcalls.form(self.tasksURI, 'POST', formdata).done(function(data) {
                                

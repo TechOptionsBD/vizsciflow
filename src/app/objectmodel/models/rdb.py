@@ -611,7 +611,6 @@ class DataSource(db.Model):
         datasets = {"data": [], "pageNum": page}
         
         datasources = DataSource.query.filter_by(active = True)
-        logging.info(datasources.count())
         # restricted_items = DatasetUtility.access_restricted_of_dataset(my_groups, child_groups, selected_datasets)
         datasets,count,has_more, selected_dataset_ids, filtered_datasets = DataSource.add_item_in_list_view(datasources, 
                                                         count, floor, celling, datasets, has_more, 
@@ -2539,6 +2538,7 @@ class InData(db.Model):
 class DataChunk(db.Model):
     __tablename__ = 'data_chunks'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     file_uuid = db.Column(db.Text)
     path = db.Column(db.Text)
     chunk = db.Column(db.Integer)
@@ -2547,10 +2547,11 @@ class DataChunk(db.Model):
     total_size = db.Column(db.Text)
 
     @staticmethod
-    def add(file_uuid, path, chunk, total_chunk, uploaded_size, total_size):
+    def add(user_id, file_uuid, path, chunk, total_chunk, uploaded_size, total_size):
         try:
             if chunk == 0:
                 data_chunk = DataChunk()
+                data_chunk.user_id = user_id
                 data_chunk.file_uuid = file_uuid
                 data_chunk.path = path
                 data_chunk.chunk = chunk
@@ -2581,3 +2582,57 @@ class DataChunk(db.Model):
             db.session.rollback()
             raise
 
+class DockerImage(db.Model):
+    __tablename__ = 'dockerimages'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    name = db.Column(db.Text, nullable=False)
+
+    @staticmethod
+    def add(user_id, name):
+        try:
+            image = DockerImage(user_id=user_id, name=name)
+            db.session.add(image)
+            db.session.commit()
+            return image
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name
+        }
+    
+class DockerContainer(db.Model):
+    __tablename__ = 'dockercontainers'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    image_id = db.Column(db.Integer, db.ForeignKey('dockerimages.id'))
+    name = db.Column(db.Text, nullable=False)
+    args = db.Column(db.Text, nullable=True)
+    command = db.Column(db.Text, nullable=True)
+
+    @staticmethod
+    def add(user_id, image_id, containername, command):
+        try:
+            container = DockerContainer(user_id = user_id, image_id = image_id, name = containername, command=command)
+            db.session.add(container)
+            db.session.commit()
+            return container
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'image_id': self.image_id,
+            'name': self.name,
+            'args': self.args,
+            'command': self.command
+        }

@@ -2774,6 +2774,187 @@ SELECT pg_catalog.setval('public.roles_id_seq', 3, true);
 
 SELECT pg_catalog.setval('public.users_id_seq', 13, true);
 
+-- Name: data_chunks; Type: TABLE; Schema: public; Owner: phenodoop
+--
+
+CREATE TABLE public.data_chunks (
+    id integer NOT NULL,
+    user_id integer,
+    file_uuid text,
+    path text,
+    chunk integer,
+    total_chunk integer,
+    uploaded_size text,
+    total_size text
+);
+
+
+ALTER TABLE public.data_chunks OWNER TO phenodoop;
+
+--
+-- TOC entry 280 (class 1259 OID 18191)
+-- Name: data_chunks_id_seq; Type: SEQUENCE; Schema: public; Owner: phenodoop
+--
+
+CREATE SEQUENCE public.data_chunks_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.data_chunks_id_seq OWNER TO phenodoop;
+
+--
+-- TOC entry 3238 (class 0 OID 0)
+-- Dependencies: 280
+-- Name: data_chunks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
+--
+
+ALTER SEQUENCE public.data_chunks_id_seq OWNED BY public.data_chunks.id;
+
+
+--
+-- TOC entry 276 (class 1259 OID 18159)
+-- Name: dockercontainers; Type: TABLE; Schema: public; Owner: phenodoop
+--
+
+CREATE TABLE public.dockercontainers (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    image_id integer NOT NULL,
+    name text NOT NULL,
+    args text,
+    command text
+);
+
+
+ALTER TABLE public.dockercontainers OWNER TO phenodoop;
+
+--
+-- TOC entry 277 (class 1259 OID 18165)
+-- Name: dockercontainers_id_seq; Type: SEQUENCE; Schema: public; Owner: phenodoop
+--
+
+CREATE SEQUENCE public.dockercontainers_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.dockercontainers_id_seq OWNER TO phenodoop;
+
+--
+-- TOC entry 3239 (class 0 OID 0)
+-- Dependencies: 277
+-- Name: dockercontainers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
+--
+
+ALTER SEQUENCE public.dockercontainers_id_seq OWNED BY public.dockercontainers.id;
+
+
+--
+-- TOC entry 278 (class 1259 OID 18167)
+-- Name: dockerimages; Type: TABLE; Schema: public; Owner: phenodoop
+--
+
+CREATE TABLE public.dockerimages (
+    id integer NOT NULL,
+    user_id integer,
+    name text
+);
+
+
+ALTER TABLE public.dockerimages OWNER TO phenodoop;
+
+--
+-- TOC entry 279 (class 1259 OID 18173)
+-- Name: dockerimages_id_seq; Type: SEQUENCE; Schema: public; Owner: phenodoop
+--
+
+CREATE SEQUENCE public.dockerimages_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.dockerimages_id_seq OWNER TO phenodoop;
+
+--
+-- TOC entry 3240 (class 0 OID 0)
+-- Dependencies: 279
+-- Name: dockerimages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: phenodoop
+--
+
+ALTER SEQUENCE public.dockerimages_id_seq OWNED BY public.dockerimages.id;
+
+
+--
+-- TOC entry 3096 (class 2604 OID 18200)
+-- Name: data_chunks id; Type: DEFAULT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.data_chunks ALTER COLUMN id SET DEFAULT nextval('public.data_chunks_id_seq'::regclass);
+
+
+--
+-- TOC entry 3094 (class 2604 OID 18175)
+-- Name: dockercontainers id; Type: DEFAULT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.dockercontainers ALTER COLUMN id SET DEFAULT nextval('public.dockercontainers_id_seq'::regclass);
+
+
+--
+-- TOC entry 3095 (class 2604 OID 18176)
+-- Name: dockerimages id; Type: DEFAULT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.dockerimages ALTER COLUMN id SET DEFAULT nextval('public.dockerimages_id_seq'::regclass);
+
+
+--
+-- TOC entry 3098 (class 2606 OID 18178)
+-- Name: dockercontainers dockercontainers_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.dockercontainers
+    ADD CONSTRAINT dockercontainers_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3100 (class 2606 OID 18180)
+-- Name: dockerimages dockerimages_pkey; Type: CONSTRAINT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.dockerimages
+    ADD CONSTRAINT dockerimages_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3101 (class 2606 OID 18181)
+-- Name: dockercontainers fk_dockerimages_dockercontainers; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.dockercontainers
+    ADD CONSTRAINT fk_dockerimages_dockercontainers FOREIGN KEY (image_id) REFERENCES public.dockerimages(id);
+
+
+--
+-- TOC entry 3102 (class 2606 OID 18186)
+-- Name: dockercontainers fk_users_dockercontainers; Type: FK CONSTRAINT; Schema: public; Owner: phenodoop
+--
+
+ALTER TABLE ONLY public.dockercontainers
+    ADD CONSTRAINT fk_users_dockercontainers FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 -- Completed on 2023-01-29 05:16:34 UTC
 

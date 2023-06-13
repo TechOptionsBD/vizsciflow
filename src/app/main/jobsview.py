@@ -11,8 +11,6 @@ import shutil
 import pathlib
 import mimetypes
 import ast
-#I have improted subprocess and sys to active alternative install fuction
-import subprocess
 
 from datetime import timedelta
 from datetime import datetime
@@ -26,26 +24,10 @@ from flask_login import login_required, current_user
 from flask import request, jsonify, current_app, send_from_directory, make_response, send_file
 from werkzeug.utils import secure_filename
 from pathlib import Path
-from threading import Lock
 from collections import defaultdict
 import shutil
 import argparse
 import uuid
-
-storage_path: Path = Path(__file__).parent / "storage"
-chunk_path: Path = Path(__file__).parent / "chunk"
-
-allow_downloads = False
-dropzone_cdn = "https://cdnjs.cloudflare.com/ajax/libs/dropzone"
-dropzone_version = "5.7.6"
-dropzone_timeout = "120000"
-dropzone_max_file_size = "100000"
-dropzone_chunk_size = "1000000"
-dropzone_parallel_chunks = "true"
-dropzone_force_chunking = "true"
-
-lock = Lock()
-chucks = defaultdict(list)
 
 from ..managers.usermgr import usermanager
 from ..managers.datamgr import datamanager
@@ -426,149 +408,57 @@ def upload_data_file(user_id, request, fullpath):
         each_data = data.to_json_allocation(fullpath, mime) 
         all_data.append(each_data) 
     return all_data
+      
+def upload_chunk_data(request):
+    try:
+        if not request.files.get("file"):
+            raise ValueError("No file found for chunk upload.")
 
-def upload_data(request, fullpath, is_large_file_upload=False): 
-    link_error = False
-    try: # Adding data files in the dataset 
-        if request.form.get('folder_url'): 
-            sub_path = request.form['folder_url'] 
-            fullpath = os.path.join(fullpath, sub_path)
-        if request.form.get('full_path'): 
-            file_path = request.form['full_path'] 
-            file_dir, file_name = os.path.split(file_path) 
-            fullpath = os.path.join(fullpath, file_dir)
-            all_data = [] 
-            if is_large_file_upload and 'dzuuid' in request.form: 
-                all_data = upload_chunk_data(request, fullpath) 
-            else: 
-                all_data = upload_data_file(request, fullpath)
-
-            return all_data
-    except Exception as e: 
-        raise
+        file = request.files['file'] 
+        file_uuid = request.form['dzuuid'] 
+        current_chunk = int(request.form['dzchunkindex']) 
+        total_chunks = int(request.form['dztotalchunkcount']) 
+        offset = int(request.form['dzchunkbyteoffset']) 
+        total_filesize = int(request.form['dztotalfilesize'])
         
-def upload_chunk_data(request): 
-    file = request.files['file'] 
-    file_uuid = request.form['dzuuid'] 
-    current_chunk = int(request.form['dzchunkindex']) 
-    total_chunks = int(request.form['dztotalchunkcount']) 
-    offset = int(request.form['dzchunkbyteoffset']) 
-    total_size_file = int(request.form['dztotalfilesize'])
-    
-    datamanager.upload_chunk_data()
-
-@main.route('/uploadmodule', methods=['GET', 'POST'])
-@login_required
-def uploadmodule():
-
-    # TODO :  MHn will currect it.
-
-    # from bottle import route, run, request, HTTPError
-    #from bottle import run, request, HTTPError
-
-    file = request.files.get("file")
-    # if not file:
-    #     raise HTTPError(status=400, body="No file provided")
-
-    dz_uuid = request.form.get("dzuuid")
-    # if not dz_uuid:
-    #     # Assume this file has not been chunked
-    #     with open(storage_path / f"{uuid.uuid4()}_{secure_filename(file.filename)}", "wb") as f:
-    #         file.save(f)
-    #     return "File Saved"
-
-    # # Chunked download
-    # try:
-    #     current_chunk = int(request.forms["dzchunkindex"])
-    #     total_chunks = int(request.forms["dztotalchunkcount"])
-    # except KeyError as err:
-    #     raise HTTPError(status=400, body=f"Not all required fields supplied, missing {err}")
-    # except ValueError:
-    #     raise HTTPError(status=400, body=f"Values provided were not in expected format")
-
-    # save_dir = chunk_path / dz_uuid
-
-    # if not save_dir.exists():
-    #     save_dir.mkdir(exist_ok=True, parents=True)
-
-    # # Save the individual chunk
-    # with open(save_dir / str(request.forms["dzchunkindex"]), "wb") as f:
-    #     file.save(f)
-
-    # # See if we have all the chunks downloaded
-    # with lock:
-    #     chucks[dz_uuid].append(current_chunk)
-    #     completed = len(chucks[dz_uuid]) == total_chunks
-
-    # # Concat all the files into the final file when all are downloaded
-    # if completed:
-    #     with open(storage_path / f"{dz_uuid}_{secure_filename(file.filename)}", "wb") as f:
-    #         for file_number in range(total_chunks):
-    #             f.write((save_dir / str(file_number)).read_bytes())
-    #     print(f"{file.filename} has been uploaded")
-    #     shutil.rmtree(save_dir)
-
-    # return "Chunk upload successful"
-
-    return json.dumps({"droppermoduleId:": dz_uuid})
-
+        folder = os.path.join(tempfile.gettempdir(), file_uuid)
+        chunkinfo = datamanager.upload_chunk_data(current_user.id, file, file_uuid, current_chunk, total_chunks, offset, total_filesize, folder)
+        return chunkinfo['path'], 200
+    except Exception as e:
+        return str(e), 400
 
 @main.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
+    return upload_chunk_data(request)
 
-    # TODO :  MHn will currect it.
+def create_lib_dir(activity, path):
+    from app import app
+
+    activity.add_log(log="Creating folder for new tool...")
+
+    user_package_dir = os.path.join(app.config['MODULE_DIR'], 'users', current_user.username)
+    libdir = unique_filename(user_package_dir, 'mylib', '')
+    if not os.path.exists(libdir):
+        os.makedirs(libdir)
+
+    activity.add_log(log="Extracting tool package in tools directory...", type=LogType.INFO)
+    if zipfile.is_zipfile(path):
+        with zipfile.ZipFile(path,"r") as zip_ref:
+            zip_ref.extractall(libdir)
+    elif tarfile.is_tarfile(path):
+        with tarfile.open(path,"r") as tar_ref:
+            tar_ref.extractall(libdir)
+    else:
+        shutil.copyfile(path, os.path.join(libdir, os.path.basename(path)))
+        # activity.add_log(log="Only .zip or .tar is allowed as a tool package.", type=LogType.ERROR)
+        # raise ValueError("Only .zip or .tar is allowed as a tool package.")
     
-    # from bottle import route, run, request, HTTPError
-    #from bottle import run, request, HTTPError
+    activity.add_log(log="Deleting tool .zip or .tar from temp directory...")
+    os.remove(path)
+    return libdir
 
-    file = request.files.get("file")
-    # if not file:
-    #     raise HTTPError(status=400, body="No file provided")
-
-    dz_uuid = request.form.get("dzuuid")
-    # if not dz_uuid:
-    #     # Assume this file has not been chunked
-    #     with open(storage_path / f"{uuid.uuid4()}_{secure_filename(file.filename)}", "wb") as f:
-    #         file.save(f)
-    #     return "File Saved"
-
-    # # Chunked download
-    # try:
-    #     current_chunk = int(request.forms["dzchunkindex"])
-    #     total_chunks = int(request.forms["dztotalchunkcount"])
-    # except KeyError as err:
-    #     raise HTTPError(status=400, body=f"Not all required fields supplied, missing {err}")
-    # except ValueError:
-    #     raise HTTPError(status=400, body=f"Values provided were not in expected format")
-
-    # save_dir = chunk_path / dz_uuid
-
-    # if not save_dir.exists():
-    #     save_dir.mkdir(exist_ok=True, parents=True)
-
-    # # Save the individual chunk
-    # with open(save_dir / str(request.forms["dzchunkindex"]), "wb") as f:
-    #     file.save(f)
-
-    # # See if we have all the chunks downloaded
-    # with lock:
-    #     chucks[dz_uuid].append(current_chunk)
-    #     completed = len(chucks[dz_uuid]) == total_chunks
-
-    # # Concat all the files into the final file when all are downloaded
-    # if completed:
-    #     with open(storage_path / f"{dz_uuid}_{secure_filename(file.filename)}", "wb") as f:
-    #         for file_number in range(total_chunks):
-    #             f.write((save_dir / str(file_number)).read_bytes())
-    #     print(f"{file.filename} has been uploaded")
-    #     shutil.rmtree(save_dir)
-
-    # return "Chunk upload successful"
-
-    return json.dumps({"moduleId:": dz_uuid})
-
-def create_lib_dir(activity, uploadedlib):
+def create_lib_dir_files(activity, uploadedlib):
     from app import app
 
     activity.add_log(log="Creating folder for new tool...")
@@ -602,6 +492,39 @@ def create_lib_dir(activity, uploadedlib):
         os.remove(temppath)
     return libdir
 
+def get_dockercontainers(user_id):
+    containers = runnablemanager.get_dockercontainers()
+    return [container.to_json() for container in containers]
+
+def get_dockerimages(user_id):
+    images = runnablemanager.get_dockerimages()
+    return [image.to_json() for image in images]
+
+def new_dockerenvs(imagename, containername, user_id):
+    import docker
+
+    client = docker.from_env()
+    container = client.containers.list(all=True, filters={'name': containername})
+    if container:
+        raise ValueError(f"Container {containername} already exists.")
+    images = client.images.list()
+
+    foundimage = None
+    for image in images:
+        name = image.attrs['Config']['Image']
+        if name == imagename:
+            foundimage = image
+            break
+
+    if not foundimage:
+        client.images.pull(imagename)
+    
+    command = 'sh -c "tail -F anything"'
+    container = client.containers.run(imagename, command=command, detach=True, name=containername)
+    if container:
+        runnablemanager.add_docker_image_container(user_id, imagename, containername, command)
+    return json.dumps({"success": "Container created."})
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -613,10 +536,14 @@ def functions():
                 pyvenvs = get_pyvenvs(current_user.id)
                 return jsonify(pyvenvs = pyvenvs)
             
-            if 'pycontainers' in request.args:
-                pycontainers = get_pycontainers(current_user.id)
-                return jsonify(pycontainers = pycontainers)
+            if 'dockercontainers' in request.args:
+                dockercontainers = get_dockercontainers(current_user.id)
+                return jsonify(dockercontainers = dockercontainers)
 
+            if 'dockerimages' in request.args:
+                dockerimages = get_dockerimages(current_user.id)
+                return jsonify(dockerimages = dockerimages)
+            
             if 'newpyvenvs' in request.args:
                 return new_pyvenvs(request.args.get('newpyvenvs'), request.args.get('pyversion'), current_user.id)
             
@@ -666,7 +593,7 @@ def functions():
                 runnable = run_biowl(workflowId, None, args, immediate, provenance)
                 return jsonify(runnableId = runnable.id)
 
-            elif len(request.files) > 0 and 'package' in request.files and request.files['package']:
+            elif 'package' in request.form and os.path.exists(request.form['package']):
                 '''Add package'''
                 activity = None
                 try:
@@ -675,7 +602,7 @@ def functions():
                     activity.add_log(log="Installing tool(s) from tool package...", type=LogType.INFO)
                     activity.add_log(log="Saving tool package to temp directory...", type=LogType.INFO)
                     
-                    libdir = create_lib_dir(activity, request.files['package'])
+                    libdir = create_lib_dir(activity, request.form['package'])
 
                     # check if update can be made
                     activity.add_log(log="Checking if tool already exists and we are allowed to update...")
@@ -709,7 +636,7 @@ def functions():
                     activity = activitymanager.create(current_user.id, ActivityType.ADDTOOL)
                     activity.add_log(log="Adding tool from Web UI...")
 
-                    libdir = create_lib_dir(activity, request.files['library'] if 'library' in request.files else None)
+                    libdir = create_lib_dir(activity, request.form['library'] if 'library' in request.form else None)
 
                     activity.add_log(log="Saving the adapter code...")
                     if request.form.get('script'):

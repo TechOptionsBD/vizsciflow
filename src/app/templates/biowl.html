@@ -91,7 +91,6 @@
 <script src="/static/app.js/runnablesViewModel.js"></script>
 <script src="/static/app.js/activitiesViewModel.js"></script>
 <script src="/static/app.js/addLibraryViewModel.js"></script>
-<script src="/static/app.js/pagingVM.js"></script>
 <script src="/static/app.js/aceEditor.js"></script>
 <script src="/static/app.js/detailGraphViewModel.js"></script>
 <script src="/static/app.js/controlFlowViewModel.js"></script>
@@ -318,10 +317,10 @@
 					</div>
 				</div>
 				<div class="panel-body"
-					style="max-height: 200px; width: 100%; overflow-y: scroll;"
-					data-bind="foreach: items">
+					style="max-height: 200px; width: 100%;"
+					data-bind="foreach: PagaData">
 					<div class="div-history-item row menu_button" id="runnablesHistory"
-						data-bind=" css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }">
+						data-bind=" css: { 'odd-row': $index() % 2 === 0, 'even-row': $index() % 2 === 1 }, style: { color: recent() ? 'red' : 'black' }" style="padding: 10px">
 						<div class="col-md-1" style="padding-left: 0; margin-right: 5px;">
 							<input type="checkbox" class="form-check-input" style="margin-left: 10px"
 								data-bind="checked: selected, event: {click: $parent.toggleTaskCompareBtn}"/> 
@@ -346,22 +345,16 @@
 						<div style="clear: both" ></div>
 					</div>
 				</div>
-				<div class="container-fluid" id="pagination">
+				<div class="container-fluid" id="">
 					  <div class="row">
-						<div class="col-lg-12">
-						  <table class="table table-striped table-bordered">
-							<tbody data-bind="foreach:PagaData">
-							  <tr data-bind="text:$data.name"></tr>
-							</tbody>
-						  </table>
-				  
+						<div class="col-lg-12">			  
 						  <!-- ko with:Paging()-->
 						  <ul data-bind="visible: NeedPaging" class="flip pull-left pagination pagination-sm">
-							<li data-bind="css: { disabled: !FirstPageActive() }">
-							  <a data-bind="click: GoToFirst">First</a>
+							<li data-bind="css: { disabled: !FirstPageActive() }" >
+							  <a data-bind="click: GoToFirst" title="First" class="glyphicon glyphicon-fast-backward"></a>
 							</li>
 							<li data-bind="css: { disabled: !PreviousPageActive() }">
-							  <a data-bind="click: GoToPrevious">Previous</a>
+							  <a data-bind="click: GoToPrevious" title="Previous" class="glyphicon glyphicon-step-backward"></a>
 							</li>
 				  
 							<!-- ko foreach: GetPages() -->
@@ -371,10 +364,10 @@
 							<!-- /ko -->
 				  
 							<li data-bind="css: { disabled: !NextPageActive() }">
-							  <a data-bind="click: GoToNext">Next</a>
+							  <a data-bind="click: GoToNext" title="Next" class="glyphicon glyphicon-step-forward"></a>
 							</li>
 							<li data-bind="css: { disabled: !LastPageActive() }">
-							  <a data-bind="click: GoToLast">Last</a>
+							  <a data-bind="click: GoToLast" title="Last" class="glyphicon glyphicon-fast-forward"></a>
 							</li>
 						  </ul>
 						  <!-- /ko -->
@@ -986,34 +979,9 @@
 				<label class="span-sm-4" style="padding: 0;" for="droppermodule">Module</label>
 				<br>
 				<hr>			
-				<form method="POST" action='/uploadmodule' class="dropzone dz-clickable" id="droppermodule" enctype="multipart/form-data">
+				<form method="POST" class="dropzone dz-clickable" id="droppermodule" enctype="multipart/form-data">
 				</form>
 
-			<script type="application/javascript">
-				function initmodule() {
-					Dropzone.options.droppermodule = {
-						paramName: 'file',
-						chunking: true,
-						forceChunking: true,
-						url: '/uploadmodule',
-						maxFilesize: 1025, 
-						chunkSize: 1000000,
-						timeout: 180000, // 3 minutes
-						autoProcessQueue: true,
-						dictRemoveFile: "Remove",
-						acceptedFiles: ".zip, .tar",
-						init: function() {
-						this.on("success", function(file, response) {
-							addLibraryViewModel.droppermoduleId = response.droppermoduleId;
-							// Handle successful upload
-						});
-						this.on("error", function(file, message) {
-							// Handle upload error
-						});
-					}
-					}
-				}
-			</script>
 			<br> <br>
 			<div id="exTabService" class="controls">
 				<ul class="nav nav-tabs">
@@ -1032,7 +1000,7 @@
 								<form role="form" data-bind="foreach: service.items">
 									<div class="row service-form-group" data-bind="visible: ($index() < 2 || $parent.isFuncExpanded)">
 										<label class="span-sm-6" data-bind="text: key"></label>
-										<div class="span-sm-14" data-bind="ifnot: $index() == 10">
+										<div class="span-sm-14" data-bind="ifnot: $index() == 9">
 											<!-- ko if: $index() == 8 -->
 											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="">
 												<select style="padding: 5px 9px;
@@ -1042,22 +1010,13 @@
 												font-weight: 100;" data-bind="enable: $parent.NotHasNewVenvName, options: $parent.pippkgsList, value: value, event: {change: $parents.liveJsonView}" id="pippkgsList"></select>
 											</div>
 											<!-- /ko -->
-											<!-- ko if: $index() == 9 -->
-											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="">
-												<select style="padding: 5px 9px;
-												width: 100%;
-												border-radius: 5px;
-												font-size: 17px;
-												font-weight: 100;" data-bind="enable: $parent.NotHasDockerContainerName, options: $parent.containersList, value: value, event: {change: $parents.liveJsonView}" id="containersList"></select>
-											</div>
-											<!-- /ko -->
-											<!-- ko ifnot: $index() == 8  -->
-											<div data-bind="ifnot: $index() == 9">
+																						
+											<div data-bind="ifnot: $index() == 8">
 												<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 											</div>
-											<!-- /ko -->
+											
 										</div>
-										<div data-bind="if: $index() == 10">
+										<div data-bind="if: $index() == 9">
 											<input type="file" class="form-control-file" id="reqfile" style="margin-left: 15px;" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 										</div>
 									</div>
@@ -1142,13 +1101,17 @@
 					<div class="row service-form-group span-sm-20" style="display: flex; margin-left: 0px;">
 						<div class="span-sm-20" style="border-right: 1px soild; padding: 8px;
 						background-color: #f0f4f5;">
-							<div style="display: flex; column-gap: 5%; width: 70%;">
-								<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn btn-success" style="padding: 6px 6px; font-weight: bold; margin-left: 12px;">New venv</button>
+						<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 12px; margin-top: 5px; text-decoration: underline;">Python virtual environment</label>
+							<div style="display: flex; column-gap: 5%; width: 95%; margin-left: 4%;">
+								
 								<div style="display: flex; margin-top: 6px;">
 									<label style="display: flex; width: 100px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv'" /><span style="margin-top: 5px;">Python 3</span></label>
 									<label style="display: flex;  width: 110px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv2" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv2'" /><span style="margin-top: 5px;">Python 2.7</span></label>
 								</div>
-								<input type="text" data-bind="textInput: NewVenvName" class="form-control" id="newvenvname" style="width: 65%; margin-top: 5px;" >
+
+								<input type="text" data-bind="textInput: newVenvName" class="form-control" id="newvenvname" style="width: 65%; margin-top: 5px;" >
+
+								<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn btn-success" style="padding: 6px 6px; font-weight: bold; margin-left: 12px;">Create</button>
 							</div>
 						</div>
 					</div>
@@ -1162,17 +1125,20 @@
 							<div style="display: flex; column-gap: 1%; width: 100%;">
 								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Image Name</label>
 								<div class="span-sm-14">
-									<input type="text" data-bind="textInput: NewDockerImageName" name="docker" list="dockerimageName" class="form-control" style="width: 100%; margin-top: 5px;"/>
-									<datalist id="dockerimageName">
-									  <option value="python">python</option>
-									  <option value="celery">celery</option>
-									  <option value="flask">flask</option>
+									<input type="text" data-bind="textInput: newDockerImageName" name="docker" list="dockerimageName" class="form-control" style="width: 100%; margin-top: 5px;" autocomplete="off"/>
+									<datalist id="dockerimageName" data-bind="foreach: imagesList">
+										<option data-bind="text: $data"></option>
+									</datalist>
+								</div>
+								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Container Name</label>
+								<div class="span-sm-14">
+									<input type="text" data-bind="textInput: newDockerContainerName, event: { keyup: submitData }, style: { borderColor: inputColor }, enable:hasDockerContainerNameActive" name="docker" list="dockerContainerName" class="form-control" style="width: 100%; margin-top: 5px;"/>
+									<datalist id="dockerContainerName" data-bind="foreach: containersList" autocomplete="off">
+										<option data-bind="text: $data"></option>
 									</datalist>
 								</div>
 
-								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 12px; margin-top: 5px;">Container Name</label>
-								<input type="text" data-bind="enable:hasDockerContainerNameActive, textInput: NewDockerContainerName" class="form-control" id="newdockercontainername" style="width: 65%; margin-top: 5px;" >
-								<button title="Docker Container Name" data-bind='enable: hasDockerContainerName, click: addNewDockerContainer' class="btn btn-primary" style="padding: 6px 6px; font-weight: bold; margin-top: 2px; margin-left: 12px;">Create</button>
+								<button title="Docker Container Name" data-bind='enable: isButtonEnabled, click: addNewDockerContainer' class="btn btn-primary" style="padding: 6px 6px; font-weight: bold; margin-top: 2px; margin-left: 12px;">Create</button>
 							</div>
 						</div>
 					</div>
@@ -1223,7 +1189,7 @@
 		</div>
 		</div>
 
-		<form method="POST" action='/upload' class="dropzone dz-clickable" id="dropper" enctype="multipart/form-data">
+		<form method="POST" class="dropzone dz-clickable" id="dropper" enctype="multipart/form-data">
   		</form>
 
 		  <br>
@@ -1233,43 +1199,6 @@
 			  <button data-bind="click: addPackage" class="btn btn-primary" id="packageuploadbutton">Add</button>
 			  <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		  </div>
-
-		  <script type="application/javascript">
-			function init() {
-				Dropzone.options.dropper = {
-					paramName: 'file',
-					chunking: true,
-					forceChunking: true,
-					url: '/upload',
-					maxFilesize: 1025, 
-					chunkSize: 1000000,
-					timeout: 180000, // 3 minutes
-					autoProcessQueue: true,
-					acceptedFiles: ".zip, .tar",
-					init: function() {
-						this.on("success", function(file, response) {
-							addLibraryViewModel.moduleId = response.moduleId;
-							// Handle successful upload
-						});
-
-						this.on("error", function(file, message) {
-							// Handle upload error
-						});
-
-						// TODO: sakil will complete it after backend done
-
-						// this.on("complete", function(file) {
-						// 	this.removeFile(file);
-						// });
-
-						// this.on("queuecomplete", function () {
-						// 	this.removeAllFiles();
-						// });
-					}
-				}
-			}
-		</script>
-		
 		<br>
 		<br>
 	
@@ -2881,7 +2810,40 @@
 			}, 200);
 
 	}
-	
+	Dropzone.autoDiscover = false;
+	var dropperOptions = {
+			paramName: 'file',
+			chunking: true,
+			forceChunking: true,
+			retryChunks: true,
+			url: '/upload',
+			maxFilesize: 1025, // megabytes
+			parallelChunkUploads: false,
+			chunkSize: 2000000, // bytes
+			timeout: 300000, // 5 minutes
+			autoProcessQueue: true,
+			acceptedFiles: ".zip, .tar",
+			init: function() {
+				this.on("success", function(file, response) {
+					addLibraryViewModel.modulepath = file.xhr.responseText;
+					// Handle successful upload
+				});
+
+				this.on("error", function(file, message) {
+					// Handle upload error
+					addLibraryViewModel.modulepath = "";
+				});
+				this.on("addedfile", function(file){
+					while(this.files.length > 1){
+						this.removeFile(this.files[0]);
+					}
+				});
+			}
+		}
+
+		
+	var dropperPackage = new Dropzone("#dropper", dropperOptions);
+	var dropperModule = new Dropzone("#droppermodule", dropperOptions);
     $(window).on('load', function() {
     	 
     	$('#refresh').hide();
@@ -2900,9 +2862,6 @@
                 });
             });
         });
-		
-        
-        
     });
 
     ajaxcalls = new AjaxCalls('mainulhossain@gmail.com', 'mainul');
@@ -3325,7 +3284,6 @@ function typeInTextarea(el, newText) {
 
 	    var datasetAddViewModel = new DatasetAddViewModel();
 		var addLibraryViewModel = new AddLibraryViewModel(username, ace);
-		var pagingVM = new mainViewModel();
 		var addProvPluginViewModel = new AddProvPluginViewModel(ace);
         var sampleViewModel = new SampleViewModel(editor);
 		var provgraphviewmodel = new provgraphViewModel();
@@ -3364,9 +3322,6 @@ function typeInTextarea(el, newText) {
         ko.applyBindings(samplesViewModel, $('#samples')[0]);
         ko.applyBindings(addLibraryViewModel, $('#add')[0]);
         ko.applyBindings(addLibraryViewModel, $('#addPackage')[0]);
-
-        ko.applyBindings(pagingVM, $('#pagination')[0]);
-
 		ko.applyBindings(addProvPluginViewModel, $('#addProv')[0]);
         ko.applyBindings(samplesViewModel.sampleViewModelToAdd, $('#addSample')[0]);
 		ko.applyBindings(sampleViewModel, $('#argumentsPanel')[0]);
@@ -3670,9 +3625,6 @@ function typeInTextarea(el, newText) {
           button.classList.add("show-new-add");
         }
     });
-	
-	init();
-	initmodule();
 </script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}

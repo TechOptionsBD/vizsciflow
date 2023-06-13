@@ -31,4 +31,13 @@ class RunnableManager:
     def get_task_logs(self, task_id):
         return self.persistance.get_task_logs(task_id)
     
+    def get_dockercontainers(self, **kwargs):
+        return self.persistance.get_dockercontainers(**kwargs)
+    
+    def get_dockerimages(self, **kwargs):
+        return self.persistance.get_dockerimages(**kwargs)
+    
+    def add_docker_image_container(self, user_id, imagename, containername, command):
+        return self.persistance.add_docker_image_container(user_id, imagename, containername, command)
+
 runnablemanager = RunnableManager()

@@ -2604,7 +2604,7 @@ class DockerImage(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'nametag': self.nametag
+            'name': self.name
         }
     
 class DockerContainer(db.Model):

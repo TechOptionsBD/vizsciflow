@@ -112,7 +112,7 @@ function AddLibraryViewModel(userName) {
         ajaxcalls.simple(self.tasksURI, 'GET', { 'dockerimages': '' }).done(function (data) {
             
             $(data["dockerimages"]).each((index, element)=> {
-                self.imagesList.push(element.nametag);
+                self.imagesList.push(element.name);
             });
             
         }).fail(function (jqXHR) {
@@ -140,7 +140,7 @@ function AddLibraryViewModel(userName) {
         if (!self.submittedData().includes(inputData)) {
         //   self.submittedData.push(inputData);
         } else {
-          alert('Data is already added.');
+        //   alert('Data is already added.');
         }
       }
   
@@ -158,6 +158,14 @@ function AddLibraryViewModel(userName) {
       typingTimer = setTimeout(function() {
       }, 300); // Delay of 300 milliseconds (adjust as needed)
     }
+
+    self.inputColor = ko.computed(function () {
+        return self.submittedData().indexOf(self.newDockerContainerName()) !== -1 ? 'red' : '';
+    });
+
+    self.isButtonEnabled = ko.computed(function () {
+        return self.submittedData().indexOf(self.newDockerContainerName()) === -1 && self.newDockerContainerName().length > 0;
+    });
 
     self.getLibrary = function(){
         $("#add-library-info").text("");

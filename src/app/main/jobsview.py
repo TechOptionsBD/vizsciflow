@@ -493,12 +493,37 @@ def create_lib_dir_files(activity, uploadedlib):
     return libdir
 
 def get_dockercontainers(user_id):
-    containers = runnablemanager.get_dockercontainers(user_id=user_id)
+    containers = runnablemanager.get_dockercontainers()
     return [container.to_json() for container in containers]
 
 def get_dockerimages(user_id):
-    images = runnablemanager.get_dockerimages(user_id=user_id)
+    images = runnablemanager.get_dockerimages()
     return [image.to_json() for image in images]
+
+def new_dockerenvs(imagename, containername, user_id):
+    import docker
+
+    client = docker.from_env()
+    container = client.containers.list(all=True, filters={'name': containername})
+    if container:
+        raise ValueError(f"Container {containername} already exists.")
+    images = client.images.list()
+
+    foundimage = None
+    for image in images:
+        name = image.attrs['Config']['Image']
+        if name == imagename:
+            foundimage = image
+            break
+
+    if not foundimage:
+        client.images.pull(imagename)
+    
+    command = 'sh -c "tail -F anything"'
+    container = client.containers.run(imagename, command=command, detach=True, name=containername)
+    if container:
+        runnablemanager.add_docker_image_container(user_id, imagename, containername, command)
+    return json.dumps({"success": "Container created."})
 
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required

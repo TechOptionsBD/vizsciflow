@@ -37,4 +37,7 @@ class RunnableManager:
     def get_dockerimages(self, **kwargs):
         return self.persistance.get_dockerimages(**kwargs)
     
+    def add_docker_image_container(self, user_id, imagename, containername, command):
+        return self.persistance.add_docker_image_container(user_id, imagename, containername, command)
+
 runnablemanager = RunnableManager()

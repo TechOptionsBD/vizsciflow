@@ -2582,11 +2582,24 @@ class DataChunk(db.Model):
             db.session.rollback()
             raise
 
-class DockerImages(db.Model):
+class DockerImage(db.Model):
     __tablename__ = 'dockerimages'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    nametag = db.Column(db.Text, nullable=False)
+    name = db.Column(db.Text, nullable=False)
+
+    @staticmethod
+    def add(user_id, name):
+        try:
+            image = DockerImage(user_id=user_id, name=name)
+            db.session.add(image)
+            db.session.commit()
+            return image
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+
     def to_json(self):
         return {
             'id': self.id,
@@ -2594,14 +2607,25 @@ class DockerImages(db.Model):
             'nametag': self.nametag
         }
     
-class DockerContainers(db.Model):
+class DockerContainer(db.Model):
     __tablename__ = 'dockercontainers'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    image_id = db.Column(db.Integer, nullable=False)
+    image_id = db.Column(db.Integer, db.ForeignKey('dockerimages.id'))
     name = db.Column(db.Text, nullable=False)
-    args = db.Column(db.Text, nullable=False)
-    commands = db.Column(db.Text, nullable=False)
+    args = db.Column(db.Text, nullable=True)
+    command = db.Column(db.Text, nullable=True)
+
+    @staticmethod
+    def add(user_id, image_id, containername, command):
+        try:
+            container = DockerContainer(user_id = user_id, image_id = image_id, name = containername, command=command)
+            db.session.add(container)
+            db.session.commit()
+            return container
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
 
     def to_json(self):
         return {
@@ -2610,5 +2634,5 @@ class DockerContainers(db.Model):
             'image_id': self.image_id,
             'name': self.name,
             'args': self.args,
-            'commands': self.commands
+            'command': self.command
         }

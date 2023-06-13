@@ -346,11 +346,22 @@ class RunnableManager():
     
     @staticmethod
     def get_dockercontainers(**kwargs):
-        return DockerContainers.query.filter_by(**kwargs)
+        return DockerContainer.query.filter_by(**kwargs)
 
     @staticmethod
     def get_dockerimages(**kwargs):
-        return DockerImages.query.filter_by(**kwargs)
+        return DockerImage.query.filter_by(**kwargs)
+    
+    @staticmethod
+    def add_docker_image_container(user_id, imagename, containername, command):
+        image = DockerImage.query.filter_by(name=imagename).first()
+        if not image:
+            image = DockerImage.add(user_id, imagename)
+        
+        container = DockerContainer.query.filter_by(name=containername).first()
+        if not container:
+            container = DockerContainer.add(user_id, image.id, containername, command=command)
+        return image, container
     
     @staticmethod
     def add_return(runnable_id, triplet):

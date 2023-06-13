@@ -79,8 +79,6 @@ function AddLibraryViewModel(userName) {
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });
-        alert('done');
-        console.log('done');
     }
 
     self.loadpipvenvs = function(){

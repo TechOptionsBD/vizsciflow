@@ -1,4 +1,5 @@
 import os
+import ast
 import copy
 import shutil
 import threading
@@ -246,32 +247,26 @@ class VizSciFlowContext(Context):
         fs = Utility.fs_by_prefix_or_guess(data)
         return fs.strip_root(str(data))
 
+    @staticmethod
+    def params_to_args(params, *args, **kwargs):
+        arguments = {}
+        usedIndex = 0
+        for param in params:
+            if param.name in kwargs:
+                arguments[param.name] = kwargs[param.name]
+            elif usedIndex < len(args):
+                arguments[param.name] = args[usedIndex]
+                usedIndex += 1
+            elif hasattr(param, 'default'):
+                arguments[param.name] = ast.literal_eval(param.default)
+
+        return arguments
+
     def parse_args(self, funcname, package, *args, **kwargs):
         func = modulemanager.get_module_by_name_package(funcname, package)
         if not func:
             raise ValueError(f"Function {funcname} doesn't exist.")
-
-        arguments = {}
-        usedIndex = 0
-        if hasattr(func, 'params'):
-            for param in func.params:
-                if param.name in kwargs:
-                    arguments[param.name] = kwargs[param.name]
-                elif usedIndex < len(args):
-                    arguments[param.name] = args[usedIndex]
-                    usedIndex += 1
-                elif hasattr(param, 'default'):
-                    arguments[param.name] = param.default
-
-        return arguments
-
-    def workflow_id(*args, **kwargs):
-        id = kwargs.pop('id', None)
-        if not id:
-            id = args[0]
-        if not id:
-            raise ValueError("No valid workflow.")
-        return id
+        return VizSciFlowContext.params_to_args(func.params, *args, **kwargs) if hasattr(func, 'params') else {}
     
     # def get_mypyvenv(self, name = 'None'):
     #     from app import app

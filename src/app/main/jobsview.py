@@ -443,19 +443,20 @@ def create_lib_dir(activity, path):
         os.makedirs(libdir)
 
     activity.add_log(log="Extracting tool package in tools directory...", type=LogType.INFO)
-    if zipfile.is_zipfile(path):
-        with zipfile.ZipFile(path,"r") as zip_ref:
-            zip_ref.extractall(libdir)
-    elif tarfile.is_tarfile(path):
-        with tarfile.open(path,"r") as tar_ref:
-            tar_ref.extractall(libdir)
-    else:
-        shutil.copyfile(path, os.path.join(libdir, os.path.basename(path)))
-        # activity.add_log(log="Only .zip or .tar is allowed as a tool package.", type=LogType.ERROR)
-        # raise ValueError("Only .zip or .tar is allowed as a tool package.")
+    if path:
+        if zipfile.is_zipfile(path):
+            with zipfile.ZipFile(path,"r") as zip_ref:
+                zip_ref.extractall(libdir)
+        elif tarfile.is_tarfile(path):
+            with tarfile.open(path,"r") as tar_ref:
+                tar_ref.extractall(libdir)
+        else:
+            shutil.copyfile(path, os.path.join(libdir, os.path.basename(path)))
+            # activity.add_log(log="Only .zip or .tar is allowed as a tool package.", type=LogType.ERROR)
+            # raise ValueError("Only .zip or .tar is allowed as a tool package.")
     
-    activity.add_log(log="Deleting tool .zip or .tar from temp directory...")
-    os.remove(path)
+        activity.add_log(log="Deleting tool .zip or .tar from temp directory...")
+        os.remove(path)
     return libdir
 
 def create_lib_dir_files(activity, uploadedlib):
@@ -589,6 +590,10 @@ def functions():
                 
                 args = request.form.get('args') if request.form.get('args') else ''
                 immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
+                
+                # uncomment following line for debugging
+                #immediate = True
+
                 provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
                 runnable = run_biowl(workflowId, None, args, immediate, provenance)
                 return jsonify(runnableId = runnable.id)

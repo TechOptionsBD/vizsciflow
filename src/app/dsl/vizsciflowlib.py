@@ -7,6 +7,7 @@ from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
 from dsl.filemgr import FileManager
 
+from app.dsl.vizsciflowcontext import VizSciFlowContext
 from app.managers.runmgr import runnablemanager
 from app.managers.datamgr import datamanager
 from app.managers.modulemgr import modulemanager
@@ -171,9 +172,14 @@ class Library(LibraryBase):
                     raise ValueError(f"{pkgfuncname} is not published")
                 
             if func.package == 'system' and func.name.lower() == 'workflow':
-                workflow = workflowmanager.first(id=context.workflow_id(*arguments, **kwargs))
+                id = kwargs.pop('id', None)
+                if not id:
+                    id = arguments.pop()
+                workflow = workflowmanager.first(id=id)
                 params = [dict2obj(param.value) for param in workflow.params if workflow.params]
                 returns = [dict2obj(ret.value) for ret in workflow.returns if workflow.returns]
+                kwargs = VizSciFlowContext.params_to_args(params, *arguments, **kwargs) #id must not exist here
+                arguments = [id]
             else:
                 params = list(func.params) if hasattr(func, 'params') else []
                 returns = func.returns if hasattr(func, 'returns') else None

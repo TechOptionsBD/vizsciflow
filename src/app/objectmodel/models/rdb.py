@@ -1870,6 +1870,7 @@ class Runnable(db.Model):
             db.session.rollback()
             raise
     
+    @property
     def completed(self):
         return self.status == 'SUCCESS' or self.status == 'FAILURE' or self.status == 'REVOKED'
     
@@ -1893,7 +1894,12 @@ class Runnable(db.Model):
     #     flag_modified(self, 'value')
 
     def get_duration(self):
-        return self.duration if self.duration != None else (self.modified_on - self.created_on).seconds
+        if self.duration != None:
+            return self.duration
+        elif self.completed:
+            return (self.modified_on - self.created_on).seconds
+        else:
+            return (datetime.utcnow() - self.started_on).seconds
 
     def json(self):
         

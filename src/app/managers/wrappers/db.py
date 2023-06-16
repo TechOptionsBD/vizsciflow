@@ -113,18 +113,6 @@ class DataManager():
     def upload_chunk_data(user_id, file, file_uuid, current_chunk, total_chunks, offset, total_size_file, folder):
         filename = secure_filename(file.filename)
         filepath = os.path.join(folder, filename)
-        if os.path.exists(filepath): # and current_chunk == 0
-            data_chunk = DataChunk.query.filter_by(path = filepath).first()
-            if not data_chunk:
-                raise ValueError("The file exists, but no chunk saved into the database for this file.")
-
-            if current_chunk < int(data_chunk.chunk):
-                return {'fileuuid': file_uuid,
-                    'path': data_chunk.path,
-                    'chunk': int(data_chunk.chunk)+1,
-                    'totalchunks':data_chunk.total_chunk,
-                    'uploadedsize': data_chunk.uploaded_size,
-                    'totalsize':data_chunk.total_size}
 
         fs = PosixFileSystem('/')
         filepath = fs.save_upload(file, folder, offset)[1]

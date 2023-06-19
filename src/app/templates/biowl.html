@@ -815,7 +815,7 @@
 					</div>
 				</div>
 				<div class="panel-body draggable-functions"
-					style="max-height: 500px; overflow-y: scroll; padding: 3px">
+					style="max-height: 400px; overflow-y: scroll; padding: 3px">
 					<div class="row" style="width: 100%; margin: 0">
 						<div class="p-3 mb-2 bg-primary text-white"
 							style="float: left; text-align: left; padding-left:5px; width: 60%"><strong>Name</strong></div>
@@ -900,7 +900,7 @@
 					</div>
 				</div>
 				<div class="panel-body draggable-samples"
-					style="max-height: 200px; width: 100%; overflow-y: scroll; padding: 3px 3px 0 0">
+					style="max-height: 350px; width: 100%; overflow-y: scroll; padding: 3px 3px 0 0">
 					<div class="row" style="width: 100%; margin: 0">
 						<div class="p-3 mb-2 bg-primary text-white"
 							style="float: left; width: 80%; text-align: left; padding-left: 12px"><strong>Name</strong></div>
@@ -918,6 +918,9 @@
 								<i data-bind="visible: access() == '0' " class="fa fa-globe"></i>
 								<i data-bind="visible: access() == '1' " class="fa fa-users"></i>
 								<i data-bind="visible: access() == '2' " class="fa fa-lock"></i>
+								&nbsp;
+								<span style="font-weight: bold;" data-bind="text: id"></span>
+								<span style="font-weight: bold;">:</span>
 								&nbsp;
 								<span style="font-weight: bold;" data-bind="text: name"></span>
 								
@@ -1162,7 +1165,7 @@
 		</div>
 		<div class="modal-footer">
 			<span class="span-sm-10" style = "color: red; margin-left: 4px; text-align: left;" id="add-library-info"></span>
-			<button data-bind="click: addLibrary" class="btn btn-primary">Add</button>
+			<button data-bind="click: addLibrary" class="btn btn-primary">Save</button>
 			<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 		</div>
 	  </div>
@@ -1380,7 +1383,7 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button data-bind="click: add" class="btn btn-primary">Add</button>
+				<button data-bind="click: add" class="btn btn-primary">Save</button>
 				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
 			</div>
 		</div>
@@ -3077,6 +3080,9 @@ function typeInTextarea(el, newText) {
 	    }
 	};
 
+	/**
+	 * Job History 
+	 * */
 	ko.bindingHandlers.qTipDs = {
 	    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
 	        $(element).qtip({

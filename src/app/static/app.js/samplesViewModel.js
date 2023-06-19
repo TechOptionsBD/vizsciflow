@@ -128,7 +128,30 @@ function SamplesViewModel(sampleViewModel) {
                 $(".expandedWorkflow").remove();
 
                 tooltip = "<div class=\"expandedWorkflow\" style=\"margin-top: 40px \"> <p>ID: " + item.id() + "<br>Name: " + item.name() + "<br>Owner: " + item.user() + "<br>Selected: " + item.selected() + "</p>";
-                tooltip += "</p>";
+
+                if(item.params().length > 0){
+                    tooltip += "<table class=\"table\" style=\"border-bottom: 1px solid; border-right: 1px solid; border-left: 1px solid\">";
+                    tooltip += "<thead class=\"thead-dark\" style=\"color: #fff; background-color: #337ab7;\">";
+                    tooltip += "<tr>";
+                    tooltip += "<th colspan=\"2\" style=\"text-align: center; \" class=\"header\" scope=\"col\">Params</th>";
+                    tooltip += "</tr>";
+                    tooltip += "<tr>";
+                    tooltip += "<th style=\"text-align: center;\" class=\"header\" scope=\"col\">Name</th>";
+                    tooltip += "<th style=\"text-align: center;\" class=\"header\" scope=\"col\">Type</th>";
+                    tooltip += "</tr>";
+                    tooltip += "</thead>";
+                    tooltip += "<tbody>";
+                    item.params().forEach(function (param){
+                        tooltip += "<tr>";
+                        tooltip += "<td style=\"text-align: center; border-right: 1px solid\" >" + param.name + "</td>";
+                        tooltip += "<td style=\"text-align: center;\" >" + param.type + "</td>";
+                        tooltip += "</tr>";
+                    });
+                    tooltip += "</tbody>";
+                    tooltip += "</table>";
+                }
+                
+
                 tooltip += "<p>Double click item to insert into code editor.</p></div>";
 
                 domItem.parents('.draggable-workflow').append(tooltip);
@@ -212,7 +235,8 @@ function SamplesViewModel(sampleViewModel) {
                     selected: ko.observable(false),
                     access: ko.observable(s.access),
                     isOwner: ko.observable(s.is_owner),
-                    desc: ko.observable(s.desc)
+                    desc: ko.observable(s.desc),
+                    params: ko.observable(s.params),
                 });
             });
             

@@ -1,0 +1,23 @@
+{
+  "package": "demo",
+  "name": "SumInDocker",
+  "internal": "demo_service",
+  "org": "",
+  "group": "",
+  "desc": "Executes sum program in a docker container.",
+  "href": "",
+  "params": [
+    {
+      "name": "data",
+      "type": "int[]",
+      "desc": "An array of integers.",
+      "default": ""
+    }
+  ],
+  "returns": [
+    {
+      "name": "data",
+      "type": "int"
+    }
+  ]
+}

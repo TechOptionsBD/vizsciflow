@@ -126,3 +126,20 @@ def py_run(app, *args):
         logging.error(f"Error occurred during execution: {str(e)}" )
         logging.error(traceback.format_exc())
         raise
+
+def docker_exec_out_exit(container, app, *args, **kwargs):
+    import docker
+    client = docker.from_env()
+    container = client.containers.get(container)
+    if not container:
+        raise ValueError(f"{container} container not found.")
+
+    chdir = f"cd {kwargs['cwd']} && " if 'cwd' in kwargs else ""
+
+    cmd = chdir + app
+    args = flatten(args)
+    args = [str(arg) for arg in args]
+    if args:
+        cmd += ' ' + ' '.join(str(arg) for arg in args)
+    exec_results = container.exec_run(f"sh -c '{cmd}'")
+    return exec_results.output.decode('utf-8'), exec_results.exit_code

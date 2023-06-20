@@ -15,6 +15,12 @@ function SampleViewModel(editor) {
     self.TList = ko.observableArray();
     self.sampleEditor = editor ?? CreateAceEditor("#sample", "ace/mode/python", '40vh');
    
+    self.isPublic = ko.computed(function()
+    {
+        console.log(true);
+        return parseInt(self.access) == 0;
+    });
+    
     self.loaddatatypes = function(){
         self.TList.removeAll();
         ajaxcalls.simple(self.tasksURI, 'GET', { 'datatypes': '' }).done(function (data) {

@@ -498,7 +498,16 @@
 								</div>
 							</div> -->
 						</div>
-						<h5 id='script-name' data-bind="text: sampleViewModel.name"></h5>
+						<div style="display: flex; justify-content: center; column-gap: 3%">
+							
+							<!-- ko if: sampleViewModel.workflowId() > 0 -->
+								<div style="display: flex; justify-content: center;">
+									<h5 data-bind="text: sampleViewModel.workflowId"></h5>
+									<h5 style="font-weight: bolder;" >:</h5>
+								</div>
+							<!-- /ko -->
+							<h5 data-bind="text: sampleViewModel.name"></h5>
+						</div>
 					</div>
 				</div>
 				<div class="panel-body">
@@ -1304,7 +1313,7 @@
 							<div class="row service-form-group">
 								<label class="span-sm-2" for="access">Public</label>
 								<div class="span-sm-2">
-									<input type="checkbox" id="access" data-bind="checked: access">
+									<input type="checkbox" id="access" data-bind="checked: isPublic">
 								</div>
 								<label for="" class="span-sm-5">Share with</label>
 								<div class="span-sm-11">

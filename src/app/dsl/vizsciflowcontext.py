@@ -132,11 +132,24 @@ class VizSciFlowContext(Context):
 
     @staticmethod
     def addenvpath(path):
+        paths = path.split(os.pathsep)
         envpaths = os.environ["PATH"]
-        if not path in envpaths: # Mainul: may need to check if it ends the envpaths (if it's base of some subdir) or end with :
-            os.environ["PATH"] =  path + os.pathsep + envpaths
-        return os.environ["PATH"]
+        for path in paths:
+            if not path in envpaths: # Mainul: may need to check if it ends the envpaths (if it's base of some subdir) or end with :
+                envpaths =  path + os.pathsep + envpaths
+        if os.environ["PATH"] != envpaths:
+            os.environ["PATH"] = envpaths
+        return envpaths
 
+    @staticmethod
+    def checkenvpath(path):
+        paths = path.split('os.pathsep')
+        envpaths = os.environ["PATH"]
+        for path in paths:
+            if not path in envpaths: # Mainul: may need to check if it ends the envpaths (if it's base of some subdir) or end with :
+                return False
+        return True
+    
     def createuniquefile(self, prefix='', extension=''):
         outdir = self.createoutdir()
         fs = Utility.fs_by_prefix_or_guess(outdir)
@@ -199,7 +212,7 @@ class VizSciFlowContext(Context):
     @staticmethod
     def exec_in_env(f, app, *args, **kwargs):
         oldcwd = os.getcwd() if 'cwd' in kwargs and kwargs['cwd'] != os.getcwd() else None
-        oldenvpath = os.environ["PATH"] if 'env' in kwargs and not kwargs['env'] in os.environ["PATH"] else None
+        oldenvpath = os.environ["PATH"] if 'env' in kwargs and not VizSciFlowContext.checkenvpath(kwargs['env']) else None
         try:
             if oldcwd: os.chdir(kwargs['cwd'])
             if oldenvpath: VizSciFlowContext.addenvpath(kwargs['env'])

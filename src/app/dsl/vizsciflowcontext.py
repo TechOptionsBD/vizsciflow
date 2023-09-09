@@ -249,6 +249,14 @@ class VizSciFlowContext(Context):
         args = (os.path.join(venvs[venv], 'bin', 'activate'), *args)
         return pyvenv_run_venv_args(toolpath, app, *args)
 
+    def pyvenv_run_at_venv_in_env(self, toolpath, app, venv, *args, **kwargs):
+        venvs = get_python_venvs(self.user_id)
+        if not venvs.get(venv):
+            raise ValueError(f"{self.user_id}/{venv} virtual environment doesn't exist.")
+
+        args = (os.path.join(venvs[venv], 'bin', 'activate'), *args)
+        return VizSciFlowContext.exec_in_env(pyvenv_run_venv_args, toolpath, app, *args, **kwargs)
+
     @staticmethod
     def normalize(data):
         data = strip_quote(data)

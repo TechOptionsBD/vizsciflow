@@ -84,9 +84,7 @@ def update_workflow(user_id, workflow_id, script, params, returns):
         logging.error(f"Error in updating/creating workflow: {str(e)}")
         raise
 
-def run_biowl_internal(workflow_id, user_id, script, args, provenance = False):
-    from ..jobs import run_script
-
+def load_args(args):
     argsjson = {}
     if args:
         if not isinstance(args, dict):
@@ -99,33 +97,30 @@ def run_biowl_internal(workflow_id, user_id, script, args, provenance = False):
                     argsjson[keyval[0]] = keyval[1]
         else:
             argsjson = args
+    return argsjson
 
+def run_biowl_internal(workflow_id, user_id, script, args, provenance = False):
+    from ..jobs import run_script
+
+    argsjson = load_args(args)
     workflow = workflowmanager.first(id=workflow_id)
     runnable = runnablemanager.create_runnable(user_id, workflow, script if script else workflow.script, provenance, argsjson)
            
     if isinstance(args, dict):
         argsparse = []
         for k,v in args.items():
-            argsparse.append(k + '=' + f'"{v}"' if isinstance(v, str) else str(v))
+            if isinstance(v, str):
+                argsparse.append(k + '=' + f'"{v}"')
+            else:
+                argsparse.append(k + '=' + str(v))
+
         args = ",".join(argsparse)
     return run_script(runnable.id, args, provenance)
 
 def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
     try:
         from ..jobs import run_script
-        argsjson = {}
-        if args:
-            if not isinstance(args, dict):
-                try:
-                    argsjson = json.loads(args)
-                except:
-                    argslist = args.split(',')
-                    for a in argslist:
-                        keyval = a.split('=')
-                        argsjson[keyval[0]] = keyval[1]
-            else:
-                argsjson = args
-
+        argsjson = load_args(args)
         workflow = workflowmanager.first(id=workflow_id)
         runnable = runnablemanager.create_runnable(current_user.id, workflow, script if script else workflow.script, provenance, argsjson)
 
@@ -526,6 +521,12 @@ def new_dockerenvs(imagename, containername, user_id):
         runnablemanager.add_docker_image_container(user_id, imagename, containername, command)
     return json.dumps({"success": "Container created."})
 
+def parse_string_to_int(s, default = 0):
+    try:
+        return int(s)
+    except ValueError:
+        return default
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
@@ -577,10 +578,10 @@ def functions():
             if request.form.get("download_service"):
                 return download_service(request.form.get("download_service"))
             elif request.form.get('workflowId'):
-                workflowId = int(request.form.get('workflowId')) if int(request.form.get('workflowId')) else 0
+                workflowId = parse_string_to_int(request.form.get('workflowId')) if request.form.get('workflowId') else 0
                 if request.form.get('script'):
                     workflow = update_workflow(current_user.id, workflowId, request.form.get('script'), request.form.get('args'), request.form.get('returns'))
-                    return jsonify(workflowId = workflow.id)
+                    return json.dumps(workflow.to_json())
 
                 # Here we must have a valid workflow id
                 if not workflowId:
@@ -592,7 +593,7 @@ def functions():
                 immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
                 
                 # uncomment following line for debugging
-                #immediate = True
+                # immediate = True
 
                 provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
                 runnable = run_biowl(workflowId, None, args, immediate, provenance)

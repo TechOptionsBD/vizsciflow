@@ -16,9 +16,12 @@ def flatten(coll):
                 yield i
 
 def func_exec_stdout(app, *args):
-    if not os.access(app, os.X_OK):
-        st = os.stat(app)
-        os.chmod(app, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
+    try:
+        if not os.access(app, os.X_OK):
+            st = os.stat(app)
+            os.chmod(app, st.st_mode | stat.S_IEXEC) #  st.st_mode | 0111 for all
+    except:
+        pass
     # cmd = app
     # if args:
     #     cmd += ' ' + ' '.join(str(arg) for arg in args)

@@ -134,8 +134,9 @@ function TasksViewModel(sampleViewModel) {
                     throw Error(data.err);
                 }
                 else {
-                    self.sampleViewModel.workflowId(parseInt(data['workflowId']));
-                    self.sampleViewModel.name(data['name']);
+                    data = JSON.parse(data)
+                    self.sampleViewModel.workflowId(parseInt(data.id));
+                    self.sampleViewModel.name(data.name);
                     editor.session.getUndoManager().markClean();
                 }
             }

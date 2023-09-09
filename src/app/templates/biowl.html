@@ -2607,7 +2607,7 @@
 					<tr data-bind="foreach: $data.items">
 						<!-- ko if: $index() !== 3 -->													
 						<td>
-							<label data-bind="text: value"></label>
+							<label data-bind="text: value" style="overflow-wrap: anyWhere;"></label>
 						</td>
 						<!-- /ko -->
 
@@ -2634,7 +2634,7 @@
 				<tbody data-bind="foreach: wfReturnArgs">
 					<tr data-bind="foreach: $data.items">												
 						<td>
-							<label data-bind="text: value"></label>
+							<label data-bind="text: value" style="overflow-wrap: anyWhere;"></label>
 						</td>
 					</tr>				
 				</tbody>

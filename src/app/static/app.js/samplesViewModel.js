@@ -85,6 +85,8 @@ function SamplesViewModel(sampleViewModel) {
         $('#addSample').modal('show')
             .on('show.bs.modal', function () {
                 // $("#addSampleButton").data("saveas", saveas);
+                self.sampleViewModelToAdd.wfParams.valueHasMutated();
+                self.sampleViewModelToAdd.wfReturns.valueHasMutated();
             })
             .on('hidden.bs.modal', function () {
 

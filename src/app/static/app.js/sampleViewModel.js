@@ -17,8 +17,7 @@ function SampleViewModel(editor) {
    
     self.isPublic = ko.computed(function()
     {
-        console.log(true);
-        return parseInt(self.access) == 0;
+        return self.access() == 0;
     });
     
     self.loaddatatypes = function(){
@@ -31,7 +30,9 @@ function SampleViewModel(editor) {
             showXHRText(jqXHR);
         });
     }
-   
+    
+    self.loaddatatypes();
+
     self.clear = function(){
         self.workflowId(0);
         self.name("No Name");
@@ -59,6 +60,24 @@ function SampleViewModel(editor) {
         self.wfReturns(src.wfReturns());
         self.wfArgs(src.wfArgs());
         self.wfReturnArgs(src.wfReturnArgs());
+        self.TList(src.TList());
+    }
+
+    self.isEqualParamsJson = function(params, json){
+        if (params.length != json.length) {
+            return false;
+        }
+
+        json.forEach(function(param, index){
+            if (params[index]['name'] != param['name'])
+                return false;
+            if (params[index]['type'] != param['type'])
+                return false;
+            if (params[index]['desc'] != param['desc'])
+                return false;
+        });
+
+        return true;
     }
 
     self.copyFromJson = function(data) {
@@ -66,33 +85,36 @@ function SampleViewModel(editor) {
         self.name(data['name']);
         self.desc(data['desc']);
         self.access(parseInt(data['access']));
-        self.wfParams.removeAll();
-        if (Array.isArray(data['params'])){
-            data['params'].forEach(function(param){
-                self.wfParams.push(
-                    ko.observableDictionary({
-                        name: param['name'],
-                        type: param['type'],
-                        desc: param['desc'],
-                        default: param['default'] === undefined ? "" : param['default']
-                    })
-                );
-            });
-            self.copyArgsFromParams(data['params']);
+        if (!self.isEqualParamsJson(self.wfParams, data['params'])) {
+            self.wfParams.removeAll();
+            if (Array.isArray(data['params'])){
+                data['params'].forEach(function(param){
+                    self.wfParams.push(
+                        ko.observableDictionary({
+                            name: param['name'],
+                            type: param['type'],
+                            desc: param['desc'],
+                            default: param['default'] === undefined ? "" : param['default']
+                        })
+                    );
+                });
+                self.copyArgsFromParams(data['params']);
+            }
         }
-
-        self.wfReturns.removeAll();
-        if (Array.isArray(data['returns'])){
-            data['returns'].forEach(function(param){
-                self.wfReturns.push(
-                    ko.observableDictionary({
-                        name: param['name'],
-                        type: param['type'],
-                        desc: param['desc']
-                    })
-                );
-            });
-            self.copyReturnArgsFromReturns(data['returns']);
+        if (!self.isEqualParamsJson(self.wfReturns, data['returns'])) {
+            self.wfReturns.removeAll();
+            if (Array.isArray(data['returns'])){
+                data['returns'].forEach(function(param){
+                    self.wfReturns.push(
+                        ko.observableDictionary({
+                            name: param['name'],
+                            type: param['type'],
+                            desc: param['desc']
+                        })
+                    );
+                });
+                self.copyReturnArgsFromReturns(data['returns']);
+            }
         }
     }
     

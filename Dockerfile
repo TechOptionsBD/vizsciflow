@@ -53,10 +53,7 @@ RUN echo "vizsciflow:vizsciflow" | chpasswd && adduser vizsciflow sudo
 RUN groupadd docker
 RUN usermod -aG docker vizsciflow
 #RUN echo "vizsciflow" | setfacl --modify user:vizsciflow:rw /var/run/docker.sock
-
-# separate venv for python 2.7
-RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /home/get-pip.py
-RUN python2 /home/get-pip.py
+RUN setfacl --modify user:vizsciflow:rw /var/run/docker.sock
 
 WORKDIR /home/vizsciflow
 COPY ./src ./src
@@ -68,34 +65,22 @@ RUN chown -R vizsciflow:vizsciflow /home/venvs
 RUN chown -R vizsciflow:vizsciflow /home/vizsciflow
 
 USER vizsciflow
+
+RUN curl https://pyenv.run | bash
+RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+RUN echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+RUN echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init --path)"\nfi' >> ~/.bashrc
+RUN exec $SHELL
+
 RUN python -m venv /home/venvs/.venv
 RUN /home/venvs/.venv/bin/pip install --upgrade pip
 RUN /home/venvs/.venv/bin/pip install -r ./src/requirements/requirements.txt
-RUN /home/venvs/.venv/bin/pip install wfdsl
 
-# separate venv for pycoQC
-RUN python -m venv /home/venvs/.venvpycoqc
-RUN /home/venvs/.venvpycoqc/bin/pip install --upgrade pip
-RUN /home/venvs/.venvpycoqc/bin/pip install pycoQC
-
-RUN python2 -m pip install virtualenv
-RUN python2 -m virtualenv /home/venvs/.venvpy2
-RUN /home/venvs/.venvpy2/bin/pip install --upgrade pip
-RUN /home/venvs/.venvpy2/bin/pip install -r ./src/requirements/requirements2.txt
-
-RUN /home/venvs/.venv/bin/pip install gunicorn
-RUN /home/venvs/.venv/bin/pip install pysam
 
 # to debug celery in docker
 #RUN /home/vizsciflow/venvs/.venv/bin/pip install debugpy -t /tmp
 
 ENV FLASK_APP manage.py
-ENV FLASK_CONFIG development
+ENV FLASK_CONFIG production
 
-# Give ownership to vizsciflow user
-#RUN chown vizsciflow:vizsciflow ./src/plugins
-#RUN chmod +rwx -R /home/vizsciflow/
-#RUN chmod +rwx -R ../venvs
-
-USER vizsciflow
 WORKDIR /home/vizsciflow/src

@@ -129,3 +129,4 @@ xopen==1.7.0
 zipp==3.11.0
 wfdsl
 gunicorn
+jsonpickle

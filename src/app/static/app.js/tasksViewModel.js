@@ -842,71 +842,73 @@ function TasksViewModel(sampleViewModel) {
 		}
 		return paramarg;
     }
-    self.copyToEditor = function (item) {
+    self.copyToEditor = function (item1) {
 
-        exmpl = '';
-        retrns=[],params=[];
-
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'name': item1.name, 'package': item1.package }).done(function (item) {
+            exmpl = '';
+            retrns=[],params=[];
+    
             retrnNo = 0, paramNo = 0;
-
-        if(Array.isArray(item.returns())){
-            item.returns().forEach(function (retrn){
+    
+            if(Array.isArray(item.returns)){
+                item.returns.forEach(function (retrn){
+                    retrns.push({
+                        id: 'return ' + ++retrnNo,
+                        value: retrn.name
+                    });
+                });
+            }
+            else{
                 retrns.push({
                     id: 'return ' + ++retrnNo,
-                    value: retrn.name
+                    value: item.returns.constructor == Object ? item.returns.name : item.returns
                 });
-            });
-        }
-        else{
-            retrns.push({
-                id: 'return ' + ++retrnNo,
-                value: item.returns().constructor == Object ? item.returns().name : item.returns()
-            });
-        }
-
-        if(Array.isArray(item.params())){
-            item.params().forEach(function (param){
+            }
+    
+            if(Array.isArray(item.params)){
+                item.params.forEach(function (param){
+                    params.push({
+                        id: 'param ' + ++paramNo,
+                        value: self.paramToArg(param)
+                    });
+                });
+            }
+            else{
                 params.push({
                     id: 'param ' + ++paramNo,
-                    value: self.paramToArg(param)
+                    value: self.paramToArg(item.params)
                 });
+            }
+            
+            retrns.forEach(function (retrn){
+                exmpl += retrn.value + ','
             });
-        }
-        else{
-            params.push({
-                id: 'param ' + ++paramNo,
-                value: self.paramToArg(item.params())
+    
+            if(retrns.length > 0){
+                exmpl = exmpl.substring(0, exmpl.length - 1);
+                exmpl += " = " 
+            }
+            
+            if (item.package)
+                exmpl += item.package + '.'
+            exmpl += item.name + '(';
+            params.forEach(function (param){
+                exmpl += param.value + ','
             });
-        }
-        
-        retrns.forEach(function (retrn){
-            exmpl += retrn.value + ','
+            if (exmpl.endsWith(','))
+                exmpl = exmpl.substring(0, exmpl.length - 1);
+            exmpl += ")";
+    
+            var pos = editor.selection.getCursor();             
+            editor.session.insert(pos, exmpl + "\r\n");
+            editor.focus();
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
         });
-
-        if(retrns.length > 0){
-            exmpl = exmpl.substring(0, exmpl.length - 1);
-            exmpl += " = " 
-        }
-        
-        if (item.package())
-            exmpl += item.package() + '.'
-        exmpl += item.name() + '(';
-        params.forEach(function (param){
-            exmpl += param.value + ','
-        });
-        if (exmpl.endsWith(','))
-            exmpl = exmpl.substring(0, exmpl.length - 1);
-        exmpl += ")";
-
-        var pos = editor.selection.getCursor();             
-        editor.session.insert(pos, exmpl + "\r\n");
-        editor.focus();
     }
 
     self.clicks = 0;
     self.timer = null;
-    
-    
     
     //service delete button
     self.serviceToolbar = function (item, event) {

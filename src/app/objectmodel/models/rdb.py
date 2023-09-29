@@ -1283,6 +1283,12 @@ class Service(db.Model):
             
     #     return services
 
+    def to_json(self):
+        jsonval = self.value
+        jsonval.update({'active': self.active})
+        jsonval.update(Service.get_params_returns_json(self))
+        return jsonval
+    
     @staticmethod
     def get_access_json(id, access, is_owner):
         return {

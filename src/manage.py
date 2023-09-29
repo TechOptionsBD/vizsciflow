@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import json
+import logging
 from flask_restful import Api
 from flask_restful.utils import cors
 from flask_httpauth import HTTPBasicAuth
@@ -75,6 +76,25 @@ def run_script_api():
 def get_functions_api():
     try:
         return get_functions(0)
+    finally:
+        logout_user()
+
+@app.route('/api/deleteservices', methods=['GET'])
+@cross_origin(supports_credentials=True)
+@auth.login_required
+def delete_services_api():
+    try:
+        from app.managers.modulemgr import modulemanager
+        from app.managers.activitymgr import activitymanager
+        from app.objectmodel.common import ActivityType
+
+        user = usermanager.first(username='admin')
+        activity = activitymanager.create(user.id, ActivityType.ADDTOOLPACKAGE)
+        modules = modulemanager.delete_modules(activity, request.args.get('path'), user.id)
+    except Exception as e:
+        msg = f"Error occurred in service delete: {str(e)}"
+        logging.error(msg)
+        return make_response(jsonify(error=msg), 500)    
     finally:
         logout_user()
 
@@ -226,7 +246,6 @@ def deploy():
 @click.option('--username', help='The username')
 @click.option('--password', help='The password')
 def adduser(email, username, password):
-    import logging
     logging.basicConfig(level = logging.INFO)
     
     try:
@@ -264,7 +283,6 @@ def deploydb():
     from app.managers.activitymgr import activitymanager
     from app.objectmodel.common import ActivityType
 
-    import logging
     logging.basicConfig(level = logging.INFO)
 
     # clear the database
@@ -324,12 +342,11 @@ def insertmodules(path, with_users, install_pypi):
     from app.managers.modulemgr import modulemanager
     from app.managers.activitymgr import activitymanager
     from app.objectmodel.common import ActivityType
-
-    import logging
     
     logging.basicConfig(level = logging.INFO)
     logging.info("Inserting modules from directory: {0} ...".format(path))
-    if not os.path.exists(path):
+    if not path.startswith("http://") and not path.startswith("https://") and not os.path.exists(path):
+        # path must exist for local modules
         logging.error("Path {0} doesn't exist".format(path))
         raise ValueError("Path {0} doesn't exist".format(path))
     
@@ -344,7 +361,6 @@ def insertmodules(path, with_users, install_pypi):
 @click.option('--path', help='The path to the workflows')
 def insertworkflows(path):
     from app.managers.workflowmgr import workflowmanager
-    import logging
     
     logging.basicConfig(level = logging.INFO)
     logging.info("Inserting workflows from directory: {0} ...".format(path))

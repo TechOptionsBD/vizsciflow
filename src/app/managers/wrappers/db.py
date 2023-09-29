@@ -208,6 +208,10 @@ class ModuleManager():
 
     @staticmethod
     def get_module_by_name_package(name, package):
+        return Service.get_first_service_by_name_package(name, package)
+
+    @staticmethod
+    def get_module_by_name_package_json(name, package):
         return dict2obj(Service.get_first_service_by_name_package_json(name, package))
         
     @staticmethod

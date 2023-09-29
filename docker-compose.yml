@@ -5,7 +5,6 @@ version: '3.8'
 #
 x-common-vizsciflow:
   &default-common-vizsciflow
-  image: vizsciflow
   build:
     context: .
     dockerfile: Dockerfile 
@@ -34,6 +33,7 @@ services:
       - vizsciflowdb      
     ports:
       - 5000:5000
+    hostname: vizsciflowweb
     container_name: vizsciflowweb
 
   vizsciflowcelery:
@@ -128,7 +128,8 @@ services:
       
 networks:
   vizsciflownetwork:
-    driver: bridge
+    name: vizsciflownetwork
+    external: true
   
 volumes:
   postgres:

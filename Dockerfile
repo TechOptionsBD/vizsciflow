@@ -1,9 +1,5 @@
 FROM python:3.10-bullseye
-
-ARG UID
-RUN mkdir -p /home/vizsciflow
-RUN useradd -u ${UID} vizsciflow
-
+SHELL ["/bin/bash", "-c"]
 RUN apt-get update \
  && apt-get install -y --no-install-recommends  \
         build-essential \
@@ -49,38 +45,33 @@ RUN apt-get update \
   acl \
   sudo \
   docker-ce-cli
+
+ARG UID
+ARG HOME="/home/vizsciflow"
+RUN mkdir -p $HOME
+RUN useradd -u ${UID} vizsciflow
+
 RUN echo "vizsciflow:vizsciflow" | chpasswd && adduser vizsciflow sudo
 RUN groupadd docker
 RUN usermod -aG docker vizsciflow
 #RUN echo "vizsciflow" | setfacl --modify user:vizsciflow:rw /var/run/docker.sock
-RUN setfacl --modify user:vizsciflow:rw /var/run/docker.sock
+#RUN setfacl --modify user:vizsciflow:rw /var/run/docker.sock
 
-WORKDIR /home/vizsciflow
+WORKDIR $HOME
 COPY ./src ./src
 COPY .env .
 
-
 RUN mkdir -p /home/venvs/.venv
-RUN chown -R vizsciflow:vizsciflow /home/venvs
-RUN chown -R vizsciflow:vizsciflow /home/vizsciflow
-
-USER vizsciflow
-
-RUN curl https://pyenv.run | bash
-RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-RUN echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-RUN echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init --path)"\nfi' >> ~/.bashrc
-RUN exec $SHELL
-
 RUN python -m venv /home/venvs/.venv
-RUN /home/venvs/.venv/bin/pip install --upgrade pip
 RUN /home/venvs/.venv/bin/pip install -r ./src/requirements/requirements.txt
-
+RUN chown -R vizsciflow:vizsciflow /home/venvs
+RUN chown -R vizsciflow:vizsciflow $HOME
 
 # to debug celery in docker
-#RUN /home/vizsciflow/venvs/.venv/bin/pip install debugpy -t /tmp
+#RUN $HOME/venvs/.venv/bin/pip install debugpy -t /tmp
 
 ENV FLASK_APP manage.py
 ENV FLASK_CONFIG production
 
-WORKDIR /home/vizsciflow/src
+USER vizsciflow
+WORKDIR $HOME/src

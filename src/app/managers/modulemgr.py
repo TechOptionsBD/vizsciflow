@@ -1,5 +1,7 @@
 import os
 import logging
+import requests
+
 from app.managers.mgrutil import ManagerUtility
 from app.objectmodel.models.loader import Loader
 
@@ -17,15 +19,20 @@ class ModuleManager():
         return self.persistance.get(**kwargs)
 
     def insert_modules(self, activity, path, user_id = None, with_users = False, install_pypi = False):
-        activity.add_log(log=f"Integrating tools ...")
+        from urllib.parse import urljoin
 
-        funclist = Loader.load_funcs_recursive_flat(path, with_users)
+        activity.add_log(log=f"Integrating services ...")
+
+        external = path.startswith("http://") or path.startswith("https://")
+        funclist = requests.get(urljoin(path, 'api/services')).json()["services"] if external else Loader.load_funcs_recursive_flat(path, with_users)
 
         from app.objectmodel.common import pip_activity, pip_req_activity, LogType
         modules = []
         for func in funclist:
             pkgfuncname = f"{func['package']}{'.' if func['package'] else ''}{func['name']}"
             try:
+                if external:
+                    func.update({'module': path})
                 if install_pypi and "pipvenv" in func and func["pipvenv"]:
                     if "pippkgs" in func and func["pippkgs"]:
                         pippkgs = func["pippkgs"].split(",")
@@ -40,14 +47,41 @@ class ModuleManager():
                         reqfile = func["reqfile"] if os.path.isabs(func["reqfile"]) else os.path.join(app.config['ROOT_DIR'], func["reqfile"])
                         pip_req_activity(activity, func["pipvenv"], reqfile)
                 
-                module = self.persistance.add(user_id, value = dict(func), access=func['access'], users=func['sharedusers'])
+                module = self.persistance.add(user_id, value = dict(func), access=func['access'] if 'access' in func else 0, users=func['sharedusers'] if 'sharedusers' in func else [])
                 if module:
-                    activity.add_log(log=f"Integration of {pkgfuncname} tool is successful.")
+                    activity.add_log(log=f"Integration of {pkgfuncname} service is successful.")
                     modules.append(module)
                 else:
-                    activity.add_log(log=f"Integration of {pkgfuncname} tool is not successful.")
+                    activity.add_log(log=f"Integration of {pkgfuncname} service is not successful.")
             except Exception as e:
-                msg = f"Error in integrating module {pkgfuncname}: {str(e)}"
+                msg = f"Error in integrating service {pkgfuncname}: {str(e)}"
+                logging.error(msg)
+                activity.add_log(log=msg, type=LogType.ERROR)
+
+        return modules
+
+    def delete_modules(self, activity, path, user_id = None, with_users = False):
+        from urllib.parse import urljoin
+
+        activity.add_log(log=f"Deleting services ...")
+
+        external = path.startswith("http://") or path.startswith("https://")
+        if external:
+            response = requests.get(urljoin(path, 'functions')).json()
+        else:
+            funclist = Loader.load_funcs_recursive_flat(path, with_users)
+
+        from app.objectmodel.common import LogType
+        modules = []
+        for func in funclist:
+            pkgfuncname = f"{func['package']}{'.' if func['package'] else ''}{func['name']}"
+            try:
+                module = self.persistance.get_module_by_name_package(func['name'], func['package'])
+                if module:
+                    module.remove()
+                    activity.add_log(log=f"Deletion of {pkgfuncname} service is successful.")
+            except Exception as e:
+                msg = f"Error in deleting service {pkgfuncname}: {str(e)}"
                 logging.error(msg)
                 activity.add_log(log=msg, type=LogType.ERROR)
 

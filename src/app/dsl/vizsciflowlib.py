@@ -1,7 +1,11 @@
 import os
 import sys
 import logging
+import requests
+import jsonpickle
 from timeit import time
+from collections import namedtuple
+from urllib.parse import urljoin, urlencode
 
 from dsl.library import LibraryBase, load_module
 from dsl.datatype import DataType
@@ -59,7 +63,7 @@ class Library(LibraryBase):
     @staticmethod
     def generate_graph(context, workflow_id, package, function, args):
         
-        func = modulemanager.get_first_service_by_name_package(function, package).value
+        func = modulemanager.get_first_service_by_name_package_json(function, package).value
         arguments, kwargs = LibraryBase.split_args(args)
         storeArguments = list(arguments)
         for _, v in kwargs.items():
@@ -170,31 +174,54 @@ class Library(LibraryBase):
                 else:
                     pkgfuncname = f"{func.package}{'.' if func.package else ''}{func.name}"
                     raise ValueError(f"{pkgfuncname} is not published")
-                
-            if func.package == 'system' and func.name.lower() == 'workflow':
-                id = kwargs.pop('id', None)
-                if not id:
-                    id = arguments.pop()
-                workflow = workflowmanager.first(id=id)
-                params = [dict2obj(param.value) for param in workflow.params if workflow.params]
-                returns = [dict2obj(ret.value) for ret in workflow.returns if workflow.returns]
-                kwargs = VizSciFlowContext.params_to_args(params, *arguments, **kwargs) #id must not exist here
-                arguments = [id]
+            
+            remote = func.value['module'].startswith("http://") or func.value['module'].startswith("https://")
+            if remote:
+                remotefunc = requests.get(urljoin(func.value['module'], f'api/service?name={func.name}&package={func.package}')).json()
+                params = []
+                if 'params' in remotefunc:
+                    params = [namedtuple("Param", v.keys())(*v.values()) for v in remotefunc['params']]
+                returns = []
+                if 'returns' in remotefunc:
+                    returns = [namedtuple("Return", v.keys())(*v.values()) for v in remotefunc['returns']]
             else:
-                params = list(func.params) if hasattr(func, 'params') else []
-                returns = func.returns if hasattr(func, 'returns') else None
+                if func.package == 'system' and func.name.lower() == 'workflow':
+                    id = kwargs.pop('id', None)
+                    if not id:
+                        id = arguments.pop()
+                    workflow = workflowmanager.first(id=id)
+                    params = [dict2obj(param.value) for param in workflow.params if workflow.params]
+                    returns = [dict2obj(ret.value) for ret in workflow.returns if workflow.returns]
+                    kwargs = VizSciFlowContext.params_to_args(params, *arguments, **kwargs) #id must not exist here
+                    arguments = [id]
+                else:
+                    params = list(func.params) if hasattr(func, 'params') else []
+                    returns = func.returns if hasattr(func, 'returns') else None
 
             Library.StoreArguments(context, task, params, arguments, **kwargs)
 
-            arguments, kwargs = Library.normalize_args(context, params, *arguments, **kwargs)
-            module_obj = load_module(func.module)
-            funcdef = getattr(module_obj, func.internal)
-            try:
-                oldcwd = os.getcwd()
-                os.chdir(os.path.dirname(module_obj.__file__))
-                result = funcdef(context, *arguments, **kwargs)
-            finally:
-                os.chdir(oldcwd)
+            if remote:
+                qs =  '/api/runservice' + '?' + urlencode({'name': func.name, 'package': func.package})
+                argstoken = '&'.join(arguments)
+                if argstoken:
+                    qs += '&' + argstoken
+                kwtoken = urlencode(kwargs)
+                if kwtoken:
+                    qs = qs + '&' + kwtoken
+                result = requests.get(urljoin(func.value['module'], qs))
+                if result.status_code == 500:
+                    raise ValueError(result.text)
+                result = jsonpickle.decode(result.json())
+            else:
+                arguments, kwargs = Library.normalize_args(context, params, *arguments, **kwargs)
+                module_obj = load_module(func.module)
+                funcdef = getattr(module_obj, func.internal)
+                try:
+                    oldcwd = os.getcwd()
+                    os.chdir(os.path.dirname(module_obj.__file__))
+                    result = funcdef(context, *arguments, **kwargs)
+                finally:
+                    os.chdir(oldcwd)
 
             result = Library.add_meta_data(context, result, returns, task)
 

@@ -532,6 +532,8 @@ def parse_string_to_int(s, default = 0):
 def functions():
     try:
         if request.method == "GET":
+            if 'name' in request.args and 'package' in request.args:
+                return get_service(request.args['name'], request.args['package'])
             if 'datatypes' in request.args:
                 return get_datatypes()
             if 'pyenvs' in request.args:
@@ -851,3 +853,15 @@ def runnables():
 
 def get_functions(access):
     return json.dumps({'functions':  convert_to_safe_json(modulemanager.get_all_by_user_access(current_user.id, access))})
+
+def get_service(name, package):
+    services = list(modulemanager.get_modules_by_name_package(name=name, package=package))
+    if not services or len(services) == 0:
+        raise ValueError(f"{package}{'.' if package else ''}{name} service is not found")
+
+    if services[0].value['module'].startswith("http://") or services[0].value['module'].startswith("https://"):
+        import requests
+        from urllib.parse import urljoin
+        return json.dumps(requests.get(urljoin(services[0].value['module'], f'api/service?name={name}&package={package}')).json())
+    
+    return json.dumps(convert_to_safe_json(services[0].to_json()))

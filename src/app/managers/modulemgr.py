@@ -92,7 +92,10 @@ class ModuleManager():
 
     def get_module_by_name_package(self, name, package = None):
         return self.persistance.get_module_by_name_package(name, package)
-        
+    
+    def get_module_by_name_package_json(self, name, package = None):
+        return self.persistance.get_module_by_name_package_json(name, package)
+    
     def get_modules_by_name_package(self, name, package = None):
         return self.persistance.get_modules_by_name_package(name, package)
 

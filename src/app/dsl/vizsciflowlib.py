@@ -167,7 +167,7 @@ class Library(LibraryBase):
                     #return provcls(*arguments, **kwargs)
                     return provcls
             
-            func = modulemanager.get_module_by_name_package(function, package)
+            func = modulemanager.get_module_by_name_package_json(function, package)
             if not func.active:
                 if func.user_id == context.user_id:
                     logging.info(f"You are running unpublish function {pkgfuncname}")
@@ -175,9 +175,9 @@ class Library(LibraryBase):
                     pkgfuncname = f"{func.package}{'.' if func.package else ''}{func.name}"
                     raise ValueError(f"{pkgfuncname} is not published")
             
-            remote = func.value['module'].startswith("http://") or func.value['module'].startswith("https://")
+            remote = func.module.startswith("http://") or func.module.startswith("https://")
             if remote:
-                remotefunc = requests.get(urljoin(func.value['module'], f'api/service?name={func.name}&package={func.package}')).json()
+                remotefunc = requests.get(urljoin(func.module, f'api/service?name={func.name}&package={func.package}')).json()
                 params = []
                 if 'params' in remotefunc:
                     params = [namedtuple("Param", v.keys())(*v.values()) for v in remotefunc['params']]
@@ -202,16 +202,17 @@ class Library(LibraryBase):
 
             if remote:
                 qs =  '/api/runservice' + '?' + urlencode({'name': func.name, 'package': func.package})
+                arguments, kwargs = Library.normalize_args(context, params, *arguments, **kwargs)
                 argstoken = '&'.join(arguments)
                 if argstoken:
                     qs += '&' + argstoken
                 kwtoken = urlencode(kwargs)
                 if kwtoken:
                     qs = qs + '&' + kwtoken
-                result = requests.get(urljoin(func.value['module'], qs))
+                result = requests.get(urljoin(func.module, qs))
                 if result.status_code == 500:
                     raise ValueError(result.text)
-                result = jsonpickle.decode(result.json())
+                result = jsonpickle.decode(result.text)
             else:
                 arguments, kwargs = Library.normalize_args(context, params, *arguments, **kwargs)
                 module_obj = load_module(func.module)

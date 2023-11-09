@@ -201,7 +201,7 @@ class Library(LibraryBase):
             Library.StoreArguments(context, task, params, arguments, **kwargs)
 
             if remote:
-                qs =  '/api/runservice' + '?' + urlencode({'name': func.name, 'package': func.package})
+                qs =  '/api/runservice' + '?' + urlencode({'funcname': func.name, 'funcpackage': func.package})
                 arguments, kwargs = Library.normalize_args(context, params, *arguments, **kwargs)
                 argstoken = '&'.join(arguments)
                 if argstoken:

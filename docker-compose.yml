@@ -15,7 +15,7 @@ x-common-vizsciflow:
     - .env
   volumes:
     - ./src:/home/vizsciflow/src
-    - ~/storage:/home/vizsciflow/storage
+    - /u1/sciclone/storage:/home/vizsciflow/storage
     - /var/run/docker.sock:/var/run/docker.sock
     - ./.venvs:/home/venvs/users:rw
   networks:
@@ -32,7 +32,7 @@ services:
     depends_on:
       - vizsciflowdb      
     ports:
-      - 5000:5000
+      - 8000:5000
     hostname: vizsciflowweb
     container_name: vizsciflowweb
 

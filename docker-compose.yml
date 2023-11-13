@@ -18,8 +18,7 @@ x-common-vizsciflow:
     - /u1/sciclone/storage:/home/vizsciflow/storage
     - /var/run/docker.sock:/var/run/docker.sock
     - ./.venvs:/home/venvs/users:rw
-  networks:
-    - vizsciflownetwork
+  network_mode: host
   environment:
     - FLASK_CONFIG=development
 
@@ -28,11 +27,9 @@ services:
     <<: *default-common-vizsciflow
     # command: sh -c "tail -F anything" # debug
     command: >
-      sh -c "/home/venvs/.venv/bin/gunicorn -b :5000 --access-logfile - --error-logfile - manage:app"
+      sh -c "/home/venvs/.venv/bin/gunicorn -b :${PORT} --access-logfile - --error-logfile - manage:app"
     depends_on:
       - vizsciflowdb      
-    ports:
-      - 8000:5000
     hostname: vizsciflowweb
     container_name: vizsciflowweb
 
@@ -44,8 +41,6 @@ services:
     depends_on:
       - vizsciflowredis
     container_name: vizsciflowcelery
-    ports:
-      - 6900:6900
 
   vizsciflowdb:
     image: postgres:13-alpine
@@ -56,10 +51,7 @@ services:
       - POSTGRES_PASSWORD=${VIZSCIFLOW_DB_PASSWORD}
       - POSTGRES_DB=biowl
     container_name: vizsciflowdb
-    networks:
-      - vizsciflownetwork
-    ports:
-      - 5432:5432
+    network_mode: host
 
   # neo4j:
   #   container_name: Neo4j
@@ -120,17 +112,10 @@ services:
 
   vizsciflowredis:
     image: "redis:latest"
-    ports:
-      - 6379:6379
     container_name: vizsciflowredis
-    networks:
-      - vizsciflownetwork
+    network_mode: host
       
-networks:
-  vizsciflownetwork:
-    name: vizsciflownetwork
-    external: true
-  
+ 
 volumes:
   postgres:
   neo4j:

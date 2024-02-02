@@ -124,15 +124,15 @@ class DataManager():
                     'uploadedsize': filesize,
                     'totalsize':total_size_file}
 
-        if current_chunk < (total_chunks - 1):
-            DataChunk.add(user_id, file_uuid, filepath, current_chunk, total_chunks, filesize, total_size_file)
-        else:
-            # This was the last chunk, the file should be complete and the size we expect
-            if os.path.getsize(filepath) != total_size_file:
-                raise ValueError(f'Size mismatch found {os.path.getsize(filepath)}B, expected: {total_size_file}B')
+        if os.path.getsize(filepath) > total_size_file:
+            raise ValueError(f'Size mismatch found {os.path.getsize(filepath)}B, expected: {total_size_file}B')
+
+        if current_chunk < total_chunks:
+            if os.path.getsize(filepath) < total_size_file:
+                DataChunk.add(user_id, file_uuid, filepath, current_chunk, total_chunks, filesize, total_size_file)
             else:
                 DataChunk.delete(filepath)
-                
+                               
         return each_data
     
     @staticmethod

@@ -284,7 +284,7 @@ class VizSciFlowContext(Context):
         return arguments
 
     def parse_args(self, funcname, package, *args, **kwargs):
-        func = modulemanager.get_module_by_name_package(funcname, package)
+        func = modulemanager.get_module_by_name_package_json(funcname, package)
         if not func:
             raise ValueError(f"Function {funcname} doesn't exist.")
         return VizSciFlowContext.params_to_args(func.params, *args, **kwargs) if hasattr(func, 'params') else {}

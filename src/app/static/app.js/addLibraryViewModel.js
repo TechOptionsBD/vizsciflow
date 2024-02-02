@@ -17,6 +17,7 @@ function AddLibraryViewModel(userName) {
     self.imagesList = ko.observableArray();
     self.radioSelectedOptionValue = ko.observable('newvenv'); 
     self.modulepath = "";
+    self.dockerpath = "";
     self.submittedData = ko.observableArray([]);
     self.submittedData = self.containersList;
 
@@ -37,14 +38,14 @@ function AddLibraryViewModel(userName) {
     });
     
     self.NotHasDockerContainerName = ko.computed(function () { 
-        return self.newDockerImageName() === undefined || self.newDockerContainerName() === undefined || self.newDockerImageName().trim().length == 0 || self.newDockerContainerName().trim().length == 0; 
+        return !self.hasDockerContainerName();
     });
     self.hasDockerContainerNameActive = ko.computed(function () { 
-        return self.newDockerImageName() !== undefined && self.newDockerImageName().trim().length > 0;
+        return (self.newDockerImageName() !== undefined && self.newDockerImageName().trim().length > 0) || self.dockerpath.length > 0;
     });
     
     self.NotHasDockerContainerNameActive = ko.computed(function () { 
-        return self.newDockerImageName() === undefined || self.newDockerImageName().trim().length == 0; 
+        return !self.hasDockerContainerNameActive();
     });
 
     self.addNewVenv = function() {
@@ -67,10 +68,10 @@ function AddLibraryViewModel(userName) {
     self.addNewDockerContainer = function() {
         if (self.newDockerImageName().trim().length == 0 && self.newDockerContainerName().trim().length == 0)
             return;
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.newDockerImageName(), 'newdockercontainername' : self.newDockerContainerName()}).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'newdockerimagename':  self.newDockerImageName(), 'docker': self.dockerpath, 'newdockercontainername' : self.newDockerContainerName()}).done(function (data) {
             if (!data['err']){
                 self.newDockerImageName('');
-                self.newdockercontainername('');
+                self.newDockerContainerName('');
             }
             else {
                 $("#add-library-info").text("Error on creating docker: " + data['err']);
@@ -192,6 +193,9 @@ function AddLibraryViewModel(userName) {
             .on('show.bs.modal', function () {
                 if(dropperModule.files.length > 0){
                     dropperModule.removeAllFiles();
+                }
+                if(dropperDocker.files.length > 0){
+                    dropperDocker.removeAllFiles();
                 }
             });
     }
@@ -408,6 +412,10 @@ function AddLibraryViewModel(userName) {
         var formdata = new FormData();
         if(self.modulepath){
             formdata.append("library", self.modulepath);
+        }
+
+        if(self.dockerpath){
+            formdata.append("docker", self.newDockerContainerName);
         }
         formdata.append('mapper', ko.toJSON(serviceFormatted));//you can append it to formdata with a proper parameter name
         formdata.append('script', self.codeEditor.getSession().getValue());//you can append it to formdata with a proper parameter name

@@ -2588,8 +2588,9 @@ class DataChunk(db.Model):
     def delete(path):
         try:
             data_chunk = DataChunk.query.filter(DataChunk.path == path).first()
-            DataChunk.query.filter_by(id=data_chunk.id).delete()
-            db.session.commit()
+            if data_chunk:
+                DataChunk.query.filter_by(id=data_chunk.id).delete()
+                db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
             raise

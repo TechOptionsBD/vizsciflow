@@ -971,7 +971,7 @@
 		</div>
 		<div class="modal-body">
 			<!-- using knockout for data binding and it will call demoservice flask function -->
-			<div class="row" style="padding: 20px; margin: 0;">
+			<div class="row" style="padding: 10px; margin: 0;">
 			<label class="span-sm-4" style="padding: 10px;" for="tooltypes">Select Tool Type</label>
 			<select class="form-select span-sm-8 modal-title" style="padding: 10px;" id="selected_tool_type" name="tooltypes" data-bind="event: { change: getLibrary}">
 				<option value="adapter" selected>Simple Adapter (Identity)</option>
@@ -987,189 +987,205 @@
 		  	</select>
 			</div>
 			<hr>
-			<div class="modal-body">
-				<label class="span-sm-4" style="padding: 0;" for="droppermodule">Module</label>
-				<br>
-				<hr>			
-				<form method="POST" class="dropzone dz-clickable" id="droppermodule" enctype="multipart/form-data">
-				</form>
+			<label class="span-sm-4" style="padding: 0;" for="droppermodule">Module</label>
+			<br>
+			<form method="POST" class="dropzone dz-clickable" id="droppermodule" enctype="multipart/form-data">
+			</form>
 
-			<br> <br>
-			<div id="exTabService" class="controls">
-				<ul class="nav nav-tabs">
-					<li class="active"><a href="#service1" data-toggle="tab">Python Adapter</a></li>
-					<li><a href="#service2" data-toggle="tab">JSON Mapper</a></li>
-				</ul>
-				<div class="tab-content ">
-					<div class="tab-pane fade in active" id="service1">
-						<textarea rows="10" style="width: inherit" id="servicescript"></textarea>
-						<br>
-					</div>
-					<div class="tab-pane fade" id="service2">
-						<div class="span-sm-20">
-							<div class="span-sm-7">
-								<h3>Function:</h3>
-								<form role="form" data-bind="foreach: service.items">
-									<div class="row service-form-group" data-bind="visible: ($index() < 2 || $parent.isFuncExpanded)">
-										<label class="span-sm-6" data-bind="text: key"></label>
-										<div class="span-sm-14" data-bind="ifnot: $index() == 9">
-											<!-- ko if: $index() == 8 -->
-											<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="">
+		<br> <br>
+		<div id="exTabService" class="controls">
+			<ul class="nav nav-tabs">
+				<li class="active"><a href="#service1" data-toggle="tab">Python Adapter</a></li>
+				<li><a href="#service2" data-toggle="tab">JSON Mapper</a></li>
+			</ul>
+			<div class="tab-content ">
+				<div class="tab-pane fade in active" id="service1">
+					<textarea rows="10" style="width: inherit" id="servicescript"></textarea>
+					<br>
+				</div>
+				<div class="tab-pane fade" id="service2">
+					<div class="span-sm-20">
+						<div class="span-sm-7">
+							<h3>Function:</h3>
+							<form role="form" data-bind="foreach: service.items">
+								<div class="row service-form-group" data-bind="visible: ($index() < 2 || $parent.isFuncExpanded)">
+									<label class="span-sm-6" data-bind="text: key"></label>
+									<div class="span-sm-14" data-bind="ifnot: $index() == 9">
+										<!-- ko if: $index() == 8 -->
+										<div class="span-sm-14" style="display: flex; column-gap: 10px;" data-bind="">
+											<select style="padding: 5px 9px;
+											width: 100%;
+											border-radius: 5px;
+											font-size: 17px;
+											font-weight: 100;" data-bind="enable: $parent.NotHasNewVenvName, options: $parent.pippkgsList, value: value, event: {change: $parents.liveJsonView}" id="pippkgsList"></select>
+										</div>
+										<!-- /ko -->
+																					
+										<div data-bind="ifnot: $index() == 8">
+											<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
+										</div>
+										
+									</div>
+									<div data-bind="if: $index() == 9">
+										<input type="file" class="form-control-file" id="reqfile" style="margin-left: 15px;" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
+									</div>
+								</div>
+							</form>
+							<button class="btn btn-sm" style="float: right;" data-bind="click: toggleFuncArea, text: textToggleFuncArea, css: { 'btn-primary' : !isFuncExpanded() , 'btn-danger' : isFuncExpanded}"></button>
+						</div>
+						<div class="span-sm-6">
+							<div>
+								<h3>Parameters:</h3>
+								<button class="btn btn-primary" data-bind="click: addParam, visible: serviceParams().length == 0">Add</button>
+								<form role="form" data-bind="foreach: serviceParams" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
+									<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;">
+										<a style="float: right;" class="btn btn-sm btn-primary" title="Add"
+											data-bind="click: $parent.addParam, visible: $index() === ($parent.serviceParams().length-1)"><i
+												class="fa fa-plus"></i></a>
+										<a style="float: right;" class="btn btn-sm btn-danger" title="Remove"
+											data-bind="click: $parent.removeParam.bind($data)"><i class="fa fa-minus"></i></a>
+									</div>
+									<div data-bind="foreach: $data.items">
+										<div class="row service-form-group">
+											<label class="span-sm-6" data-bind="text: key"></label>
+											<div class="span-sm-14" data-bind="ifnot: $index() == 1">
+												<input type="text" class="form-control" id="package"
+													data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+											</div>
+											<div class="span-sm-14" data-bind="if: $index() == 1">
 												<select style="padding: 5px 9px;
 												width: 100%;
 												border-radius: 5px;
 												font-size: 17px;
-												font-weight: 100;" data-bind="enable: $parent.NotHasNewVenvName, options: $parent.pippkgsList, value: value, event: {change: $parents.liveJsonView}" id="pippkgsList"></select>
+												font-weight: 100;"
+												data-bind="options: $parents[1].TList, value: value, event: {change: $parents[1].liveJsonView}"></select>
 											</div>
-											<!-- /ko -->
-																						
-											<div data-bind="ifnot: $index() == 8">
-												<input type="text" class="form-control" id="package" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
-											</div>
-											
-										</div>
-										<div data-bind="if: $index() == 9">
-											<input type="file" class="form-control-file" id="reqfile" style="margin-left: 15px;" data-bind="value: value, valueUpdate: 'keyup', event: {keyup: $parent.liveJsonView },attr: {placeholder: value}">
 										</div>
 									</div>
+									<hr data-bind="visible: $index() != ($parent.serviceParams().length-1)">
 								</form>
-								<button class="btn btn-sm" style="float: right;" data-bind="click: toggleFuncArea, text: textToggleFuncArea, css: { 'btn-primary' : !isFuncExpanded() , 'btn-danger' : isFuncExpanded}"></button>
 							</div>
-							<div class="span-sm-6">
-								<div>
-									<h3>Parameters:</h3>
-									<button class="btn btn-primary" data-bind="click: addParam, visible: serviceParams().length == 0">Add</button>
-									<form role="form" data-bind="foreach: serviceParams" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
-										<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;">
-											<a style="float: right;" class="btn btn-sm btn-primary" title="Add"
-												data-bind="click: $parent.addParam, visible: $index() === ($parent.serviceParams().length-1)"><i
-													class="fa fa-plus"></i></a>
-											<a style="float: right;" class="btn btn-sm btn-danger" title="Remove"
-												data-bind="click: $parent.removeParam.bind($data)"><i class="fa fa-minus"></i></a>
-										</div>
-										<div data-bind="foreach: $data.items">
-											<div class="row service-form-group">
-												<label class="span-sm-6" data-bind="text: key"></label>
-												<div class="span-sm-14" data-bind="ifnot: $index() == 1">
-													<input type="text" class="form-control" id="package"
-														data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
-												</div>
-												<div class="span-sm-14" data-bind="if: $index() == 1">
-													<select style="padding: 5px 9px;
-													width: 100%;
-													border-radius: 5px;
-													font-size: 17px;
-													font-weight: 100;"
-													data-bind="options: $parents[1].TList, value: value, event: {change: $parents[1].liveJsonView}"></select>
-												</div>
+							<div>
+								<h3>Returns:</h3>
+								<button class="btn btn-primary" data-bind="click: addServiceReturns, visible: serviceReturns().length == 0">Add</button>
+								<form role="form" data-bind="foreach: serviceReturns" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
+									<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;">
+										<a style="float: right;" class="btn btn-sm btn-primary" title="Add"
+											data-bind="click: $parent.addServiceReturns, visible: $index() === ($parent.serviceReturns().length-1)"><i
+												class="fa fa-plus"></i></a>
+										<a style="float: right;" class="btn btn-sm btn-danger" title="Remove"
+											data-bind="click: $parent.removeServiceReturns.bind($data)"><i class="fa fa-minus"></i></a>
+									</div>
+									<div data-bind="foreach: $data.items">
+										<div class="row service-form-group">
+											<label class="span-sm-6" data-bind="text: key"></label>
+											<div class="span-sm-14" data-bind="ifnot: $index() == 1">
+												<input type="text" class="form-control" id="package"
+													data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
+											</div>
+											<div class="span-sm-14" data-bind="if: $index() == 1">
+												<select style="padding: 5px 9px;
+												width: 100%;
+												border-radius: 5px;
+												font-size: 17px;
+												font-weight: 100;" data-bind="options: $parents[1].TList, value: value, event: {change: $parents[1].liveJsonView}"></select>
 											</div>
 										</div>
-										<hr data-bind="visible: $index() != ($parent.serviceParams().length-1)">
-									</form>
-								</div>
-								<div>
-									<h3>Returns:</h3>
-									<button class="btn btn-primary" data-bind="click: addServiceReturns, visible: serviceReturns().length == 0">Add</button>
-									<form role="form" data-bind="foreach: serviceReturns" style="overflow-x: hidden; overflow-y: auto; max-height: 25vh;">
-										<div class="span-sm-20" style="padding-right: 0;padding-bottom: 5px;">
-											<a style="float: right;" class="btn btn-sm btn-primary" title="Add"
-												data-bind="click: $parent.addServiceReturns, visible: $index() === ($parent.serviceReturns().length-1)"><i
-													class="fa fa-plus"></i></a>
-											<a style="float: right;" class="btn btn-sm btn-danger" title="Remove"
-												data-bind="click: $parent.removeServiceReturns.bind($data)"><i class="fa fa-minus"></i></a>
-										</div>
-										<div data-bind="foreach: $data.items">
-											<div class="row service-form-group">
-												<label class="span-sm-6" data-bind="text: key"></label>
-												<div class="span-sm-14" data-bind="ifnot: $index() == 1">
-													<input type="text" class="form-control" id="package"
-														data-bind="value: value, valueUpdate: 'keyup', event: { keyup : $parents[1].liveJsonView}">
-												</div>
-												<div class="span-sm-14" data-bind="if: $index() == 1">
-													<select style="padding: 5px 9px;
-													width: 100%;
-													border-radius: 5px;
-													font-size: 17px;
-													font-weight: 100;" data-bind="options: $parents[1].TList, value: value, event: {change: $parents[1].liveJsonView}"></select>
-												</div>
-											</div>
-										</div>
-										<hr data-bind="visible: $index() != ($parent.serviceReturns().length-1)">
-									</form>
-								</div>
-							</div>
-							<div class="span-sm-7">
-								<h3>JSON Preview:</h3>
-								<div style="width: inherit;" id="mapper"></div>
+									</div>
+									<hr data-bind="visible: $index() != ($parent.serviceReturns().length-1)">
+								</form>
 							</div>
 						</div>
-						<br>
+						<div class="span-sm-7">
+							<h3>JSON Preview:</h3>
+							<div style="width: inherit;" id="mapper"></div>
+						</div>
 					</div>
+					<br>
 				</div>
 			</div>
-			<br><br>
-			<div class="row service-form-group">
-				<div class="span-sm-20">
-					<div class="row service-form-group span-sm-20" style="display: flex; margin-left: 0px;">
-						<div class="span-sm-20" style="border-right: 1px soild; padding: 8px;
-						background-color: #f0f4f5;">
-						<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 12px; margin-top: 5px; text-decoration: underline;">Python virtual environment</label>
-							<div style="display: flex; column-gap: 5%; width: 95%; margin-left: 4%;">
-								
-								<div style="display: flex; margin-top: 6px;">
-									<label style="display: flex; width: 100px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv'" /><span style="margin-top: 5px;">Python 3</span></label>
-									<label style="display: flex;  width: 110px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv2" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv2'" /><span style="margin-top: 5px;">Python 2.7</span></label>
+		</div>
+		<br>
+		<div id="venvdocker" class="controls">
+			<ul class="nav nav-tabs">
+				<li class="active"><a href="#venv" data-toggle="tab">Python venv</a></li>
+				<li><a href="#docker" data-toggle="tab">Docker Container</a></li>
+			</ul>
+			<div class="tab-content ">
+				<div class="tab-pane fade in active" id="venv">
+				<div class="row service-form-group">
+					<div class="span-sm-20">
+						<div class="row service-form-group span-sm-20" style="display: flex; margin-left: 0px;">
+							<div class="span-sm-20" style="border-right: 1px soild; padding: 8px;
+							background-color: #f0f4f5;">
+								<div style="display: flex; column-gap: 5%; width: 95%; margin-left: 4%;">
+									
+									<div style="display: flex; margin-top: 6px;">
+										<label style="display: flex; width: 100px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv'" /><span style="margin-top: 5px;">Python 3</span></label>
+										<label style="display: flex;  width: 110px;"><input style="margin-right: 15px;" name="Test" type="radio" value="newvenv2" data-bind="checked: radioSelectedOptionValue, checkedValue: 'newvenv2'" /><span style="margin-top: 5px;">Python 2.7</span></label>
+									</div>
+
+									<input type="text" data-bind="textInput: newVenvName" class="form-control" id="newvenvname" style="width: 65%; margin-top: 5px;" >
+
+									<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn btn-success" style="padding: 6px 6px; font-weight: bold; margin-left: 12px;">Create</button>
 								</div>
-
-								<input type="text" data-bind="textInput: newVenvName" class="form-control" id="newvenvname" style="width: 65%; margin-top: 5px;" >
-
-								<button data-bind='enable: hasNewVenvName, click: addNewVenv' class="btn btn-success" style="padding: 6px 6px; font-weight: bold; margin-left: 12px;">Create</button>
 							</div>
 						</div>
 					</div>
+				</div>
+				</div>
+				<div class="tab-pane fade" id="docker">
+					<div class="row service-form-group">
+						<div class="span-sm-20">
+							<label class="span-sm-10" style="padding: 0;" for="dropperdocker">Upload a docker image or insert an image name below to pull from Docker Hub:</label>
+							<br>
+							<form method="POST" class="dropzone dz-clickable" id="dropperdocker" enctype="multipart/form-data"></form>
+						</div>
+					</div>
+					<div class="row service-form-group">
+						<div class="span-sm-20">
+							<div class="row service-form-group span-sm-20" style="display: flex; margin-left: 0px;">
+								<div class="span-sm-20" style="border-right: 1px soild; padding: 8px; background-color: #f0f4f5;">
+									<div style="display: flex; column-gap: 1%; width: 100%;">
+										<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Image Name</label>
+										<div class="span-sm-14">
+											<input type="text" data-bind="textInput: newDockerImageName" name="docker" list="dockerimageName" class="form-control" style="width: 100%; margin-top: 5px;" autocomplete="off"/>
+											<datalist id="dockerimageName" data-bind="foreach: imagesList">
+												<option data-bind="text: $data"></option>
+											</datalist>
+										</div>
+										<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Container Name</label>
+										<div class="span-sm-14">
+											<input type="text" data-bind="textInput: newDockerContainerName, event: { keyup: submitData }, style: { borderColor: inputColor }" name="docker" list="dockerContainerName" class="form-control" style="width: 100%; margin-top: 5px;"/>
+											<!-- , enable:hasDockerContainerNameActive -->
+											<datalist id="dockerContainerName" data-bind="foreach: containersList" autocomplete="off">
+												<option data-bind="text: $data"></option>
+											</datalist>
+										</div>
+										<button title="Docker Container Name" data-bind='enable: isButtonEnabled, click: addNewDockerContainer' class="btn btn-primary" style="padding: 6px 6px; font-weight: bold; margin-top: 2px; margin-left: 12px;">Create</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
 				</div>
 			</div>
-			<div class="row service-form-group">
-				<div class="span-sm-20">
-					<div class="row service-form-group span-sm-20" style="display: flex; margin-left: 0px;">
-						<div class="span-sm-20" style="border-right: 1px soild; padding: 8px; background-color: #f0f4f5;">
-							<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 12px; margin-top: 5px; text-decoration: underline;">Docker</label>
-							<div style="display: flex; column-gap: 1%; width: 100%;">
-								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Image Name</label>
-								<div class="span-sm-14">
-									<input type="text" data-bind="textInput: newDockerImageName" name="docker" list="dockerimageName" class="form-control" style="width: 100%; margin-top: 5px;" autocomplete="off"/>
-									<datalist id="dockerimageName" data-bind="foreach: imagesList">
-										<option data-bind="text: $data"></option>
-									</datalist>
-								</div>
-								<label for="" class="span-sm-6" style="padding: 6px 6px; font-weight: bold; margin-left: 24px; margin-top: 5px;">Container Name</label>
-								<div class="span-sm-14">
-									<input type="text" data-bind="textInput: newDockerContainerName, event: { keyup: submitData }, style: { borderColor: inputColor }, enable:hasDockerContainerNameActive" name="docker" list="dockerContainerName" class="form-control" style="width: 100%; margin-top: 5px;"/>
-									<datalist id="dockerContainerName" data-bind="foreach: containersList" autocomplete="off">
-										<option data-bind="text: $data"></option>
-									</datalist>
-								</div>
+		</div>
+		<br/>
+		<div class="row service-form-group span-sm-9" style="margin-left: 20px;">
+			<label class="span-sm-3" style="margin: 0px 0px 5px;" for="access">Public</label>
+			<div class="span-sm-2">
+				<input type="checkbox" id="access" data-bind="checked: access">
+			</div>
 
-								<button title="Docker Container Name" data-bind='enable: isButtonEnabled, click: addNewDockerContainer' class="btn btn-primary" style="padding: 6px 6px; font-weight: bold; margin-top: 2px; margin-left: 12px;">Create</button>
-							</div>
-						</div>
-					</div>
-					<div class="row service-form-group span-sm-9" style="margin-left: 20px;">
-						<label class="span-sm-3" style="margin: 0px 0px 5px;" for="access">Public</label>
-						<div class="span-sm-2">
-							<input type="checkbox" id="access" data-bind="checked: access">
-						</div>
-
-						<label for="" class="span-sm-4">Share with</label>
-						<div class="span-sm-10">
-							<select id="userSelection" multiple="multiple" class="form-control" data-bind="options: userList, 
-								 optionsText: 'name', 
-								 optionsValue: 'id', 
-								 selectedOptions: selectedSharingUsers">
-							</select>
-						</div>
-					</div>
-				</div>
+			<label for="" class="span-sm-4">Share with</label>
+			<div class="span-sm-10">
+				<select id="userSelection" multiple="multiple" class="form-control" data-bind="options: userList, 
+						optionsText: 'name', 
+						optionsValue: 'id', 
+						selectedOptions: selectedSharingUsers">
+				</select>
 			</div>
 		</div>
 		<div class="modal-footer">
@@ -2837,8 +2853,8 @@
 		acceptedFiles: ".zip, .tar",
 		init: function() {
 			this.on("success", function(file, response) {
-				addLibraryViewModel.modulepath = file.xhr.responseText;
 				// Handle successful upload
+				addLibraryViewModel.modulepath = file.xhr.responseText;
 			});
 
 			this.on("error", function(file, message) {
@@ -2852,10 +2868,51 @@
 			});
 		}
 	}
-
 	var dropperPackage = new Dropzone("#dropper", dropperOptions);
 	delete dropperOptions["acceptedFiles"];
 	var dropperModule = new Dropzone("#droppermodule", dropperOptions);
+
+	var dropperDockerOptions = {
+		paramName: 'file',
+		chunking: true,
+		forceChunking: false,
+		retryChunks: true,
+		url: '/dockerupload',
+		maxFilesize: 4096, // megabytes
+		parallelChunkUploads: false,
+		parallelUploads: 1,
+		chunkSize: 2000000, // bytes
+		timeout: 0, // not time out 300000, // 5 minutes
+		autoProcessQueue: true,
+		acceptedFiles: ".zip, .tar",
+		init: function() {
+			this.on("success", function(file, response) {
+				// Handle successful upload
+				addLibraryViewModel.dockerpath = file.xhr.responseText;
+				// addLibraryViewModel.newDockerContainerName.valueHasMutated();
+			});
+			this.on("error", function(file, message) {
+				// Handle upload error
+				addLibraryViewModel.dockerpath = "";
+			});
+			this.on("addedfile", function(file){
+				while(this.files.length > 1){ // keep the last file only
+					this.removeFile(this.files[0]);
+				}
+			});
+			this.on("sending", function(file, xhr, formData) {
+				/*Called just before each file is sent*/
+				xhr.ontimeout = (() => {
+					/*Execute on case of timeout only*/
+					console.log('Server Timeout')
+				});
+			});
+		}
+	}
+
+	delete dropperDockerOptions["acceptedFiles"];
+	var dropperDocker = new Dropzone("#dropperdocker", dropperDockerOptions);
+
     $(window).on('load', function() {
     	 
     	$('#refresh').hide();

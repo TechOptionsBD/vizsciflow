@@ -404,7 +404,7 @@ def upload_data_file(user_id, request, fullpath):
         all_data.append(each_data) 
     return all_data
       
-def upload_chunk_data(request):
+def upload_chunk_data(request, folder):
     try:
         if not request.files.get("file"):
             raise ValueError("No file found for chunk upload.")
@@ -416,7 +416,7 @@ def upload_chunk_data(request):
         offset = int(request.form['dzchunkbyteoffset']) 
         total_filesize = int(request.form['dztotalfilesize'])
         
-        folder = os.path.join(tempfile.gettempdir(), file_uuid)
+        folder = os.path.join(folder, file_uuid)
         chunkinfo = datamanager.upload_chunk_data(current_user.id, file, file_uuid, current_chunk, total_chunks, offset, total_filesize, folder)
         return chunkinfo['path'], 200
     except Exception as e:
@@ -425,7 +425,28 @@ def upload_chunk_data(request):
 @main.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
-    return upload_chunk_data(request)
+    return upload_chunk_data(request, tempfile.gettempdir())
+
+@main.route('/dockerupload', methods=['GET', 'POST'])
+@login_required
+def docker_upload():
+    from app import app
+    return upload_chunk_data(request, app.config['DOCKER_IMAGE_DIR'])
+
+def load_run_docker_container(activity, path, containername):
+    import docker
+
+    activity.add_log(log="Creating container for new tool...")
+    client = docker.from_env()
+    images = client.images.load(path)
+    if not images:
+        raise ValueError("Docker image not found")
+
+    imagename = images[0].attrs['Config']['Image']
+    command = 'sh -c "tail -F anything"'
+    container = client.containers.run(imagename, command=command, detach=True, name=containername)
+    if container:
+        runnablemanager.add_docker_image_container(current_user.id, imagename, containername, command)
 
 def create_lib_dir(activity, path):
     from app import app
@@ -496,25 +517,32 @@ def get_dockerimages(user_id):
     images = runnablemanager.get_dockerimages()
     return [image.to_json() for image in images]
 
-def new_dockerenvs(imagename, containername, user_id):
+def new_dockerenvs(activity, dockerpath, imagename, containername, user_id):
     import docker
 
-    client = docker.from_env()
-    container = client.containers.list(all=True, filters={'name': containername})
-    if container:
-        raise ValueError(f"Container {containername} already exists.")
-    images = client.images.list()
-
-    foundimage = None
-    for image in images:
-        name = image.attrs['Config']['Image']
-        if name == imagename:
-            foundimage = image
-            break
-
-    if not foundimage:
-        client.images.pull(imagename)
+    if dockerpath and os.path.exists(dockerpath):
+        imagename = load_run_docker_container(activity, dockerpath, containername)
     
+    else:
+        # check dockerpath from request to check if docker image is uploaded
+        client = docker.from_env()
+        container = client.containers.list(all=True, filters={'name': containername})
+        if container:
+            raise ValueError(f"Container {containername} already exists.")
+        images = client.images.list()
+
+        foundimage = None
+        for image in images:
+            name = image.attrs['Config']['Image']
+            if name == imagename:
+                foundimage = image
+                break
+
+        if not foundimage:
+            activity.add_log(log=f"Pulling {imagename} image from docker hub...")
+            client.images.pull(imagename)
+    
+    activity.add_log(log=f"Running {containername} container...")
     command = 'sh -c "tail -F anything"'
     container = client.containers.run(imagename, command=command, detach=True, name=containername)
     if container:
@@ -551,9 +579,9 @@ def functions():
             if 'newpyvenvs' in request.args:
                 return new_pyvenvs(request.args.get('newpyvenvs'), request.args.get('pyversion'), current_user.id)
             
-            if 'newdockerimagename' in request.args:
-                return new_dockerenvs(request.args.get('newdockerimagename'), request.args.get('newdockercontainername'), current_user.id)
-            
+            if 'newdockerimagename' in request.args or ('docker' in request.args and os.path.exists(request.args.get('docker')) ) :
+                return new_dockerenvs(request.args.get('docker'), request.args.get('newdockerimagename'), request.args.get('newdockercontainername'), current_user.id)
+
             if 'check_function' in request.args:
                 return check_service_function(request)
             elif 'codecompletion' in request.args:

@@ -173,7 +173,7 @@ class VizSciFlowContext(Context):
     def gettoolsdir(self, name=None, package=None):
         from app import app
         
-        func = modulemanager.get_module_by_name_package(name, package)
+        func = modulemanager.get_module_by_name_package_json(name, package)
         if not func:
             raise ValueError('Tool {0} does not exist.'.format(name))
         tooldir = os.path.join(app.config['MODULE_DIR'], (os.path.sep).join(func.module.split('.')[2:-1])) # remove plugins/modules from front and adapter from back

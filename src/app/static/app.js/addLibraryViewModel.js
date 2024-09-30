@@ -33,6 +33,10 @@ function AddLibraryViewModel(userName) {
         return self.newVenvName() === undefined || self.newVenvName().trim().length == 0; 
     });
 
+    self.notSharePublic = ko.computed(function () { 
+        return self.access() === false;
+    });
+
     self.hasDockerContainerName = ko.computed(function () { 
         return ((self.newDockerImageName() !== undefined && self.newDockerContainerName() !== undefined) && (self.newDockerImageName().trim().length > 0 && self.newDockerContainerName().trim().length > 0)); 
     });
@@ -373,13 +377,7 @@ function AddLibraryViewModel(userName) {
     };
 
     self.access.subscribe(function(newVal){
-        if (newVal) {
-            // $("#userSelection").multiselect('deselectAll');
-            // $("#userSelection").multiselect('updateButtonText');
-            $("#userSelection").multiselect('disable');
-        } else {
-            $("#userSelection").multiselect('enable');
-        }
+        $("#userSelection").multiselect(newVal ? 'disable' : 'enable');
     });
 
     self.getUsers = function () { 

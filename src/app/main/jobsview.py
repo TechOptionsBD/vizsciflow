@@ -38,8 +38,6 @@ from ..managers.modulemgr import modulemanager
 from ..managers.activitymgr import activitymanager
 from app.system.exechelper import run_script
 
-import logging
-import os
 from config import config
 
 basedir = os.path.dirname(os.path.abspath(__file__))
@@ -420,6 +418,7 @@ def upload_chunk_data(request, folder):
         chunkinfo = datamanager.upload_chunk_data(current_user.id, file, file_uuid, current_chunk, total_chunks, offset, total_filesize, folder)
         return chunkinfo['path'], 200
     except Exception as e:
+        logging.error(f"Chunk upload error: {str(e)}")
         return str(e), 400
 
 @main.route('/upload', methods=['GET', 'POST'])
@@ -522,7 +521,6 @@ def new_dockerenvs(activity, dockerpath, imagename, containername, user_id):
 
     if dockerpath and os.path.exists(dockerpath):
         imagename = load_run_docker_container(activity, dockerpath, containername)
-    
     else:
         # check dockerpath from request to check if docker image is uploaded
         client = docker.from_env()
@@ -580,7 +578,7 @@ def functions():
                 return new_pyvenvs(request.args.get('newpyvenvs'), request.args.get('pyversion'), current_user.id)
             
             if 'newdockerimagename' in request.args or ('docker' in request.args and os.path.exists(request.args.get('docker')) ) :
-                return new_dockerenvs(request.args.get('docker'), request.args.get('newdockerimagename'), request.args.get('newdockercontainername'), current_user.id)
+                return new_dockerenvs(activity, request.args.get('docker'), request.args.get('newdockerimagename'), request.args.get('newdockercontainername'), current_user.id)
 
             if 'check_function' in request.args:
                 return check_service_function(request)

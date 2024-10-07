@@ -268,7 +268,7 @@ function SamplesViewModel(sampleViewModel) {
         }).fail(function(jqXHR) {
             showXHRText(jqXHR);
         });
-    }
+    }    
 
     self.compareWf = function() {
         self.getAllSavedWf();
@@ -379,16 +379,18 @@ function SamplesViewModel(sampleViewModel) {
         self.wfVersionList([]);
         ajaxcalls.simple(self.samplesURI, 'GET', {'revisions': workflowId}, false).done(function (data) {
             //get the version list here & make dropdown from it
-            data.forEach(wfVersion => {
-                self.wfVersionList.push({
-                    hex: wfVersion.hex,
-                    name: wfVersion.summary,
-					committer: wfVersion.committer,
-					time: wfVersion.time
-                }); 
-            });
-            
-            self.initiateWfVersionSelectionDdl();
+            if (data !== undefined && data !== null && Array.isArray(data)){
+                data.forEach(wfVersion => {
+                    self.wfVersionList.push({
+                        hex: wfVersion.hex,
+                        name: wfVersion.summary,
+                        committer: wfVersion.committer,
+                        time: wfVersion.time
+                    }); 
+                });
+                
+                self.initiateWfVersionSelectionDdl();
+            }
         }).fail(function (jqXHR) {
             showXHRText(jqXHR);
         });

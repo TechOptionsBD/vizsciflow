@@ -764,7 +764,7 @@ class Workflow(db.Model):
                     with open(wf.scriptpath, "w+") as f:
                         f.write(kwargs['script'])
                         git_access().git.add(wf.scriptpath)
-                        git_access().git.commit('-m', 'create workflow ' + str(wf.id))
+                        git_access().git.commit('-m', str(wf.user_id))
                 except Exception as e:
                     logging.error("Git error: " + e)
             

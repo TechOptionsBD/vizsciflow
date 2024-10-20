@@ -25,7 +25,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 from app.exceptions import ValidationError
 
 from app import db
-from dsl.datatype import DataType
+from src.dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
 from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access, ActivityType, isiterable
 from .loader import Loader

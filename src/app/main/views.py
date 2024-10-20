@@ -23,7 +23,7 @@ from ..decorators import admin_required, permission_required
 
 #from ..models import AlchemyEncoder, Post, Comment, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
 from ..util import Utility
-from dsl.fileop import FilterManager
+from src.dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from app.system.exechelper import func_exec_stdout
 from app.managers.usermgr import usermanager

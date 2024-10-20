@@ -21,12 +21,9 @@ regex.DEFAULT_VERSION = regex.VERSION1
 from . import main
 from .views import Samples
 from flask_login import login_required, current_user
-from flask import request, jsonify, current_app, send_from_directory, make_response, send_file
+from flask import request, jsonify, send_from_directory, make_response, send_file
 from werkzeug.utils import secure_filename
-from pathlib import Path
-from collections import defaultdict
 import shutil
-import argparse
 import uuid
 
 from ..managers.usermgr import usermanager
@@ -36,9 +33,6 @@ from ..managers.runmgr import runnablemanager
 from app.objectmodel.common import *
 from ..managers.modulemgr import modulemanager
 from ..managers.activitymgr import activitymanager
-from app.system.exechelper import run_script
-
-from config import config
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 

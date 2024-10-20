@@ -1,18 +1,15 @@
-from app.dsl.argshelper import get_temp_dir
-from dsl.interpreter import Interpreter
-from dsl.taskmgr import TaskManager
+from src.dsl.interpreter import Interpreter
 from app.dsl.vizsciflowlib import Library
 from app.dsl.vizsciflowsymtab import VizSciFlowSymbolTable
-from dsl.wfobj import *
 from app.objectmodel.provmod.provobj import View, Stat, Monitor, Run, Module, Workflow
-from app import app
 from app.dsl.vizsciflowcontext import VizSciFlowContext
+from app import app
 
 registry = {'View': View, 'Stat': Stat, 'Monitor': Monitor, 'Run': Run, 'Module': Module, 'Workflow': Workflow}
 
 class VizSciFlowInterpreter(Interpreter):
     def __init__(self):
-        super().__init__(VizSciFlowContext(Library(), VizSciFlowSymbolTable))
+        super().__init__(VizSciFlowContext(Library()))
     
     def prepare_view(self, function, result):
         if not hasattr(self.context, 'view'):
@@ -22,40 +19,13 @@ class VizSciFlowInterpreter(Interpreter):
         else:
             self.context.view[function] = [result]
 
-    def doforpar_stmt(self, vars, expr):
-        for k,v in vars.items():
-            self.context.add_var(k, v)
-        self.dopar_stmt(expr)
-        
     def dopar_stmt(self, expr):
         '''
         Execute a for expression.
         :param expr:
         '''
-        self.context.copyprops_to_currentthread()
         with app.app_context():
             self.run_multstmt(lambda: self.eval(expr))
-
-    def doparfor(self, expr):
-        '''
-        Execute a parallel for expression.
-        :param expr:
-        '''
-        taskManager = TaskManager() 
-        for var in self.eval(expr[1]):
-            taskManager.submit_func(self.doforpar_stmt, {expr[0]: var}, expr[2])
-        taskManager.wait()
-        
-    def eval(self, expr):        
-        '''
-        Evaluate an expression
-        :param expr: The expression in AST tree form.
-        '''
-        if expr and isinstance(expr, list) and expr[0] == "PARFOR":
-            return self.doparfor(expr[1])
-        else:
-            return super().eval(expr)
-
 
     def dofunc(self, expr):
         '''

@@ -8,7 +8,7 @@ from urllib.parse import urlparse, urlunparse, urlsplit, urljoin
 import uuid
 import urllib
 import re
-from dsl.fileop import PosixFileSystem
+from src.dsl.fileop import PosixFileSystem
 import requests
 
 __author__ = "Mainul Hossain"

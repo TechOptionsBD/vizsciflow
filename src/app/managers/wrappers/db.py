@@ -1,5 +1,5 @@
 from app.objectmodel.models.rdb import *
-from dsl.fileop import FolderItem, PosixFileSystem
+from src.dsl.fileop import FolderItem, PosixFileSystem
 from app.objectmodel.common import isiterable, str_or_empty, dict2obj
 from sqlalchemy import text
 from werkzeug.utils import secure_filename

@@ -11,8 +11,8 @@ from datetime import datetime
 import neotime
 
 from app.objectmodel.common import Status, LogType, AccessRights, Permission, bytes_in_gb
-from dsl.fileop import FolderItem
-from dsl.datatype import DataType
+from src.dsl.fileop import FolderItem
+from src.dsl.datatype import DataType
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, request, url_for

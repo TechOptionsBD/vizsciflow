@@ -1,5 +1,5 @@
-from dsl.library import Pair
-from dsl.datatype import DataType
+from src.dsl.library import Pair
+from src.dsl.datatype import DataType
 from app.dsl.vizsciflowlib import Library
 from app.managers.modulemgr import modulemanager
 

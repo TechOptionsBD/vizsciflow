@@ -1,5 +1,5 @@
 from app.util import Utility
-from dsl.fileop import FolderItem, FilterManager
+from src.dsl.fileop import FolderItem, FilterManager
 
 def raw_print(context, data):
     context.out.append(str(data))

@@ -1,5 +1,5 @@
 from pyparsing import *
-from dsl.grammar import PythonGrammar
+from src.dsl.grammar import PythonGrammar
 
 class VizSciFlowGrammar(PythonGrammar):
     def __init__(self):

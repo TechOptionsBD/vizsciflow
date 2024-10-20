@@ -1,4 +1,4 @@
-from dsl.symtab import SymbolTable
+from src.dsl.symtab import SymbolTable
 
 class VizSciFlowSymbolGraph(SymbolTable):
     '''

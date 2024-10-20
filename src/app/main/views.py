@@ -15,7 +15,6 @@ from flask import Flask, render_template, redirect, url_for, abort, flash, reque
 from flask import send_from_directory, jsonify, send_file
 from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
-from sqlalchemy import and_, or_
 
 from . import main
 from .. import db
@@ -31,7 +30,7 @@ from app.managers.workflowmgr import workflowmanager
 from app.managers.datamgr import datamanager
 from app.managers.filtermgr import filtermanager
 from app.managers.activitymgr import activitymanager
-from app.objectmodel.common import Permission, AccessRights, convert_to_safe_json
+from app.objectmodel.common import Permission, AccessRights, convert_to_safe_json, AccessType
 from app.userloader import *
 
 app = Flask(__name__)

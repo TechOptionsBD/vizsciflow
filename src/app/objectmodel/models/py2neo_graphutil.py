@@ -14,8 +14,8 @@ from py2neo import NodeMatcher
 import neotime
 
 from app.objectmodel.common import Status, LogType, AccessRights, Permission, bytes_in_gb, to_primitive
-from dsl.fileop import FolderItem
-from dsl.datatype import DataType
+from src.dsl.fileop import FolderItem
+from src.dsl.datatype import DataType
 from .loader import Loader
 
 from werkzeug.security import generate_password_hash, check_password_hash

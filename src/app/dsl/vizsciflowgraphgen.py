@@ -3,13 +3,13 @@ import logging
 import threading
 import _thread
 
-from dsl.context import Context
-from dsl.library import LibraryBase
-from dsl.taskmgr import TaskManager
-from dsl.grammar import PythonGrammar
-from dsl.parser import WorkflowParser
-from dsl.datatype import DataType
-from dsl.library import Pair
+from src.dsl.context import Context
+from src.dsl.library import LibraryBase
+from src.dsl.taskmgr import TaskManager
+from src.dsl.grammar import PythonGrammar
+from src.dsl.parser import WorkflowParser
+from src.dsl.datatype import DataType
+from src.dsl.library import Pair
 
 from .vizsciflowsymgraph import VizSciFlowSymbolGraph
 from app.dsl.vizsciflowcomposelib import LibraryComposition

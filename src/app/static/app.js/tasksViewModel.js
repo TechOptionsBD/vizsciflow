@@ -1454,7 +1454,7 @@ function TasksViewModel(sampleViewModel) {
                     }
                 };
             }
-            else if (fileType == 'xml') {
+            else if (fileType == 'xml' || fileType == 'csv') {
                 var oReq = new XMLHttpRequest();
                 oReq.open('GET', self.dataSourcesURI + "?" + 'filecontent=' + data.data, true);
                 oReq.responseType = "arraybuffer";
@@ -1578,7 +1578,7 @@ function TaskSharingViewModel() {
     self.getUsers = function () { 
         self.userList([]);
         
-        ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 1 }).done(function (data) {
+        ajaxcalls.simple(self.tasksURI, 'GET', { 'users': 0 }).done(function (data) {
             
             data = Array.isArray(data) ? data : JSON.parse(data);
             data.forEach(element => {

@@ -42,7 +42,7 @@ function SamplesViewModel(sampleViewModel) {
     }
     
     self.newwf = function() {
-        self.saveCurrentLoadintoEditor({id: 0});
+        self.saveCurrentLoadintoEditorInternal(0);
     }
     
     self.beginAdd = function(saveas) {
@@ -116,7 +116,7 @@ function SamplesViewModel(sampleViewModel) {
         self.clicks++;
         if (self.clicks !== 1) {
             $(".expandedWorkflow").remove();
-            self.loadIntoEditor(item.id);
+            self.loadIntoEditor(item.id());
             self.clicks = 0
             return;
         }
@@ -183,16 +183,20 @@ function SamplesViewModel(sampleViewModel) {
         }
          
     };
-    
-    self.loadIntoEditor = function(item) {
+    /**
+     * 
+     * @param {*} item_id  workflow id in knockout observable integer
+     * @returns 
+     */
+    self.loadIntoEditor = function(item_id) {
         
-        if (!item) {
+        if (!item_id) {
             self.sampleViewModel.clear();
             self.sampleViewModel.sampleEditor.session.setValue("", 1);
             return;
         }
         
-         ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item}).done(function(data) {
+         ajaxcalls.simple(self.samplesURI, 'GET', {'sample_id': item_id}).done(function(data) {
             
             if ($.isEmptyObject(data))
                 return;
@@ -220,7 +224,7 @@ function SamplesViewModel(sampleViewModel) {
         });
     }
     
-    self.saveCurrentLoadintoEditor = function (item) {
+    self.saveCurrentLoadintoEditorInternal = function (item_id) {
         if (self.saveNeeded()) {
             centerDialog($('#save-needed'));
             $('#save-needed').modal('show')
@@ -228,19 +232,23 @@ function SamplesViewModel(sampleViewModel) {
                     var updateDlg = tasksViewModel.updateWorkflow(true);
                     if (updateDlg) {
                         updateDlg.on('hidden.bs.modal', function () {
-                            self.loadIntoEditor(item.id);
+                            self.loadIntoEditor(item_id);
                         }.bind(this));
                     }
                     else
-                        self.loadIntoEditor(item.id);
+                        self.loadIntoEditor(item_id);
 
                 }).on('click', '#save-needed-no', function (e) {
-                    self.loadIntoEditor(item.id);
+                    self.loadIntoEditor(item_id);
                 });
         }
         else {
-            self.loadIntoEditor(item.id);
+            self.loadIntoEditor(item_id);
         }
+    }
+
+    self.saveCurrentLoadintoEditor = function (item) {
+        self.saveCurrentLoadintoEditorInternal(item.id());
     }
     
     self.click = function(model){

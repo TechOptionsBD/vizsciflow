@@ -2,7 +2,7 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% import "_macros.html" as macros %}
 
-{% block title %}SciClone{% endblock %}
+{% block title %}{{config['SYSTEM_NAME']}}{% endblock %}
 
 {% block head %}
 {{ super() }}
@@ -230,7 +230,8 @@
 				</div>
 			</div>
 
-			<!-- scidatamanager plugin panel -->
+			{% if config['SHOW_CAS_LOGIN'] %}
+			<!-- Show SciDataManager plugin panel only if CAS login is enabled -->
 			<div id="datasetPluginPanel" class="panel panel-primary">
 				<div class="panel-heading">
 					<button class="close closeComponent" title="Close" type="button">×</button>
@@ -249,6 +250,7 @@
 					<div id="datasetPlugin"></div>
 				</div>
 			</div>
+			{% endif %}
 
 			<div id="searchHistoryPanel" class="panel panel-primary" style="display: none">
 				<div class="panel-heading">
@@ -327,6 +329,8 @@
 						</div>
 						<div class="col-md-10" style="vertical-align: middle; padding-left: 0;" data-bind="event: {click: $parent.toggleExpand, dblclick: $parent.copyToEditor}">
 							<img class="history-item-img" width="16px" height="16px" data-bind="attr:{src: statusImg}" />
+							<span style="font-weight: bold;" data-bind="text: id"></span>
+							<span style="font-weight: bold;">:</span>
 							<label data-bind="text: name" class="form-check-label label-checkbox" style="margin-top: 2px"></label>
 						</div>
 						
@@ -419,7 +423,7 @@
 		<div class="col-md-6 box-two">
 			<div class="panel panel-primary" id="codeeditor" style="margin: 2px">
 				<div class="panel-heading text-center">
-					<h4 style="margin-bottom:10px">SciClone Workflow & Provenance Editor</h4>
+					<h4 style="margin-bottom:10px">{{config['SYSTEM_NAME']}} Workflow & Provenance Editor</h4>
 
 					<div class="btn-group" style="left: 1.5vw; position: absolute;">
 						<button class="btn btn-primary" id="wfMode" style="display: grid" onclick="handleModeViewModel.setMode('wfMode')">
@@ -461,7 +465,7 @@
 									<li><a class="dropdown-item" href="#">24</a></li>							      
 								</ul>
 							</div>
-							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="About SciClone Syntax" id="panel-about">
+							<button class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="About {{config['SYSTEM_NAME']}} Syntax" id="panel-about">
 								<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 							</button>
 							
@@ -3432,10 +3436,13 @@ function typeInTextarea(el, newText) {
 			return path;
 		}
 
+		// Show SciDataManager plugin only if CAS login is enabled
+		{% if config['SHOW_CAS_LOGIN'] %}
 		datasetViewModel = new DatasetPluginViewModel(scidatapath, "#datasetPlugin", buildSciDataPath);
 		ko.applyBindings(datasetViewModel, $('#datasetPluginPanel')[0]);
 		datasetViewModel.renderDataset()
-
+		{% endif %}
+		
 		datasetLateLoadViewModel = new DatasetPluginViewModel("", "#datasetLatePlugin", buildVizSciFlowPath);
 		ko.applyBindings(datasetLateLoadViewModel, $('#datasetLateLoadPanel')[0]);
 		datasetLateLoadViewModel.renderDataset()

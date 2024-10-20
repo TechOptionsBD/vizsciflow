@@ -36,46 +36,6 @@ from ..managers.activitymgr import activitymanager
 
 basedir = os.path.dirname(os.path.abspath(__file__))
 
-def update_workflow(user_id, workflow_id, script, params, returns):
-    try:
-        if workflow_id:
-            workflow = workflowmanager.first(id=workflow_id)
-            kwargs = {}
-            if script is not None:
-                kwargs['script'] = script
-            if params is not None:
-                kwargs['params'] = params
-            if returns is not None:
-                kwargs['returns'] = returns
-
-            if workflow.isEqual(**kwargs):
-                return workflow
-            
-            writeaccess = workflow.temp
-            
-            if not writeaccess:
-                if workflow.public:
-                    writeaccess = user_id == workflow.user_id
-                    if not writeaccess:
-                        permissions = workflow.user.role.permissions if workflow.user and workflow.user.role else Permission.NOTSET
-                        writeaccess = permissions & Permission.ADMINISTER or permissions & Permission.MODERATE_WORKFLOWS
-                if not writeaccess:
-                    accesses = workflow.accesses#.query.filter(user_id = WorkflowAccess.user_id)
-                    for access in accesses:
-                        if access.user_id == user_id and access.rights == AccessRights.Write or access.rights == AccessRights.Owner:
-                            writeaccess = True
-            
-            if writeaccess:
-                workflow.update_script(script)
-            else:
-                workflow = Samples.create_workflow(user_id, 0, workflow.name, workflow.desc, script, params, returns, AccessType.PRIVATE, '', True, workflow.id)
-        else:
-            workflow = Samples.create_workflow(user_id, 0, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
-        return workflow
-    except Exception as e:
-        logging.error(f"Error in updating/creating workflow: {str(e)}")
-        raise
-
 def load_args(args):
     argsjson = {}
     if args:
@@ -126,9 +86,9 @@ def run_biowl(workflow_id, script, args, immediate = True, provenance = False):
         raise
 
 def save_and_run_workflow(script, args, immediate = True, provenance = False):
-    workflow = update_workflow(current_user.id, 0, script)
+    workflow = Samples.update_workflow(current_user.id, 0, script)
     run_biowl(workflow.id, script, args, immediate, provenance)
-    
+
 def build_graph(workflow_id):
     try:
         from ..jobs import generate_graph_from_workflow
@@ -550,31 +510,33 @@ def parse_string_to_int(s, default = 0):
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
+    from .chat import SendChatMessage
     try:
         if request.method == "GET":
             if 'name' in request.args and 'package' in request.args:
                 return get_service(request.args['name'], request.args['package'])
-            if 'datatypes' in request.args:
+            elif 'datatypes' in request.args:
                 return get_datatypes()
-            if 'pyenvs' in request.args:
+            elif 'pyenvs' in request.args:
                 pyvenvs = get_pyvenvs(current_user.id)
                 return jsonify(pyvenvs = pyvenvs)
             
-            if 'dockercontainers' in request.args:
+            elif 'dockercontainers' in request.args:
                 dockercontainers = get_dockercontainers(current_user.id)
                 return jsonify(dockercontainers = dockercontainers)
 
-            if 'dockerimages' in request.args:
+            elif 'dockerimages' in request.args:
                 dockerimages = get_dockerimages(current_user.id)
                 return jsonify(dockerimages = dockerimages)
             
-            if 'newpyvenvs' in request.args:
+            elif 'newpyvenvs' in request.args:
                 return new_pyvenvs(request.args.get('newpyvenvs'), request.args.get('pyversion'), current_user.id)
             
-            if 'newdockerimagename' in request.args or ('docker' in request.args and os.path.exists(request.args.get('docker')) ) :
+            elif 'newdockerimagename' in request.args or ('docker' in request.args and os.path.exists(request.args.get('docker')) ) :
                 return new_dockerenvs(activity, request.args.get('docker'), request.args.get('newdockerimagename'), request.args.get('newdockercontainername'), current_user.id)
-
-            if 'check_function' in request.args:
+            elif request.args.get('chatmsg'):
+                return json.dumps(SendChatMessage(request.args.get("workflow_id"), request.args.get('chatmsg')))
+            elif 'check_function' in request.args:
                 return check_service_function(request)
             elif 'codecompletion' in request.args:
                 return code_completion(request.args.get('codecompletion'))
@@ -602,7 +564,7 @@ def functions():
             elif request.form.get('workflowId'):
                 workflowId = parse_string_to_int(request.form.get('workflowId')) if request.form.get('workflowId') else 0
                 if request.form.get('script'):
-                    workflow = update_workflow(current_user.id, workflowId, request.form.get('script'), request.form.get('args'), request.form.get('returns'))
+                    workflow = Samples.update_workflow(current_user.id, workflowId, request.form.get('script'), request.form.get('args'), request.form.get('returns'))
                     return json.dumps(workflow.to_json())
 
                 # Here we must have a valid workflow id

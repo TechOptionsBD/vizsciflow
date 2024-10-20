@@ -542,4 +542,18 @@ function SamplesViewModel(sampleViewModel) {
             }
         }
     }
+
+    self.shouldCollabPanelActive = ko.computed(function() {
+        return self.sampleViewModel.workflowId() > 0;
+    });
+
+    self.toggleCollab = function() {
+        $('#collabPanel').modal('toggle')
+            .on('show.bs.modal', function () {
+                self.sampleViewModel.joinchat();
+            })
+            .on('hide.bs.modal', function () {
+                self.sampleViewModel.leavechat();
+            });
+    }
 }

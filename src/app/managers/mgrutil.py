@@ -7,7 +7,16 @@ elif Config.DATA_MODE == 1 or Config.DATA_MODE == 2:
 elif Config.DATA_MODE == 3:
     from app.managers.wrappers.elastic import *
 
-registry = {'workflow': WorkflowManager, 'manager': Manager, 'user': UserManager, 'module': ModuleManager, 'runnable': RunnableManager, 'data': DataManager, 'filter': FilterManager, 'activity': ActivityManager}
+registry = {'workflow': WorkflowManager, 
+            'manager': Manager, 
+            'user': UserManager, 
+            'module': ModuleManager, 
+            'runnable': RunnableManager, 
+            'data': DataManager, 
+            'filter': FilterManager, 
+            'activity': ActivityManager,
+            'chat': ChatManager
+            }
 
 class ManagerUtility():
     @staticmethod

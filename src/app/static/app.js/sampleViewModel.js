@@ -13,8 +13,10 @@ function SampleViewModel(editor) {
     self.wfArgs = ko.observableArray();
     self.wfReturnArgs = ko.observableArray();
     self.TList = ko.observableArray();
+    self.chatMessages = ko.observableArray([]);
+	self.newMessage = ko.observable("");
     self.sampleEditor = editor ?? CreateAceEditor("#sample", "ace/mode/python", '40vh');
-   
+    
     self.isPublic = ko.computed(function()
     {
         return self.access() == 0;
@@ -266,5 +268,62 @@ function SampleViewModel(editor) {
 
     self.access.subscribe(function(newVal){
         $("#wfUserSelection").multiselect(newVal ? 'disable' : 'enable');
+    });
+
+    self.sendMessage = function(message) {
+        if (self.workflowId() === 0 || message === "")
+            return;
+        
+        try {
+            if (!socket.connected) {
+                socket.connect();
+            }
+
+            socket.emit('message', {'workflow_id': self.workflowId(), 'message': self.newMessage()});
+            self.newMessage("");
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
+    };
+
+    self.leavechat = function() {
+        if (self.workflowId() === 0)
+            return;
+        socket.emit('leavechat', self.workflowId());
+    }
+
+    self.joinchat = function() {
+        if (self.workflowId() === 0)
+            return;
+
+        socket.emit('joinchat', self.workflowId());
+    }
+
+    self.aboutcollab = function() {
+        window.open("static/biodsl-help.html#collab", '_blank');
+    }
+
+    self.collabmerge = function() {
+        window.open("static/biodsl-help.html#collab", '_blank');
+    }
+
+    self.collabpush = function() {
+        window.open("static/biodsl-help.html#collab", '_blank');
+    }
+
+    self.collabcompare = function() {
+        window.open("static/biodsl-help.html#collab", '_blank');
+    }
+
+    self.collabclose = function() { 
+        self.leavechat();
+    }
+
+    self.collabopen = function() {
+        self.joinchat();
+    }
+
+    self.shouldSendEnabled = ko.computed(function() {
+        return self.newMessage().length !== 0;
     });
 }

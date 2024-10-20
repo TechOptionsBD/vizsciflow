@@ -130,3 +130,6 @@ zipp==3.11.0
 wfdsl
 gunicorn
 jsonpickle
+python-socketio==5.11.4
+flask-socketio==5.3.7
+eventlet==0.37.0

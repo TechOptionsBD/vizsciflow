@@ -2,7 +2,7 @@ import os
 import itertools
 import operator
 
-from dsl.datatype import DataType
+from src.dsl.datatype import DataType
 from app.managers.usermgr import usermanager
 from app.managers.workflowmgr import workflowmanager
 from app.managers.runmgr import runnablemanager

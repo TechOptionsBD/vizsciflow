@@ -25,7 +25,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 from app.exceptions import ValidationError
 
 from app import db
-from dsl.datatype import DataType
+from src.dsl.datatype import DataType
 from sqlalchemy.orm.attributes import flag_modified
 from app.objectmodel.common import Permission, AccessRights, AccessType, Status, LogType, git_access, ActivityType, isiterable
 from .loader import Loader
@@ -2648,4 +2648,37 @@ class DockerContainer(db.Model):
             'name': self.name,
             'args': self.args,
             'command': self.command
+        }
+
+class Chat(db.Model):
+    __tablename__ = 'chats'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'))
+    session_id = db.Column(db.Integer, nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_on = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @staticmethod
+    def add(**kwargs):
+        try:
+            if not kwargs['created_on']:
+                kwargs['created_on'] = datetime.utcnow()
+            chat = Chat(**kwargs)
+
+            db.session.add(chat)
+            db.session.commit()
+            return chat
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'workflow_id': self.workflow_id,
+            'session_id': self.session_id,
+            'message': self.message,
+            'created_on': self.created_on.strftime("%d-%m-%Y %H:%M:%S")
         }

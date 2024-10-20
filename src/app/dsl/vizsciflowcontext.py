@@ -1,10 +1,10 @@
 import os
 import ast
-import copy
 import shutil
 import threading
-from dsl.context import Context
-from dsl.symtab import SymbolTable
+import uuid
+
+from src.dsl.context import Context
 
 from app.util import Utility
 from app.managers.usermgr import usermanager
@@ -16,25 +16,20 @@ from app.objectmodel.common import LogType, get_python_venvs, strip_quote
 
 class VizSciFlowContext(Context):
     lock = threading.Lock()
-    def __init__(self, library, symboltable) -> None:
-        self.propstack = {threading.get_ident(): SymbolTable()}
-        super().__init__(library, symboltable)
+    def __init__(self, library) -> None:
+        super().__init__(library)
+        self.proptabs = self.SymbolTableCls()
 
     def getprop(self, propname):
-        ident = threading.get_ident()
-        if ident in self.propstack and self.propstack[ident].var_exists(propname):
-            return self.propstack[ident].get_var(propname)
+        if self.proptabs.var_exists(propname):
+            return self.proptabs.get_var(propname)
+        
     def setprop(self, propname, value):
-        ident = threading.get_ident()
-        if not ident in self.propstack:
-            self.propstack[ident] = SymbolTable()
-        self.propstack[ident].update_var(propname, value) if self.propstack[ident].var_exists(propname) else self.propstack[ident].add_var(propname, value)
-    
-    def copyprops_to_currentthread(self):
-        ident = threading.get_ident()
-        if ident != self.ident:
-            self.propstack[ident] = copy.copy(self.propstack[self.ident])
-    
+        if self.proptabs.var_exists(propname):
+            self.proptabs.update_var(propname, value)
+        else:
+            self.proptabs.add_var(propname, value)
+      
     @property
     def task_id(self):
         return self.getprop('task_id')
@@ -150,6 +145,19 @@ class VizSciFlowContext(Context):
                 return False
         return True
     
+    def uuid_filename(self, path, ext):
+        """
+        Generate a unique filename in the specified directory.
+
+        Args:
+            path (str): The directory path where the file will be created.
+            ext (str): The file extension without (.). If not provided, the extension from the prefix will be used.
+
+        Returns:
+            str: A unique filename with the specified prefix and extension in the given path.
+        """
+        return os.path.join(path, f"{str(uuid.uuid4())}.{ext}")
+            
     def createuniquefile(self, prefix='', extension=''):
         outdir = self.createoutdir()
         fs = Utility.fs_by_prefix_or_guess(outdir)

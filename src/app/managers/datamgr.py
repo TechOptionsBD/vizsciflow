@@ -1,5 +1,5 @@
 import logging
-from dsl.datatype import DataType
+from src.dsl.datatype import DataType
 from app.managers.mgrutil import ManagerUtility
 from app.objectmodel.common import AccessRights, known_types, str_or_empty
 from pathlib import Path

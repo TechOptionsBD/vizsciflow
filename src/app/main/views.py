@@ -23,7 +23,7 @@ from ..decorators import admin_required, permission_required
 
 #from ..models import AlchemyEncoder, Post, Comment, Visualizer, MimeType, DataAnnotation, DataVisualizer, DataMimeType, DataProperty, Filter, FilterHistory, Dataset
 from ..util import Utility
-from dsl.fileop import FilterManager
+from src.dsl.fileop import FilterManager
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm, CommentForm
 from app.system.exechelper import func_exec_stdout
 from app.managers.usermgr import usermanager
@@ -871,6 +871,47 @@ class Samples():
         info["access"] = access
         return json.dumps(info)
 
+    @staticmethod
+    def update_workflow(user_id, workflow_id, script, params, returns):
+        try:
+            if workflow_id:
+                workflow = workflowmanager.first(id=workflow_id)
+                kwargs = {}
+                if script is not None:
+                    kwargs['script'] = script
+                if params is not None:
+                    kwargs['params'] = params
+                if returns is not None:
+                    kwargs['returns'] = returns
+
+                if workflow.isEqual(**kwargs):
+                    return workflow
+                
+                writeaccess = workflow.temp
+                
+                if not writeaccess:
+                    if workflow.public:
+                        writeaccess = user_id == workflow.user_id
+                        if not writeaccess:
+                            permissions = workflow.user.role.permissions if workflow.user and workflow.user.role else Permission.NOTSET
+                            writeaccess = permissions & Permission.ADMINISTER or permissions & Permission.MODERATE_WORKFLOWS
+                    if not writeaccess:
+                        accesses = workflow.accesses#.query.filter(user_id = WorkflowAccess.user_id)
+                        for access in accesses:
+                            if access.user_id == user_id and access.rights == AccessRights.Write or access.rights == AccessRights.Owner:
+                                writeaccess = True
+                
+                if writeaccess:
+                    workflow.update_script(script)
+                else:
+                    workflow = Samples.create_workflow(user_id, 0, workflow.name, workflow.desc, script, params, returns, AccessType.PRIVATE, '', True, workflow.id)
+            else:
+                workflow = Samples.create_workflow(user_id, 0, "No Name", "No Description", script, params, returns, AccessType.PRIVATE, '', True)
+            return workflow
+        except Exception as e:
+            logging.error(f"Error in updating/creating workflow: {str(e)}")
+            raise
+
 '''
 Used for saving workflow into the filesystem instead of in the database
     @staticmethod
@@ -952,6 +993,7 @@ def workflow_rev_compare(request):
 @main.route('/samples', methods=['GET', 'POST'])
 @login_required
 def samples():
+    from .chat import JoinChatRoom
     try:
         if request.form.get('sample'):
             return Samples.add_workflow(current_user.id, int(request.form.get('id')), request.form.get('name'), request.form.get('desc'), request.form.get('sample'), request.form.get('params'), request.form.get('returns'), int(request.form.get('access')), request.form.get('sharedusers'), False)
@@ -973,7 +1015,10 @@ def samples():
             return json.dumps(workflow.revisions)
         elif request.args.get('tooltip'):
             workflow = workflowmanager.get_or_404(request.args.get('tooltip'))
-            return json.dumps(workflow.to_json_tooltip())   
+            return json.dumps(workflow.to_json_tooltip())
+        elif request.args.get('joinchat'):
+            JoinChatRoom(request.args.get("joinchat"))
+            return json.dumps({})
         elif 'workflow_id' in request.args:
             workflow_id = request.args.get("workflow_id")
             if 'confirm' in request.args:

@@ -1,5 +1,5 @@
 from app.objectmodel.models.rdb import *
-from dsl.fileop import FolderItem, PosixFileSystem
+from src.dsl.fileop import FolderItem, PosixFileSystem
 from app.objectmodel.common import isiterable, str_or_empty, dict2obj
 from sqlalchemy import text
 from werkzeug.utils import secure_filename
@@ -429,3 +429,24 @@ class ActivityManager():
     @staticmethod
     def get_last_modified_n(n, **kwargs):
         return Activity.query.filter_by(**kwargs).order_by(Activity.modified_on.desc()).limit(n)
+
+
+class ChatManager():
+    @staticmethod
+    def first(**kwargs):
+        return Chat.query.filter_by(**kwargs).first()
+
+    @staticmethod
+    def get(**kwargs):
+        return Chat.query.filter_by(**kwargs)
+
+    @staticmethod
+    def add(**kwargs):
+        return Chat.add(**kwargs)
+
+    @staticmethod
+    def remove(workflow_id):
+        chat = Chat.query.filter_by(workflow_id=workflow_id).first()
+        chat.delete()
+    
+chatmanager = ChatManager()

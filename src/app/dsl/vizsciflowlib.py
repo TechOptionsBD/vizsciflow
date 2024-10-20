@@ -7,9 +7,9 @@ from timeit import time
 from collections import namedtuple
 from urllib.parse import urljoin, urlencode
 
-from dsl.library import LibraryBase, load_module
-from dsl.datatype import DataType
-from dsl.filemgr import FileManager
+from src.dsl.library import LibraryBase, load_module
+from src.dsl.datatype import DataType
+from src.dsl.filemgr import FileManager
 
 from app.dsl.vizsciflowcontext import VizSciFlowContext
 from app.managers.runmgr import runnablemanager

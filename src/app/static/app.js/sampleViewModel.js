@@ -289,13 +289,20 @@ function SampleViewModel(editor) {
     self.leavechat = function() {
         if (self.workflowId() === 0)
             return;
-        socket.emit('leavechat', self.workflowId());
+
+        if (socket.connected) {
+            socket.emit('leavechat', self.workflowId());
+            socket.disconnect();
+        }
     }
 
     self.joinchat = function() {
         if (self.workflowId() === 0)
             return;
 
+        if (!socket.connected) {
+            socket.connect();
+        }
         socket.emit('joinchat', self.workflowId());
     }
 

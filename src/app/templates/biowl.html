@@ -2697,14 +2697,14 @@
 		</div>
 	  </div>
 	  <div class="modal-body">
-		  <div id="chatMessages" data-bind="foreach: chatMessages" style="height: 100px">
+		  <div id="chatMessages" data-bind="foreach: chatMessages" style="height: 100px; overflow-y: scroll">
 		  	<div class="chat-message">
 				<strong data-bind="text: user"></strong>:<span data-bind="text: message"></span>
 			</div>
   		  </div>
 		  <div style="display: flex; flex-flow: row; margin: 5px">
-		  	<input data-bind="textInput: newMessage" style="margin: 5px" class="form-control" placeholder="Type a message..." />
-			<button class="btn btn-primary" data-bind="click: sendMessage, enable: shouldSendEnabled">Send</button>
+		  	<input id="chatinput" data-bind="textInput: newMessage" style="margin: 5px" class="form-control" placeholder="Type a message..." />
+			<button id="sendchat" class="btn btn-primary" data-bind="click: sendMessage, enable: shouldSendEnabled">Send</button>
 		  </div>
 	  </div>
 	</div>
@@ -3765,6 +3765,8 @@ function typeInTextarea(el, newText) {
 	// Listen for a custom event from the server
 	socket.on('message', (data) => {
 		sampleViewModel.chatMessages.push({'user': data.user, 'message': data.message});
+		var objDiv = document.getElementById("chatMessages");
+		objDiv.scrollTop = objDiv.scrollHeight;
 		console.log('Message from server:', data);
 	});
 
@@ -3773,6 +3775,19 @@ function typeInTextarea(el, newText) {
 		console.log('Disconnected from the server');
 	});
 
+	// Get the input field
+	var input = document.getElementById("chatinput");
+
+	// Execute a function when the user presses a key on the keyboard
+	input.addEventListener("keypress", function(event) {
+	// If the user presses the "Enter" key on the keyboard
+	if (event.key === "Enter") {
+		// Cancel the default action, if needed
+		event.preventDefault();
+		// Trigger the button element with a click
+		document.getElementById("sendchat").click();
+	}
+	});
 </script>
 {{ pagedown.include_pagedown() }}
 {% endblock %}

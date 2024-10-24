@@ -2,21 +2,21 @@
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<title>SciClone Manual</title>
+	<title>Domain-Specific Language (DSL) Manual for VizSciFlow and its derivatives</title>
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 <body>
-<h1>SciClone Manual</h1>
+<h1>Domain-Specific Language (DSL) Manual for VizSciFlow and its derivatives</h1>
 
-<p>SciClone is a workflow management system with a domain-specific language (DSL).</p>
+<p>VizSciFlow is a workflow management system with a domain-specific language (DSL).</p>
 <p>The DSL has simple syntax and a minimal set of keywords. The syntax has similarities to Python’s syntax and indenting.</p> 
-<p>Scientists can write a workflow script using the visual elements offered in SciClone web interface.</p>  
+<p>Scientists can write a workflow script using the visual elements offered in VizSciFlow web interface.</p>  
 
 <h3><a name="keywords">Keywords:</a></h3>
-The keywords of SciClone are listed below:
+The keywords of VizSciFlow are listed below:
 
 <table>
   <tr>
@@ -98,9 +98,9 @@ Workflow(id=&lt;workflow_id&gt;, **kwargs)
 
 
 <h3><a name="syntax">Syntax:</a></h3>
-SciClone uses simple pythonic syntax and indenting. Advanced syntaxes like lambda, class, iterators, generators, annotation are not allowed. Here is a complete example of a SciClone script:
-<p>Like Python, SciClone is structured with <a href="">indentation</a> i.e. the statements within a block line up vertically. The block ends at a line less indented or the end of the file. If a block has to be more deeply nested, it is simply indented further to the right.</p>
-Here is a SciClone indenting example:
+VizSciFlow uses simple pythonic syntax and indenting. Advanced syntaxes like lambda, class, iterators, generators, annotation are not allowed. Here is a complete example of a VizSciFlow script:
+<p>Like Python, VizSciFlow is structured with <a href="">indentation</a> i.e. the statements within a block line up vertically. The block ends at a line less indented or the end of the file. If a block has to be more deeply nested, it is simply indented further to the right.</p>
+Here is a VizSciFlow indenting example:
 <pre><code class="python">
 task AlignSequences(ref, data, data2):
     CheckQuality(data)
@@ -114,7 +114,7 @@ task AlignSequences(ref, data, data2):
 AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq', '/public/MiSeq_SOP/F3D6_S194_L001_R2_001.fastq')
 </code></pre>
 
-<p>SciClone is a dynamic language. The type of a literal is inferred from the value. For example:</p>
+<p>VizSciFlow is a dynamic language. The type of a literal is inferred from the value. For example:</p>
 <table>
 <tr>
 <td>Integer </td>
@@ -131,8 +131,8 @@ AlignSequences('/public/genomes/Chr1.cdna', '/public/MiSeq_SOP/F3D6_S194_L001_R1
 </table>
 
 
-<h3>The SciClone <a name="webui">web interface</a></h3>
-The domain experts can use SciClone web interface to quickly create a workflow. The IDE looks as below:
+<h3>The VizSciFlow <a name="webui">web interface</a></h3>
+The domain experts can use VizSciFlow web interface to quickly create a workflow. The IDE looks as below:
 <img alt>
 
 A typical set of events are:
@@ -184,7 +184,7 @@ The services/tools/modules for the workflows are listed on the right-top corner 
 <p>
 Experienced users can extend the capabilities of the system by adding new services to it. It is important to decide the input and output of the tool. You may have multiple threads in the tool, but it must have a single synchrounous exit point.
 
-Different types of tools can be integrated into SciClone system.
+Different types of tools can be integrated into VizSciFlow system.
 
 <ol>
 	<li>Python code: You can wrap python code in the code editor as a tool. If you need a module from PyPi, add the module to <b>pip install</b> textbox.</li>
@@ -198,7 +198,7 @@ To add an external tool, you must know how to call the tool from python.
 	<li>The location of the tool.</li>
 	<li>The arguments it accepts. Some of these arguments might be your (formatted) input parameters.</li>
 	<li>The result it returns. Sometimes, stdout and stderr may be necessary. Your output of the tool will be selected/calculated from these values.</li>
-	<li>SciClone works in batch mode. So any interactive display will not work. Output must be saved to a file and returned from adapter.</li>
+	<li>VizSciFlow works in batch mode. So any interactive display will not work. Output must be saved to a file and returned from adapter.</li>
 </ul>
 
 
@@ -206,7 +206,7 @@ To add an external tool, you must know how to call the tool from python.
 
 In the service pane, the "+" button opens the dialog for <strong>Service Mapping</strong>. There are two tabs:
 <ul>
-	<li><strong>Code</strong>:It containes the adapter code to connect SciClone DSL with external module or executable. The SciClone scheduler triggers this code during execution of the tool.</li>
+	<li><strong>Code</strong>:It containes the adapter code to connect VizSciFlow DSL with external module or executable. The VizSciFlow scheduler triggers this code during execution of the tool.</li>
 	<li><strong>JSON</strong>:It binds the service parameters with the inputs and outputs of workflow step.</li>
 </ul>
 
@@ -229,14 +229,14 @@ def demo_service(context, *args, **kwargs):
 	return str(args[0]) if args else 0
 	</code>
 </pre>
-<b>context</b> is a helper object to connect the internal system to this adapter. SciClone has a virtual file system (VFS) concept. Many of <i>context's</i> functions converts file/folder path from VFS (denormalized) to physical file system (normalized). Inputs and outputs of a module/service must be in VFS (denormalized) path. Here are some functions of <i>context</i>:
+<b>context</b> is a helper object to connect the internal system to this adapter. VizSciFlow has a virtual file system (VFS) concept. Many of <i>context's</i> functions converts file/folder path from VFS (denormalized) to physical file system (normalized). Inputs and outputs of a module/service must be in VFS (denormalized) path. Here are some functions of <i>context</i>:
 <ul>
 	<li><i>gettempdir():</i> path to user's temp directory in normalized and resolved form.</li>
 	<li><i>getpublicdir():</i> path to user's public directory in normalized and resolved form.</li>
 	<li><i>createoutdir(outname = None):</i> Creates a unique output directory.</li>
 	<li><i>getnormdir(__file__):</i> When used in an adapter file, path to this adapter's directory. Uploaded files are stored in this directory. .zip/.tar/.tar.gz files are uncompressed in this directory.</li>
-	<li><i>normalize(path):</i> Normalizes a path from SciClone VFS to physical path. Your input is usually converted into abstract form automatically.</li>
-	<li><i>denormalize(path):</i> Denormalizes a path from physical path to SciClone VFS. Your abstract path is automatically converted into output in VFS form.</li>
+	<li><i>normalize(path):</i> Normalizes a path from VizSciFlow VFS to physical path. Your input is usually converted into abstract form automatically.</li>
+	<li><i>denormalize(path):</i> Denormalizes a path from physical path to VizSciFlow VFS. Your abstract path is automatically converted into output in VFS form.</li>
 	<li><i>moveto(src, dest, ignores=[]):</i> moves contents of src directory to dest</li>
 	<li><i>copyto(src, dest, ignores=[]):</i> copies contents of src directory to dest</li>
 	<li><i>exec_run(executable, *args):</i> Runs an executable file. You can also pass values for cwd=path and env=path for current working directory and environment path respectively. It returns stdout and stderr.</li>
@@ -342,7 +342,7 @@ html,zip = FastQService(data)
 	</code>
 </pre>
 
-<p>Here is another example of using matplotlib in SciClone. Since the executation model of SciClone is unattended execution (in contrast to interactive execution), <i>matplotlib.show</i> will not work. The output must be saved as a file using savefig.</p>
+<p>Here is another example of using matplotlib in VizSciFlow. Since the executation model of VizSciFlow is unattended execution (in contrast to interactive execution), <i>matplotlib.show</i> will not work. The output must be saved as a file using savefig.</p>
 
 Here is an adapter for the service:
 <pre><code class="python">
@@ -387,7 +387,7 @@ Here is the json mapper of the above service. From JSON mapper tab, you have to 
 </code>
 </pre>
 
-matplotlib may not be installed in some SciClone systems by default. You can specify to install it in "pip install" text box by typing matplotlib.
+matplotlib may not be installed in some VizSciFlow systems by default. You can specify to install it in "pip install" text box by typing matplotlib.
 Click the "Add" button. If there is no error, the BookReadChart should appear in Services panel. Click "All" radio button and then "Reload" if you don't see it.
 
 If you double-click/drag the service, following code should appear in code editor:
@@ -416,7 +416,7 @@ def demo_service(context, *args, **kwargs):
 
 <strong>Advanced:</strong>
 <ul>
-<li><strong>Older python environment:</strong>SciClone is developed using Python 3.10. If a tool is developed using older version of Python (say 2.7), users need a workaround to integrate it.
+<li><strong>Older python environment:</strong>VizSciFlow is developed using Python 3.10. If a tool is developed using older version of Python (say 2.7), users need a workaround to integrate it.
 	We have provided a Python 2.7 virtual environment for it. Users need to create a .sh executable with the following code and run it using <i>context.pyvenv_run</i>.
 	/home/venvs/&lt;venvname&gt;>/bin/activate
 
@@ -445,7 +445,7 @@ def demo_service(context, *args, **kwargs):
 </ul>
 
 <strong>Limitations of tool integration:</strong>
-There are some limitations to the tool integration by users in SciClone. We have listed them below:
+There are some limitations to the tool integration by users in VizSciFlow. We have listed them below:
 <ul>
 	<li><strong>Admin access:</strong>If a tool needs admin or sudo access, it can't be integrated by the normal users. If a tools needs a different version of system library (e.g. libc) or needs manual configuration, system admin must do it.</li>
 	<li><strong>Needs compilation:</strong>Tools which need to be compiled and installed from source, cannot be integrated by users. The admin must do it.</li>

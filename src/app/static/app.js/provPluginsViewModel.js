@@ -366,7 +366,7 @@ function TaskSharingViewModel() {
         
         ajaxcalls.simple(self.provpluginsURI, 'GET', { 'users': 0 }).done(function (data) {
             
-            data = Array.isArray(data) ? data : JSON.parse(data);
+            data = Array.isArray(data.provplugins) ? data.provplugins : JSON.parse(data);
             data.forEach(element => {
                 self.userList.push({id: parseInt(element[0]), name:  element[1]});
             });

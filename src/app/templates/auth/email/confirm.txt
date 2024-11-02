@@ -1,6 +1,6 @@
 Dear {{ user.username }},
 
-Welcome to VizSciFlow! Thanks for registration.
+Welcome! Thanks for registration.
 
 To confirm your account please click on the following link:
 

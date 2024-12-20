@@ -1,11 +1,10 @@
 import logging
-from flask_socketio import join_room, leave_room, rooms, send, emit
+from flask_socketio import join_room, leave_room, rooms, send, emit, SocketIO
 from flask_login import current_user
 from app.managers.chatmgr import chatmanager
 from app import app
-from flask_socketio import SocketIO
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins='*')
 
 @socketio.on('joinchat')
 def handle_join(data):

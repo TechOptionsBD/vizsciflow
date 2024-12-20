@@ -2581,6 +2581,59 @@
 		</div>
 	</div>
 </div>
+
+<div id="wfVersionCompareSelection" class="modal fade" tabindex="=1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-md" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4>Workflow Version Comparison</h4>
+			</div>
+			<div class="modal-body">
+				<div class="container-fluid">
+					<div id="versionCompare" class="row service-form-group">
+						<hr>
+						<div style="display: flex;">
+							<div>
+								<label>Select Version</label>
+								<div>
+									<select id="compareWfVersion1V" class="form-control" data-bind="options: wfVersionList, 
+																							optionsText: 'name', 
+																							optionsValue: 'hex',
+																							selectedOptions: selectedWfVersionId1,
+																							event:{ change: wfVersionSelectionChange}">
+									</select>
+								</div>
+							</div>
+
+							<div class="vl"></div>
+							
+							<div style="right: 15px; position: absolute;">
+								<label>Select Version</label>
+								<div>
+									<select id="compareWfVersion2V" class="form-control" data-bind="options: wfVersionList, 
+																							optionsText: 'name', 
+																							optionsValue: 'hex',
+																							selectedOptions: selectedWfVersionId2,
+																							event:{ change: wfVersionSelectionChange}">
+									</select>
+								</div>
+							</div>
+						</div>
+						<span id="wfVersionSelectionAlertV" style="color: red;"></span>
+					</div>
+				</div>
+			</div>
+
+			<div class="modal-footer">
+				<button data-bind="click: compareSelectedWf" class="btn btn-primary">Compare</button>
+				<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			</div>
+
+		</div>
+	</div>
+</div>
+
 <!-- Monitor Modal-->
 <div id="monitorModal" class="modal fade">
 	<div class="modal-dialog modal-lg">
@@ -2685,10 +2738,10 @@
 			<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="About" data-bind="click: aboutcollab">
 				<i class="glyphicon glyphicon-info-sign toolbar-icon"></i>
 			</button>
-			<button class="btn btn-primary pull-right"	data-toggle="tooltip" data-placement="top" title="Compare" data-bind="click: collabmerge">
+			<button class="btn btn-primary pull-right"	data-toggle="tooltip" data-placement="top" title="Compare" data-bind="click: collabcompare">
 				<i class="fa fa-exchange toolbar-icon"></i>
 			</button>
-			<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Push" data-bind="click: collabmerge">
+			<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Push" data-bind="click: collabpush">
 				<i class="glyphicon glyphicon-upload toolbar-icon"></i>
 			</button>
 			<button class="btn btn-primary pull-right" data-toggle="tooltip" data-placement="top" title="Merge" data-bind="click: collabmerge">
@@ -3456,7 +3509,8 @@ function typeInTextarea(el, newText) {
 		ko.applyBindings(taskSharingViewModel, $('#modalShareService')[0]);
 
 		ko.applyBindings(samplesViewModel, $('#wfCompareSelection')[0]);
-
+		ko.applyBindings(samplesViewModel, $('#wfVersionCompareSelection')[0]);
+		
         ko.applyBindings(runnablesViewModel, $('#runnableWorkflowsPanel')[0]);
         ko.applyBindings(activitiesViewModel, $('#activitiesPanel')[0]);
     

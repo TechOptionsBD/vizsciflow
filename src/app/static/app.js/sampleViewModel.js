@@ -279,7 +279,7 @@ function SampleViewModel(editor) {
         
         try {
             if (!socket.connected) {
-                socket.connect();
+                socket.connect(); 
             }
 
             socket.emit('message', {'workflow_id': self.workflowId(), 'message': self.newMessage()});
@@ -295,7 +295,6 @@ function SampleViewModel(editor) {
 
         if (socket.connected) {
             socket.emit('leavechat', self.workflowId());
-            socket.disconnect();
         }
     }
 
@@ -306,6 +305,20 @@ function SampleViewModel(editor) {
         if (!socket.connected) {
             socket.connect();
         }
+        ajaxcalls.simple(self.tasksURI, 'GET', {'chathistory': self.workflowId()}).done(function (chats) {
+            self.chatMessages.removeAll();
+            if (chats !== undefined && chats !== null && Array.isArray(chats)){
+                chats.forEach(chat => {
+                    self.chatMessages.push({'user': chat.user, 'message': chat.message});
+                });
+            }
+            
+            var objDiv = $("#chatMessages");
+            objDiv.scrollTop(objDiv.prop("scrollHeight"));
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+        
         socket.emit('joinchat', self.workflowId());
     }
 

@@ -1,5 +1,3 @@
-version: '3.8'
-
 #
 # Common vizsciflow template for web and Celery services below
 #
@@ -28,7 +26,7 @@ services:
     # command: sh -c "tail -F anything" # debug
     #  sh -c "/home/venvs/.venv/bin/gunicorn -b :8000 --access-logfile - --error-logfile - manage:app --timeout=900 --workers=8 --worker-class=gevent --worker-connections=1000 --log-level=debug --timeout=300 --reload --threads=4"
     command: >
-      sh -c "/home/venvs/.venv/bin/gunicorn -b :8000 --access-logfile - --error-logfile - manage:app --workers=4 --log-level=error --timeout=900"
+      sh -c "/home/venvs/.venv/bin/gunicorn --worker-class eventlet -b :8000 --workers=1 --access-logfile - --error-logfile - manage:app --timeout=300  --worker-connections=1000 --log-level=debug --timeout=300 --reload"
     depends_on:
       - vizsciflowdb      
     hostname: vizsciflowweb

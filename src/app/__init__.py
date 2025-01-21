@@ -74,8 +74,8 @@ def create_app(config_name):
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 from app.extensions import socketio
-socketio.init_app(app)
-socketio.run(app)
+socketio.init_app(app, cors_allowed_origins="*", allow_upgrades=False, transports=["polling"])
+# socketio.run(app) # only uncomment if you are not calling manage::app
 
 from werkzeug.utils import import_string
 from celery.signals import worker_process_init, celeryd_init

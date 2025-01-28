@@ -6,6 +6,7 @@ function SampleViewModel(editor) {
     self.name = ko.observable("No Name");
     self.desc = ko.observable("No Description");
     self.access = ko.observable(0); // public access by default
+    self.isPublic = ko.observable(true);
     self.userList = ko.observableArray();
     self.selectedSharingUsers = ko.observableArray();
     self.wfParams = ko.observableArray();
@@ -16,12 +17,7 @@ function SampleViewModel(editor) {
     self.chatMessages = ko.observableArray([]);
 	self.newMessage = ko.observable("");
     self.sampleEditor = editor ?? CreateAceEditor("#sample", "ace/mode/python", '40vh');
-    
-    self.isPublic = ko.computed(function()
-    {
-        return self.access() == 0;
-    });
-    
+       
     self.loaddatatypes = function(){
         self.TList.removeAll();
         ajaxcalls.simple(self.tasksURI, 'GET', { 'datatypes': '' }).done(function (data) {
@@ -40,6 +36,7 @@ function SampleViewModel(editor) {
         self.name("No Name");
         self.desc("No description");
         self.access(0);
+        self.isPublic(true);
         self.userList.removeAll();
         self.selectedSharingUsers.removeAll();
         self.wfParams.removeAll();
@@ -56,6 +53,7 @@ function SampleViewModel(editor) {
         self.name(src.name());
         self.desc(src.desc());
         self.access(src.access());
+        self.isPublic(src.isPublic());
         self.userList(src.userList());
         self.selectedSharingUsers(src.selectedSharingUsers());      
         self.wfParams(src.wfParams());
@@ -87,6 +85,7 @@ function SampleViewModel(editor) {
         self.name(data['name']);
         self.desc(data['desc']);
         self.access(parseInt(data['access']));
+        self.isPublic(parseInt(data['access']) == 0);
         if (!self.isEqualParamsJson(self.wfParams, data['params'])) {
             self.wfParams.removeAll();
             if (Array.isArray(data['params'])){
@@ -163,7 +162,7 @@ function SampleViewModel(editor) {
         if (self.desc() !== undefined)
             formdata.append('desc', self.desc());
         
-        if (self.access()) {
+        if (self.isPublic()) {
             formdata.append('access', 0);
         }
         else{

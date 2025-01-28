@@ -266,6 +266,7 @@ function SamplesViewModel(sampleViewModel) {
                     name: ko.observable(s.name),
                     selected: ko.observable(false),
                     access: ko.observable(s.access),
+                    isPublic: ko.observable(parseInt(s.access) == 0),
                     isOwner: ko.observable(s.is_owner),
                     desc: ko.observable(s.desc),
                     params: ko.observable(s.params),

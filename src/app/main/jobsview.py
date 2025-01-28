@@ -583,7 +583,7 @@ def functions():
                 immediate = request.form.get('immediate').lower() == 'true' if request.form.get('immediate') else False
                 
                 # uncomment following line for debugging
-                # immediate = True
+                immediate = True
 
                 provenance = request.form.get('provenance').lower() == 'true' if request.form.get('provenance') else False
                 runnable = run_biowl(workflowId, None, args, immediate, provenance)

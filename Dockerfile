@@ -44,7 +44,9 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends  \
   acl \
   sudo \
-  docker-ce-cli
+  docker-ce-cli \
+  postgresql \
+  postgresql-contrib
 
 ARG UID
 ARG HOME="/home/vizsciflow"
@@ -54,12 +56,22 @@ RUN useradd -u ${UID} vizsciflow
 RUN echo "vizsciflow:vizsciflow" | chpasswd && adduser vizsciflow sudo
 RUN groupadd docker
 RUN usermod -aG docker vizsciflow
-#RUN echo "vizsciflow" | setfacl --modify user:vizsciflow:rw /var/run/docker.sock
-#RUN setfacl --modify user:vizsciflow:rw /var/run/docker.sock
+
+# Modify pg_hba.conf to replace 'peer' with 'md5' using a wildcard for the version
+RUN sed -E -i 's/(local\s+all\s+all\s+)peer/\1md5/' /etc/postgresql/*/main/pg_hba.conf
+
+RUN service postgresql start && \
+    su - postgres -c "psql -c \"CREATE DATABASE biowl;\" -c \"CREATE USER phenodoop PASSWORD 'sr-hadoop';GRANT ALL PRIVILEGES ON DATABASE biowl TO phenodoop;\""
+
+# -f /home/vizsciflow/vizsciflow.sql
 
 WORKDIR $HOME
 COPY ./src ./src
 COPY .env .
+COPY ./vizsciflow.sql .
+COPY ./workflows* .
+COPY ./wait_for_pg_ready.sh .
+COPY ./storage .
 
 RUN mkdir -p /home/venvs/.venv
 RUN python -m venv /home/venvs/.venv
@@ -67,11 +79,11 @@ RUN /home/venvs/.venv/bin/pip install -r ./src/requirements/requirements.txt
 RUN chown -R vizsciflow:vizsciflow /home/venvs
 RUN chown -R vizsciflow:vizsciflow $HOME
 
-# to debug celery in docker
-#RUN $HOME/venvs/.venv/bin/pip install debugpy -t /tmp
-
-ENV FLASK_APP manage.py
-ENV FLASK_CONFIG production
+ENV FLASK_APP=manage.py
+ENV FLASK_CONFIG=production
 
 USER vizsciflow
 WORKDIR $HOME/src
+
+EXPOSE 8000
+CMD [ "/home/vizsciflow/src/run.sh" ]

@@ -133,3 +133,12 @@ python-socketio
 flask-socketio
 eventlet
 gevent
+
+opencv-python
+scikit-image
+pandas
+numpy
+biopython
+scikit-learn
+scipy
+joblib

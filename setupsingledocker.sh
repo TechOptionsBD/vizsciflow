@@ -47,7 +47,7 @@ if [ -f ./workflows ]; then
     sudo rm -f ./workflows
 fi
 echo "Downloading workflows from https://docs.google.com/document/d/1Kg5yCnhVb0QNIyqDmjNQWXICqPzUdoXL4PgtCz7F6BU/edit?usp=sharing"
-wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1Kg5yCnhVb0QNIyqDmjNQWXICqPzUdoXL4PgtCz7F6BU' -O workflows
+wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1-BBnFSSRVkg0lrKEkUO7cXVkV_NhvLQa' -O workflows.sql
 
 # build docker image
 docker build --build-arg UID=`id -u` -t vizsciflowfull:latest .
@@ -59,7 +59,7 @@ echo "Add modules from src/plugins/modules to the database"
 docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertmodules --path /home/vizsciflow/src/plugins/modules --with-users False --install-pypi False)'
 
 echo "Add workflows from src/plugins/modules to the database"
-docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertworkflows --path /home/vizsciflow/workflows)'
+docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertworkflows --path /home/vizsciflow/workflows.sql)'
 
 docker commit vizsciflowfull vizsciflowfull:latest
 docker save vizsciflowfull:latest > vizsciflowfull.tar

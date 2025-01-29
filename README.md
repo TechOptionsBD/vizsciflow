@@ -1,5 +1,5 @@
 # A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0 (Artifact)
-This document contains the instructions for the SEIS-ICSE 2025 artifact evaluation for paper *A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0*. This paper proposes a novel framework for the cross-domain computational scientific experiment in the context of Society 5.0 and develops a proof-of-concept prototype of a scientific workflow management system (SWfMS) based on the proposed framework. Researchers from different scientific domains can use this multi-user, web-based system to design and execute interdisciplinary workflows collaboratively. The artifact provides instructions to reproduce the experiments (Section VII) reported in the paper. This document is also available online at [BioSocSys GitHub Repository](https://github.com/TechOptionsBD/BioSocSys/blob/BioSocSysdockfull/README.md).
+This document contains the instructions for the SEIS-ICSE 2025 artifact evaluation for paper *A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0*. This paper proposes a novel framework for the cross-domain computational scientific experiment in the context of Society 5.0 and develops a proof-of-concept prototype of a scientific workflow management system (SWfMS) based on the proposed framework. Researchers from different scientific domains can use this multi-user, web-based system to design and execute interdisciplinary workflows collaboratively. The artifact provides instructions to reproduce the experiments (Section IV) reported in the paper. This document is also available online at [BioSocSys GitHub Repository](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull/README.md).
 
 Authors: Muhammad Mainul Hossain, Banani Roy, Chanchal Roy, Kevin Schneider
 
@@ -32,10 +32,13 @@ Authors: Muhammad Mainul Hossain, Banani Roy, Chanchal Roy, Kevin Schneider
 # Framework for Cross-Domain Collaborative Scientific Experiments Artifact
 The convergence of technology and human creativity in Society 5.0 necessitates innovative approaches to tackling complex scientific challenges across diverse domains, making cohesive experimentation essential. Computational scientific experiments employ various methods such as data acquisition, preprocessing, analysis, and visualization to simulate and understand intricate phenomena. However, existing interactive environments often lack the usability and flexibility needed to accommodate researchers of varying skill levels and to support effective cross-domain collaboration.
 
-To address these challenges, we developed a prototype scientific workflow management system (SWfMS) for code clone analysis, bioinformatics, image processing, and machine learning by integrating tools and services from their respective domains. This README provides instructions for the ICSE 2025 Artifact Evaluation Track, associated with the paper A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0, accepted in the ICSE 2025 SEIS Track. It includes steps to obtain, install, recreate, and exercise the developed SWfMS.
+To address these challenges, we developed a prototype scientific workflow management system (SWfMS) for code clone analysis, bioinformatics, image processing, and machine learning by integrating tools and services from their respective domains. This README provides instructions for the ICSE 2025 Artifact Evaluation Track, associated with the paper **A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0**, accepted in the ICSE 2025 SEIS Track. It includes steps to obtain, install, recreate, and exercise the developed SWfMS.
 
 ## Preparing the artifact
-The artifact is prepared as a pre-built Docker image, which includes all necessary dependencies and third-party tools. Users can run this Docker image on Ubuntu 20.04+ (also compatible with Windows 11 WSL). To get started, download [vizsciflowfull.tar](https://dx.doi.org/10.6084/m9.figshare.28224869) (DOI: 10.6084/m9.figshare.28224869) and run the following command to load the image from the .tar file (note that you may need *root privileges* to run docker):
+The artifact is prepared as a pre-built Docker image, which includes all necessary dependencies and third-party tools. Users can run this Docker image on **Ubuntu 20.04+** (also compatible with **Windows 11 WSL**). Follow these steps to get started:
+
+1. Download vizsciflowfull.tar from https://dx.doi.org/10.6084/m9.figshare.28224869 (DOI: 10.6084/m9.figshare.28224869).
+2. Run the following command to load the image from the .tar file (note that you may need *root privileges* to run docker):
 
 ```
 $ docker load -i vizsciflowfull.tar
@@ -45,7 +48,7 @@ $ docker load -i vizsciflowfull.tar
 The artifact is made available through Figshare, a long-term data archival repository. A DOI, 10.6084/m9.figshare.28224869, has been generated for it. The artifact can be downloaded from [Figshare link](https://dx.doi.org/10.6084/m9.figshare.28224869).
 
 ## Documenting the artifact
-We have compiled all documentation in this README.md file. A separate LICENSE file is also submitted with the uploaded package. This document details the purpose, proveance, data, setup, and usage of the artifact. 
+This README document provides comprehensive instructions on the purpose, provenance, data, setup, and usage of the artifact. You can access this file online at: [GitHub Repository](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull/README.md). A separate LICENSE file is also submitted with the uploaded package.
 
 ## Purpose
 The artifact is a proof-of-concept implementation of a scientific workflow management system (SWfMS) designed for cross-domain collaborative scientific experiments. It features an intuitive web interface that allows researchers to design scientific workflows using a domain-specific language (DSL). Visual support tools and secondary notation facilitate quick workflow code generation. Users can drag and drop workflow artifacts — such as datasets, tools, templates, and histories — presented as graphical elements into the code editor, which then generates the corresponding code snippets. Additionally, a control flow graph provides a quick overview of the workflow.
@@ -54,10 +57,9 @@ The artifact is a proof-of-concept implementation of a scientific workflow manag
 
 1. **Available** (Artifact is placed on a publicly accessible archival repository): The artifact is permanently available through Figshare, and a DOI has been created for it. Please check [**Making the artifact available**](#making-the-artifact-available) for details.
 2. **Functional** (Artifact is documented, consistent, complete, exercisable, and includes appropriate evidence of verification and validation): This README file provides detailed instructions for installation and describes how to accomplish the exercises outlined in the associated paper. Additionally, once installed, the artifact offers a comprehensive help document detailing installation, language feature, workflow design, tool integration, and so on.
-3. **Reusable** (Artifact significantly exceeds minimal functionality): The artifact is well-documented and includes a step-by-step guide for designing workflows and integrating different types of tools. A number of sample workflows are also provided to help users get started. Several scripts are included to create this artifact. The datasets necessary to run the workflows shown in the paper are included in the Docker image. Users can also quickly upload new dataset using the *upload feature* of the **Dataset Panel**.
+3. **Reusable** (Artifact significantly exceeds minimal functionality): The artifact is well-documented and includes a step-by-step guide for designing workflows and integrating different types of tools. A number of sample workflows are also provided to help users get started. Several scripts are included in the GitHub repository to create this artifact. The datasets necessary to run the workflows shown in the paper are included in the Docker image. Users can also quickly upload new datasets using the *upload feature* of the **Dataset Panel**.
 
 ## Provenance
-
 The artifact is available as a pre-built Docker image, which has all dependencies and third-party tools installed. Download [vizsciflowfull.tar](https://dx.doi.org/10.6084/m9.figshare.28224869) (DOI: 10.6084/m9.figshare.28224869) and run the following command on it to obtain the Docker image (you may need root privilege to run `docker`):
 
 ```
@@ -72,15 +74,15 @@ To instantiate the Docker image, run the following command.
 $ docker run -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
 ```
 
-A Docker container named *vizsciflowfull* will be instantiated. Now browse to [http://localhost:8000](http://localhost:8000) to access the BioSocSys web interface. Use username 'testuser@gmail.com' and password 'test2025' to login. 
+A Docker container named *vizsciflowfull* will be instantiated. Now browse to [http://localhost:8000](http://localhost:8000) to access the BioSocSys web interface. Use username *testuser@gmail.com* and password *test2025* to login. 
 
 Once running inside the Docker, you can also find this document at `/home/vizsciflow/README.md`.
 
 ### Build the Docker Image
 
-The script used to build the Docker image can be found at `/home/vizsciflow/setupsingledocker.sh` inside the running. It can also be found in [BioSocSys's Github repository](https://github.com/TechOptionsBD/BioSocSys/blob/BioSocSysdockfull/README.md). Using this script, one can rebuild the Docker image from scratch or install our artifact on a clean Ubuntu 20.04+ machine (compatible also with ).
+The script used to build the Docker image can be found at `/home/vizsciflow/setupsingledocker.sh` inside the running container. It can also be found in [BioSocSys's Github repository](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull/README.md). Using this script, one can rebuild the Docker image from scratch or install our artifact on a clean **Ubuntu 20.04+ machine (compatible also with Windows 11 WSL)**.
 
-The steps for building the Docker image are outlined in the script below. Read the *echo* commands for details of the steps. It is **not** necessary for the artifact evaluation to rebuild the image, but would be useful for anyone who would like to reuse or deploy BioSocSys.
+The steps for building the Docker image are outlined in the script below. Read the *echo* commands for details of the steps. It is **not** necessary for the artifact evaluation to rebuild the image, but would be useful for anyone who would like to reuse and access advanced features of BioSocSys.
 
 ```
 echo "clone the BioSocSys branch of GitHub repository and cd into it."
@@ -96,11 +98,11 @@ echo "Extracting modules.tar.bz2 to src/plugins..."
 sudo tar -xf modules.tar.bz2 -C ./src/plugins
 
 echo "Download templates/workflows and copy in ./workflows file"
-if [ -f ./workflows ]; then
+if [ -f ./workflows.sql ]; then
     sudo rm -f ./workflows
 fi
 echo "Downloading workflows from https://docs.google.com/document/d/1Kg5yCnhVb0QNIyqDmjNQWXICqPzUdoXL4PgtCz7F6BU/edit?usp=sharing"
-wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1Kg5yCnhVb0QNIyqDmjNQWXICqPzUdoXL4PgtCz7F6BU' -O workflows
+wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1-BBnFSSRVkg0lrKEkUO7cXVkV_NhvLQa' -O workflows.sql
 
 echo "Build docker image"
 docker build --build-arg UID=`id -u` -t vizsciflowfull:latest .
@@ -117,7 +119,7 @@ echo "Adding modules from ./src/plugins/modules to the database"
 docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertmodules --path /home/vizsciflow/src/plugins/modules --with-users False --install-pypi False)'
 
 echo "Adding workflows from ./workflows to the database"
-docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertworkflows --path /home/vizsciflow/workflows)'
+docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertworkflows --path /home/vizsciflow/workflows.sql)'
 
 echo "Commiting the changes of vizsciflowfull container into vizsciflowfull image."
 docker commit vizsciflowfull vizsciflowfull:latest
@@ -127,11 +129,11 @@ docker save vizsciflowfull:latest > vizsciflowfull.tar
 
 ## Setup
 ### Hardware Requirements
-The artifact supports x86-64 architecture running Linux-based operating systems. It has been tested with 12 CPU cores and 32GB of memory. 
+The artifact supports x86-64 architecture running Linux-based operating systems. It is also compatible with Windows 11 WSL. The NiCad workflow experiment results reported in the paper (TABLE II) is obtained from a machine with 12 physical cores and 16 GB of memory. Different hardware environment may result in numbers with different characteristics, but we expect the trend and ratio to be similar.
 
 ### Software Dependencies
 
-The Docker image runs Debian GNU/Linux 11 (bullseye) built from python:3.10-bullseye DockerHub image Ubuntu 24.04. It implements a cross-domain SWfMS and integrates tools from bioinformatics, machine learning, image processing tools.
+The Docker image runs Debian GNU/Linux 11 (bullseye), built from the python:3.10-bullseye DockerHub image. It implements cross-domain BioSocSys Scientific Workflow Management System (SWfMS) and integrates tools for code clone detection, bioinformatics, machine learning, and image processing. To minimize the Docker image size, we installed only the essential tools required to perform the experiments described in the paper.
 
 
 The Docker image contains the following software dependencies:
@@ -144,6 +146,16 @@ Tools integrated in the SWfMS:
 - FastQC
 - BWA-MEM
 - PEAR
+- NiCad
+- Python packages for machine learning and image processing, for example, 
+  - opencv-python
+  - scikit-image
+  - pandas
+  - numpy
+  - biopython
+  - scikit-learn
+  - scipy
+  - joblib
 
 ### Directory Structure
 
@@ -197,8 +209,6 @@ We briefly describe the organization of BioSocSys's code base, located at /home 
 
 ## Usage
 
-**Expected Time: 15 minutes**
-
 ### Create a bioinformatics workflow
 
 Follow the steps below to create a bioinformatics workflow using the BioSocSys SWfMS:
@@ -212,73 +222,170 @@ data = '/public/bio/MiSeqSOPData/F3D3_S191_L001_R1_001.fastq'
 4. Expand **Dataset Panel** to **LocalFS/public/genomes** and double click on **Chr1.cdna**. Rename the data item to **ref** in the code editor.
 5. Search the CheckQuality (fastqc) service in **Services** panel and drag it to the code editor.
 6. Search the Align (bwa) service in **Services** panel and drag it to the code editor.
-7. Return the output data.
-```
-return data
-```
-8. Steps 3-7 creates the following lines in the code editor.
+7. Steps 3-7 creates the following lines in the code editor.
 
 ```
 data = '/public/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq'
 ref = '/public/genomes/Chr1.cdna'
 html,zip = fastqc.CheckQuality(data)
 data = bwa.Align(ref, data)
-return data
 ```
-9. Click on **Run** button from the **Commands** panel below the code editor to execute the workflow.
-10. **Job Histories** panel shows the executing/executed workflows. 
-11. Click **Output** tab of **Results Panel** to view the output.
 
-### Show prospective provenance
+8. Click on **Run** button from the **Commands** panel below the code editor to execute the workflow.
+9. **Job Histories** panel shows the executing/executed workflows. 
+10. Click **Output** tab of **Results Panel** to view the output.
+
+### Show prospective provenance (Section IV.D)
 Prospective provenance shows the structure of a workflow. Click **Graph** button from the **Commands Panel** to show the prospective provenance of the workflow for a quick overview of the previous workflow.
 
-### Show Retrospective provenance
-Restrospective provenance shows the graph of  
+### Show Retrospective provenance (Section IV.D)
+Restrospective provenance shows the graph of an execution of a workflow. Follow these step to show a retrospective provenance query.
 1. Hover mouse over and item on the **Job Histories** panel.
-2. Click **Provenance** button on the floating toolbar of a history. Following code snippet in generated in the code editor. The _id_ will the **run id** of workflow execution.
+2. Click **Provenance** button on the floating toolbar of a history. Following code snippet in generated in the code editor. The *id* is the **run id** of workflow execution.
 
 ```
 run = Run.Get(id = 6)
 View.Graph(run)
 ```
-
-3. Click on "Graph" button below the code editor to show the retrospective provenance of a run of the workflow.
+3. Click on "Run" button below the code editor to show the retrospective provenance of a run of the workflow.
 
 ### Cross-domain Workflows
-We present a cross-domain workflow below, which identifies biomarkers from both a FASTA file and an image file by leveraging bioinformatics and image processing Docker containers. The extracted biomarkers are then used to train a model, utilizing a machine learning Docker container classifier.
+We present a cross-domain workflow below, which identifies biomarkers from both a FASTA file and a collection of image files by leveraging bioinformatics and image processing tools. The extracted biomarkers are then used to train a model, utilizing a machine learning classifier.
 
-```  
-# parameters: fasta, image
-# returns: model
-
-parallel:
-    # Bio-markers from bioinformatics docker
-    fa_markers = bio.BioMarkers(fasta)
-with:
-    # Bio-markers from image processing docker
-    img_markers = img.BioMarkers(image)
-
-# Train model from machine learning docker, 
-# save it to a file and return the file name.
-return bioml.BioClassify(fa_markers, img_markers)
+1. Click "+" button in code editor toolbar to create a new workflow.
+2. Expand to /public/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq and drag it to code editor. Rename the generated variable name *data* to *fasta*.
+```
+fasta = '/public/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq'
+```
+3. Search *BioMarkers* on the **Services Panel** and drag the one under **Bioinformatics (bio)** group to the code editor. Replace input parameter *data* by *fasta*. Change the assigned variable from *data* to *fa_markers*.
+```
+fasta = '/public/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq'
+fa_markers = bio.BioMarkers(fasta)
+```
+4. Expand to /public/bioml/images and drag it to code editor. Rename the generated variable name *data* to *imgs*.
+```
+imgs = '/public/bioml/images'
+```
+5. Search *BioMarkers* on the **Services Panel** and drag the one under **Bioinformatics (img)** group to the code editor. Replace input parameter *data* by *imgs*. Change the assigned variable from *data* to *img_markers*.
+```
+imgs = '/public/bioml/images'
+img_markers = img.BioMarkers(imgs)
 ```
 
-We have here another cross-domain workflow, where bioinformatics and image processing tools are integrated to predict biomarkers using a machine learning model.
+6. The final workflow looks like below:
 
 ```
-# parameters: fasta, image, model
-# returns: prediction
+fasta = '/public/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq'
+fa_markers = bio.BioMarkers(fasta)
 
-parallel:
-    # Bio-markers from bioinformatics docker
-    fa_markers = bio.BioMarkers(fasta)
-with:
-    # Bio-markers from image processing docker
-    img_markers = img.BioMarkers(image)
-
-# Predict from machine learning docker
-return bioml.BioPredict(model, fa_markers, img_markers)
+imgs = '/public/bioml/images'
+img_markers = img.BioMarkers(imgs)
 ```
+
+7. Click **Save** button on the **Code Editor** toolbar.
+8. A window appears. Give a name for the workflow (e.g. *Biomarker Classifier Workflow*). Remember the generated **ID**.
+
+**Now machine learning expert creates a classifier for Biomarkers.**
+
+9. Now open another browser window and navigate to [http://localhost:8000](http://localhost:8000).
+10. Log in using the username: **anonymous@gmail.com** and password: **icse2025**.
+11. Search **Workflows Panel** with the **ID** generated in Step 8. Once found, double click it. It will be loaded in the code editor.
+12. Search *ClassifyBioMarker* on the **Services Panel** and drag the one under **Bioinformatics (ml)** group to the code editor. 
+13. Replace input parameters *biodata* by *fa_markers* and *imgdata* by *img_markers*. If there is *model* parameter, remove it. 
+14. Rename the generated *data* variable to *model*.
+
+```
+fasta = '/public/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq'
+fa_markers = bio.BioMarkers(fasta)
+
+imgs = '/public/bioml/images'
+img_markers = img.BioMarkers(imgs)
+
+model = ml.ClassifyBioMarker(fa_markers, img_markers)
+```
+15. Click **Run** from the **Commands Panel** below the code editor to generate a classifier model from the the fasta file and images.
+
+This workflow can be saved with parameters for fasta and imgs and return for model. Saved workflows can be called from another workflow using **Workflow** function. Details instructions can be found in the **Help Document**. For simpliciy, you will extend this workflow and use this classifier model to predict Biomarkers from a Fasta file and an image folder.
+
+16. Expand to */public/MiSeq_SOP/F3D149_S215_L001_R1_001.fastq* and drag it to the code editor. Rename the generated variable name *data* to *fasta2*.
+17. Expand to */public/bioml/images2* and drag it to code editor. Rename the generated variable name *data* to *imgs2*.
+```
+...
+...
+fasta2 = '/public/MiSeq_SOP/F3D149_S215_L001_R1_001.fastq'
+imgs2 = '/public/bioml/images2'
+```
+
+18. Search *PredictBioMarker* on the **Services Panel** and drag it to the code editor. Replace input parameter *biodata* by *fa_markers* and *imgdata* by *img_markers*.
+```
+fasta = '/public/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq'
+fa_markers = bio.BioMarkers(fasta)
+
+imgs = '/public/bioml/images'
+img_markers = img.BioMarkers(imgs)
+
+model = ml.ClassifyBioMarker(fa_markers, img_markers)
+
+fasta2 = '/public/MiSeq_SOP/F3D149_S215_L001_R1_001.fastq'
+imgs2 = '/public/bioml/images2'
+fa_markers = bio.BioMarkers(fasta2)
+img_markers = img.BioMarkers(imgs2)
+
+data = ml.PredictBioMarker(fa_markers,img_markers,model)
+```
+19. Click **Run** from the **Commands Panel** below the code editor. This workflow first generates a classifier model from a fasta file and image folder. It then uses the model to predict Biomarkers of another fasta file and image folder.
+
+### A workflow for NiCad clone detection
+
+Here is an example workflow for NiCad clone detection (Listing I in the paper). The variables are initialized with default values. You can replace data with other source system.
+
+```
+data = '/public/swanalytics/luaj'
+threshold = 0.30
+granularity = 'blocks'
+language = 'java'
+transform = 'none'
+rename = 'blind'
+abstract = 'none'
+cluster = 'yes'
+report = 'yes'
+include = ''
+excluse = ''
+miniclonesize = 10
+maxclonesize = 2500
+normalize = 'none'
+
+nicad.CleanAll(dirname(data))
+
+data = nicad.Extract(data,granularity=granularity,language=language)
+
+# transform doesn't work for java
+if transform != 'none':
+    data = nicad.Transform(data,granularity=granularity,language=language,transform=transform)
+
+data = nicad.Rename(data,granularity=granularity,language=language,renaming=rename)
+
+if filter != 'none':
+    data = nicad.Filter(data,granularity=granularity,language=language,nonterminals=filter)
+
+if abstract != 'none':
+    data = nicad.Abstract(data,granularity=granularity,language=language,nonterminals=abstract)
+
+# normalize=none, so don't call it
+if normalize != 'none':
+    data = nicad.Normalize(data,granularity=granularity,language=language,normalizer=normalize)
+data = nicad.FindClonePairs(data,threshold=threshold,minclonesize=minclonesize,maxclonesize=maxclonesize)
+clones=data
+
+if cluster == 'yes':
+    data = nicad.ClusterPairs(data)
+
+if report == 'yes':
+    data = nicad.GetSource(data)
+    data = nicad.MakePairHTML(data)
+``` 
+
+Click the **Run** button from the *Commands Panel** to execute the workflow. To test this workflow with other source systems, upload your source system using the **Dataset Panel** and change the *data* variable.
 
 ### Tool Integration
 End-users can add an external tool to BioSocSys to extend its capabilities. Following types of tools can be integrated into the system:
@@ -297,7 +404,7 @@ End-users can add an external tool to BioSocSys to extend its capabilities. Foll
 Follow the steps below to create a custom tool using matplotlib and integrate it in BioSocSys. Since the executation model of BioSocSys is unattended execution (in contrast to interactive execution), __matplotlib.show__ will not work. The output must be saved as a file using __savefig__.
 
 1. Click the **+** button in **Services** panel. **Add Service/Tool/Module** dialog will appear.
-2. Select **Simple Adapter (Identity)** from the **Select Tool Type** dropdown menu.
+2. Select **Simple Adapter (Identity)** from the **Select Tool Type** dropdown.
 3. Replace the code of the **Python Adapter** tab with the code below: 
 
 ```
@@ -314,7 +421,7 @@ def demo_service(context, *args, **kwargs):
 ```
 
 4. Click **JSON Mapper** tab. 
-5. Type __BookChartV3__ in **name** text field.
+5. Type *BookChartV3* in **name** text field.
 6. Change **type** field of **Parameters** to __int[]__.
 7. Click **+** below the **Parameters** title.
 8. Change **name** to __data2__ and **type** to __int[]__.
@@ -346,21 +453,23 @@ def demo_service(context, *args, **kwargs):
 }
 ```
 
-11. Add __matplotlib__ in the **pip install** text box.
-12. Click **Add** button. 
-13. Select **All** radio button and then click **Reload** button in the **Services** panel.
-14. __BookReadChart__ tool appears in the **Services** list.
+11. Click **More...** from the **Function** section.
+12. Add *matplotlib* in the **pippkgs** text box.
+13. Click **Save** button.
+14. Select **All** radio button in the **Services** panel.
+15. Click **Reload** button in the **Services** panel.
+16. *BookReadChart* tool appears in the **Services** list.
 
 #### Testing new tool
 To test the newly integrated tool, follow these steps:
 1. Click **+** button in the **Code Editor** panel.
-2. Select __BookReadChart__ tool in the **Services** list and drag it to the **Code Editor**.
-3. Change __data__ parameter to __50__ and __data2__ to __200__ in the generated code.
-4. The result code looks as below:
+2. Select *BookReadChart* tool in the **Services** list and drag it to the **Code Editor**.
+3. Replace *data* parameter with [1, 2, 3, 4, 5] and data2 with [100, 200, 150, 500, 400] in the generated code. The result code looks as below:
 
 '''
-data = BookReadChart(50, 200)
+data = demo.BookChartV3([1, 2, 3, 4, 5], [100, 200, 150, 500, 400])
 '''
+4. Click **Run** from the **Commands Panel** below the code editor. A .png file will be generated in the **Output** tab of the **Results Panel**.
 
 The main reason behind this tool is to demonstrate that you can attach complex Python code and use any Python modules as tool while your workflow DSL script still remains abstracted from complex code.
 

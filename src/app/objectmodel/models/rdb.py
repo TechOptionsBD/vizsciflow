@@ -2659,10 +2659,11 @@ class Chat(db.Model):
     message = db.Column(db.Text, nullable=False)
     created_on = db.Column(db.DateTime, default=datetime.utcnow)
 
-    @staticmethod
+    user = db.relationship("User", foreign_keys=user_id)
+    
     def add(**kwargs):
         try:
-            if not kwargs['created_on']:
+            if not 'created_on' in kwargs or not kwargs['created_on']:
                 kwargs['created_on'] = datetime.utcnow()
             chat = Chat(**kwargs)
 

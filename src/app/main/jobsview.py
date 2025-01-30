@@ -507,12 +507,17 @@ def parse_string_to_int(s, default = 0):
     except ValueError:
         return default
 
+def get_chathistory(workflow_id):
+    from .chat import GetChatHistory
+    return json.dumps(GetChatHistory(workflow_id))
+
 @main.route('/functions', methods=['GET', 'POST'])
 @login_required
 def functions():
-    from .chat import SendChatMessage
     try:
         if request.method == "GET":
+            if 'chathistory' in request.args:
+                return get_chathistory(request.args['chathistory'])
             if 'name' in request.args and 'package' in request.args:
                 return get_service(request.args['name'], request.args['package'])
             elif 'datatypes' in request.args:
@@ -535,6 +540,7 @@ def functions():
             elif 'newdockerimagename' in request.args or ('docker' in request.args and os.path.exists(request.args.get('docker')) ) :
                 return new_dockerenvs(activity, request.args.get('docker'), request.args.get('newdockerimagename'), request.args.get('newdockercontainername'), current_user.id)
             elif request.args.get('chatmsg'):
+                from .chat import SendChatMessage
                 return json.dumps(SendChatMessage(request.args.get("workflow_id"), request.args.get('chatmsg')))
             elif 'check_function' in request.args:
                 return check_service_function(request)

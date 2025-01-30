@@ -275,7 +275,7 @@ function SampleViewModel(editor) {
         
         try {
             if (!socket.connected) {
-                socket.connect();
+                socket.connect(); 
             }
 
             socket.emit('message', {'workflow_id': self.workflowId(), 'message': self.newMessage()});
@@ -291,7 +291,6 @@ function SampleViewModel(editor) {
 
         if (socket.connected) {
             socket.emit('leavechat', self.workflowId());
-            socket.disconnect();
         }
     }
 
@@ -302,6 +301,20 @@ function SampleViewModel(editor) {
         if (!socket.connected) {
             socket.connect();
         }
+        ajaxcalls.simple(self.tasksURI, 'GET', {'chathistory': self.workflowId()}).done(function (chats) {
+            self.chatMessages.removeAll();
+            if (chats !== undefined && chats !== null && Array.isArray(chats)){
+                chats.forEach(chat => {
+                    self.chatMessages.push({'user': chat.user, 'message': chat.message});
+                });
+            }
+            
+            var objDiv = $("#chatMessages");
+            objDiv.scrollTop(objDiv.prop("scrollHeight"));
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+        
         socket.emit('joinchat', self.workflowId());
     }
 
@@ -310,15 +323,31 @@ function SampleViewModel(editor) {
     }
 
     self.collabmerge = function() {
-        window.open("static/biodsl-help.html#collab", '_blank');
+        ajaxcalls.simple(self.samplesURI, 'GET', {'merge': self.workflowId(), 'script': $.trim(editor.getSession().getValue())}).done(function (res) {
+            samplesViewModel.loadIntoEditor(item.id());
+
+            $('#wfVersionSelectionAlertV').show();
+            $('#wfVersionSelectionAlertV').text('Workflow merged successfully!');
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
     }
 
     self.collabpush = function() {
-        window.open("static/biodsl-help.html#collab", '_blank');
+        if (!confirm("Are you sure you want to push this workflow? It will overwrite the changes by other collaborators."))
+            return;
+        ajaxcalls.simple(self.samplesURI, 'GET', {'push': self.workflowId(), 'script': $.trim(editor.getSession().getValue())}).done(function (res) {
+            $('#wfVersionSelectionAlertV').show();
+            $('#wfVersionSelectionAlertV').text('Workflow pushed and successfully!');
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
     }
 
     self.collabcompare = function() {
-        window.open("static/biodsl-help.html#collab", '_blank');
+        self.getAllVersion(self.workflowId());
+        $('#collabPanel').hide();
+        $('#wfVersionCompareSelection').show();
     }
 
     self.collabclose = function() { 
@@ -332,4 +361,77 @@ function SampleViewModel(editor) {
     self.shouldSendEnabled = ko.computed(function() {
         return self.newMessage().length !== 0;
     });
+
+    self.wfVersionSelectionChange = function () {
+        if (self.selectedWfVersionId1()[0] == self.selectedWfVersionId2()[0]) {
+            $('#wfVersionSelectionAlertV').show();
+            $('#wfVersionSelectionAlertV').text('Please select two different versions!');
+        }
+        else {
+            $('#wfVersionSelectionAlertV').hide();
+            $('#wfVersionSelectionAlertV').text('');
+        }
+    }
+
+    self.compareSelectedWf = function () {
+        //compare two versions of selected workflow
+        let selectedWfVersionId1 = ko.toJS(self.selectedWfVersionId1()[0]);
+        let selectedWfVersionId2 = ko.toJS(self.selectedWfVersionId2()[0]);
+        
+        if (selectedWfVersionId1 === undefined || selectedWfVersionId2 === undefined){
+            self.wfVersionSelectionChange();
+            return;
+        }
+            
+        if(selectedWfVersionId1 !== selectedWfVersionId2){
+            ajaxcalls.simple(self.samplesURI, 'GET', {'revcompare': true,'revision1': selectedWfVersionId1, 'revision2': selectedWfVersionId2}).done(function (res) {
+                $('#wfVersionCompareSelection').modal('hide');
+                $('.nav-tabs a[href="#provenancetab"]').tab('show').on('shown.bs.tab', function () {
+                    $('#liProvenanceTab').show();
+                });
+                tasksViewModel.createCompView(res) 
+            }).fail(function (jqXHR) {
+                showXHRText(jqXHR);
+            });
+        }
+    }
+
+    self.getAllVersion = function (workflowId) {
+        self.wfVersionList([]);
+        ajaxcalls.simple(self.samplesURI, 'GET', {'revisions': workflowId}, true).done(function (data) {
+            //get the version list here & make dropdown from it
+            if (data !== undefined && data !== null && Array.isArray(data)){
+                data.forEach(wfVersion => {
+                    self.wfVersionList.push({
+                        hex: wfVersion.hex,
+                        name: wfVersion.summary,
+                        committer: wfVersion.committer,
+                        time: wfVersion.time
+                    }); 
+                });
+                
+                self.initiateWfVersionSelectionDdl();
+            }
+        }).fail(function (jqXHR) {
+            showXHRText(jqXHR);
+        });
+    };
+
+    self.initiateWfVersionSelectionDdl = function () {
+        $("#compareWfVersion1V").multiselect({
+            includeSelectAllOption: true,
+            inheritClass: true,
+            buttonWidth: '100%',
+            enableFiltering: true,
+            maxHeight: 200
+        });
+
+        $("#compareWfVersion2V").multiselect({
+            includeSelectAllOption: true,
+            inheritClass: true,
+            buttonWidth: '100%',
+            enableFiltering: true,
+            maxHeight: 200
+        });
+    };
 }

@@ -33,7 +33,7 @@ login_manager.login_view = 'auth.login'
 def create_app(config_name):
     app = Flask(__name__)
     
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "*"}})
     app.config['CORS_HEADERS'] = 'Content-Type'
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024 * 1024 # 2GB upload limit
     app.config.from_object(config[config_name])
@@ -69,9 +69,13 @@ def create_app(config_name):
     from .api_1_0 import api as api_1_0_blueprint
     app.register_blueprint(api_1_0_blueprint, url_prefix='/api/v1.0')
 
+
     return app
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+from app.extensions import socketio
+socketio.init_app(app, cors_allowed_origins="*", allow_upgrades=False, transports=["polling"])
+# socketio.run(app) # only uncomment if you are not calling manage::app
 
 from werkzeug.utils import import_string
 from celery.signals import worker_process_init, celeryd_init

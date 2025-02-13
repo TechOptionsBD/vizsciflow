@@ -1,5 +1,5 @@
 # A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0 (Artifact)
-This document contains the instructions for the SEIS-ICSE 2025 artifact evaluation for paper *A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0*. This paper proposes a novel framework for the cross-domain computational scientific experiment in the context of Society 5.0 and develops a proof-of-concept prototype of a scientific workflow management system (SWfMS) based on the proposed framework. Researchers from different scientific domains can use this multi-user, web-based system to design and execute interdisciplinary workflows collaboratively. The artifact provides instructions to reproduce the experiments (Section IV) reported in the paper. This document is also available online at [BioSocSys GitHub Repository](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull/README.md). This artifact uses the **vizsciflowdockfull branch** of the repository.
+This document contains the instructions for the SEIS-ICSE 2025 artifact evaluation for paper *A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0*. This paper proposes a novel framework for the cross-domain computational scientific experiment in the context of Society 5.0 and develops a proof-of-concept prototype of a scientific workflow management system (SWfMS) based on the proposed framework. Researchers from different scientific domains can use this multi-user, web-based system to design and execute interdisciplinary workflows collaboratively. This document provides instructions to reproduce the experiments (Section IV) reported in the paper. It is also available online at [BioSocSys GitHub Repository](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull/README.md). This artifact uses the **vizsciflowdockfull** branch of the repository.
 
 Authors: Muhammad Mainul Hossain, Banani Roy, Chanchal Roy, Kevin Schneider
 
@@ -34,6 +34,12 @@ The convergence of technology and human creativity in Society 5.0 necessitates i
 
 To address these challenges, we developed a prototype scientific workflow management system (SWfMS) for code clone analysis, bioinformatics, image processing, and machine learning by integrating tools and services from their respective domains. This README provides instructions for the ICSE 2025 Artifact Evaluation Track, associated with the paper **A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0**, accepted in the ICSE 2025 SEIS Track. It includes steps to obtain, install, recreate, and exercise the developed SWfMS.
 
+A scientific workflow integrates software tools and data into a cohesive pipeline for conducting computational scientific experiments. These tools typically involve data transformation or data analysis algorithms. In the following figure, input and output data are interconnected using *tools A...E* tools. During execution, these tools perform specific tasks of the scientific experiment.
+
+![Workflow interconnects tools and data](workflow.svg?raw=true "Workflow Example")
+
+This artifact offers a web-based rapid development interface for intuitively defining experiment logic. Researchers can drag graphical workflow elements, such as datasets, tools, and workflow templates, from the user interface and drop into the code editor. The interface transforms these elements into **Domain-Specific Language (DSL)** code snippets, creating a pipeline for the experiment hypothesis. Researchers can quickly switch to the **control flow graph (CFG)** view for more efficient graphical exploration and comprehension of the workflows. The system facilitates seamless tool integration by end-users, ensuring flexibility and extensibility.  Throughout the experiment lifecycle, the system captures provenance information, including logs, histories, data lineage, and process information. This provenance data is then used to reproduce the experiment and validate the hypothesis.  Researchers can write queries and visualize results through the artifact's intuitive user interface.  Finally, the system offers a robust, efficient, and scalable runtime platform for managing the data and processes.
+
 ## Preparing the artifact
 The artifact is prepared as a pre-built Docker image, which includes all necessary dependencies and third-party tools. Users can run this Docker image on **Ubuntu 20.04+** (also compatible with **Windows 11 WSL**). Follow these steps to get started:
 
@@ -60,7 +66,21 @@ The artifact is a proof-of-concept implementation of a scientific workflow manag
 3. **Reusable** (Artifact significantly exceeds minimal functionality): The artifact is well-documented and includes a step-by-step guide for designing workflows and integrating different types of tools. A number of sample workflows are also provided to help users get started. Several scripts are included in the GitHub repository to create this artifact. The datasets necessary to run the workflows shown in the paper are included in the Docker image. Users can also quickly upload new datasets using the *upload feature* of the **Dataset Panel**.
 
 ## Provenance
-The artifact is available as a pre-built Docker image, which has all dependencies and third-party tools installed. Download [vizsciflowfull.tar](https://dx.doi.org/10.6084/m9.figshare.28224869) (DOI: 10.6084/m9.figshare.28224869) and run the following command on it to obtain the Docker image (you may need root privilege to run `docker`):
+The artifact is available as a pre-built Docker image, containing all dependencies and third-party tools.  Users should have basic familiarity with Docker containerization, including installing Docker on their local system and deploying the artifact as a Docker container. Refer to the [Docker Docs](https://docs.docker.com/get-started/) for information on installing Docker and managing Docker containers. The [Build the Docker Image](#build-the-docker-image) section of this README includes a script with Docker installation instructions. Follow the steps below to start **Docker Engine** and deploy the artifact:
+
+1. Check if Docker is installed:
+```
+$ docker info
+```
+You will see information about the **Docker Engine**, if Docker is installed. Otherwise, an error message is shown.
+2. Check status and run Docker Engine. In *nix and Mac machines, you can use `service` command if it is available:
+```
+$ sudo service docker status
+# if docker engine is not running, start it
+$ sudo service docker start
+```
+3. Download [vizsciflowfull.tar](https://dx.doi.org/10.6084/m9.figshare.28224869) (DOI: 10.6084/m9.figshare.28224869).
+4. Run the following command on it to obtain the Docker image (you may need root privilege to run `docker`):
 
 ```
 $ docker load -i vizsciflowfull.tar
@@ -80,9 +100,12 @@ Once running inside the Docker, you can also find this document at `/home/vizsci
 
 ### Build the Docker Image
 
-The script used to build the Docker image can be found at `/home/vizsciflow/setupsingledocker.sh` inside the running container. It can also be found in [BioSocSys's Github repository](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull/README.md). This is important to note that this artifact uses the **vizsciflowdockfull branch** of the Git repository. Using this script, one can rebuild the Docker image from scratch or install our artifact on a clean **Ubuntu 20.04+ machine (compatible also with Windows 11 WSL)**.
+It is **NOT** necessary for the artifact evaluation to rebuild the image, but would be useful for anyone who would like to reuse and access advanced features of BioSocSys.
 
-The steps for building the Docker image are outlined in the script below. Read the *echo* commands for details of the steps. It is **not** necessary for the artifact evaluation to rebuild the image, but would be useful for anyone who would like to reuse and access advanced features of BioSocSys.
+1. Use the `setupsingledocker.sh` script from [BioSocSys's Github repository](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull) (**vizsciflowdockfull** branch) to rebuild the Docker image from scratch on a clean **Ubuntu 20.04+ machine (compatible also with Windows 11 WSL)**.
+2. This script can also be found at `/home/vizsciflow/setupsingledocker.sh` inside the running container.
+
+The steps for building the Docker image are outlined in the script below. Read the *echo* commands for details of the steps.
 
 ```
 echo "clone the BioSocSys branch of GitHub repository and cd into it."
@@ -105,7 +128,7 @@ echo "Downloading workflows from https://docs.google.com/document/d/1Kg5yCnhVb0Q
 wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1-BBnFSSRVkg0lrKEkUO7cXVkV_NhvLQa' -O workflows.sql
 
 echo "Build docker image"
-docker build --build-arg UID=`id -u` -t vizsciflowfull:latest .
+docker build --platform=linux/amd64 --build-arg UID=`id -u` -t vizsciflowfull:latest .
 echo "Run the docker image as vizsciflowfull container"
 docker run -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
 
@@ -132,7 +155,6 @@ docker save vizsciflowfull:latest > vizsciflowfull.tar
 The artifact supports x86-64 architecture running Linux-based operating systems. It is also compatible with Windows 11 WSL. The NiCad workflow experiment results reported in the paper (TABLE II) is obtained from a machine with 12 physical cores and 16 GB of memory. Different hardware environment may result in numbers with different characteristics, but we expect the trend and ratio to be similar.
 
 ### Software Dependencies
-
 The Docker image runs Debian GNU/Linux 11 (bullseye), built from the python:3.10-bullseye DockerHub image. It implements cross-domain BioSocSys Scientific Workflow Management System (SWfMS) and integrates tools for code clone detection, bioinformatics, machine learning, and image processing. To minimize the Docker image size, we installed only the essential tools required to perform the experiments described in the paper.
 
 
@@ -288,7 +310,7 @@ img_markers = img.BioMarkers(imgs)
 **Now machine learning expert creates a classifier for Biomarkers.**
 
 9. Now open another browser window and navigate to [http://localhost:8000](http://localhost:8000).
-10. Log in using the username: **anonymous@gmail.com** and password: **icse2025**.
+10. Log in using the username: **anonymous1@gmail.com** and password: **icse2025**.
 11. Search **Workflows Panel** with the **ID** generated in Step 8. Once found, double click it. It will be loaded in the code editor.
 12. Search *ClassifyBioMarker* on the **Services Panel** and drag the one under **Bioinformatics (ml)** group to the code editor. 
 13. Replace input parameters *biodata* by *fa_markers* and *imgdata* by *img_markers*. If there is *model* parameter, remove it. 
@@ -354,6 +376,7 @@ excluse = ''
 miniclonesize = 10
 maxclonesize = 2500
 normalize = 'none'
+filter = 'none'
 
 nicad.CleanAll(dirname(data))
 
@@ -476,4 +499,4 @@ The main reason behind this tool is to demonstrate that you can attach complex P
 Click **(i)** button in any panel to view the **Help** document. You will see instructions for integrating other types of tools.
 
 # Conclusion
-This document describes the instructions for the installation and evaluation of the SEIS-ICSE 2025 artifact for paper *A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0*. Further details about the framework can be found in the [GitHub repository](https://github.com/TechOptionsBD/vizsciflow/tree/vizsciflowdockfull).
+This document describes the instructions for the installation and evaluation of the SEIS-ICSE 2025 artifact for paper *A Collaborative Framework for Cross-Domain Scientific Experiments for Society 5.0*. Further details about the framework can be found in the [GitHub repository](https://github.com/TechOptionsBD/vizsciflow/tree/vizsciflowdockfull) (vizsciflowdockfull branch).

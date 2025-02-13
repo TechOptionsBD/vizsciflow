@@ -42,15 +42,15 @@ wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1nFfY
 echo "Extracting modules.tar.bz2 to src/plugins..."
 sudo tar -xf modules.tar.bz2 -C ./src/plugins
 
-echo "Download templates and saved workflows"
-if [ -f ./workflows ]; then
-    sudo rm -f ./workflows
-fi
-echo "Downloading workflows from https://docs.google.com/document/d/1Kg5yCnhVb0QNIyqDmjNQWXICqPzUdoXL4PgtCz7F6BU/edit?usp=sharing"
-wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1-BBnFSSRVkg0lrKEkUO7cXVkV_NhvLQa' -O workflows.sql
+# echo "Download templates and saved workflows"
+# if [ -f ./workflows ]; then
+#     sudo rm -f ./workflows
+# fi
+# echo "Downloading workflows from https://docs.google.com/document/d/1Kg5yCnhVb0QNIyqDmjNQWXICqPzUdoXL4PgtCz7F6BU/edit?usp=sharing"
+# wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1-BBnFSSRVkg0lrKEkUO7cXVkV_NhvLQa' -O workflows.sql
 
 # build docker image
-docker build --build-arg UID=`id -u` -t vizsciflowfull:latest .
+docker build --platform=linux/amd64 --build-arg UID=`id -u` -t vizsciflowfull:latest .
 docker run -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
 
 docker exec vizsciflowfull sh -c "/home/vizsciflow/wait_for_pg_ready.sh"
@@ -58,8 +58,8 @@ docker exec vizsciflowfull sh -c "PGPASSWORD='sr-hadoop' psql -U phenodoop -d bi
 echo "Add modules from src/plugins/modules to the database"
 docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertmodules --path /home/vizsciflow/src/plugins/modules --with-users False --install-pypi False)'
 
-echo "Add workflows from src/plugins/modules to the database"
-docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertworkflows --path /home/vizsciflow/workflows.sql)'
+#echo "Run it only if you have a separate workflow.sql. Add workflows from workflows.sql to the database"
+#docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertworkflows --path /home/vizsciflow/workflows.sql)'
 
 docker commit vizsciflowfull vizsciflowfull:latest
 docker save vizsciflowfull:latest > vizsciflowfull.tar

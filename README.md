@@ -88,13 +88,19 @@ $ docker load -i vizsciflowfull.tar
 
 ### Start the Docker Container
 
-To instantiate the Docker image, run the following command.
+Follow the below steps to start the Docker container:
+
+1. Run the following command to instantiate the Docker image:
 
 ```
 $ docker run -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
 ```
 
-A Docker container named *vizsciflowfull* will be instantiated. Now browse to [http://localhost:8000](http://localhost:8000) to access the BioSocSys web interface. Use username *testuser@gmail.com* and password *test2025* to login. 
+A Docker container named *vizsciflowfull* will be instantiated.
+
+2. Wait few seconds for service start.
+3. Browse to [http://localhost:8000](http://localhost:8000) to access the BioSocSys web interface.
+4. Use username *testuser@gmail.com* and password *test2025* to login. 
 
 Once running inside the Docker, you can also find this document at `/home/vizsciflow/README.md`.
 
@@ -120,13 +126,6 @@ wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1nFfY
 echo "Extracting modules.tar.bz2 to src/plugins..."
 sudo tar -xf modules.tar.bz2 -C ./src/plugins
 
-echo "Download templates/workflows and copy in ./workflows file"
-if [ -f ./workflows.sql ]; then
-    sudo rm -f ./workflows
-fi
-echo "Downloading workflows from https://docs.google.com/document/d/1Kg5yCnhVb0QNIyqDmjNQWXICqPzUdoXL4PgtCz7F6BU/edit?usp=sharing"
-wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1-BBnFSSRVkg0lrKEkUO7cXVkV_NhvLQa' -O workflows.sql
-
 echo "Build docker image"
 docker build --platform=linux/amd64 --build-arg UID=`id -u` -t vizsciflowfull:latest .
 echo "Run the docker image as vizsciflowfull container"
@@ -140,9 +139,6 @@ docker exec vizsciflowfull sh -c "PGPASSWORD='sr-hadoop' psql -U phenodoop -d bi
 
 echo "Adding modules from ./src/plugins/modules to the database"
 docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertmodules --path /home/vizsciflow/src/plugins/modules --with-users False --install-pypi False)'
-
-echo "Adding workflows from ./workflows to the database"
-docker exec -i vizsciflowfull sh -c '(cd /home/vizsciflow/src && /home/venvs/.venv/bin/flask --app manage insertworkflows --path /home/vizsciflow/workflows.sql)'
 
 echo "Commiting the changes of vizsciflowfull container into vizsciflowfull image."
 docker commit vizsciflowfull vizsciflowfull:latest

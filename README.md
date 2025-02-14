@@ -36,9 +36,18 @@ To address these challenges, we developed a prototype scientific workflow manage
 
 A scientific workflow integrates software tools and data into a cohesive pipeline for conducting computational scientific experiments. These tools typically involve data transformation or data analysis algorithms. In the following figure, input and output data are interconnected using *tools A...E* tools. During execution, these tools perform specific tasks of the scientific experiment.
 
-![Workflow interconnects tools and data](workflow.svg?raw=true "Workflow Example")
+![Workflow interconnects tools and data](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull/workflow.svg?raw=true "Workflow Example")
 
-This artifact offers a web-based rapid development interface for intuitively defining experiment logic. Researchers can drag graphical workflow elements, such as datasets, tools, and workflow templates, from the user interface and drop into the code editor. The interface transforms these elements into **Domain-Specific Language (DSL)** code snippets, creating a pipeline for the experiment hypothesis. Researchers can quickly switch to the **control flow graph (CFG)** view for more efficient graphical exploration and comprehension of the workflows. The system facilitates seamless tool integration by end-users, ensuring flexibility and extensibility.  Throughout the experiment lifecycle, the system captures provenance information, including logs, histories, data lineage, and process information. This provenance data is then used to reproduce the experiment and validate the hypothesis.  Researchers can write queries and visualize results through the artifact's intuitive user interface.  Finally, the system offers a robust, efficient, and scalable runtime platform for managing the data and processes.
+The following features are supported by this artifact:
+
+1. It offers a web-based rapid development interface for intuitively defining experiment logic. 
+2. Researchers can drag graphical workflow elements, such as datasets, tools, and workflow templates, from the user interface and drop into the code editor. The interface transforms these elements into **Domain-Specific Language (DSL)** code snippets, creating a pipeline for the experiment hypothesis. 
+3. They can quickly switch to the **Control Flow Graph (CFG)** view for more efficient graphical exploration and comprehension of the workflows. 
+4. The system facilitates seamless tool integration by end-users, ensuring flexibility and extensibility. 
+5. Throughout the experiment lifecycle, the system captures provenance information, including logs, histories, data lineage, and process information. This provenance data is then used to reproduce the experiment and validate the hypothesis. Researchers can write queries and visualize results through the artifact's intuitive user interface.
+6. The system offers a robust, efficient, and scalable runtime platform for managing the data and processes.
+7. The backend support large scale datasets and high performance processing.
+
 
 ## Preparing the artifact
 The artifact is prepared as a pre-built Docker image, which includes all necessary dependencies and third-party tools. Users can run this Docker image on **Ubuntu 20.04+** (also compatible with **Windows 11 WSL**). Follow these steps to get started:
@@ -73,7 +82,7 @@ The artifact is available as a pre-built Docker image, containing all dependenci
 $ docker info
 ```
 You will see information about the **Docker Engine**, if Docker is installed. Otherwise, an error message is shown.
-2. Check status and run Docker Engine. In *nix and Mac machines, you can use `service` command if it is available:
+2. Check status and run Docker Engine. In Linux machines, you can use `service` command if it is available:
 ```
 $ sudo service docker status
 # if docker engine is not running, start it
@@ -106,7 +115,7 @@ Once running inside the Docker, you can also find this document at `/home/vizsci
 
 ### Build the Docker Image
 
-It is **NOT** necessary for the artifact evaluation to rebuild the image, but would be useful for anyone who would like to reuse and access advanced features of BioSocSys.
+It is **NOT** necessary for the artifact evaluation to rebuild the image, but would be useful for anyone who would like to reuse and access advanced features of BioSocSys. All scripts of this artifact are written in **Bash Shell**.
 
 1. Use the `setupsingledocker.sh` script from [BioSocSys's Github repository](https://github.com/TechOptionsBD/vizsciflow/blob/vizsciflowdockfull) (**vizsciflowdockfull** branch) to rebuild the Docker image from scratch on a clean **Ubuntu 20.04+ machine (compatible also with Windows 11 WSL)**.
 2. This script can also be found at `/home/vizsciflow/setupsingledocker.sh` inside the running container.
@@ -114,6 +123,8 @@ It is **NOT** necessary for the artifact evaluation to rebuild the image, but wo
 The steps for building the Docker image are outlined in the script below. Read the *echo* commands for details of the steps.
 
 ```
+#!/bin/bash
+
 echo "clone the BioSocSys branch of GitHub repository and cd into it."
 git clone 
 cd vizsciflow

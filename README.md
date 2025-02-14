@@ -102,7 +102,7 @@ Follow the below steps to start the Docker container:
 1. Run the following command to instantiate the Docker image:
 
 ```
-$ docker run -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
+$ docker run --platform linux/amd64 -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
 ```
 
 A Docker container named *vizsciflowfull* will be instantiated.
@@ -138,9 +138,9 @@ echo "Extracting modules.tar.bz2 to src/plugins..."
 sudo tar -xf modules.tar.bz2 -C ./src/plugins
 
 echo "Build docker image"
-docker build --platform=linux/amd64 --build-arg UID=`id -u` -t vizsciflowfull:latest .
+docker build --platform linux/amd64 --build-arg UID=`id -u` -t vizsciflowfull:latest .
 echo "Run the docker image as vizsciflowfull container"
-docker run -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
+docker run --platform linux/amd64 -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
 
 echo "Waiting for PostgreSQL to finish start."
 docker exec vizsciflowfull sh -c "/home/vizsciflow/wait_for_pg_ready.sh"

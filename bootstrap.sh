@@ -31,8 +31,8 @@ git pull https://$1:$2@github.com/srlabUsask/vizsciflow.git
 #mkdir ../postgres_data/
 #cp /vagrant_data/vizsciflow.sql ./postgres_data/
 
-#docker build -t vizsciflow:latest .
-#docker run --name vizsciflow -d -p 8000:5000 --rm vizsciflow:latest
+#docker build --platform linux/amd64 -t vizsciflow:latest .
+#docker run --platform linux/amd64 --name vizsciflow -d -p 8000:5000 --rm vizsciflow:latest
 /usr/local/bin/docker-compose down
 /usr/local/bin/docker-compose build
 /usr/local/bin/docker-compose up -d

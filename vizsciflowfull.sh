@@ -30,6 +30,6 @@ docker load -i $TAR_FILE_PATH
 
 # Run a container from the loaded image with the specified name and execute the run.sh script
 echo "Starting vizsciflowfull container ..."
-docker run -d -p 8000:8000 --name vizsciflowfull vizsciflowfull /bin/bash -c "cd ~/src && ./run.sh"
+docker run --platform linux/amd64 -d -p 8000:8000 --name vizsciflowfull vizsciflowfull /bin/bash -c "cd ~/src && ./run.sh"
 
 echo "Container vizsciflowfull started."

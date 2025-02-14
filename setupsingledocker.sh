@@ -50,8 +50,8 @@ sudo tar -xf modules.tar.bz2 -C ./src/plugins
 # wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1-BBnFSSRVkg0lrKEkUO7cXVkV_NhvLQa' -O workflows.sql
 
 # build docker image
-docker build --platform=linux/amd64 --build-arg UID=`id -u` -t vizsciflowfull:latest .
-docker run -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
+docker build --platform linux/amd64 --build-arg UID=`id -u` -t vizsciflowfull:latest .
+docker run --platform linux/amd64 -d -p 8000:8000 --name vizsciflowfull vizsciflowfull:latest
 
 docker exec vizsciflowfull sh -c "/home/vizsciflow/wait_for_pg_ready.sh"
 docker exec vizsciflowfull sh -c "PGPASSWORD='sr-hadoop' psql -U phenodoop -d biowl -f /home/vizsciflow/vizsciflow.sql"

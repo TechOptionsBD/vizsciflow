@@ -31,7 +31,6 @@ docker compose version
 3. Delete the src/plugins/modules folder: `rm -r ./src/plugins/modules`
 4. Download modules.tar.bz2 from this location: https://drive.google.com/drive/folders/1GWFv_NK7MPAqXO2bInA34vGk-_J4BNUI?usp=sharing
 5. Extract modules.tar.bz2 to src/plugins: `tar -xf modules.tar.bz2 -C ./src/plugins`
-6. Download vizsciflow.sql from this location: https://drive.google.com/drive/folders/1GWFv_NK7MPAqXO2bInA34vGk-_J4BNUI?usp=sharing
 7. Run id command in terminal: `id -u`
 8. Set the result to UID in .env file: `UID=10611134`
 9. Create the Docker network: `docker network create vizsciflownetwork 2>/dev/null || true`

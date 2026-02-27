@@ -21,7 +21,6 @@ docker volume prune -f
 docker compose up --build --force-recreate -d
 
 echo "Updating database schema from vizsciflow.sql..."
-docker cp vizsciflow.sql vizsciflowdb:/
 docker exec -i vizsciflowdb psql -U phenodoop -d biowl < vizsciflow.sql
 
 echo "Adding modules from src/plugins/modules to the database..."

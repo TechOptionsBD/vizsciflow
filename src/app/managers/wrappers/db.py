@@ -330,7 +330,7 @@ class RunnableManager():
     
     @staticmethod
     def runnables_of_user(user_id):
-        return Runnable.query.join(Workflow).filter(Workflow.user_id == user_id).order_by(Runnable.created_on.desc())
+        return Runnable.query.join(Workflow).filter(Runnable.user_id == user_id).order_by(Runnable.created_on.desc())
 
     @staticmethod
     def get_task_logs(task_id):

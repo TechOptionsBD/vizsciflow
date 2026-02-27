@@ -1,5 +1,5 @@
 # vizsciflow
-VizSciFlow is a scientific workflow management system. It provides a domain-specific language (DSL) for specifying the workflow model. Developers need Linux or WSL 2 on Windows to setup the development system locally.
+BioSocSys is a scientific workflow management system. It provides a domain-specific language (DSL) for specifying the workflow model. Developers need Linux or WSL 2 on Windows to setup the development system locally.
 
 *******
 quick install:
@@ -47,7 +47,7 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 8. Run id command in terminal: id -u
 9. Set the result to UID in .env file: UID=10611134
 10. Build the docker: sudo docker-compose up -d
-11. Browse localhost:5000. You should see first screen of VizSciFlow.
+11. Browse localhost:5000. You should see first screen of BioSocSys.
 12. Copy vizsciflow.sql file to vizsciflowdb docker: docker cp vizsciflow.sql vizsciflowdb:/
 13. Shell into the vizsciflowdb docker. docker exec -it vizsciflowdb /bin/bash
 14. Restore the database from vizsciflow.sql inside vizsciflowdb shell:  psql -U phenodoop -d biowl < vizsciflow.sql

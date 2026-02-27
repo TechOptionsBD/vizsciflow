@@ -1,5 +1,3 @@
-version: '3.8'
-
 #
 # Common vizsciflow template for web and Celery services below
 #

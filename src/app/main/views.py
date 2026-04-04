@@ -58,6 +58,12 @@ def server_shutdown():
     shutdown()
     return 'Shutting down...'
 
+@main.route('/dashboard/<username>')
+@login_required
+def dashboard(username):
+    user = usermanager.get_by_username(username)
+    return render_template('dashboard.html', user=user)
+
 @main.route('/user/<username>')
 def user(username):
     user = usermanager.get_by_username(username)

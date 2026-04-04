@@ -2622,4 +2622,6 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 
 \unrestrict vp5AOohTfP0QlBHRKlwLxgU0ZvJIIGcfIRifX0CRPw6P5tWG5nRdSyv6LBOCUyC
 
+INSERT INTO public.roles VALUES (1,'testuser',true,1);
+
 INSERT INTO public.users VALUES (1,'testuser@usask.ca','testuser','1','pbkdf2:sha256:150000$BCC6pJsI$a1e4a68efc4d02e6d718e2de8d7d6e7d74dd39bb00cbdd96d9628694a94ec2f6',true,NULL,NULL,NULL,'2022-08-31 16:44:26.085489','2025-04-29 18:20:00.078789','d13bd861fa052670527a8bd372a9fb24','0');

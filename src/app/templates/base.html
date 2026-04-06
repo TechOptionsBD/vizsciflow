@@ -29,7 +29,7 @@
                 <!-- <li><a href="{{ url_for('main.index') }}">Home</a></li> -->
                 {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('main.user', username=current_user.username) }}">Profile</a></li>
-                <li><a href="{{ url_for('main.dashboard', username=current_user.username) }}">Dashboard</a></li>
+                <li><a href="{{ url_for('game.dashboard') }}">Dashboard</a></li>
                 <!-- <li class="dropdown" id="layoutSelection">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Layout <b class="caret"></b></a>
 

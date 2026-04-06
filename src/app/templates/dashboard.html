@@ -13,16 +13,21 @@
 </div>
 
 <div>
-    <h3>Level: {{ "Novice" }}</h3>
+    <h3>Level: {{ user_level }}</h3>
 </div>
 
 <div id="progress-bar-container">
-    <label id="progress-bar-label" for="progress-bar">Progress: [{{ "0/100 pts" }}]</label>
-    <meter id="progress-bar" value="0" min="0" max="100" ></meter>
+    <label id="progress-bar-label" for="progress-bar">
+        Progress: [{{ points_entry_latest }}/100 pts]
+    </label>
+    <meter
+        id="progress-bar" value="{{ points_entry_latest }}"
+        min="0" max="100" >
+    </meter>
 </div>
 
 <div>
-    <h3>Streak: {{ "0 Days" }}</h3>
+    <h3>Streak: {{ streak }} Days</h3>
 </div>
 
 {% endblock %}

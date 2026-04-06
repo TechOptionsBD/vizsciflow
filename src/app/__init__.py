@@ -32,7 +32,7 @@ login_manager.login_view = 'auth.login'
 
 def create_app(config_name):
     app = Flask(__name__)
-    
+
     CORS(app)
     app.config['CORS_HEADERS'] = 'Content-Type'
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024 * 1024 # 2GB upload limit
@@ -55,7 +55,7 @@ def create_app(config_name):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     pagedown.init_app(app)
-    
+
     # if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
     #     from flask_sslify import SSLify
     #     sslify = SSLify(app)
@@ -68,6 +68,9 @@ def create_app(config_name):
 
     from .api_1_0 import api as api_1_0_blueprint
     app.register_blueprint(api_1_0_blueprint, url_prefix='/api/v1.0')
+
+    from .game import game as game_blueprint
+    app.register_blueprint(game_blueprint)
 
     return app
 

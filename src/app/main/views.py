@@ -147,7 +147,7 @@ def post(id):
 def workflow(id):
     workflow = workflowmanager.get_or_404(id)
     return render_template('workflow.html', workflows=[workflow])
-                           
+
 @main.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit(id):
@@ -280,7 +280,7 @@ def moderate_enable(id):
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate_disable(id):
     return json.dumps('')
-    
+
 #     comment = Comment.query.get_or_404(id)
 #     comment.disabled = True
 #     db.session.add(comment)
@@ -345,7 +345,7 @@ def load_default_data_sources():
                 user_folder = fs.join(ds.user, current_user.username)
                 if not fs.exists(user_folder):
                     fs.makedirs(user_folder)
-                    
+
                 if fs.exists(user_folder):
                     users_json = fs.make_json_item(ds.user)
                     if 'children' in datasource.keys() and not isinstance(datasource['children'], list):
@@ -354,10 +354,10 @@ def load_default_data_sources():
                     if 'children' in users_json.keys() and not isinstance(users_json['children'], list):
                         users_json['children'] = [] # switch children from boolean to list
                     users_json['children'].append(fs.make_json(user_folder))
-                        
+
             if ds.public and fs.exists(ds.public):
                 if 'children' in datasource.keys() and not isinstance(datasource['children'], list):
-                    datasource['children'] = [] # switch children from boolean to list    
+                    datasource['children'] = [] # switch children from boolean to list
                 datasource['children'].append(fs.make_json(ds.public))
 
             if ds.temp and not fs.exists(ds.temp):
@@ -366,7 +366,7 @@ def load_default_data_sources():
             datasource_tree.append(datasource)
         except Exception as e:
             logging.error("Filesystem {0} load fails with error: {1}".format(ds.name, str(e)))
-        
+
     return datasource_tree
 
 def load_data_sources_biowl(recursive):
@@ -388,12 +388,12 @@ def load_data_sources_biowl(recursive):
                 user_folder = fs.join(ds.user, current_user.username)
                 if not fs.exists(user_folder):
                     fs.makedirs(user_folder)
-                    
+
                 if fs.exists(user_folder):
                     users_json = fs.make_json_item(ds.user)
                     datasource['children'].append(users_json)
                     users_json['children'].append(fs.make_json_r(user_folder) if recursive else fs.make_json(user_folder))
-                        
+
             if ds.public and fs.exists(ds.public):
                 datasource['children'].append(fs.make_json_r(ds.public) if recursive else fs.make_json(ds.public))
 
@@ -403,7 +403,7 @@ def load_data_sources_biowl(recursive):
             datasource_tree.append(datasource)
         except Exception as e:
             logging.error("Filesystem {0} load fails with error: {1}".format(ds.name, str(e)))
-        
+
     return datasource_tree
 
 def download_biowl(path):
@@ -438,13 +438,13 @@ def get_filedata(path):
         return send_file(io.BytesIO(file_binary), mimetype=mime, as_attachment=True, download_name=os.path.basename(path))
 
 def upload_biowl(file, request):
-    
-    fullpath = request.form['path'] 
+
+    fullpath = request.form['path']
     fs = Utility.fs_by_prefix_or_guess(fullpath)
     saved_path = fs.save_upload(file, fullpath)
     if not fs.isfile(saved_path):
         return saved_path
-    
+
     if request.form.get('filename'):
         newpath = fs.join(fs.dirname(saved_path), request.form['filename'])
         saved_path = fs.rename(saved_path, newpath)
@@ -452,9 +452,9 @@ def upload_biowl(file, request):
     ds = Utility.ds_by_prefix_or_root(saved_path)
     if not ds:
         return saved_path
-       
+
     data_alloc = datamanager.add_allocation(current_user.id, ds.id, saved_path, AccessRights.Owner)
-        
+
     # if request.form.get('visualizer'):
     #     dbvisualizer = None
     #     if request.form.get('visualizer'):
@@ -463,13 +463,13 @@ def upload_biowl(file, request):
     #             dbvisualizer = Visualizer.add(k, v)
     #             if dbvisualizer:
     #                 DataVisualizer.add(data_alloc.id, dbvisualizer.id)
-        
+
     # if request.form.get('annotations'):
     #     annotations = request.form['annotations']
     #     annotations = annotations.split(',')
     #     for annotation in annotations:
     #         DataAnnotation.add(data_alloc.id, annotation)
-            
+
     # if request.form.get('mimetype'):
     #     dbmimetype = None
     #     if request.form.get('mimetype'):
@@ -478,13 +478,13 @@ def upload_biowl(file, request):
     #             dbmimetype = MimeType.add(k, v)
     #             if dbmimetype:
     #                 DataMimeType.add(data_alloc.id, dbmimetype.id)
-    
+
     return saved_path
 
 @app.context_processor
 def inject_debug():
     return dict(debug=app.debug)
-   
+
 @main.route('/biowl', methods=['GET', 'POST'])
 @main.route('/', methods = ['GET', 'POST'])
 #@login_required
@@ -500,16 +500,16 @@ def sizeof_fmt(num, suffix='B'):
 
 def load_metadataproperties():
     visualizers = {'browsers': 'all'}
-    
+
     datamimetypes = {}
     for m in mimetypes.types_map.items():
         datamimetypes[m[0]] = m[1]
-    
+
     return { 'visualizers': visualizers, 'mimetypes': datamimetypes}
 
 def load_metadata(path):
     metadata = {}
-    
+
     # user must have at least read access
     datamanager.check_access_rights(current_user.id, path, AccessRights.Read)
 
@@ -517,11 +517,11 @@ def load_metadata(path):
     fs = Utility.fs_by_prefix_or_guess(path)
     if not fs:
         return None
-    
+
     datatype = "DataType.File" if fs.isfile(path) else "DataType.Folder"
     if not path.startswith('/'):
         path = '/' + path
-    
+
     # access rights in string
     accessRights = datamanager.access_rights_to_string(current_user.id, path)
 
@@ -537,16 +537,16 @@ def load_metadata(path):
                 rights = AccessRights.Write
             else:
                 rights = AccessRights.Read
-    
+
         if rights == AccessRights.NotSet:
             return None
-    
+
     statinfo = os.stat(fs.normalize_path(path))
-        
+
     metadata['sysprops'] = {'Name': fs.basename(path), 'Path': fs.dirname(path), 'Type': datatype, 'Size': sizeof_fmt(statinfo.st_size), 'Accessed on': time.ctime(statinfo.st_atime), 'Modified on': time.ctime(statinfo.st_mtime), 'Created on': time.ctime(statinfo.st_ctime), 'Permissions': accessRights}
-    
+
     data_alloc = datamanager.add_allocation(current_user.id, ds.id, path, AccessRights.Read)
-            
+
     metadata['mimetypes'] = {}
     if data_alloc:
         metadatadb = data_alloc.visualizers
@@ -554,7 +554,7 @@ def load_metadata(path):
         for m in metadatadb:
             visualizers.update({ m.name: m.desc })
         metadata['visualizers'] = visualizers
-        
+
         metadatadb = data_alloc.annotations
         annotations = {}
         index = 1
@@ -562,31 +562,31 @@ def load_metadata(path):
             annotations.update({ str(index): m.tag})
             index += 1
         metadata['annotations'] = annotations
-        
+
         metadatadb = data_alloc.mimetypes
         dbmimetypes = {}
         for m in metadatadb:
             dbmimetypes.update({ m.name: m.desc })
-        
+
         if not dbmimetypes:
             for g in mimetypes.guess_type(path):
                 dbmimetypes.update({ g: g })
-                          
+
         metadata['mimetypes'] = dbmimetypes
-        
+
         metadatadb = data_alloc.properties
         properties = {}
         for m in metadatadb:
             properties.update({ m.key: m.value })
         metadata['properties'] = properties
-    
+
     return metadata
 
 def save_metadata(request):
     try:
         path = request.form.get('save')
         newname = request.form.get('filename')
-        
+
         fs = Utility.fs_by_prefix_or_guess(path)
         if not fs:
             raise ValueError("path not found")
@@ -594,44 +594,44 @@ def save_metadata(request):
         return jsonify(path=newpath)
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
-#     
+#
 # def save_metadata(request):
 #     path = request.form.get('save')
 #     newname = request.form.get('filename')
-    
+
 #     ds = Utility.ds_by_prefix_or_default(path)
 #     data = datamanager.get_allocation_by_url(ds.id, path)
-    
+
 #     fs = Utility.fs_by_prefix_or_guess(path)
 #     if not fs:
 #         raise ValueError("path not found")
 #     newpath = fs.rename(path, newname)
 #     if path != newpath:
 #         data.update_url(newpath)
-#         path = newpath    
+#         path = newpath
 
 #     datamanager.check_access_rights(current_user.id, path, AccessRights.Read)
-    
-#     if request.form.get('visualizers'):    
+
+#     if request.form.get('visualizers'):
 #         visualizers = json.loads(request.form.get('visualizers'))
 #         for name, desc in visualizers.items():
 #             visualizer = Visualizer.add(name, desc)
 #             if visualizer:
 #                 DataVisualizer.add(data.id, visualizer.id)
-    
-#     if request.form.get('annotations'):    
+
+#     if request.form.get('annotations'):
 #         annotations = json.loads(request.form.get('annotations'))
 #         for name, desc in annotations.items():
 #             DataAnnotation.add(data.id, desc)
-    
-#     if request.form.get('mimetypes'):    
+
+#     if request.form.get('mimetypes'):
 #         mimetypes = json.loads(request.form.get('mimetypes'))
 #         for name, desc in mimetypes.items():
 #             mimetype = MimeType.add(name, desc)
 #             if mimetype:
 #                 DataMimeType.add(data.id, mimetype.id)
-                
-#     if request.form.get('properties'):    
+
+#     if request.form.get('properties'):
 #         properties = json.loads(request.form.get('properties'))
 #         for name, desc in properties.items():
 #             DataProperty.add(data.id, name, desc)
@@ -641,7 +641,7 @@ def search_and_filter(filters, path):
     filters = filters if not filters or type(filters) is list else [filters]
     selected_filters = [f for f in filters if f["selected"]]
     filtermanager.add_history(current_user.id, json.dumps(selected_filters))
-    
+
     fs = Utility.fs_by_prefix_or_guess(path)
     return FilterManager.listdirR(fs, path, filters)
 
@@ -670,7 +670,7 @@ def delete_filter(filter_id):
 #     jsondatasets = []
 #     for d in datasets:
 #         jsondatasets.append(d.to_json())
-        
+
 #     return jsonify(datasets = jsondatasets)
 
 # def save_datasets(schema):
@@ -678,7 +678,7 @@ def delete_filter(filter_id):
 #     #schemadic = {}
 #     #for s in schema:
 #      #   schemadic.update({s['name']: s['value']})
-            
+
 #     dataset = Dataset.add(schema)
 #     return jsonify(dataset = dataset.to_json())
 
@@ -714,14 +714,14 @@ def filters():
 @login_required
 def datasets():
     return json.dumps('')
-    
+
 #     if request.args.get("save"):
 #         return save_datasets(request.args.get("save"))
 #     elif request.args.get("delete"):
 #         return delete_datasets(request.args.get("delete"))
 #     elif request.args.get("update"):
 #         return update_datasets(request.args.get("update_id"), request.args.get("update"))
-    
+
 #     return load_datasets()
 
 @main.route('/metadata', methods=['GET', 'POST'])
@@ -752,7 +752,7 @@ def datasources():
         elif 'filecontent' in request.args:
             return get_filecontent(request.args.get('filecontent'))
         elif 'file_data' in request.args:
-            return get_filedata(request.args.get('file_data'))    
+            return get_filedata(request.args.get('file_data'))
         elif request.files and request.files['upload']:
             return json.dumps({'path' : upload_biowl(request.files['upload'], request)})
         elif request.args.get('addfolder'):
@@ -776,7 +776,7 @@ def datasources():
             return json.dumps(fs.make_json_r(request.args['load']) if request.args.get('recursive') and str(request.args.get('recursive')).lower()=='true' else fs.make_json(request.args['load']))
         elif 'children' in request.args:
             return json.dumps(load_child_data_sources(request.args['children']))
-            
+
         return json.dumps({'datasources': load_data_sources_biowl(request.args.get('recursive') and request.args.get('recursive').lower() == 'true') })
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
@@ -799,19 +799,19 @@ class Samples():
                     all_samples.extend(samples if isinstance(samples, list) else [samples])
             #all_samples = {**all_samples, **samples}
         return all_samples
-    
+
     @staticmethod
     def load_samples_recursive(library_def_file, user, access):
         if os.path.isfile(library_def_file):
             return Samples.load_samples(library_def_file, user, access)
-        
+
         all_samples = []
         for f in os.listdir(library_def_file):
             samples = Samples.load_samples_recursive(os.path.join(library_def_file, f), user, access)
             all_samples.extend(samples if isinstance(samples, list) else [samples])
             #all_samples = {**all_samples, **samples}
         return all_samples
-       
+
     @staticmethod
     def load_samples(sample_def_file, user, access):
         samples = []
@@ -833,8 +833,8 @@ class Samples():
                             samples.append(ds)
         finally:
             return samples
-    
-    
+
+
     @staticmethod
     def make_fn(path, prefix, ext, suffix):
         path = os.path.join(path, '{0}'.format(prefix))
@@ -843,7 +843,7 @@ class Samples():
         if ext:
             path = '{0}.{1}'.format(path, ext)
         return path
-    
+
     @staticmethod
     def unique_filename(path, prefix, ext):
         uni_fn = Samples.make_fn(path, prefix, ext, '')
@@ -853,19 +853,19 @@ class Samples():
             uni_fn = Samples.make_fn(path, prefix, ext, i)
             if not os.path.exists(uni_fn):
                 return uni_fn
-    
+
     @staticmethod
     def jsonify_script(script):
         return script
         #return script.replace("\\n", "\n").replace("\r\n", "\n").replace("\"", "\'").split("\n") #TODO: double quote must be handled differently to allow  "x='y'"
 
     @staticmethod
-    def create_workflow(user, id, name, desc, script, params, returns, access, users, temp, derived = 0):        
+    def create_workflow(user, id, name, desc, script, params, returns, access, users, temp, derived = 0):
         if id:
             workflow = workflowmanager.first(id = id)
             if workflow:
                 return workflow.update(user_id=user, name=name, desc=desc, script=script, params=params, returns=returns, access=access, users=users, temp=temp, derived=derived)
-        
+
         if script and name:
             return workflowmanager.create(user_id=user, name=name, desc=desc if desc else '', script=script, params=params, returns=returns, access=access, users=users, temp=temp, derived=derived)
 
@@ -888,14 +888,14 @@ Used for saving workflow into the filesystem instead of in the database
         try:
             if sample and name:
                 new_path = os.path.join(samplesdir, 'users', current_user.username)
-                new_path = os.path.normpath(new_path)    
+                new_path = os.path.normpath(new_path)
                 if not os.path.isdir(new_path):
                     os.makedirs(new_path)
-                
+
                 path = Samples.unique_filename(new_path, name, 'json')
-                
+
                 access = 1 if shared and shared.lower() == 'true' else 2
-                        
+
                 with open(path, 'w') as fp:
                     fp.write("{\n")
                     fp.write('{0}"name":"{1}",\n'.format(" " * 4, name))
@@ -919,35 +919,35 @@ def workflow_compare(workflow1, workflow2):
         from app.objectmodel.provmod.provobj import View, Run
         from ..managers.runmgr import runnablemanager
         from difflib import ndiff
-        
+
         graph1 = generate_graph_from_workflow(workflow1)
         graph2 = generate_graph_from_workflow(workflow2)
         view = {"graph": [graph1, graph2] }
-        
+
         workflow = workflowmanager.first(id=workflow1)
         wf_script1 = workflow.script
         node1 = runnablemanager.create_runnable(current_user.id, workflow1, wf_script1, provenance=True, args=None)
-        
+
         workflow = workflowmanager.first(id=workflow2)
         wf_script2 = workflow.script
         node2 = runnablemanager.create_runnable(current_user.id, workflow2, wf_script2, provenance=True, args=None)
         view['compare'] = [View.compare(Run(runItem = node1), Run(runItem = node2))]
-        
-        diff = ndiff(wf_script1, wf_script2)              
+
+        diff = ndiff(wf_script1, wf_script2)
         diff = '\n'.join(list(diff))
         view['textcompare'] = [diff]
-        
+
         return json.dumps({"view": view})
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
-    
+
 def workflow_rev_compare(request):
     try:
         from ..jobs import generate_graph
         from app.objectmodel.provmod.provobj import View
-        
+
         workflow = workflowmanager.get_or_404(request.args.get('revcompare'))
-        
+
         revision1_script = workflow.revision_by_commit(request.args.get('revision1'))
         revision2_script = workflow.revision_by_commit(request.args.get('revision2'))
         graph1 = generate_graph(workflow.id, workflow.name, revision1_script)
@@ -955,7 +955,7 @@ def workflow_rev_compare(request):
         return json.dumps(View.compare(graph1, graph2))
     except Exception as e:
         return make_response(jsonify(err=str(e)), 500)
-    
+
 @main.route('/samples', methods=['GET', 'POST'])
 @login_required
 def samples():
@@ -980,7 +980,7 @@ def samples():
             return json.dumps(workflow.revisions)
         elif request.args.get('tooltip'):
             workflow = workflowmanager.get_or_404(request.args.get('tooltip'))
-            return json.dumps(workflow.to_json_tooltip())   
+            return json.dumps(workflow.to_json_tooltip())
         elif 'workflow_id' in request.args:
             workflow_id = request.args.get("workflow_id")
             if 'confirm' in request.args:
@@ -988,13 +988,13 @@ def samples():
                     workflowmanager.remove(current_user.id, workflow_id)
                     return json.dumps({'return':'deleted'})
             else:
-                removable = workflowmanager.can_remove(current_user.id, workflow_id) 
-                if removable:  
+                removable = workflowmanager.can_remove(current_user.id, workflow_id)
+                if removable:
                     return json.dumps({'return':'not_shared'})
                 else:
                     return json.dumps({'return':'shared'})
             return json.dumps({'return':'error'})
-        
+
         access = int(request.args.get('access')) if request.args.get('access') else 0
         return json.dumps({'samples': convert_to_safe_json(workflowmanager.get_workflows_as_list(access, current_user))})
     except Exception as e :
@@ -1009,21 +1009,21 @@ def webhook():
     gitdir = os.path.join(target, '.git')
     # branch name to checkout
     branch = 'master'
-    
+
     func_exec_stdout(os.path.join(target, 'pullwebhook.sh'), '{0} {1} {2} '.format(target, gitdir, branch))
     return json.dumps({})
 
 def load_listview_datasets(user_id, page, no_of_item):
     """
-    Load list view of Datasets with basic information  
-    
+    Load list view of Datasets with basic information
+
     """
     return datamanager.load_listview_datasets(user_id, page, no_of_item)
 
 def load_plugin_datasets(request):
     """
-    Load plugin Datasets. 
-    
+    Load plugin Datasets.
+
     """
     try:
         page = int(request.args.get("pageNum")) if request.args.get("pageNum") else 1
@@ -1045,11 +1045,11 @@ def custom_date_serializer(obj):
     if isinstance(obj, (datetime)):
         return obj.isoformat()
     raise TypeError ("Type %s not serializable" % type(obj))
-    
+
 def load_plugin_data(dataset_id, data_id, page_num):
     """
-    Load plugin data for VizSciFlow. 
-    
+    Load plugin data for VizSciFlow.
+
     """
     try:
         data =  datamanager.load_dataset_data_for_plugin(current_user.id, dataset_id, data_id, page_num)
@@ -1066,6 +1066,6 @@ def loadPluginData():
 def loadActivities():
     if request.args.get("id"):
         return json.dumps(activitymanager.first(id=int(request.args.get("id"))).to_json())
-    
+
     activities = activitymanager.get_last_modified_n(n = 10, user_id = current_user.id)
     return json.dumps([activity.json() for activity in activities])

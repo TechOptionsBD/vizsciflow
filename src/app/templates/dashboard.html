@@ -13,8 +13,16 @@
 </div>
 
 <div>
-    <label for="progress-bar">Progress</label>
+    <h3>Level: {{ "Novice" }}</h3>
+</div>
+
+<div id="progress-bar-container">
+    <label id="progress-bar-label" for="progress-bar">Progress: [{{ "0/100 pts" }}]</label>
     <meter id="progress-bar" value="0" min="0" max="100" ></meter>
+</div>
+
+<div>
+    <h3>Streak: {{ "0 Days" }}</h3>
 </div>
 
 <!--

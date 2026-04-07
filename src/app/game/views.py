@@ -7,11 +7,14 @@ from .fetch import points_entry_latest, user_level, streak
 @login_required
 def dashboard():
     user = current_user.username
+    points = points_entry_latest(user)
+    level = user_level(points)
+    streak_days = streak(user)
     return render_template(
         'dashboard.html',
         user=user,
-        points_entry_latest=points_entry_latest(user),
-        user_level=user_level(),
-        streak=streak()
+        points_entry_latest=points,
+        user_level=level,
+        streak=streak_days
     )
 

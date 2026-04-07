@@ -15,7 +15,7 @@ def dashboard():
     return render_template(
         'dashboard.html',
         user=user,
-        points_entry_latest=points,
+        points_entry_latest=(points % 100),
         user_level=level,
         streak=streak_days,
         max_streak=max_streak_days

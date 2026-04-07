@@ -11,6 +11,7 @@
 CREATE TABLE public.game_points (
     id integer NOT NULL,
     user_id integer NOT NULL,
+    points integer NOT NULL,
     title text,
     record_time timestamp without time zone
 );

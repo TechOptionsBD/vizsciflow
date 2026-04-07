@@ -12,22 +12,30 @@
     <h1>Progress Dashboard</h1>
 </div>
 
-<div>
-    <h3>Level: {{ user_level }}</h3>
+
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h2>Level: {{ user_level }}</h2>
+    </div>
+    <div class="panel-body">
+        <label id="progress-bar-label" for="progress-bar">
+            Progress: [{{ points_entry_latest }}/100 pts]
+        </label>
+        <meter
+            id="progress-bar" value="{{ points_entry_latest }}"
+            min="0" max="100" >
+        </meter>
+    </div>
 </div>
 
-<div id="progress-bar-container">
-    <label id="progress-bar-label" for="progress-bar">
-        Progress: [{{ points_entry_latest }}/100 pts]
-    </label>
-    <meter
-        id="progress-bar" value="{{ points_entry_latest }}"
-        min="0" max="100" >
-    </meter>
-</div>
-
-<div>
-    <h3>Streak: {{ streak }} Days</h3>
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h2>Streak</h2>
+    </div>
+    <div class="panel-body">
+        <h4>{{ streak }}-Day Streak</h4>
+        <h4>Longest Streak: {{ max_streak }} days</h4>
+    </div>
 </div>
 
 {% endblock %}

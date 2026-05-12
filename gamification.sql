@@ -11,6 +11,7 @@
 CREATE TABLE public.game_points (
     id integer NOT NULL,
     user_id integer NOT NULL,
+    mission_id integer NOT NULL,
     points integer NOT NULL,
     title text,
     record_time timestamp without time zone
@@ -28,7 +29,7 @@ CREATE TABLE public.game_usage_history (
     record_time date
 );
 
-ALTER TABLE public.game_points OWNER TO phenodoop;
+ALTER TABLE public.game_usage_history OWNER TO phenodoop;
 
 \unrestrict vp5AOohTfP0QlBHRKlwLxgU0ZvJIIGcfIRifX0CRPw6P5tWG5nRdSyv6LBOCUyC
 

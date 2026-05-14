@@ -15,7 +15,10 @@ def points_entry_latest(username):
     result = db.engine.execute(command, {"id": user_id})
     rows = result.mappings()
     row = rows.first()
-    points = row["points"]
+    try:
+        points = row["points"]
+    except TypeError:
+        points = 0
     return points
 
 def points_entry_all():

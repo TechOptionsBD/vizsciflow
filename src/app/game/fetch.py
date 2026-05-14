@@ -65,3 +65,21 @@ def max_streak(rows):
             max_streak_days = streak
     return max_streak_days
 
+def get_missions():
+    missions_tmp = [{
+        "id": 1,
+        "completed": True,
+        "title": "sample title 1",
+        "description": "sample description 1",
+        "tutorial": "sample tutorial 1",
+        "points": 5
+    }, {
+        "id": 2,
+        "completed": False,
+        "title": "sample title 2",
+        "description": "sample description 2",
+        "tutorial": "sample tutorial 2",
+        "points": 5
+    }]
+    return missions_tmp
+

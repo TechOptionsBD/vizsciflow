@@ -137,7 +137,7 @@ function DatasetPluginViewModel(scidatapath, datasetCtrlParam, buildPath) {
 
   self.beginUpdateMetadata = function () {
     if (!self.selectedPath)
-      reuturn;
+      return;
     metadataViewModel.load(self.selectedPath);
     $('#update-metadata-dialog').modal('show');
   }

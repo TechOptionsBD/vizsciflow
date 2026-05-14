@@ -38,4 +38,36 @@
     </div>
 </div>
 
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <h2>Missions</h2>
+    </div>
+    <div class="panel-body table-responsive">
+		<table class="table table-bordered">
+			<thead>
+				<tr class="row">
+					<th>Completed</th>
+					<th>ID</th>
+					<th>Title</th>
+					<th>Description</th>
+					<th>Tutorial</th>
+					<th>Points Value</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for mission in missions %}
+				<tr class="row">
+					<td>{{ mission.get("completed") }}</td>
+					<td>{{ mission.get("id") }}</td>
+					<td>{{ mission.get("title") }}</td>
+					<td>{{ mission.get("description") }}</td>
+					<td>{{ mission.get("tutorial") }}</td>
+					<td>{{ mission.get("points") }}</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+    </div>
+</div>
+
 {% endblock %}

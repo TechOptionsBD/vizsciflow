@@ -16,7 +16,7 @@ def points_entry_latest(username):
     rows = result.mappings()
     row = rows.first()
     try:
-        points = row["points"]
+        points = row["cumulative_points"]
     except TypeError:
         points = 0
     return points

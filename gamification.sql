@@ -36,7 +36,6 @@ ALTER TABLE public.game_usage_history OWNER TO phenodoop;
 
 CREATE TABLE public.game_missions (
     id integer PRIMARY KEY,
-    completed boolean,
     points int,
     title text,
     description text,

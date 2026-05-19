@@ -1,4 +1,5 @@
 from .. import db
+from .managers import *
 from datetime import datetime
 
 def get_user_id(username):
@@ -11,14 +12,7 @@ def get_user_id(username):
 
 def points_entry_latest(username):
     user_id = get_user_id(username)
-    command = "SELECT * FROM game_points WHERE user_id = %(id)s ORDER BY record_time DESC LIMIT 1;"
-    result = db.engine.execute(command, {"id": user_id})
-    rows = result.mappings()
-    row = rows.first()
-    try:
-        points = row["cumulative_points"]
-    except TypeError:
-        points = 0
+    points = GamePointsManager.retrieve_cumulative_points(user_id)
     return points
 
 def points_entry_all():

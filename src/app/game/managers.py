@@ -14,5 +14,12 @@ class GamePointsManager():
         return row.cumulative_points
 
 class GameUsageHistoryManager():
-    pass
+    @staticmethod
+    def retrieve_usage_history(user_id):
+        rows = (
+            GameUsageHistory.query
+            .filter_by(user_id = user_id)
+            .order_by(GameUsageHistory.record_time.desc())
+        )
+        return rows.all()
 

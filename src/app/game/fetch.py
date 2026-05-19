@@ -28,17 +28,16 @@ def user_level(points):
 
 def usage_history(username):
     user_id = get_user_id(username)
-    command = "SELECT * FROM game_usage_history WHERE user_id = %(id)s ORDER BY record_time DESC;"
-    result = db.engine.execute(command, {"id": user_id})
-    rows = result.mappings().all()
-    return rows
+    return GameUsageHistoryManager.retrieve_usage_history(user_id)
 
 def consecutive(d1, d2):
-    d1 = d1["record_time"].toordinal()
-    d2 = d2["record_time"].toordinal()
+    d1 = d1.record_time.toordinal()
+    d2 = d2.record_time.toordinal()
     return d2 - d1 == 1
 
 def streak(rows):
+    if len(rows) == 0:
+        return 0
     i = 1
     while i < len(rows):
         if not consecutive(rows[i], rows[i - 1]):
